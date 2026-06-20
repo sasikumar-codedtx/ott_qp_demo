@@ -1,0 +1,15 @@
+.DS_Store
+
+# Local build artifacts
+build/
+DerivedData/
+*.log
+
+# Temporary API/Figma inspection files
+.tmp-*.json
+.tmp-*.png
+.tmp-*.jpg
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
