@@ -12,18 +12,21 @@ struct ContentDetailView: View {
     ]
 
     var body: some View {
-        content
-            .task(id: viewModel.requestKey) {
-                await viewModel.loadIfNeeded()
-            }
+        GeometryReader { proxy in
+            content(topInset: proxy.safeAreaInsets.top, width: proxy.size.width)
+                .ignoresSafeArea(edges: .top)
+                .task(id: viewModel.requestKey) {
+                    await viewModel.loadIfNeeded()
+                }
+        }
     }
 
     @ViewBuilder
-    private var content: some View {
+    private func content(topInset: CGFloat, width: CGFloat) -> some View {
         if let detail = viewModel.detail {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 0) {
-                    hero(detail)
+                    hero(detail, topInset: topInset, width: width)
                     detailContent(detail)
                 }
                 .padding(.bottom, UIConstants.Spacing.xl)
@@ -41,11 +44,13 @@ struct ContentDetailView: View {
         }
     }
 
-    private func hero(_ detail: ContentDetail) -> some View {
-        ZStack(alignment: .top) {
+    private func hero(_ detail: ContentDetail, topInset: CGFloat, width: CGFloat) -> some View {
+        let heroHeight = 362 + topInset
+
+        return ZStack(alignment: .top) {
             PosterImageView(
                 url: detail.imageURL(for: "0-16x9", width: 1400),
-                size: CGSize(width: UIScreen.main.bounds.width, height: 362),
+                size: CGSize(width: width, height: heroHeight),
                 cornerRadius: 0
             )
 
@@ -57,13 +62,9 @@ struct ContentDetailView: View {
                         endPoint: .bottom
                     )
                 )
-                .frame(height: 362)
+                .frame(height: heroHeight)
 
             VStack(spacing: 0) {
-                StatusBarView()
-                    .padding(.horizontal, UIConstants.Spacing.xl)
-                    .padding(.top, UIConstants.Spacing.sm + 2)
-
                 HStack {
                     Button(action: onBack) {
                         topButton(icon: AppIcons.Navigation.back)
@@ -78,7 +79,7 @@ struct ContentDetailView: View {
                     }
                 }
                 .padding(.horizontal, UIConstants.Spacing.lg)
-                .padding(.top, UIConstants.Spacing.xs)
+                .padding(.top, topInset + UIConstants.Spacing.xs)
 
                 Spacer()
 
@@ -89,7 +90,7 @@ struct ContentDetailView: View {
                     .padding(.horizontal, UIConstants.Spacing.xl)
                     .padding(.bottom, 34)
             }
-            .frame(height: 362)
+            .frame(height: heroHeight)
         }
     }
 

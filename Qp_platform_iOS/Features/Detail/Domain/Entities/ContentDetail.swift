@@ -7,7 +7,7 @@ struct ContentPerson: Identifiable, Equatable, Hashable {
 
     func imageURL(width: Int) -> URL? {
         guard imageRatios.contains("0-1x1") else { return nil }
-        return URL(string: "\(AppEnvironment.Endpoint.imageBaseURL)/image/\(id)/0-1x1.png?width=\(width)")
+        return URL(string: "\(AppEnvironment.Endpoint.fallbackImageBaseURL)/image/\(id)/0-1x1.png?width=\(width)")
     }
 }
 
@@ -34,7 +34,7 @@ struct ContentDetail: Equatable {
             ? ratio
             : (availableRatios.first(where: { $0 == "0-16x9" || $0 == "11-16x9" || $0 == "0-2x3" || $0 == "0-1x1" }) ?? ratio)
 
-        return URL(string: "\(AppEnvironment.Endpoint.imageBaseURL)/image/\(id)/\(resolvedRatio).png?width=\(width)")
+        return URL(string: "\(AppEnvironment.Endpoint.fallbackImageBaseURL)/image/\(id)/\(resolvedRatio).png?width=\(width)")
     }
 
     var metaLine: String {
@@ -43,7 +43,7 @@ struct ContentDetail: Equatable {
         return parts.joined(separator: " • ").uppercased()
     }
 
-    static func formatRuntime(seconds: Int) -> String {
+    nonisolated static func formatRuntime(seconds: Int) -> String {
         let hours = seconds / 3600
         let minutes = (seconds % 3600) / 60
         return hours > 0 ? "\(hours)H \(minutes)M" : "\(minutes)M"

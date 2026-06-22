@@ -8,69 +8,24 @@ protocol ProfileDataSourceProtocol {
 
 @MainActor
 final class ProfileMockDataSource: ProfileDataSourceProtocol {
-    private var profiles: [ProfileDTO] = [
-        ProfileDTO(
-            id: UUID(uuidString: "11111111-1111-1111-1111-111111111111") ?? UUID(),
-            name: "Hike",
-            imageName: "profile-hike-main",
-            birthDate: nil,
-            gender: .male,
-            preferredContent: [.hindi, .english],
-            isKidsProfile: false,
-            showOnSelection: true
-        ),
-        ProfileDTO(
-            id: UUID(uuidString: "22222222-2222-2222-2222-222222222222") ?? UUID(),
-            name: "Akash",
-            imageName: "profile-akash",
-            birthDate: nil,
-            gender: .male,
-            preferredContent: [.english, .tamil],
-            isKidsProfile: false,
-            showOnSelection: false
-        ),
-        ProfileDTO(
-            id: UUID(uuidString: "33333333-3333-3333-3333-333333333333") ?? UUID(),
-            name: "Randy Orton",
-            imageName: "profile-randy",
-            birthDate: nil,
-            gender: .male,
-            preferredContent: [.english, .tamil],
-            isKidsProfile: false,
-            showOnSelection: true
-        ),
-        ProfileDTO(
-            id: UUID(uuidString: "44444444-4444-4444-4444-444444444444") ?? UUID(),
-            name: "Chris",
-            imageName: "profile-chris",
-            birthDate: nil,
-            gender: .male,
-            preferredContent: [.english, .bengali],
-            isKidsProfile: false,
-            showOnSelection: false
-        ),
-        ProfileDTO(
-            id: UUID(uuidString: "55555555-5555-5555-5555-555555555555") ?? UUID(),
-            name: "Karan",
-            imageName: "profile-karan-main",
-            birthDate: nil,
-            gender: .male,
-            preferredContent: [.english, .gujarati],
-            isKidsProfile: false,
-            showOnSelection: true
-        )
-    ]
+    private enum StorageKey {
+        static let profiles = "sony.quickplay.demo.profiles.v4"
+    }
 
-    private let avatarOptions: [AvatarOption] = [
-        AvatarOption(id: "profile-randy", label: "Randy", imageName: "profile-randy"),
-        AvatarOption(id: "profile-karan-main", label: "Karan", imageName: "profile-karan-main"),
-        AvatarOption(id: "profile-hike-main", label: "Hike", imageName: "profile-hike-main"),
-        AvatarOption(id: "profile-jhon", label: "Jhon", imageName: "profile-jhon"),
-        AvatarOption(id: "profile-chris", label: "Chris", imageName: "profile-chris"),
-        AvatarOption(id: "profile-akash", label: "Akash", imageName: "profile-akash"),
-        AvatarOption(id: "profile-karan-edit", label: "Karan 2", imageName: "profile-karan-edit"),
-        AvatarOption(id: "profile-hike-edit", label: "Hike 2", imageName: "profile-hike-edit")
-    ]
+    private var profiles: [ProfileDTO]
+
+    private let avatarOptions: [AvatarOption] = ProfileArtworkResolver.allAvatarImageNames.enumerated().map { index, imageName in
+        AvatarOption(
+            id: "profile-avatar-\(index)",
+            label: "Avatar \(index + 1)",
+            imageName: imageName
+        )
+    }
+
+    init() {
+        profiles = Self.loadPersistedProfiles() ?? Self.seedProfiles
+        persistProfiles()
+    }
 
     func fetchProfiles() async throws -> [ProfileDTO] {
         profiles
@@ -82,19 +37,21 @@ final class ProfileMockDataSource: ProfileDataSourceProtocol {
 
     func saveProfile(draft: ProfileDraft) async throws -> ProfileDTO {
         let trimmedName = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let finalName = trimmedName.nilIfEmpty ?? "New Profile"
+        let finalName = trimmedName.nilIfEmpty ?? (draft.isKidsProfile ? "Kids" : "New Profile")
 
         if let sourceID = draft.sourceID, let index = profiles.firstIndex(where: { $0.id == sourceID }) {
             profiles[index] = ProfileDTO(
                 id: sourceID,
                 name: finalName,
                 imageName: draft.imageName,
-                birthDate: draft.birthDate,
+                preference: draft.preference,
+                preferredLanguages: draft.preferredLanguages,
+                dateOfBirth: draft.dateOfBirth,
                 gender: draft.gender,
-                preferredContent: draft.preferredContent,
                 isKidsProfile: draft.isKidsProfile,
                 showOnSelection: true
             )
+            persistProfiles()
             return profiles[index]
         }
 
@@ -102,13 +59,50 @@ final class ProfileMockDataSource: ProfileDataSourceProtocol {
             id: UUID(),
             name: finalName,
             imageName: draft.imageName,
-            birthDate: draft.birthDate,
+            preference: draft.preference,
+            preferredLanguages: draft.preferredLanguages,
+            dateOfBirth: draft.dateOfBirth,
             gender: draft.gender,
-            preferredContent: draft.preferredContent,
             isKidsProfile: draft.isKidsProfile,
             showOnSelection: true
         )
         profiles.append(newProfile)
+        persistProfiles()
         return newProfile
     }
+
+    private func persistProfiles() {
+        guard let data = try? JSONEncoder().encode(profiles) else { return }
+        UserDefaults.standard.set(data, forKey: StorageKey.profiles)
+    }
+
+    private static func loadPersistedProfiles() -> [ProfileDTO]? {
+        guard let data = UserDefaults.standard.data(forKey: StorageKey.profiles) else { return nil }
+        return try? JSONDecoder().decode([ProfileDTO].self, from: data)
+    }
+
+    private static let seedProfiles: [ProfileDTO] = [
+        ProfileDTO(
+            id: UUID(uuidString: "11111111-1111-1111-1111-111111111111") ?? UUID(),
+            name: "Kids",
+            imageName: ProfileArtworkResolver.defaultKidsImageName,
+            preference: QuickplayCohort.kids.defaultPreference,
+            preferredLanguages: [.hindi, .english],
+            dateOfBirth: Calendar.current.date(from: DateComponents(year: 2018, month: 6, day: 10)),
+            gender: .preferNotToSay,
+            isKidsProfile: true,
+            showOnSelection: true
+        ),
+        ProfileDTO(
+            id: UUID(uuidString: "22222222-2222-2222-2222-222222222222") ?? UUID(),
+            name: "Prabhu",
+            imageName: ProfileArtworkResolver.defaultPrimaryImageName,
+            preference: .entertainment,
+            preferredLanguages: [.english, .hindi],
+            dateOfBirth: Calendar.current.date(from: DateComponents(year: 1994, month: 7, day: 21)),
+            gender: .male,
+            isKidsProfile: false,
+            showOnSelection: true
+        )
+    ]
 }

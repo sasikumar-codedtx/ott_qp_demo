@@ -15,13 +15,14 @@ struct StorefrontItem: Identifiable, Equatable, Hashable {
     let availableRatios: [String]
     let runtimeSeconds: Int?
     let progress: Double?
+    let canOpenDetail: Bool
 
     func imageURL(for ratio: String, width: Int) -> URL? {
         let resolvedRatio = availableRatios.contains(ratio)
             ? ratio
             : (availableRatios.first(where: { $0 == "0-2x3" || $0 == "0-16x9" || $0 == "0-1x1" || $0 == "0-9x16" }) ?? ratio)
 
-        return URL(string: "\(AppEnvironment.Endpoint.imageBaseURL)/image/\(id)/\(resolvedRatio).png?width=\(width)")
+        return URL(string: "\(AppEnvironment.Endpoint.fallbackImageBaseURL)/image/\(id)/\(resolvedRatio).png?width=\(width)")
     }
 
     var primaryMetaText: String {
@@ -34,29 +35,59 @@ struct StorefrontItem: Identifiable, Equatable, Hashable {
             return "Resume"
         }
 
-        switch contentType {
+        switch contentType.lowercased() {
         case "movie":
             return "Watch Movie"
-        case "webseries", "webepisode":
+        case "tvseries", "webseries", "webepisode":
             return "Watch Show"
         case "trailer":
             return "Watch Trailer"
+        case let type where type.contains("sport"):
+            return "Watch Live"
         default:
             return "Watch Now"
         }
     }
 
-    var detailPath: String? {
-        guard let slug, !slug.isEmpty else { return nil }
+    var detailID: String? {
+        canOpenDetail ? id : nil
+    }
 
-        let normalizedType: String
-        switch contentType {
-        case "movie", "webseries", "webepisode", "trailer":
-            normalizedType = contentType
-        default:
-            normalizedType = "movie"
+    var showsInlinePlayCTA: Bool {
+        let type = contentType.lowercased()
+
+        if type.contains("short") || type.contains("clip") || type.contains("highlight") {
+            return true
         }
 
-        return "urn/resource/catalog/\(normalizedType)/\(slug)"
+        if type.contains("trailer") || type.contains("promo") {
+            return true
+        }
+
+        if type.contains("live") || type.contains("channel") {
+            return true
+        }
+
+        return false
+    }
+
+    func withProgress(_ value: Double?) -> StorefrontItem {
+        StorefrontItem(
+            id: id,
+            title: title,
+            description: description,
+            contentType: contentType,
+            slug: slug,
+            resourceURN: resourceURN,
+            year: year,
+            genres: genres,
+            rating: rating,
+            isPremium: isPremium,
+            quality: quality,
+            availableRatios: availableRatios,
+            runtimeSeconds: runtimeSeconds,
+            progress: value,
+            canOpenDetail: canOpenDetail
+        )
     }
 }

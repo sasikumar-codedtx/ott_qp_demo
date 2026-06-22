@@ -1,56 +1,89 @@
 import Foundation
 
 enum ContentDetailRouter {
-    case detail(path: String)
-    case recommendations(itemID: String, contentType: String)
+    static func detailRequest(itemID: String, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
+        guard var components = URLComponents(string: "\(config.vodMetaDataURL)/content") else {
+            return nil
+        }
 
-    var urlRequest: URLRequest? {
-        guard let url = makeURL() else { return nil }
+        components.queryItems = [
+            URLQueryItem(name: "ids", value: itemID),
+            URLQueryItem(name: "mode", value: "detail"),
+            URLQueryItem(name: "st", value: "published"),
+            URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region),
+            URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
+            URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
+            URLQueryItem(name: "pf", value: cohort.profileFlag),
+            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
+        ]
+
+        guard let url = components.url else {
+            return nil
+        }
+
         var request = URLRequest(url: url)
-        request.setValue("*/*", forHTTPHeaderField: "Accept")
-        request.setValue(AppEnvironment.webOrigin, forHTTPHeaderField: "Origin")
-        request.setValue(AppEnvironment.webReferer, forHTTPHeaderField: "Referer")
-        request.setValue(AppEnvironment.userAgent, forHTTPHeaderField: "User-Agent")
+        request.applyQuickplayHeaders()
         return request
     }
 
-    private func makeURL() -> URL? {
-        switch self {
-        case .detail(let path):
-            var components = URLComponents(string: "\(AppEnvironment.Endpoint.detailBaseURL)/content/\(path)")
-            components?.queryItems = [
-                URLQueryItem(name: "reg", value: AppEnvironment.CatalogDefaults.region),
-                URLQueryItem(name: "acl", value: AppEnvironment.CatalogDefaults.accessControl),
-                URLQueryItem(name: "dt", value: AppEnvironment.CatalogDefaults.deviceType),
-                URLQueryItem(name: "ipr", value: "true"),
-                URLQueryItem(name: "itvod", value: "true"),
-                URLQueryItem(name: "pf", value: AppEnvironment.CatalogDefaults.profile),
-                URLQueryItem(name: "pl", value: AppEnvironment.CatalogDefaults.playbackLanguage)
+    static func recommendationRequest(itemID: String, contentType: String, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
+        let payload: [String: Any] = [
+            "item": itemID,
+            "type": "more-like-this",
+            "fields": [
+                ["name": "dt", "values": [AppEnvironment.Quickplay.deviceType], "bias": 1],
+                ["name": "reg", "values": [AppEnvironment.Quickplay.region], "bias": 1],
+                ["name": "client", "values": [AppEnvironment.Quickplay.client], "bias": 1],
+                ["name": "pf", "values": [cohort.profileFlag], "bias": 1],
+                ["name": "chrt", "values": [AppEnvironment.Quickplay.cohort], "bias": 1],
+                ["name": "cty", "values": [contentType], "bias": 1]
             ]
-            return components?.url
+        ]
 
-        case .recommendations(let itemID, let contentType):
-            let payload: [String: Any] = [
-                "item": itemID,
-                "type": "more-like-this",
-                "fields": [
-                    ["name": "dt", "values": ["web"], "bias": 1],
-                    ["name": "reg", "values": ["in"], "bias": 1],
-                    ["name": "acl", "values": ["te,ta"], "bias": 1],
-                    ["name": "pf", "values": ["profile"], "bias": 1],
-                    ["name": "pl", "values": ["te,ta"], "bias": 1],
-                    ["name": "cty", "values": [contentType], "bias": 1]
-                ]
-            ]
-
-            guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
-                return nil
-            }
-
-            let encoded = jsonData.base64EncodedString()
-            var components = URLComponents(string: "\(AppEnvironment.Endpoint.recommendationBaseURL)/recommend/lookup")
-            components?.queryItems = [URLQueryItem(name: "query", value: encoded)]
-            return components?.url
+        guard
+            let jsonData = try? JSONSerialization.data(withJSONObject: payload),
+            var components = URLComponents(string: "\(config.recommendURL)/recommend/lookup")
+        else {
+            return nil
         }
+
+        components.queryItems = [
+            URLQueryItem(name: "query", value: jsonData.base64EncodedString())
+        ]
+
+        guard let url = components.url else {
+            return nil
+        }
+
+        var request = URLRequest(url: url)
+        request.applyQuickplayHeaders()
+        return request
+    }
+
+    static func searchFallbackRequest(term: String, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
+        guard var components = URLComponents(string: "\(config.searchURL)/content/search") else {
+            return nil
+        }
+
+        components.queryItems = [
+            URLQueryItem(name: "mode", value: "detail"),
+            URLQueryItem(name: "st", value: "published"),
+            URLQueryItem(name: "term", value: term),
+            URLQueryItem(name: "pageNumber", value: "1"),
+            URLQueryItem(name: "pageSize", value: "24"),
+            URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region),
+            URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
+            URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
+            URLQueryItem(name: "pf", value: cohort.profileFlag),
+            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
+        ]
+
+        guard let url = components.url else {
+            return nil
+        }
+
+        var request = URLRequest(url: url)
+        request.applyQuickplayHeaders()
+        return request
     }
 }

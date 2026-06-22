@@ -18,3 +18,14 @@ struct StorefrontPage: Equatable {
         loadedCount < totalCount
     }
 }
+
+struct StorefrontSectionPage: Equatable {
+    let items: [StorefrontItem]
+    let nextPage: Int
+    let loadedCount: Int
+    let totalCount: Int
+
+    var hasMore: Bool {
+        loadedCount < totalCount
+    }
+}

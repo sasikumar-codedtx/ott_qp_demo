@@ -2,43 +2,69 @@ import SwiftUI
 
 struct StorefrontView: View {
     @ObservedObject var viewModel: StorefrontViewModel
+    let bottomSelection: BottomNavigationSelection
     let profileName: String
     let onSelectItem: (StorefrontItem) -> Void
+    let onOpenHome: () -> Void
     let onOpenSearch: () -> Void
+    let onOpenShorts: () -> Void
+    let onOpenHot: () -> Void
     let onProfileTap: () -> Void
+    let onViewAllSection: (StorefrontSection) -> Void
+    @State private var isTabMenuPresented = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            StorefrontHeaderView(
-                tabs: viewModel.tabs,
-                selectedTabID: viewModel.selectedTabID,
-                profileName: profileName,
-                onSelectTab: { tab in
-                    Task { await viewModel.selectTab(tab) }
-                },
-                onProfileTap: onProfileTap
-            )
+        GeometryReader { proxy in
+            VStack(spacing: 0) {
+                StorefrontHeaderView(topInset: proxy.safeAreaInsets.top)
 
-            content
+                content
 
-            BottomNavigationBar(
-                selection: viewModel.selectedTabTitle == AppStrings.Common.home ? .home : .hot,
-                profileImageName: ProfileArtworkResolver.imageName(forName: profileName),
-                onHomeTap: { Task { await viewModel.selectHomeTabIfNeeded() } },
-                onSearchTap: onOpenSearch,
-                onHotTap: { Task { await viewModel.selectHotTabIfNeeded() } },
-                onProfileTap: onProfileTap
-            )
+                StorefrontTabDockView(
+                    tabs: viewModel.tabs,
+                    selectedTabID: viewModel.selectedTabID,
+                    onSelectTab: { tab in
+                        Task { await viewModel.selectTab(tab) }
+                    },
+                    onOpenMore: {
+                        isTabMenuPresented = true
+                    }
+                )
+                .padding(.bottom, 14)
+
+                BottomNavigationBar(
+                    selection: bottomSelection,
+                    profileImageName: ProfileArtworkResolver.imageName(forName: profileName),
+                    onHomeTap: onOpenHome,
+                    onSearchTap: onOpenSearch,
+                    onShortsTap: onOpenShorts,
+                    onHotTap: onOpenHot,
+                    onProfileTap: onProfileTap
+                )
+            }
+            .ignoresSafeArea(edges: .top)
         }
         .task {
             await viewModel.loadInitialIfNeeded()
+        }
+        .sheet(isPresented: $isTabMenuPresented) {
+            StorefrontAllTabsSheet(
+                tabs: viewModel.tabs,
+                selectedTabID: viewModel.selectedTabID,
+                onSelectTab: { tab in
+                    isTabMenuPresented = false
+                    Task { await viewModel.selectTab(tab) }
+                }
+            )
+            .presentationDetents([.fraction(0.32)])
+            .presentationDragIndicator(.visible)
         }
     }
 
     @ViewBuilder
     private var content: some View {
         if viewModel.isInitialLoading && viewModel.sections.isEmpty {
-            LoadingView()
+            StorefrontLoadingSkeletonView()
         } else if let errorMessage = viewModel.errorMessage, viewModel.sections.isEmpty {
             ErrorView(title: AppStrings.Storefront.unavailableTitle, message: errorMessage, onRetry: {
                 Task { await viewModel.loadInitialIfNeeded() }
@@ -46,8 +72,19 @@ struct StorefrontView: View {
         } else {
             ScrollView(.vertical, showsIndicators: false) {
                 LazyVStack(spacing: 18) {
+                    if viewModel.isRefreshing {
+                        StorefrontRefreshIndicator()
+                            .padding(.top, 4)
+                    }
+
                     ForEach(viewModel.sections) { section in
-                        StorefrontSectionView(section: section, isHomeTab: viewModel.selectedTabTitle == AppStrings.Common.home, onSelectItem: onSelectItem)
+                        StorefrontSectionView(
+                            section: section,
+                            isHomeTab: viewModel.selectedTabTitle == AppStrings.Common.home,
+                            cohort: viewModel.activeCohort,
+                            onViewAll: onViewAllSection,
+                            onSelectItem: onSelectItem
+                        )
                             .onAppear {
                                 Task {
                                     await viewModel.loadMoreIfNeeded(currentSectionID: section.id)
@@ -63,6 +100,61 @@ struct StorefrontView: View {
                 }
                 .padding(.bottom, UIConstants.Spacing.lg)
             }
+        }
+    }
+}
+
+private struct StorefrontRefreshIndicator: View {
+    var body: some View {
+        HStack(spacing: 10) {
+            ProgressView()
+                .controlSize(.small)
+                .tint(.white)
+
+            Text("Refreshing")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.white.opacity(0.82))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.white.opacity(0.08), in: Capsule())
+    }
+}
+
+private struct StorefrontLoadingSkeletonView: View {
+    var body: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 22) {
+                RoundedRectangle(cornerRadius: UIConstants.CornerRadius.hero, style: .continuous)
+                    .fill(Color.white.opacity(0.04))
+                    .overlay { ShimmerView() }
+                    .frame(height: 440)
+                    .padding(.horizontal, 16)
+
+                ForEach(0..<3, id: \.self) { _ in
+                    VStack(alignment: .leading, spacing: 12) {
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(Color.white.opacity(0.06))
+                            .overlay { ShimmerView() }
+                            .frame(width: 128, height: 18)
+                            .padding(.horizontal, 16)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(0..<3, id: \.self) { _ in
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(Color.white.opacity(0.04))
+                                        .overlay { ShimmerView() }
+                                        .frame(width: 124, height: 186)
+                                }
+                            }
+                            .padding(.horizontal, 16)
+                        }
+                    }
+                }
+            }
+            .padding(.top, 8)
+            .padding(.bottom, 24)
         }
     }
 }

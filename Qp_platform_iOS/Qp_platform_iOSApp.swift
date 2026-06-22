@@ -9,6 +9,10 @@ import SwiftUI
 
 @main
 struct Qp_platform_iOSApp: App {
+    init() {
+        ImageCacheManager.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

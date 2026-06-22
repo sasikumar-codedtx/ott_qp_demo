@@ -6,18 +6,23 @@ final class StorefrontViewModel: ObservableObject {
     @Published private(set) var tabs: [StorefrontTab] = []
     @Published private(set) var selectedTabID: String?
     @Published private(set) var sections: [StorefrontSection] = []
+    @Published private(set) var activeCohort: QuickplayCohort = .entertainment
     @Published private(set) var isInitialLoading = false
     @Published private(set) var isLoadingMore = false
+    @Published private(set) var isRefreshing = false
     @Published private(set) var errorMessage: String?
 
     private let initialUseCase: GetInitialStorefrontUseCase
     private let pageUseCase: GetStorefrontPageUseCase
+    private let initialStorefrontID: String?
     private var storefrontID: String?
     private var tabCache: [String: StorefrontPage] = [:]
+    private var activeProfileID: UUID?
 
-    init(initialUseCase: GetInitialStorefrontUseCase, pageUseCase: GetStorefrontPageUseCase) {
+    init(initialUseCase: GetInitialStorefrontUseCase, pageUseCase: GetStorefrontPageUseCase, initialStorefrontID: String? = nil) {
         self.initialUseCase = initialUseCase
         self.pageUseCase = pageUseCase
+        self.initialStorefrontID = initialStorefrontID
     }
 
     var selectedTabTitle: String {
@@ -32,7 +37,20 @@ final class StorefrontViewModel: ObservableObject {
 
     func loadInitialIfNeeded() async {
         guard tabs.isEmpty, !isInitialLoading else { return }
-        await load(storefrontID: nil, tabID: nil, pageNumber: 1, append: false)
+        await load(storefrontID: initialStorefrontID, tabID: nil, pageNumber: 1, append: false, preserveVisibleContent: false)
+    }
+
+    func applyProfile(_ profile: Profile?) {
+        let nextProfileID = profile?.id
+        guard nextProfileID != activeProfileID else { return }
+        activeProfileID = nextProfileID
+        activeCohort = profile?.quickplayCohort ?? .entertainment
+        tabs = []
+        selectedTabID = nil
+        sections = []
+        storefrontID = initialStorefrontID
+        tabCache = [:]
+        errorMessage = nil
     }
 
     func selectTab(_ tab: StorefrontTab) async {
@@ -42,24 +60,11 @@ final class StorefrontViewModel: ObservableObject {
             selectedTabID = cached.selectedTabID
             sections = cached.sections
             errorMessage = nil
+            await load(storefrontID: storefrontID, tabID: tab.id, pageNumber: 1, append: false, preserveVisibleContent: true)
             return
         }
 
-        await load(storefrontID: storefrontID, tabID: tab.id, pageNumber: 1, append: false)
-    }
-
-    func selectHomeTabIfNeeded() async {
-        guard let tab = tabs.first(where: { $0.title.caseInsensitiveCompare(AppStrings.Common.home) == .orderedSame }) ?? tabs.first else {
-            return
-        }
-        await selectTab(tab)
-    }
-
-    func selectHotTabIfNeeded() async {
-        guard let tab = tabs.first(where: { $0.title.caseInsensitiveCompare(AppStrings.Common.home) != .orderedSame }) ?? tabs.first else {
-            return
-        }
-        await selectTab(tab)
+        await load(storefrontID: storefrontID, tabID: tab.id, pageNumber: 1, append: false, preserveVisibleContent: false)
     }
 
     func loadMoreIfNeeded(currentSectionID: String) async {
@@ -82,8 +87,22 @@ final class StorefrontViewModel: ObservableObject {
     }
 
     private func load(storefrontID: String?, tabID: String?, pageNumber: Int, append: Bool) async {
+        await load(storefrontID: storefrontID, tabID: tabID, pageNumber: pageNumber, append: append, preserveVisibleContent: false)
+    }
+
+    private func load(
+        storefrontID: String?,
+        tabID: String?,
+        pageNumber: Int,
+        append: Bool,
+        preserveVisibleContent: Bool
+    ) async {
+        activeCohort = await DemoSessionStore.shared.currentCohort()
+
         if append {
             isLoadingMore = true
+        } else if preserveVisibleContent, !sections.isEmpty {
+            isRefreshing = true
         } else {
             isInitialLoading = true
         }
@@ -91,6 +110,7 @@ final class StorefrontViewModel: ObservableObject {
         defer {
             isInitialLoading = false
             isLoadingMore = false
+            isRefreshing = false
         }
 
         do {

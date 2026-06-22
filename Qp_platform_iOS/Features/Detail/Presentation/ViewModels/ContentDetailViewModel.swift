@@ -20,12 +20,12 @@ final class ContentDetailViewModel: ObservableObject {
     }
 
     var requestKey: String {
-        seed?.detailPath ?? seed?.id ?? "detail"
+        seed?.detailID ?? seed?.id ?? "detail"
     }
 
     func present(item: StorefrontItem) {
-        let nextPath = item.detailPath ?? item.id
-        let currentPath = seed?.detailPath ?? seed?.id
+        let nextPath = item.detailID ?? item.id
+        let currentPath = seed?.detailID ?? seed?.id
 
         seed = item
         selectedTab = AppStrings.Detail.moreLikeThis
@@ -44,8 +44,8 @@ final class ContentDetailViewModel: ObservableObject {
     }
 
     func load() async {
-        guard let seed, let detailPath = seed.detailPath else {
-            errorMessage = "This title is missing the detail path needed to open the page."
+        guard let seed, let detailID = seed.detailID else {
+            errorMessage = "This title is not available for detail navigation yet."
             return
         }
 
@@ -53,8 +53,12 @@ final class ContentDetailViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            async let detailResponse = detailUseCase.execute(path: detailPath)
-            async let recommendationResponse = recommendationsUseCase.execute(itemID: seed.id, contentType: seed.contentType)
+            async let detailResponse = detailUseCase.execute(itemID: detailID)
+            async let recommendationResponse = recommendationsUseCase.execute(
+                itemID: seed.id,
+                contentType: seed.contentType,
+                fallbackQuery: seed.genres.first ?? seed.title
+            )
 
             let (detail, recommendations) = try await (detailResponse, recommendationResponse)
             self.detail = detail

@@ -2,13 +2,20 @@ import Foundation
 
 struct ContentDetailAPIClient {
     private let networkClient: NetworkClient
+    private let configStore: QuickplayConfigurationStore
 
-    init(networkClient: NetworkClient = NetworkClient()) {
+    init(
+        networkClient: NetworkClient = NetworkClient(),
+        configStore: QuickplayConfigurationStore = .shared
+    ) {
         self.networkClient = networkClient
+        self.configStore = configStore
     }
 
-    func fetchDetail(path: String) async throws -> ContentDetailResponseDTO {
-        guard let request = ContentDetailRouter.detail(path: path).urlRequest else {
+    func fetchDetail(itemID: String) async throws -> ContentDetailResponseDTO {
+        let config = await configStore.current(using: networkClient)
+        let cohort = await DemoSessionStore.shared.currentCohort()
+        guard let request = ContentDetailRouter.detailRequest(itemID: itemID, config: config, cohort: cohort) else {
             throw AppError.invalidURL
         }
 
@@ -21,13 +28,30 @@ struct ContentDetailAPIClient {
     }
 
     func fetchRecommendations(itemID: String, contentType: String) async throws -> RecommendationResponseDTO {
-        guard let request = ContentDetailRouter.recommendations(itemID: itemID, contentType: contentType).urlRequest else {
+        let config = await configStore.current(using: networkClient)
+        let cohort = await DemoSessionStore.shared.currentCohort()
+        guard let request = ContentDetailRouter.recommendationRequest(itemID: itemID, contentType: contentType, config: config, cohort: cohort) else {
             throw AppError.invalidURL
         }
 
         let data = try await networkClient.data(for: request)
         do {
             return try JSONDecoder().decode(RecommendationResponseDTO.self, from: data)
+        } catch {
+            throw AppError.decodingFailed
+        }
+    }
+
+    func searchRecommendations(term: String) async throws -> SearchResponseDTO {
+        let config = await configStore.current(using: networkClient)
+        let cohort = await DemoSessionStore.shared.currentCohort()
+        guard let request = ContentDetailRouter.searchFallbackRequest(term: term, config: config, cohort: cohort) else {
+            throw AppError.invalidURL
+        }
+
+        let data = try await networkClient.data(for: request)
+        do {
+            return try JSONDecoder().decode(SearchResponseDTO.self, from: data)
         } catch {
             throw AppError.decodingFailed
         }

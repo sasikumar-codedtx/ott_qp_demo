@@ -3,33 +3,57 @@ import Foundation
 
 @MainActor
 final class AppFlowViewModel: ObservableObject {
-    enum Screen {
+    enum RootScreen {
         case splash
         case login
-        case otp
         case profileSelection
-        case profileEditor
-        case avatarPicker
-        case storefront
-        case profileHome
-        case settings
-        case search
-        case detail
+        case main
     }
 
-    @Published var screen: Screen = .splash
+    enum MainTab {
+        case storefront
+        case search
+        case shorts
+        case hot
+    }
+
+    enum ProfileEditorRoute: Hashable {
+        case createNew
+        case editExisting(Profile)
+    }
+
+    enum AvatarPickerRoute: Hashable {
+        case createNew
+        case editExisting
+    }
+
+    enum Route: Hashable {
+        case otp
+        case profileEditor(ProfileEditorRoute)
+        case avatarPicker(AvatarPickerRoute)
+        case profileHome
+        case settings
+        case detail(StorefrontItem)
+        case sectionBrowse(StorefrontSection, QuickplayCohort)
+    }
+
+    @Published var rootScreen: RootScreen = .splash
+    @Published var mainTab: MainTab = .storefront
+    @Published var navigationPath: [Route] = []
     @Published private(set) var activeProfile: Profile?
+    @Published var prefersVoiceAISearch = true
 
     let authViewModel: AuthViewModel
     let profileSelectionViewModel: ProfileSelectionViewModel
     let profileEditorViewModel: ProfileEditorViewModel
     let profileHubViewModel: ProfileHubViewModel
     let storefrontViewModel: StorefrontViewModel
+    let hotStorefrontViewModel: StorefrontViewModel
+    let storefrontSectionBrowseViewModel: StorefrontSectionBrowseViewModel
     let searchViewModel: SearchViewModel
+    let shortsViewModel: ShortsFeedViewModel
     let detailViewModel: ContentDetailViewModel
 
-    private var detailReturnScreen: Screen = .storefront
-    private var profileReturnScreen: Screen = .storefront
     private var hasStarted = false
 
     convenience init() {
@@ -60,8 +84,22 @@ final class AppFlowViewModel: ObservableObject {
             pageUseCase: GetStorefrontPageUseCase(repository: container.storefrontRepository)
         )
 
+        hotStorefrontViewModel = StorefrontViewModel(
+            initialUseCase: GetInitialStorefrontUseCase(repository: container.storefrontRepository),
+            pageUseCase: GetStorefrontPageUseCase(repository: container.storefrontRepository),
+            initialStorefrontID: "custom:\(AppEnvironment.Endpoint.newAndHotStorefrontListURL)"
+        )
+
+        storefrontSectionBrowseViewModel = StorefrontSectionBrowseViewModel(
+            useCase: GetStorefrontSectionPageUseCase(repository: container.storefrontRepository)
+        )
+
         searchViewModel = SearchViewModel(
             useCase: SearchContentUseCase(repository: container.searchRepository)
+        )
+
+        shortsViewModel = ShortsFeedViewModel(
+            useCase: GetShortsBatchUseCase(repository: container.shortsRepository)
         )
 
         detailViewModel = ContentDetailViewModel(
@@ -73,42 +111,62 @@ final class AppFlowViewModel: ObservableObject {
     func start() async {
         guard !hasStarted else { return }
         hasStarted = true
+        prefersVoiceAISearch = await DemoSessionStore.shared.currentPrefersVoiceAISearch()
         try? await Task.sleep(for: .seconds(1.2))
-        screen = .login
+        rootScreen = .login
     }
 
     func submitPhoneNumber() async {
         if await authViewModel.requestOTP() {
-            screen = .otp
+            push(.otp)
         }
     }
 
-    func verifyOTP() async {
-        if await authViewModel.verifyOTP() {
-            await profileSelectionViewModel.load()
-            screen = .profileSelection
-        }
+    func verifyOTP() async -> Bool {
+        await authViewModel.verifyOTP()
+    }
+
+    func finishVerifiedSignIn() async {
+        await profileSelectionViewModel.load()
+        navigationPath.removeAll()
+        rootScreen = .profileSelection
     }
 
     func backToLogin() {
         authViewModel.resetOTPState()
-        screen = .login
+        navigationPath.removeAll()
+        rootScreen = .login
     }
 
     func selectProfile(_ profile: Profile) {
         activeProfile = profile
-        screen = .storefront
+        storefrontViewModel.applyProfile(profile)
+        hotStorefrontViewModel.applyProfile(profile)
+        Task {
+            await DemoSessionStore.shared.setActiveProfileContext(
+                profileID: profile.id,
+                cohort: profile.quickplayCohort,
+                preference: profile.preference
+            )
+        }
+        navigationPath.removeAll()
+        mainTab = .storefront
+        rootScreen = .main
     }
 
     func openProfileEditor(_ profile: Profile?) {
         Task {
             if let profile {
                 await profileEditorViewModel.prepareForEdit(profile: profile)
-            } else {
-                await profileEditorViewModel.prepareForCreate()
+                await MainActor.run {
+                    push(.profileEditor(.editExisting(profile)))
+                }
+                return
             }
+
+            await profileEditorViewModel.prepareForCreate()
             await MainActor.run {
-                screen = .profileEditor
+                push(.avatarPicker(.createNew))
             }
         }
     }
@@ -119,48 +177,66 @@ final class AppFlowViewModel: ObservableObject {
             guard saved != nil else { return }
             await profileSelectionViewModel.load()
             await MainActor.run {
-                screen = .profileSelection
+                navigationPath.removeAll()
+                rootScreen = .profileSelection
             }
         }
     }
 
     func openAvatarPicker() {
-        screen = .avatarPicker
+        push(.avatarPicker(.editExisting))
     }
 
     func closeAvatarPicker() {
-        screen = .profileEditor
+        popRoute()
+    }
+
+    func continueFromAvatarPicker() {
+        guard let route = navigationPath.last else { return }
+
+        switch route {
+        case .avatarPicker(.createNew):
+            replaceTopRoute(with: .profileEditor(.createNew))
+        case .avatarPicker(.editExisting):
+            popRoute()
+        default:
+            break
+        }
     }
 
     func openSearch() {
         searchViewModel.present(popularItems: storefrontViewModel.searchSeedItems)
-        screen = .search
+        mainTab = .search
+    }
+
+    func openShorts() {
+        mainTab = .shorts
     }
 
     func openProfileHome() {
         let profile = activeProfile ?? profileSelectionViewModel.defaultEditableProfile
         profileHubViewModel.present(profile: profile, seedItems: storefrontViewModel.searchSeedItems)
-        profileReturnScreen = screen == .search ? .search : .storefront
-        screen = .profileHome
+        push(.profileHome)
     }
 
     func backFromProfileHome() {
-        screen = profileReturnScreen
+        popRoute()
     }
 
     func openSettings() {
-        screen = .settings
+        push(.settings)
     }
 
     func backFromSettings() {
-        screen = .profileHome
+        popRoute()
     }
 
     func openProfileSelection() {
         Task {
             await profileSelectionViewModel.load()
             await MainActor.run {
-                screen = .profileSelection
+                navigationPath.removeAll()
+                rootScreen = .profileSelection
             }
         }
     }
@@ -168,36 +244,93 @@ final class AppFlowViewModel: ObservableObject {
     func signOut() {
         authViewModel.resetOTPState()
         activeProfile = nil
-        screen = .login
+        storefrontViewModel.applyProfile(nil)
+        hotStorefrontViewModel.applyProfile(nil)
+        Task {
+            await DemoSessionStore.shared.clearActiveProfileContext()
+        }
+        navigationPath.removeAll()
+        mainTab = .storefront
+        rootScreen = .login
+    }
+
+    func setPrefersVoiceAISearch(_ prefersVoice: Bool) {
+        prefersVoiceAISearch = prefersVoice
+        Task {
+            await DemoSessionStore.shared.setPrefersVoiceAISearch(prefersVoice)
+        }
     }
 
     func openStorefront() {
-        screen = .storefront
+        mainTab = .storefront
+    }
+
+    func switchActiveProfile(_ profile: Profile) {
+        activeProfile = profile
+        storefrontViewModel.applyProfile(profile)
+        hotStorefrontViewModel.applyProfile(profile)
+        profileHubViewModel.present(profile: profile, seedItems: storefrontViewModel.searchSeedItems)
+        Task {
+            await DemoSessionStore.shared.setActiveProfileContext(
+                profileID: profile.id,
+                cohort: profile.quickplayCohort,
+                preference: profile.preference
+            )
+        }
     }
 
     func openHotTab() {
-        Task {
-            await storefrontViewModel.selectHotTabIfNeeded()
-            await MainActor.run {
-                screen = .storefront
-            }
-        }
+        mainTab = .hot
     }
 
     func openDetail(item: StorefrontItem) {
-        switch screen {
-        case .search:
-            detailReturnScreen = .search
-        case .profileHome:
-            detailReturnScreen = .profileHome
-        default:
-            detailReturnScreen = .storefront
+        Task {
+            await DemoSessionStore.shared.recordContentSelection(item)
         }
         detailViewModel.present(item: item)
-        screen = .detail
+        push(.detail(item))
+    }
+
+    func openSectionBrowse(section: StorefrontSection, cohort: QuickplayCohort) {
+        storefrontSectionBrowseViewModel.present(section: section, cohort: cohort)
+        push(.sectionBrowse(section, cohort))
     }
 
     func backFromDetail() {
-        screen = detailReturnScreen
+        popRoute()
+    }
+
+    func handleNavigationPathChange(from oldPath: [Route], to newPath: [Route]) {
+        guard newPath.count < oldPath.count else { return }
+
+        let removedRoutes = oldPath.suffix(oldPath.count - newPath.count)
+        if removedRoutes.contains(where: {
+            if case .otp = $0 { return true }
+            return false
+        }) {
+            authViewModel.resetOTPState()
+        }
+
+        if let lastRoute = newPath.last, case let .detail(item) = lastRoute {
+            detailViewModel.present(item: item)
+        }
+    }
+
+    func popRoute() {
+        guard !navigationPath.isEmpty else { return }
+        navigationPath.removeLast()
+    }
+
+    private func push(_ route: Route) {
+        guard navigationPath.last != route else { return }
+        navigationPath.append(route)
+    }
+
+    private func replaceTopRoute(with route: Route) {
+        guard !navigationPath.isEmpty else {
+            push(route)
+            return
+        }
+        navigationPath[navigationPath.count - 1] = route
     }
 }

@@ -1,5 +1,5 @@
 import Foundation
 
 protocol ProfileHubRepository {
-    func fetchHome(profileRecommendationID: String) async throws -> ProfileHomeData
+    func fetchHome(profile: Profile?, seedItems: [StorefrontItem]) async throws -> ProfileHomeData
 }

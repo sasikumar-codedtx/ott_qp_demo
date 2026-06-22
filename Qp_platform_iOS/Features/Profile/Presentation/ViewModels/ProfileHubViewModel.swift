@@ -18,7 +18,7 @@ final class ProfileHubViewModel: ObservableObject {
     }
 
     var displayedProfileName: String {
-        selectedProfile?.name ?? "Randy Orton"
+        selectedProfile?.name ?? "Default"
     }
 
     var displayedProfileImageName: String? {
@@ -55,7 +55,7 @@ final class ProfileHubViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let home = try await useCase.execute(profileRecommendationID: AppEnvironment.AuthSession.profileRecommendationID)
+            let home = try await useCase.execute(profile: selectedProfile, seedItems: clipSeedItems)
             let clipItems = buildClipItems(from: clipSeedItems, fallbacks: home.recommendations + home.favorites)
 
             sections = [

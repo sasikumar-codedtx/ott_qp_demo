@@ -1,29 +1,125 @@
 import Foundation
 
-struct StorefrontResponseDTO: Decodable {
-    let data: StorefrontDataDTO
+struct APIHeaderDTO: Decodable {
+    let code: Int
+    let message: String
 }
 
-struct StorefrontDataDTO: Decodable {
-    let id: String
-    let t: [StorefrontTabDTO]
+struct QuickplayStorefrontResponseDTO: Decodable {
+    let header: APIHeaderDTO
+    let data: [QuickplayStorefrontDTO]
 }
 
-struct StorefrontTabDTO: Decodable {
+struct QuickplayStorefrontDTO: Decodable {
     let id: String
-    let lon: [LocalizedTextDTO]?
-    let c: [StorefrontSectionDTO]?
-    let pagination: StorefrontPaginationDTO?
-}
-
-struct StorefrontSectionDTO: Decodable {
-    let id: String
+    let ia: [String]?
     let iar: String?
     let lon: [LocalizedTextDTO]?
-    let cd: [StorefrontItemDTO]?
+    let t: [QuickplayTabDTO]?
 }
 
-struct StorefrontItemDTO: Decodable {
+struct QuickplayTabDTO: Decodable {
+    let id: String
+    let lon: [LocalizedTextDTO]?
+    let c: [QuickplayContainerDTO]?
+}
+
+struct QuickplayContainerDTO: Decodable {
+    let id: String
+    let iar: String?
+    let lo: String?
+    let lon: [LocalizedTextDTO]?
+    let srcType: String?
+    let i: [QuickplayContentSourceDTO]?
+    let diar: [QuickplayImageAspectDTO]?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case iar
+        case lo
+        case lon
+        case i
+        case diar
+        case srcType = "src_ty"
+    }
+
+    var preferredRatio: String {
+        diar?.first(where: { $0.device == "mobile" })?.ratio ??
+        diar?.first?.ratio ??
+        iar ??
+        "0-2x3"
+    }
+}
+
+struct QuickplayContentSourceDTO: Decodable {
+    let count: Int?
+    let cu: String?
+    let priority: Int?
+    let type: String?
+
+    func normalizedURL(config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URL? {
+        guard let cu, let rawURL = URL(string: cu), var components = URLComponents(url: rawURL, resolvingAgainstBaseURL: false) else {
+            return nil
+        }
+
+        let targetBaseURL: String
+        if cu.contains("/storefront/list") {
+            targetBaseURL = config.storefrontURL
+        } else {
+            targetBaseURL = config.vodMetaDataURL
+        }
+
+        guard let baseURL = URL(string: targetBaseURL), let baseComponents = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else {
+            return nil
+        }
+
+        components.scheme = baseComponents.scheme
+        components.host = baseComponents.host
+        components.port = baseComponents.port
+
+        var queryItems = components.queryItems ?? []
+        upsert(&queryItems, name: "reg", value: AppEnvironment.Quickplay.region)
+        upsert(&queryItems, name: "dt", value: AppEnvironment.Quickplay.deviceType)
+        upsert(&queryItems, name: "client", value: AppEnvironment.Quickplay.client)
+        upsert(&queryItems, name: "pf", value: cohort.profileFlag)
+        upsert(&queryItems, name: "chrt", value: AppEnvironment.Quickplay.cohort)
+        if queryItems.contains(where: { $0.name == "mode" }) == false {
+            queryItems.append(URLQueryItem(name: "mode", value: "detail"))
+        }
+        if queryItems.contains(where: { $0.name == "st" }) == false {
+            queryItems.append(URLQueryItem(name: "st", value: "published"))
+        }
+        components.queryItems = queryItems
+        return components.url
+    }
+
+    private func upsert(_ queryItems: inout [URLQueryItem], name: String, value: String) {
+        queryItems.removeAll(where: { $0.name == name })
+        queryItems.append(URLQueryItem(name: name, value: value))
+    }
+}
+
+struct QuickplayImageAspectDTO: Decodable {
+    let device: String?
+    let ratio: String?
+
+    enum CodingKeys: String, CodingKey {
+        case device = "dt"
+        case ratio = "iar"
+    }
+}
+
+struct QuickplayContentResponseDTO: Decodable {
+    let header: APIHeaderDTO
+    let data: [QuickplayContentItemDTO]
+}
+
+struct QuickplayCollectionResponseDTO: Decodable {
+    let header: APIHeaderDTO
+    let data: [QuickplayCollectionItemDTO]
+}
+
+struct QuickplayContentItemDTO: Decodable {
     let id: String
     let cty: String?
     let lon: [LocalizedTextDTO]?
@@ -33,13 +129,38 @@ struct StorefrontItemDTO: Decodable {
     let rat: [StorefrontRatingDTO]?
     let ia: [String]?
     let pt: String?
-    let ape: FlexibleBoolDTO?
-    let ao: FlexibleBoolDTO?
+    let ad: FlexibleBoolDTO?
+    let ae: FlexibleBoolDTO?
     let vq: String?
-    let r: Int?
     let rt: Int?
     let nu: String?
     let urn: String?
+    let locs: [ContentPersonDTO]?
+    let lodr: [ContentPersonDTO]?
+    let vsm: [ContentMomentsDTO]?
+    let yearDate: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case cty
+        case lon
+        case lod
+        case log
+        case ph
+        case rat
+        case ia
+        case pt
+        case ad
+        case ae
+        case vq
+        case rt
+        case nu
+        case urn
+        case locs
+        case lodr
+        case vsm = "v_sm"
+        case yearDate = "rdt"
+    }
 
     func toDomain(progress: Double? = nil) -> StorefrontItem {
         StorefrontItem(
@@ -49,14 +170,62 @@ struct StorefrontItemDTO: Decodable {
             contentType: cty ?? "content",
             slug: nu,
             resourceURN: urn,
-            year: r.map(String.init),
+            year: yearDate.flatMap { String($0.prefix(4)) },
             genres: log?.preferredList ?? [],
             rating: rat?.first?.v,
-            isPremium: pt == "SVOD" || ape?.value == true || ao?.value == false,
+            isPremium: pt == "SVOD",
             quality: vq,
             availableRatios: ia ?? [],
             runtimeSeconds: rt,
-            progress: progress
+            progress: progress,
+            canOpenDetail: true
+        )
+    }
+
+    func toDetailDomain() -> ContentDetail {
+        ContentDetail(
+            id: id,
+            title: lon?.preferredText ?? "Untitled",
+            description: lod?.preferredText ?? "",
+            contentType: cty ?? "content",
+            year: yearDate.flatMap { String($0.prefix(4)) },
+            genres: log?.preferredList ?? [],
+            rating: rat?.first?.v,
+            runtimeSeconds: rt,
+            quality: vq,
+            isPremium: pt == "SVOD",
+            hasFreePreview: ad?.value == true || ae?.value == true,
+            sponsorNames: ph?.preferredList ?? [],
+            availableRatios: ia ?? [],
+            cast: (locs ?? []).map { $0.toDomain() },
+            directorNames: (lodr ?? []).map(\.localizedName),
+            momentSearchEnabled: (vsm ?? []).contains(where: { $0.ff?.value == true })
+        )
+    }
+}
+
+struct QuickplayCollectionItemDTO: Decodable {
+    let id: String
+    let ia: [String]?
+    let lon: [LocalizedTextDTO]?
+
+    func toDomain() -> StorefrontItem {
+        StorefrontItem(
+            id: id,
+            title: lon?.preferredText ?? "Untitled",
+            description: "",
+            contentType: "collection",
+            slug: nil,
+            resourceURN: nil,
+            year: nil,
+            genres: [],
+            rating: nil,
+            isPremium: false,
+            quality: nil,
+            availableRatios: ia ?? ["0-1x1"],
+            runtimeSeconds: nil,
+            progress: nil,
+            canOpenDetail: false
         )
     }
 }
@@ -75,12 +244,6 @@ struct StorefrontRatingDTO: Decodable {
     let cc: String?
     let s: String?
     let v: String
-}
-
-struct StorefrontPaginationDTO: Decodable {
-    let start: Int
-    let rows: Int
-    let count: Int
 }
 
 struct FlexibleBoolDTO: Decodable {
@@ -105,9 +268,4 @@ struct FlexibleBoolDTO: Decodable {
 
         value = false
     }
-}
-
-struct AhaHeaderDTO: Decodable {
-    let code: Int
-    let message: String
 }

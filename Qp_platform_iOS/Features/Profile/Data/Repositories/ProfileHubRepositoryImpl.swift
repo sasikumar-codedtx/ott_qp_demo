@@ -1,27 +1,25 @@
 import Foundation
 
 final class ProfileHubRepositoryImpl: ProfileHubRepository {
-    private let dataSource: ProfileHubDataSourceProtocol
-
-    init(dataSource: ProfileHubDataSourceProtocol) {
-        self.dataSource = dataSource
-    }
-
-    func fetchHome(profileRecommendationID: String) async throws -> ProfileHomeData {
-        async let continueWatchingResponse = dataSource.fetchContinueWatching()
-        async let favoritesResponse = dataSource.fetchFavorites()
-        async let recommendationsResponse = dataSource.fetchRecommendations(profileID: profileRecommendationID)
-
-        let (continueWatching, favorites, recommendations) = try await (
-            continueWatchingResponse,
-            favoritesResponse,
-            recommendationsResponse
-        )
+    func fetchHome(profile: Profile?, seedItems: [StorefrontItem]) async throws -> ProfileHomeData {
+        let sourceItems: [StorefrontItem]
+        if profile?.isKidsProfile == true {
+            sourceItems = seedItems.filter { $0.availableRatios.contains("0-1x1") || $0.availableRatios.contains("0-2x3") }
+        } else {
+            sourceItems = seedItems
+        }
 
         return ProfileHomeData(
-            continueWatching: continueWatching.data.compactMap { $0.toDomain() },
-            favorites: favorites.data.compactMap { $0.toDomain() },
-            recommendations: recommendations.data.map { $0.toDomain() }
+            continueWatching: DemoRailComposer.continueWatching(from: sourceItems),
+            favorites: buildFavoritesMock(from: sourceItems),
+            recommendations: DemoRailComposer.recommendations(from: sourceItems)
         )
+    }
+
+    private func buildFavoritesMock(from items: [StorefrontItem]) -> [StorefrontItem] {
+        let posters = items.filter { $0.availableRatios.contains("0-2x3") || $0.availableRatios.contains("0-1x1") }
+        let prioritized = posters.isEmpty ? items : posters
+        let rotated = Array(prioritized.dropFirst(1)) + Array(prioritized.prefix(1))
+        return DemoRailComposer.favorites(from: rotated, limit: 10)
     }
 }

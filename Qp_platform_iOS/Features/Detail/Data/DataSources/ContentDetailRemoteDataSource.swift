@@ -1,8 +1,9 @@
 import Foundation
 
 protocol ContentDetailDataSourceProtocol {
-    func fetchDetail(path: String) async throws -> ContentDetailResponseDTO
+    func fetchDetail(itemID: String) async throws -> ContentDetailResponseDTO
     func fetchRecommendations(itemID: String, contentType: String) async throws -> RecommendationResponseDTO
+    func searchRecommendations(term: String) async throws -> SearchResponseDTO
 }
 
 final class ContentDetailRemoteDataSource: ContentDetailDataSourceProtocol {
@@ -12,11 +13,15 @@ final class ContentDetailRemoteDataSource: ContentDetailDataSourceProtocol {
         self.apiClient = apiClient
     }
 
-    func fetchDetail(path: String) async throws -> ContentDetailResponseDTO {
-        try await apiClient.fetchDetail(path: path)
+    func fetchDetail(itemID: String) async throws -> ContentDetailResponseDTO {
+        try await apiClient.fetchDetail(itemID: itemID)
     }
 
     func fetchRecommendations(itemID: String, contentType: String) async throws -> RecommendationResponseDTO {
         try await apiClient.fetchRecommendations(itemID: itemID, contentType: contentType)
+    }
+
+    func searchRecommendations(term: String) async throws -> SearchResponseDTO {
+        try await apiClient.searchRecommendations(term: term)
     }
 }

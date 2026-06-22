@@ -9,6 +9,7 @@ final class AppContainer {
     let profileHubRepository: ProfileHubRepository
     let storefrontRepository: StorefrontRepository
     let searchRepository: SearchRepository
+    let shortsRepository: ShortsRepository
     let contentDetailRepository: ContentDetailRepository
 
     private init() {
@@ -20,10 +21,7 @@ final class AppContainer {
         let profileDataSource = ProfileMockDataSource()
         profileRepository = ProfileRepositoryImpl(dataSource: profileDataSource)
 
-        let profileHubRemoteDataSource = ProfileHubRemoteDataSource(
-            apiClient: ProfileHubAPIClient(networkClient: networkClient)
-        )
-        profileHubRepository = ProfileHubRepositoryImpl(dataSource: profileHubRemoteDataSource)
+        profileHubRepository = ProfileHubRepositoryImpl()
 
         let storefrontRemoteDataSource = StorefrontRemoteDataSource(
             apiClient: StorefrontAPIClient(networkClient: networkClient)
@@ -34,6 +32,8 @@ final class AppContainer {
             apiClient: SearchAPIClient(networkClient: networkClient)
         )
         searchRepository = SearchRepositoryImpl(dataSource: searchRemoteDataSource)
+
+        shortsRepository = MockShortsRepository()
 
         let detailRemoteDataSource = ContentDetailRemoteDataSource(
             apiClient: ContentDetailAPIClient(networkClient: networkClient)

@@ -2,11 +2,11 @@ import Combine
 import Foundation
 
 enum SearchCategory: String, CaseIterable, Identifiable {
-    case trending = "Trending"
+    case trending = "All"
     case clips = "Clips"
     case shows = "Shows"
-    case action = "Action"
-    case sports = "Sports"
+    case microDrama = "Micro drama"
+    case movies = "Movies"
 
     var id: String { rawValue }
 }
@@ -49,13 +49,13 @@ final class SearchViewModel: ObservableObject {
             case .trending:
                 return true
             case .clips:
-                return item.contentType.contains("trailer") || item.contentType.contains("clip")
+                return item.contentType.localizedCaseInsensitiveContains("highlight") || item.contentType.localizedCaseInsensitiveContains("clip")
             case .shows:
-                return item.contentType.contains("webseries") || item.contentType.contains("webepisode") || item.contentType.contains("show")
-            case .action:
-                return item.genres.contains(where: { $0.localizedCaseInsensitiveContains("action") })
-            case .sports:
-                return item.genres.contains(where: { $0.localizedCaseInsensitiveContains("sport") }) || item.title.localizedCaseInsensitiveContains("sport")
+                return item.contentType.localizedCaseInsensitiveContains("series") || item.contentType.localizedCaseInsensitiveContains("show")
+            case .microDrama:
+                return item.contentType.localizedCaseInsensitiveContains("micro") || item.genres.contains(where: { $0.localizedCaseInsensitiveContains("micro") || $0.localizedCaseInsensitiveContains("drama") })
+            case .movies:
+                return item.contentType.localizedCaseInsensitiveContains("movie") || item.genres.contains(where: { $0.localizedCaseInsensitiveContains("movie") || $0.localizedCaseInsensitiveContains("film") })
             }
         }
 

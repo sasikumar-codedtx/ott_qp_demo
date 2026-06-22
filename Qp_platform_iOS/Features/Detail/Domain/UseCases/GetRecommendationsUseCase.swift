@@ -7,7 +7,7 @@ struct GetRecommendationsUseCase {
         self.repository = repository
     }
 
-    func execute(itemID: String, contentType: String) async throws -> [StorefrontItem] {
-        try await repository.fetchRecommendations(itemID: itemID, contentType: contentType)
+    func execute(itemID: String, contentType: String, fallbackQuery: String) async throws -> [StorefrontItem] {
+        try await repository.fetchRecommendations(itemID: itemID, contentType: contentType, fallbackQuery: fallbackQuery)
     }
 }

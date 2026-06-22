@@ -18,7 +18,7 @@ final class ProfileSelectionViewModel: ObservableObject {
     }
 
     var defaultEditableProfile: Profile? {
-        profiles.first(where: { $0.name == "Randy Orton" }) ?? profiles.first
+        profiles.first(where: { !$0.isKidsProfile }) ?? profiles.first
     }
 
     func load() async {

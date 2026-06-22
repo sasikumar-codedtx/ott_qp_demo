@@ -1,45 +1,66 @@
 import Foundation
 
 enum StorefrontRouter {
-    case landing(storefrontID: String?, tabID: String?, pageNumber: Int)
+    static func storefrontRequest(config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
+        guard var components = URLComponents(string: "\(config.storefrontURL)/storefront/list") else {
+            return nil
+        }
 
-    var urlRequest: URLRequest? {
-        guard let url = makeURL() else { return nil }
+        components.queryItems = [
+            URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.storefrontProbeRegion),
+            URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
+            URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
+            URLQueryItem(name: "pf", value: cohort.profileFlag),
+            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
+        ]
+
+        guard let url = components.url else {
+            return nil
+        }
+
         var request = URLRequest(url: url)
-        request.setValue("*/*", forHTTPHeaderField: "Accept")
-        request.setValue(AppEnvironment.webOrigin, forHTTPHeaderField: "Origin")
-        request.setValue(AppEnvironment.webReferer, forHTTPHeaderField: "Referer")
-        request.setValue(AppEnvironment.userAgent, forHTTPHeaderField: "User-Agent")
+        request.applyQuickplayHeaders()
         return request
     }
 
-    private func makeURL() -> URL? {
-        switch self {
-        case let .landing(storefrontID, tabID, pageNumber):
-            var components = URLComponents(string: "\(AppEnvironment.Endpoint.storefrontBaseURL)/catalog/storefront/landingscreen")
-            components?.queryItems = [
-                URLQueryItem(name: "ipr", value: "true"),
-                URLQueryItem(name: "ivg", value: "false"),
-                URLQueryItem(name: "sfInfo", value: "true"),
-                URLQueryItem(name: "itvod", value: "true"),
-                URLQueryItem(name: "acl", value: AppEnvironment.CatalogDefaults.accessControl),
-                URLQueryItem(name: "reg", value: AppEnvironment.CatalogDefaults.region),
-                URLQueryItem(name: "dt", value: AppEnvironment.CatalogDefaults.deviceType),
-                URLQueryItem(name: "cPageNumber", value: String(pageNumber)),
-                URLQueryItem(name: "cPageSize", value: AppEnvironment.CatalogDefaults.pageSize),
-                URLQueryItem(name: "pf", value: AppEnvironment.CatalogDefaults.profile),
-                URLQueryItem(name: "pl", value: AppEnvironment.CatalogDefaults.playbackLanguage)
-            ]
+    static func sourceRequest(url: URL) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.applyQuickplayHeaders()
+        return request
+    }
 
-            if let storefrontID {
-                components?.queryItems?.append(URLQueryItem(name: "sfid", value: storefrontID))
-            }
-
-            if let tabID {
-                components?.queryItems?.append(URLQueryItem(name: "tid", value: tabID))
-            }
-
-            return components?.url
+    static func sectionContentRequest(
+        config: QuickplayRuntimeConfig,
+        cohort: QuickplayCohort,
+        ids: [String],
+        pageNumber: Int,
+        pageSize: Int
+    ) -> URLRequest? {
+        guard !ids.isEmpty else { return nil }
+        guard var components = URLComponents(string: "\(config.vodMetaDataURL)/content") else {
+            return nil
         }
+
+        components.queryItems = [
+            URLQueryItem(name: "ids", value: ids.joined(separator: ",")),
+            URLQueryItem(name: "info", value: "detail"),
+            URLQueryItem(name: "mode", value: "detail"),
+            URLQueryItem(name: "st", value: "published"),
+            URLQueryItem(name: "pageSize", value: String(pageSize)),
+            URLQueryItem(name: "pageNumber", value: String(pageNumber)),
+            URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region),
+            URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
+            URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
+            URLQueryItem(name: "pf", value: cohort.profileFlag),
+            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
+        ]
+
+        guard let url = components.url else {
+            return nil
+        }
+
+        var request = URLRequest(url: url)
+        request.applyQuickplayHeaders()
+        return request
     }
 }

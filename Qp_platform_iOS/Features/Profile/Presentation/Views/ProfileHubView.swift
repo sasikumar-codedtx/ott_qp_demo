@@ -8,47 +8,47 @@ struct ProfileHubView: View {
     let onSelectItem: (StorefrontItem) -> Void
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
+        GeometryReader { proxy in
+            VStack(spacing: 0) {
+                header(topInset: proxy.safeAreaInsets.top)
 
-            content
+                content
+            }
+            .ignoresSafeArea(edges: .top)
         }
         .task {
             await viewModel.loadIfNeeded()
         }
     }
 
-    private var header: some View {
+    private func header(topInset: CGFloat) -> some View {
         GeometryReader { proxy in
             let screenWidth = max(proxy.size.width, 320)
+            let headerHeight = 234 + topInset
 
-            ZStack(alignment: .top) {
-                if let heroItem = viewModel.heroItem {
-                    PosterImageView(
-                        url: heroItem.imageURL(for: "0-16x9", width: Int(screenWidth * 3)),
-                        size: CGSize(width: screenWidth, height: 210),
-                        cornerRadius: 0
-                    )
-                } else {
+            VStack(spacing: 0) {
+                ZStack(alignment: .top) {
+                    if let heroItem = viewModel.heroItem {
+                        PosterImageView(
+                            url: heroItem.imageURL(for: "0-16x9", width: Int(screenWidth * 3)),
+                            size: CGSize(width: screenWidth, height: headerHeight),
+                            cornerRadius: 0
+                        )
+                    } else {
+                        LinearGradient(
+                            colors: [Color(hex: "351236"), Color(hex: "0E0A14")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        .frame(height: headerHeight)
+                    }
+
                     LinearGradient(
-                        colors: [Color(hex: "351236"), Color(hex: "0E0A14")],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                        colors: [Color.black.opacity(0.08), Color.black.opacity(0.18), Color.black.opacity(0.82)],
+                        startPoint: .top,
+                        endPoint: .bottom
                     )
-                    .frame(height: 210)
-                }
-
-                LinearGradient(
-                    colors: [Color.black.opacity(0.16), Color.black.opacity(0.46), Color.black.opacity(0.92)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 210)
-
-                VStack(spacing: UIConstants.Spacing.lg) {
-                    StatusBarView()
-                        .padding(.horizontal, UIConstants.Spacing.xl)
-                        .padding(.top, UIConstants.Spacing.sm + 2)
+                    .frame(height: headerHeight)
 
                     HStack {
                         roundedIconButton(icon: AppIcons.Navigation.back, action: onBack)
@@ -57,35 +57,37 @@ struct ProfileHubView: View {
                         roundedIconButton(icon: AppIcons.Action.gear, action: onOpenSettings)
                     }
                     .padding(.horizontal, UIConstants.Spacing.lg)
+                    .padding(.top, topInset + 8)
+                }
+                .frame(height: headerHeight)
 
-                    Spacer()
+                Button(action: onSwitchProfile) {
+                    ZStack {
+                        HStack {
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundStyle(.white.opacity(0.88))
+                            Spacer()
+                        }
 
-                    Button(action: onSwitchProfile) {
-                        HStack(spacing: UIConstants.Spacing.md) {
-                            ProfileAvatarView(
-                                imageName: viewModel.displayedProfileImageName,
-                                fallbackGlyph: String(viewModel.displayedProfileName.prefix(1)).uppercased(),
-                                size: 54
-                            )
-
+                        HStack(spacing: 8) {
                             Text(viewModel.displayedProfileName)
-                                .font(.headline.weight(.bold))
+                                .font(.system(size: 18, weight: .semibold))
                                 .foregroundStyle(.white)
 
                             Image(systemName: "chevron.down")
-                                .font(.caption.weight(.bold))
-                                .foregroundStyle(Color.white.opacity(0.72))
-
-                            Spacer()
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.82))
                         }
-                        .padding(.horizontal, UIConstants.Spacing.lg)
                     }
-                    .buttonStyle(.plain)
-                    .padding(.bottom, UIConstants.Spacing.lg)
+                    .padding(.horizontal, UIConstants.Spacing.lg)
+                    .padding(.top, 16)
+                    .padding(.bottom, 16)
                 }
+                .buttonStyle(.plain)
             }
         }
-        .frame(height: 210)
+        .frame(height: 234 + topInset + 51)
     }
 
     @ViewBuilder
@@ -100,17 +102,21 @@ struct ProfileHubView: View {
             ScrollView(.vertical, showsIndicators: false) {
                 LazyVStack(alignment: .leading, spacing: UIConstants.Spacing.xl) {
                     if let leadingSection = viewModel.leadingSection {
-                        StorefrontSectionView(section: leadingSection, isHomeTab: false, onSelectItem: onSelectItem)
+                        profileRailSection(leadingSection, style: .poster, width: 188)
                     }
 
                     downloadsCard
                         .padding(.horizontal, UIConstants.Spacing.lg)
 
-                    ForEach(viewModel.trailingSections) { section in
-                        StorefrontSectionView(section: section, isHomeTab: false, onSelectItem: onSelectItem)
+                    if let clipsSection = viewModel.sections.first(where: { $0.id == "clips" }) {
+                        profileRailSection(clipsSection, style: .short, width: 188)
                     }
 
-                    if !AppEnvironment.AuthSession.hasActiveSubscription {
+                    ForEach(viewModel.trailingSections.filter { $0.id != "clips" }) { section in
+                        StorefrontSectionView(section: section, isHomeTab: false, cohort: viewModel.selectedProfile?.quickplayCohort ?? .entertainment, onViewAll: nil, onSelectItem: onSelectItem)
+                    }
+
+                    if !AppEnvironment.Demo.hasActiveSubscription {
                         upgradeCard
                             .padding(.horizontal, UIConstants.Spacing.lg)
                     }
@@ -152,8 +158,12 @@ struct ProfileHubView: View {
             }
             .padding(UIConstants.Spacing.lg)
             .background(
-                RoundedRectangle(cornerRadius: UIConstants.CornerRadius.lg, style: .continuous)
-                    .fill(Color.white.opacity(0.06))
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.white.opacity(0.05))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                    )
             )
         }
         .buttonStyle(.plain)
@@ -255,11 +265,11 @@ struct ProfileHubView: View {
                 .foregroundStyle(.white)
                 .frame(width: 42, height: 42)
                 .background(
-                    RoundedRectangle(cornerRadius: UIConstants.CornerRadius.lg, style: .continuous)
-                        .fill(Color.white.opacity(0.08))
+                    Circle()
+                        .fill(Color.black.opacity(0.26))
                         .overlay(
-                            RoundedRectangle(cornerRadius: UIConstants.CornerRadius.lg, style: .continuous)
-                                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                            Circle()
+                                .stroke(Color(hex: "B67014").opacity(0.9), lineWidth: 1.1)
                         )
                 )
         }
@@ -274,6 +284,26 @@ struct ProfileHubView: View {
             Text(title)
                 .font(.caption.weight(.medium))
                 .foregroundStyle(Color.white.opacity(0.82))
+        }
+    }
+
+    private func profileRailSection(_ section: StorefrontSection, style: StorefrontCardStyle, width: CGFloat) -> some View {
+        let ratio: CGFloat = style == .short ? (9 / 16) : (2 / 3)
+        let size = CGSize(width: width, height: width / ratio)
+        let layout = StorefrontCardLayout(size: size, overlayHeight: style == .short ? 0 : 64, visibleCount: 2)
+
+        return VStack(alignment: .leading, spacing: 11) {
+            SectionHeaderView(title: section.title)
+                .padding(.horizontal, UIConstants.Spacing.lg)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: 8) {
+                    ForEach(section.items) { item in
+                        StorefrontCardView(item: item, style: style, layout: layout, rank: nil, onSelect: onSelectItem)
+                    }
+                }
+                .padding(.horizontal, UIConstants.Spacing.lg)
+            }
         }
     }
 }

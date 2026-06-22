@@ -7,7 +7,7 @@ struct GetContentDetailUseCase {
         self.repository = repository
     }
 
-    func execute(path: String) async throws -> ContentDetail {
-        try await repository.fetchDetail(path: path)
+    func execute(itemID: String) async throws -> ContentDetail {
+        try await repository.fetchDetail(itemID: itemID)
     }
 }

@@ -6,6 +6,11 @@ enum ProfileEditorMode {
     case createNew
 }
 
+enum ProfileEditorStep: Int, CaseIterable {
+    case details
+    case cohortSelection
+}
+
 @MainActor
 final class ProfileEditorViewModel: ObservableObject {
     @Published var draft = ProfileDraft()
@@ -13,6 +18,9 @@ final class ProfileEditorViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var mode: ProfileEditorMode = .createNew
+    @Published private(set) var step: ProfileEditorStep = .details
+    @Published var isGenderPickerPresented = false
+    @Published var isDatePickerPresented = false
 
     private let repository: ProfileRepository
     private let saveProfileUseCase: SaveProfileUseCase
@@ -22,20 +30,61 @@ final class ProfileEditorViewModel: ObservableObject {
         self.saveProfileUseCase = saveProfileUseCase
     }
 
+    var showsCohortStep: Bool {
+        mode == .createNew
+    }
+
+    var displayAvatarOptions: [AvatarOption] {
+        avatarOptions
+    }
+
+    var callToActionTitle: String {
+        if mode == .editExisting {
+            return AppStrings.Profile.saveProfile
+        }
+
+        switch step {
+        case .details:
+            return AppStrings.Profile.continueProfile
+        case .cohortSelection:
+            return AppStrings.Profile.saveProfile
+        }
+    }
+
+    var title: String {
+        switch (mode, step) {
+        case (.createNew, .details):
+            return AppStrings.Profile.createProfile
+        case (.editExisting, _):
+            return AppStrings.Profile.editProfile
+        case (.createNew, .cohortSelection):
+            return AppStrings.Profile.chooseCohort
+        }
+    }
+
+    var isSaveStep: Bool {
+        mode == .editExisting || step == .cohortSelection
+    }
+
     func prepareForEdit(profile: Profile) async {
         mode = .editExisting
+        step = .details
         draft = ProfileDraft(profile: profile)
         await loadAvatarOptionsIfNeeded()
+        applyFallbackAvatarIfNeeded()
     }
 
     func prepareForCreate() async {
         mode = .createNew
+        step = .details
         draft = ProfileDraft()
-        draft.imageName = "profile-karan-main"
         await loadAvatarOptionsIfNeeded()
+        applyFallbackAvatarIfNeeded()
     }
 
     func save() async -> Profile? {
+        guard validateBeforeSave() else { return nil }
+
         isLoading = true
         errorMessage = nil
 
@@ -50,8 +99,99 @@ final class ProfileEditorViewModel: ObservableObject {
         }
     }
 
+    func advanceStepIfPossible() -> Bool {
+        guard mode == .createNew else { return true }
+        guard step == .details else { return true }
+        guard validateDetailsStep() else { return false }
+        step = .cohortSelection
+        return true
+    }
+
+    func handleBack() -> Bool {
+        if mode == .createNew, step == .cohortSelection {
+            step = .details
+            errorMessage = nil
+            return true
+        }
+
+        return false
+    }
+
     func selectAvatar(_ option: AvatarOption) {
         draft.imageName = option.imageName
+        errorMessage = nil
+    }
+
+    func selectGender(_ gender: ProfileGender) {
+        draft.gender = gender
+        isGenderPickerPresented = false
+        errorMessage = nil
+    }
+
+    func toggleLanguage(_ language: ProfileLanguage) {
+        if draft.preferredLanguages.contains(language) {
+            draft.preferredLanguages.removeAll { $0 == language }
+        } else {
+            draft.preferredLanguages.append(language)
+        }
+
+        if draft.preferredLanguages.isEmpty {
+            draft.preferredLanguages = [.english]
+        }
+        errorMessage = nil
+    }
+
+    func selectPreference(_ preference: ProfilePreference) {
+        draft.preference = preference
+        errorMessage = nil
+    }
+
+    func formattedDateOfBirth() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM/dd/yyyy"
+        return formatter.string(from: draft.dateOfBirth)
+    }
+
+    func preferredLanguages(for preference: ProfilePreference) -> [ProfileLanguage] {
+        switch preference {
+        case .entertainment:
+            return [.hindi, .english, .telugu]
+        case .sports:
+            return [.english, .hindi, .tamil]
+        case .realityShows:
+            return [.hindi, .bengali, .english]
+        case .microdramas:
+            return [.english, .telugu, .tamil]
+        }
+    }
+
+    private func validateDetailsStep() -> Bool {
+        let trimmedName = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedName.isEmpty else {
+            errorMessage = "Enter a profile name to continue."
+            return false
+        }
+
+        guard draft.gender != nil else {
+            errorMessage = "Select a gender to continue."
+            return false
+        }
+
+        guard !draft.preferredLanguages.isEmpty else {
+            errorMessage = "Pick at least one preferred language."
+            return false
+        }
+
+        errorMessage = nil
+        return true
+    }
+
+    private func validateBeforeSave() -> Bool {
+        guard validateDetailsStep() else { return false }
+
+        errorMessage = nil
+        return true
     }
 
     private func loadAvatarOptionsIfNeeded() async {
@@ -61,5 +201,10 @@ final class ProfileEditorViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func applyFallbackAvatarIfNeeded() {
+        guard draft.imageName == nil else { return }
+        draft.imageName = avatarOptions.first?.imageName
     }
 }

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct StorefrontCardView: View {
     let item: StorefrontItem
@@ -6,34 +7,46 @@ struct StorefrontCardView: View {
     let layout: StorefrontCardLayout
     let rank: Int?
     let onSelect: (StorefrontItem) -> Void
+    @Environment(\.displayScale) private var displayScale
 
     var body: some View {
-        Group {
-            switch style {
-            case .homeHero:
-                heroCard(width: layout.size.width, height: layout.size.height, showLongMeta: true)
-            case .featuredHero:
-                heroCard(width: layout.size.width, height: layout.size.height, showLongMeta: false)
-            case .landscape:
-                standardCard(size: layout.size, overlayHeight: layout.overlayHeight)
-            case .poster:
-                standardCard(size: layout.size, overlayHeight: layout.overlayHeight)
-            case .square:
-                standardCard(size: layout.size, overlayHeight: layout.overlayHeight)
-            case .short:
-                standardCard(size: layout.size, overlayHeight: layout.overlayHeight)
+        Button(action: handleTap) {
+            Group {
+                switch style {
+                case .homeHero:
+                    heroCard(width: layout.size.width, height: layout.size.height, showLongMeta: true)
+                case .featuredHero:
+                    heroCard(width: layout.size.width, height: layout.size.height, showLongMeta: false)
+                case .sportsHero:
+                    heroCard(width: layout.size.width, height: layout.size.height, showLongMeta: false)
+                case .landscape:
+                    standardCard(size: layout.size, overlayHeight: layout.overlayHeight)
+                case .poster:
+                    standardCard(size: layout.size, overlayHeight: layout.overlayHeight)
+                case .square:
+                    standardCard(size: layout.size, overlayHeight: layout.overlayHeight)
+                case .short:
+                    standardCard(size: layout.size, overlayHeight: layout.overlayHeight)
+                }
             }
+            .contentShape(Rectangle())
         }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            onSelect(item)
-        }
+        .buttonStyle(StorefrontCardPressStyle(isEnabled: item.canOpenDetail))
+        .disabled(!item.canOpenDetail)
+    }
+
+    private func handleTap() {
+        guard item.canOpenDetail else { return }
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.prepare()
+        generator.impactOccurred(intensity: 0.82)
+        onSelect(item)
     }
 
     private func heroCard(width: CGFloat, height: CGFloat, showLongMeta: Bool) -> some View {
         ZStack(alignment: .bottomLeading) {
             PosterImageView(
-                url: item.imageURL(for: "0-16x9", width: 1200),
+                url: item.imageURL(for: "0-16x9", width: requestedImageWidth(for: CGSize(width: width, height: height), minimum: 960)),
                 size: CGSize(width: width, height: height),
                 cornerRadius: UIConstants.CornerRadius.hero
             )
@@ -106,25 +119,28 @@ struct StorefrontCardView: View {
     }
 
     private func standardCard(size: CGSize, overlayHeight: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: UIConstants.Spacing.sm) {
-            ZStack(alignment: .bottomLeading) {
-                PosterImageView(
-                    url: item.imageURL(for: style.imageRatio, width: Int(max(size.width, 188) * 3)),
-                    size: size,
-                    cornerRadius: UIConstants.CornerRadius.md + 4
+        ZStack(alignment: .bottomLeading) {
+            PosterImageView(
+                url: item.imageURL(
+                    for: style.imageRatio,
+                    width: requestedImageWidth(for: size, minimum: style == .short ? 360 : 240)
+                ),
+                size: size,
+                cornerRadius: UIConstants.CornerRadius.md + 4
+            )
+
+            if overlayHeight > 0 {
+                LinearGradient(
+                    colors: [Color.clear, Color.black.opacity(0.82)],
+                    startPoint: .top,
+                    endPoint: .bottom
                 )
+                .frame(height: overlayHeight)
+                .frame(maxHeight: .infinity, alignment: .bottom)
+                .clipShape(RoundedRectangle(cornerRadius: UIConstants.CornerRadius.md + 4, style: .continuous))
+            }
 
-                if overlayHeight > 0 {
-                    LinearGradient(
-                        colors: [Color.clear, Color.black.opacity(0.82)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: overlayHeight)
-                    .frame(maxHeight: .infinity, alignment: .bottom)
-                    .clipShape(RoundedRectangle(cornerRadius: UIConstants.CornerRadius.md + 4, style: .continuous))
-                }
-
+            ZStack(alignment: .bottomLeading) {
                 VStack(alignment: .leading, spacing: UIConstants.Spacing.xs) {
                     HStack {
                         if item.isPremium {
@@ -139,18 +155,20 @@ struct StorefrontCardView: View {
 
                     Spacer()
 
-                    if overlayHeight > 0 {
-                        HStack {
-                            Spacer()
+                    if item.showsInlinePlayCTA {
+                        if overlayHeight > 0 {
+                            HStack {
+                                Spacer()
+                                Image(systemName: AppIcons.Action.playCircle)
+                                    .font(.system(size: 28, weight: .bold))
+                                    .foregroundStyle(.white, Color(hex: "F1B944"))
+                            }
+                        } else {
                             Image(systemName: AppIcons.Action.playCircle)
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundStyle(.white, Color(hex: "F1B944"))
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundStyle(.white.opacity(0.92), .white.opacity(0.18))
+                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         }
-                    } else {
-                        Image(systemName: AppIcons.Action.playCircle)
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundStyle(.white.opacity(0.92), .white.opacity(0.18))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     }
                 }
                 .padding(UIConstants.Spacing.sm)
@@ -175,23 +193,12 @@ struct StorefrontCardView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 }
             }
-
-            HStack(alignment: .top, spacing: UIConstants.Spacing.xs) {
-                Text(item.title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .lineLimit(2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                if item.progress != nil {
-                    Image(systemName: AppIcons.Action.ellipsis)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color.white.opacity(0.72))
-                        .padding(.top, 2)
-                }
-            }
-            .frame(width: size.width, alignment: .leading)
         }
+        .frame(width: size.width, height: size.height)
+    }
+
+    private func requestedImageWidth(for size: CGSize, minimum: Int) -> Int {
+        max(Int(ceil(size.width * displayScale)), minimum)
     }
 
     private func progressBar(_ progress: Double) -> some View {
@@ -209,5 +216,15 @@ struct StorefrontCardView: View {
             }
         }
         .frame(height: 5)
+    }
+}
+
+private struct StorefrontCardPressStyle: ButtonStyle {
+    let isEnabled: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && isEnabled ? 0.972 : 1)
+            .animation(.spring(response: 0.26, dampingFraction: 0.62), value: configuration.isPressed)
     }
 }

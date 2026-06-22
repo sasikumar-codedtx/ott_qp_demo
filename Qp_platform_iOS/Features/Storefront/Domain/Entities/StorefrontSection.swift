@@ -8,31 +8,52 @@ struct StorefrontSection: Identifiable, Equatable, Hashable {
     let items: [StorefrontItem]
     let isHero: Bool
 
-    func cardStyle(isHomeTab: Bool) -> StorefrontCardStyle {
+    func cardStyle(isHomeTab: Bool, cohort: QuickplayCohort) -> StorefrontCardStyle {
         if isHero {
+            if cohort == .sports {
+                return .sportsHero
+            }
             return isHomeTab ? .homeHero : .featuredHero
         }
 
-        switch ratio {
-        case "0-1x1":
+        let aspect = ratioAspect
+        if abs(aspect - 1) < 0.05 {
             return .square
-        case "0-9x16":
-            return .short
-        case "0-2x3", "0-16x18":
-            return .poster
-        default:
-            return .landscape
         }
+        if ratio == "0-9x16" {
+            return .short
+        }
+        return aspect < 1 ? .poster : .landscape
     }
 
-    func cardLayout(isHomeTab: Bool, containerWidth: CGFloat) -> StorefrontCardLayout {
-        cardStyle(isHomeTab: isHomeTab).layout(containerWidth: containerWidth)
+    func cardLayout(isHomeTab: Bool, cohort: QuickplayCohort, containerWidth: CGFloat) -> StorefrontCardLayout {
+        cardStyle(isHomeTab: isHomeTab, cohort: cohort).layout(containerWidth: containerWidth, ratio: ratioAspect)
+    }
+
+    func browseGridStyle() -> StorefrontCardStyle {
+        let aspect = ratioAspect
+        if abs(aspect - 1) < 0.05 {
+            return .square
+        }
+        if ratio == "0-9x16" {
+            return .short
+        }
+        return aspect < 1 ? .poster : .landscape
+    }
+
+    func browseGridLayout(containerWidth: CGFloat) -> StorefrontCardLayout {
+        browseGridStyle().layout(containerWidth: containerWidth, ratio: ratioAspect)
+    }
+
+    private var ratioAspect: CGFloat {
+        ratio.quickplayAspectRatio ?? (16 / 9)
     }
 }
 
 enum StorefrontCardStyle {
     case homeHero
     case featuredHero
+    case sportsHero
     case landscape
     case poster
     case square
@@ -40,7 +61,7 @@ enum StorefrontCardStyle {
 
     var imageRatio: String {
         switch self {
-        case .homeHero, .featuredHero, .landscape:
+        case .homeHero, .featuredHero, .sportsHero, .landscape:
             return "0-16x9"
         case .poster:
             return "0-2x3"
@@ -51,26 +72,39 @@ enum StorefrontCardStyle {
         }
     }
 
-    func layout(containerWidth: CGFloat) -> StorefrontCardLayout {
+    func layout(containerWidth: CGFloat, ratio: CGFloat) -> StorefrontCardLayout {
         switch self {
         case .homeHero:
-            let width = max(containerWidth - 8, 280)
-            return StorefrontCardLayout(size: CGSize(width: width, height: width * 1.54), overlayHeight: 0, visibleCount: 1)
+            let width = max(containerWidth - 14, 320)
+            return StorefrontCardLayout(size: CGSize(width: width, height: width * 1.52), overlayHeight: 0, visibleCount: 1)
         case .featuredHero:
-            let width = max(containerWidth - 20, 280)
+            let width = max(containerWidth - 18, 320)
             return StorefrontCardLayout(size: CGSize(width: width, height: width * 1.2), overlayHeight: 0, visibleCount: 1)
+        case .sportsHero:
+            return StorefrontCardLayout(size: CGSize(width: 349, height: 420), overlayHeight: 0, visibleCount: 1)
         case .landscape:
-            let width = max((containerWidth - UIConstants.Spacing.md) / 2, 160)
-            return StorefrontCardLayout(size: CGSize(width: width, height: width * 9 / 16), overlayHeight: 50, visibleCount: 2)
+            let visibleCount = 2
+            let width = max((containerWidth - UIConstants.Spacing.md) / CGFloat(visibleCount), 172)
+            return StorefrontCardLayout(
+                size: CGSize(width: width, height: width / max(ratio, 1.0)),
+                overlayHeight: max(42, width * 0.3),
+                visibleCount: visibleCount
+            )
         case .poster:
-            let width = max((containerWidth - (UIConstants.Spacing.md * 2)) / 3, 108)
-            return StorefrontCardLayout(size: CGSize(width: width, height: width * 1.5), overlayHeight: 0, visibleCount: 3)
+            let visibleCount = 3
+            let totalSpacing = UIConstants.Spacing.md * CGFloat(visibleCount - 1)
+            let width = max((containerWidth - totalSpacing) / CGFloat(visibleCount), 108)
+            return StorefrontCardLayout(
+                size: CGSize(width: width, height: width / max(ratio, 0.01)),
+                overlayHeight: 0,
+                visibleCount: visibleCount
+            )
         case .square:
             let width = max((containerWidth - (UIConstants.Spacing.md * 2)) / 3, 108)
             return StorefrontCardLayout(size: CGSize(width: width, height: width), overlayHeight: 0, visibleCount: 3)
         case .short:
-            let width = max((containerWidth - (UIConstants.Spacing.md * 2)) / 3, 108)
-            return StorefrontCardLayout(size: CGSize(width: width, height: width * 16 / 9), overlayHeight: 0, visibleCount: 3)
+            let width = max((containerWidth - UIConstants.Spacing.md) / 2, 168)
+            return StorefrontCardLayout(size: CGSize(width: width, height: width / max(ratio, 0.01)), overlayHeight: 0, visibleCount: 2)
         }
     }
 }
@@ -79,4 +113,22 @@ struct StorefrontCardLayout {
     let size: CGSize
     let overlayHeight: CGFloat
     let visibleCount: Int
+}
+
+private extension String {
+    var quickplayAspectRatio: CGFloat? {
+        let parts = split(separator: "-")
+        guard
+            let dimensions = parts.last?.split(separator: "x"),
+            dimensions.count == 2,
+            let width = Double(dimensions[0]),
+            let height = Double(dimensions[1]),
+            width > 0,
+            height > 0
+        else {
+            return nil
+        }
+
+        return CGFloat(width / height)
+    }
 }

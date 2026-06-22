@@ -1,18 +1,10 @@
 import SwiftUI
 
 struct StorefrontHeaderView: View {
-    let tabs: [StorefrontTab]
-    let selectedTabID: String?
-    let profileName: String
-    let onSelectTab: (StorefrontTab) -> Void
-    let onProfileTap: () -> Void
+    let topInset: CGFloat
 
     var body: some View {
-        VStack(spacing: UIConstants.Spacing.md) {
-            StatusBarView()
-                .padding(.horizontal, UIConstants.Spacing.xl)
-                .padding(.top, UIConstants.Spacing.sm + 2)
-
+        VStack(spacing: 0) {
             HStack(spacing: UIConstants.Spacing.lg) {
                 HStack(spacing: UIConstants.Spacing.md) {
                     Image("minilogo")
@@ -21,18 +13,18 @@ struct StorefrontHeaderView: View {
                         .frame(width: 48, height: 30)
 
                     Button(action: {}) {
-                        HStack(spacing: UIConstants.Spacing.xs + 2) {
-                            Image(systemName: AppIcons.Action.sparkles)
-                                .font(.caption.weight(.bold))
+                        HStack(spacing: 8) {
+                            Image(systemName: AppIcons.Action.crown)
+                                .font(.system(size: 11, weight: .bold))
                             Text(AppStrings.Storefront.subscribe)
-                                .font(.caption.weight(.semibold))
+                                .font(.system(size: 12, weight: .bold))
                         }
-                        .foregroundStyle(Color(hex: "E2C06D"))
-                        .padding(.horizontal, UIConstants.Spacing.md - 2)
+                        .foregroundStyle(Color(hex: "F5B919"))
+                        .padding(.horizontal, 10)
                         .frame(height: 24)
                         .background(
-                            RoundedRectangle(cornerRadius: UIConstants.CornerRadius.sm, style: .continuous)
-                                .stroke(Color(hex: "7D6735"), lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .stroke(Color(hex: "F5B919"), lineWidth: 1)
                         )
                     }
                     .buttonStyle(.plain)
@@ -40,42 +32,31 @@ struct StorefrontHeaderView: View {
 
                 Spacer()
 
-                HStack(spacing: UIConstants.Spacing.lg) {
-                    Image(systemName: AppIcons.Action.bell)
-                    Image(systemName: AppIcons.Action.tv)
-                    Button(action: onProfileTap) {
-                        ProfileAvatarView(imageName: ProfileArtworkResolver.imageName(forName: profileName), fallbackGlyph: "P", size: UIConstants.Size.avatarSmall)
-                    }
-                    .buttonStyle(.plain)
-                }
-                .font(.system(size: 18, weight: .medium))
-                .foregroundStyle(.white)
-            }
-            .padding(.horizontal, UIConstants.Spacing.lg)
-
-            if !tabs.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: UIConstants.Spacing.sm + 2) {
-                        ForEach(tabs) { tab in
-                            Button {
-                                onSelectTab(tab)
-                            } label: {
-                                Text(tab.title)
-                                    .font(.subheadline.weight(selectedTabID == tab.id ? .bold : .medium))
-                                    .foregroundStyle(selectedTabID == tab.id ? .black : .white.opacity(0.82))
-                                    .padding(.horizontal, 14)
-                                    .frame(height: 30)
-                                    .background(
-                                        Capsule(style: .continuous)
-                                            .fill(selectedTabID == tab.id ? Color(hex: "F1B944") : Color.white.opacity(0.08))
-                                    )
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, UIConstants.Spacing.lg)
+                HStack(spacing: 12) {
+                    bellButton
+                    iconGlyph(AppIcons.Action.tv)
                 }
             }
+            .padding(.horizontal, 18)
+            .padding(.top, topInset + 8)
+            .padding(.bottom, 10)
         }
+    }
+
+    private var bellButton: some View {
+        ZStack(alignment: .topTrailing) {
+            iconGlyph(AppIcons.Action.bell)
+            Circle()
+                .fill(Color.red)
+                .frame(width: 6, height: 6)
+                .offset(x: -1, y: 1)
+        }
+    }
+
+    private func iconGlyph(_ systemName: String) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 18, weight: .medium))
+            .foregroundStyle(.white)
+            .frame(width: 24, height: 24)
     }
 }

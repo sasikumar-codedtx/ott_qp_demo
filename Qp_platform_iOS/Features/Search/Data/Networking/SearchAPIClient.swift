@@ -2,13 +2,20 @@ import Foundation
 
 struct SearchAPIClient {
     private let networkClient: NetworkClient
+    private let configStore: QuickplayConfigurationStore
 
-    init(networkClient: NetworkClient = NetworkClient()) {
+    init(
+        networkClient: NetworkClient = NetworkClient(),
+        configStore: QuickplayConfigurationStore = .shared
+    ) {
         self.networkClient = networkClient
+        self.configStore = configStore
     }
 
     func search(term: String) async throws -> SearchResponseDTO {
-        guard let request = SearchRouter.search(term: term).urlRequest else {
+        let config = await configStore.current(using: networkClient)
+        let cohort = await DemoSessionStore.shared.currentCohort()
+        guard let request = SearchRouter.makeRequest(term: term, config: config, cohort: cohort) else {
             throw AppError.invalidURL
         }
 

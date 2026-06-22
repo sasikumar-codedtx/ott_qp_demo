@@ -7,7 +7,7 @@ struct GetProfileHomeUseCase {
         self.repository = repository
     }
 
-    func execute(profileRecommendationID: String) async throws -> ProfileHomeData {
-        try await repository.fetchHome(profileRecommendationID: profileRecommendationID)
+    func execute(profile: Profile?, seedItems: [StorefrontItem]) async throws -> ProfileHomeData {
+        try await repository.fetchHome(profile: profile, seedItems: seedItems)
     }
 }

@@ -4,136 +4,19 @@ struct AppRootView: View {
     @StateObject private var viewModel = AppFlowViewModel()
 
     var body: some View {
-        ZStack {
-            AppBackgroundView(style: backgroundStyle)
-
-            switch viewModel.screen {
-            case .splash:
-                splashView
-
-            case .login:
-                LoginView(viewModel: viewModel.authViewModel, onContinue: {
-                    Task { await viewModel.submitPhoneNumber() }
-                })
-
-            case .otp:
-                OTPView(viewModel: viewModel.authViewModel, onBack: {
-                    viewModel.backToLogin()
-                }, onVerify: {
-                    Task { await viewModel.verifyOTP() }
-                })
-
-            case .profileSelection:
-                ProfileSelectionView(
-                    viewModel: viewModel.profileSelectionViewModel,
-                    onSelect: { profile in
-                        viewModel.selectProfile(profile)
-                    },
-                    onAddProfile: {
-                        viewModel.openProfileEditor(nil)
-                    },
-                    onManageProfiles: {
-                        viewModel.openProfileEditor(viewModel.profileSelectionViewModel.defaultEditableProfile)
-                    }
-                )
-
-            case .profileEditor:
-                ProfileEditorView(
-                    viewModel: viewModel.profileEditorViewModel,
-                    onBack: {
-                        viewModel.screen = .profileSelection
-                    },
-                    onChooseAvatar: {
-                        viewModel.openAvatarPicker()
-                    },
-                    onSave: {
-                        viewModel.saveProfile()
-                    }
-                )
-
-            case .avatarPicker:
-                AvatarPickerView(
-                    viewModel: viewModel.profileEditorViewModel,
-                    onBack: {
-                        viewModel.closeAvatarPicker()
-                    }
-                )
-
-            case .storefront:
-                StorefrontView(
-                    viewModel: viewModel.storefrontViewModel,
-                    profileName: viewModel.activeProfile?.name ?? "Randy Orton",
-                    onSelectItem: { item in
-                        viewModel.openDetail(item: item)
-                    },
-                    onOpenSearch: {
-                        viewModel.openSearch()
-                    },
-                    onProfileTap: {
-                        viewModel.openProfileHome()
-                    }
-                )
-
-            case .profileHome:
-                ProfileHubView(
-                    viewModel: viewModel.profileHubViewModel,
-                    onBack: {
-                        viewModel.backFromProfileHome()
-                    },
-                    onOpenSettings: {
-                        viewModel.openSettings()
-                    },
-                    onSwitchProfile: {
-                        viewModel.openProfileSelection()
-                    },
-                    onSelectItem: { item in
-                        viewModel.openDetail(item: item)
-                    }
-                )
-
-            case .settings:
-                SettingsView(
-                    onBack: {
-                        viewModel.backFromSettings()
-                    },
-                    onSignOut: {
-                        viewModel.signOut()
-                    }
-                )
-
-            case .search:
-                SearchView(
-                    viewModel: viewModel.searchViewModel,
-                    profileName: viewModel.activeProfile?.name ?? "Randy Orton",
-                    onSelectItem: { item in
-                        viewModel.openDetail(item: item)
-                    },
-                    onOpenHome: {
-                        viewModel.openStorefront()
-                    },
-                    onOpenHot: {
-                        viewModel.openHotTab()
-                    },
-                    onProfileTap: {
-                        viewModel.openProfileHome()
-                    }
-                )
-
-            case .detail:
-                ContentDetailView(
-                    viewModel: viewModel.detailViewModel,
-                    onBack: {
-                        viewModel.backFromDetail()
-                    },
-                    onSelectRecommendation: { item in
-                        viewModel.openDetail(item: item)
-                    }
-                )
-            }
+        NavigationStack(path: $viewModel.navigationPath) {
+            rootScene
+                .navigationDestination(for: AppFlowViewModel.Route.self) { route in
+                    destination(for: route)
+                }
         }
+        .toolbar(.hidden, for: .navigationBar)
         .preferredColorScheme(.dark)
         .task {
             await viewModel.start()
+        }
+        .onChange(of: viewModel.navigationPath) { oldPath, newPath in
+            viewModel.handleNavigationPathChange(from: oldPath, to: newPath)
         }
     }
 
@@ -149,16 +32,260 @@ struct AppRootView: View {
         .padding(.bottom, 40)
     }
 
-    private var backgroundStyle: AppBackgroundStyle {
-        switch viewModel.screen {
-        case .profileSelection, .profileEditor, .avatarPicker:
-            return .profile
-        case .storefront, .detail, .profileHome, .settings:
-            return .storefront
+    @ViewBuilder
+    private var rootScene: some View {
+        switch viewModel.rootScreen {
+        case .splash:
+            surface(style: .auth) { splashView }
+        case .login:
+            surface(style: .auth) {
+                LoginView(viewModel: viewModel.authViewModel, onBack: {}, onContinue: {
+                    Task { await viewModel.submitPhoneNumber() }
+                })
+            }
+        case .profileSelection:
+            surface(style: .profile) {
+                ProfileSelectionView(
+                    viewModel: viewModel.profileSelectionViewModel,
+                    onSelect: { profile in
+                        viewModel.selectProfile(profile)
+                    },
+                    onAddProfile: {
+                        viewModel.openProfileEditor(nil)
+                    },
+                    onManageProfiles: {
+                        viewModel.openProfileEditor(viewModel.profileSelectionViewModel.defaultEditableProfile)
+                    }
+                )
+            }
+        case .main:
+            mainScene
+        }
+    }
+
+    @ViewBuilder
+    private var mainScene: some View {
+        switch viewModel.mainTab {
+        case .storefront:
+            surface(style: .storefront) {
+                StorefrontView(
+                    viewModel: viewModel.storefrontViewModel,
+                    bottomSelection: .home,
+                    profileName: viewModel.activeProfile?.name ?? "Default",
+                    onSelectItem: { item in
+                        viewModel.openDetail(item: item)
+                    },
+                    onOpenHome: {
+                        viewModel.openStorefront()
+                    },
+                    onOpenSearch: {
+                        viewModel.openSearch()
+                    },
+                    onOpenShorts: {
+                        viewModel.openShorts()
+                    },
+                    onOpenHot: {
+                        viewModel.openHotTab()
+                    },
+                    onProfileTap: {
+                        viewModel.openProfileHome()
+                    },
+                    onViewAllSection: { section in
+                        viewModel.openSectionBrowse(section: section, cohort: viewModel.storefrontViewModel.activeCohort)
+                    }
+                )
+            }
+        case .hot:
+            surface(style: .storefront) {
+                StorefrontView(
+                    viewModel: viewModel.hotStorefrontViewModel,
+                    bottomSelection: .hot,
+                    profileName: viewModel.activeProfile?.name ?? "Default",
+                    onSelectItem: { item in
+                        viewModel.openDetail(item: item)
+                    },
+                    onOpenHome: {
+                        viewModel.openStorefront()
+                    },
+                    onOpenSearch: {
+                        viewModel.openSearch()
+                    },
+                    onOpenShorts: {
+                        viewModel.openShorts()
+                    },
+                    onOpenHot: {
+                        viewModel.openHotTab()
+                    },
+                    onProfileTap: {
+                        viewModel.openProfileHome()
+                    },
+                    onViewAllSection: { section in
+                        viewModel.openSectionBrowse(section: section, cohort: viewModel.hotStorefrontViewModel.activeCohort)
+                    }
+                )
+            }
         case .search:
-            return .search
-        default:
-            return .auth
+            surface(style: .search) {
+                SearchView(
+                    viewModel: viewModel.searchViewModel,
+                    profileName: viewModel.activeProfile?.name ?? "Default",
+                    prefersVoiceAISearch: viewModel.prefersVoiceAISearch,
+                    onSelectItem: { item in
+                        viewModel.openDetail(item: item)
+                    },
+                    onOpenHome: {
+                        viewModel.openStorefront()
+                    },
+                    onOpenShorts: {
+                        viewModel.openShorts()
+                    },
+                    onOpenHot: {
+                        viewModel.openHotTab()
+                    },
+                    onProfileTap: {
+                        viewModel.openProfileHome()
+                    }
+                )
+            }
+        case .shorts:
+            ShortsTabView(
+                viewModel: viewModel.shortsViewModel,
+                profileName: viewModel.activeProfile?.name ?? "Default",
+                onOpenHome: {
+                    viewModel.openStorefront()
+                },
+                onOpenSearch: {
+                    viewModel.openSearch()
+                },
+                onOpenHot: {
+                    viewModel.openHotTab()
+                },
+                onProfileTap: {
+                    viewModel.openProfileHome()
+                }
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func destination(for route: AppFlowViewModel.Route) -> some View {
+        switch route {
+        case .otp:
+            surface(style: .auth) {
+                OTPView(viewModel: viewModel.authViewModel, onBack: {
+                    viewModel.backToLogin()
+                }, onVerify: {
+                    await viewModel.verifyOTP()
+                }, onContinueAfterSuccess: {
+                    await viewModel.finishVerifiedSignIn()
+                })
+            }
+            .routeNavigationChrome()
+        case .profileEditor:
+            surface(style: .profile) {
+                ProfileEditorView(
+                    viewModel: viewModel.profileEditorViewModel,
+                    onBack: {
+                        viewModel.popRoute()
+                    },
+                    onChooseAvatar: {
+                        viewModel.openAvatarPicker()
+                    },
+                    onSave: {
+                        viewModel.saveProfile()
+                    }
+                )
+            }
+            .routeNavigationChrome()
+        case .avatarPicker:
+            surface(style: .profile) {
+                AvatarPickerView(
+                    viewModel: viewModel.profileEditorViewModel,
+                    onBack: {
+                        viewModel.closeAvatarPicker()
+                    },
+                    onContinue: {
+                        viewModel.continueFromAvatarPicker()
+                    }
+                )
+            }
+            .routeNavigationChrome()
+        case .profileHome:
+            surface(style: .storefront) {
+                ProfileHubView(
+                    viewModel: viewModel.profileHubViewModel,
+                    onBack: {
+                        viewModel.backFromProfileHome()
+                    },
+                    onOpenSettings: {
+                        viewModel.openSettings()
+                    },
+                    onSwitchProfile: {
+                        viewModel.openProfileSelection()
+                    },
+                    onSelectItem: { item in
+                        viewModel.openDetail(item: item)
+                    }
+                )
+            }
+            .routeNavigationChrome()
+        case .settings:
+            surface(style: .storefront) {
+                SettingsView(
+                    activeProfile: viewModel.activeProfile,
+                    profiles: viewModel.profileSelectionViewModel.selectionProfiles,
+                    isVoiceAISearchEnabled: viewModel.prefersVoiceAISearch,
+                    onBack: {
+                        viewModel.backFromSettings()
+                    },
+                    onSignOut: {
+                        viewModel.signOut()
+                    },
+                    onSelectProfile: { profile in
+                        viewModel.switchActiveProfile(profile)
+                    },
+                    onVoiceAISearchChange: { isEnabled in
+                        viewModel.setPrefersVoiceAISearch(isEnabled)
+                    },
+                    onEditProfiles: {
+                        viewModel.openProfileEditor(viewModel.profileSelectionViewModel.defaultEditableProfile)
+                    }
+                )
+            }
+            .routeNavigationChrome()
+        case .detail:
+            surface(style: .storefront) {
+                ContentDetailView(
+                    viewModel: viewModel.detailViewModel,
+                    onBack: {
+                        viewModel.backFromDetail()
+                    },
+                    onSelectRecommendation: { item in
+                        viewModel.openDetail(item: item)
+                    }
+                )
+            }
+            .routeNavigationChrome()
+        case .sectionBrowse:
+            surface(style: .storefront) {
+                StorefrontSectionBrowseView(
+                    viewModel: viewModel.storefrontSectionBrowseViewModel,
+                    onBack: {
+                        viewModel.popRoute()
+                    },
+                    onSelectItem: { item in
+                        viewModel.openDetail(item: item)
+                    }
+                )
+            }
+            .routeNavigationChrome()
+        }
+    }
+
+    private func surface<Content: View>(style: AppBackgroundStyle, @ViewBuilder content: () -> Content) -> some View {
+        ZStack {
+            AppBackgroundView(style: style)
+            content()
         }
     }
 }

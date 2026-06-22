@@ -12,18 +12,40 @@ struct AppBackgroundView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            Color.black.ignoresSafeArea()
+            Color(hex: "0A0A0A").ignoresSafeArea()
 
             switch style {
             case .auth:
-                LinearGradient(
-                    colors: [Color(hex: "FF5E00"), Color(hex: "4418B4")],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .frame(height: 150)
-                .blur(radius: 155)
-                .offset(y: -30)
+                ZStack {
+                    Color(hex: "0A0A0A")
+                        .ignoresSafeArea()
+
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: "FF5E00"), Color(hex: "4418B4")],
+                                startPoint: UnitPoint(x: 0.03, y: 0.26),
+                                endPoint: UnitPoint(x: 0.88, y: 0.82)
+                            )
+                        )
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 150)
+                        .blur(radius: 155)
+                        .opacity(0.9)
+                        .offset(y: -12)
+
+                    LinearGradient(
+                        colors: [
+                            Color.black.opacity(0.02),
+                            Color.black.opacity(0.12),
+                            Color.black.opacity(0.4),
+                            Color.black.opacity(0.82)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea()
+                }
 
             case .profile:
                 LinearGradient(
@@ -36,39 +58,37 @@ struct AppBackgroundView: View {
             case .storefront:
                 LinearGradient(
                     colors: [
-                        Color(hex: "F0A91F").opacity(0.22),
-                        Color(hex: "7D3A0C").opacity(0.14),
-                        Color.clear
+                        Color(hex: "F0A91F").opacity(0.42),
+                        Color(hex: "7D3A0C").opacity(0.22),
+                        Color.black.opacity(0.96)
                     ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+                    startPoint: .top,
+                    endPoint: .bottom
                 )
-                .frame(height: 220)
-                .blur(radius: 80)
-                .offset(y: -30)
+                .ignoresSafeArea()
 
             case .search:
                 LinearGradient(
                     colors: [
-                        Color(hex: "D05C18").opacity(0.28),
-                        Color(hex: "5D1F6E").opacity(0.36),
-                        Color.clear
+                        Color(hex: "D05C18").opacity(0.42),
+                        Color(hex: "5D1F6E").opacity(0.44),
+                        Color.black.opacity(0.96)
                     ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+                    startPoint: .top,
+                    endPoint: .bottom
                 )
-                .frame(height: 220)
-                .blur(radius: 95)
-                .offset(y: -28)
+                .ignoresSafeArea()
             }
 
-            RadialGradient(
-                colors: [Color.white.opacity(0.05), Color.clear],
-                center: .top,
-                startRadius: 20,
-                endRadius: 320
-            )
-            .ignoresSafeArea()
+            if style != .auth {
+                RadialGradient(
+                    colors: [Color.white.opacity(0.05), Color.clear],
+                    center: .top,
+                    startRadius: 20,
+                    endRadius: 320
+                )
+                .ignoresSafeArea()
+            }
         }
     }
 }
