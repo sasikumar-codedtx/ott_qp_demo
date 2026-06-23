@@ -29,6 +29,7 @@ final class AppFlowViewModel: ObservableObject {
 
     enum Route: Hashable {
         case otp
+        case search
         case profileEditor(ProfileEditorRoute)
         case avatarPicker(AvatarPickerRoute)
         case profileHome
@@ -42,6 +43,7 @@ final class AppFlowViewModel: ObservableObject {
     @Published var navigationPath: [Route] = []
     @Published private(set) var activeProfile: Profile?
     @Published var prefersVoiceAISearch = true
+    @Published var activePlaybackContent: QuickplayPlaybackContent?
 
     let authViewModel: AuthViewModel
     let profileSelectionViewModel: ProfileSelectionViewModel
@@ -87,7 +89,8 @@ final class AppFlowViewModel: ObservableObject {
         hotStorefrontViewModel = StorefrontViewModel(
             initialUseCase: GetInitialStorefrontUseCase(repository: container.storefrontRepository),
             pageUseCase: GetStorefrontPageUseCase(repository: container.storefrontRepository),
-            initialStorefrontID: "custom:\(AppEnvironment.Endpoint.newAndHotStorefrontListURL)"
+            preferredInitialTabTitle: "Micro Drama",
+            fixedCohort: .entertainment
         )
 
         storefrontSectionBrowseViewModel = StorefrontSectionBrowseViewModel(
@@ -113,7 +116,12 @@ final class AppFlowViewModel: ObservableObject {
         hasStarted = true
         prefersVoiceAISearch = await DemoSessionStore.shared.currentPrefersVoiceAISearch()
         try? await Task.sleep(for: .seconds(1.2))
-        rootScreen = .login
+        if await DemoSessionStore.shared.hasCompletedLogin() {
+            await profileSelectionViewModel.load()
+            rootScreen = .profileSelection
+        } else {
+            rootScreen = .login
+        }
     }
 
     func submitPhoneNumber() async {
@@ -127,6 +135,7 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func finishVerifiedSignIn() async {
+        await DemoSessionStore.shared.setHasCompletedLogin(true)
         await profileSelectionViewModel.load()
         navigationPath.removeAll()
         rootScreen = .profileSelection
@@ -134,8 +143,8 @@ final class AppFlowViewModel: ObservableObject {
 
     func backToLogin() {
         authViewModel.resetOTPState()
-        navigationPath.removeAll()
         rootScreen = .login
+        popRoute()
     }
 
     func selectProfile(_ profile: Profile) {
@@ -183,6 +192,21 @@ final class AppFlowViewModel: ObservableObject {
         }
     }
 
+    func deleteProfile() {
+        Task {
+            let didDelete = await profileEditorViewModel.deleteCurrentProfile()
+            guard didDelete else { return }
+            await profileSelectionViewModel.load()
+            await MainActor.run {
+                if let activeProfile, !profileSelectionViewModel.profiles.contains(where: { $0.id == activeProfile.id }) {
+                    self.activeProfile = nil
+                }
+                navigationPath.removeAll()
+                rootScreen = .profileSelection
+            }
+        }
+    }
+
     func openAvatarPicker() {
         push(.avatarPicker(.editExisting))
     }
@@ -206,10 +230,11 @@ final class AppFlowViewModel: ObservableObject {
 
     func openSearch() {
         searchViewModel.present(popularItems: storefrontViewModel.searchSeedItems)
-        mainTab = .search
+        push(.search)
     }
 
     func openShorts() {
+        navigationPath.removeAll()
         mainTab = .shorts
     }
 
@@ -262,6 +287,7 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func openStorefront() {
+        navigationPath.removeAll()
         mainTab = .storefront
     }
 
@@ -280,15 +306,51 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func openHotTab() {
+        navigationPath.removeAll()
         mainTab = .hot
     }
 
-    func openDetail(item: StorefrontItem) {
+    func openContent(item: StorefrontItem) {
         Task {
             await DemoSessionStore.shared.recordContentSelection(item)
         }
+
+        switch ContentNavigationPolicy.destination(for: item) {
+        case .detail:
+            openDetail(item: item)
+        case .player:
+            openPlayerBackedContent(item)
+        case .collection:
+            print("Collection card routing is not implemented for item: \(item.title) [\(item.id)]")
+        case .unsupported(let contentType):
+            print("Unsupported content type '\(contentType)' for item: \(item.title). Defaulting to detail when possible.")
+            if item.canOpenDetail {
+                openDetail(item: item)
+            } else {
+                openPlayerBackedContent(item)
+            }
+        }
+    }
+
+    func openDetail(item: StorefrontItem) {
         detailViewModel.present(item: item)
         push(.detail(item))
+    }
+
+    func play(item: StorefrontItem) {
+        activePlaybackContent = item.quickplayPlaybackContent()
+    }
+
+    func play(detail: ContentDetail) {
+        activePlaybackContent = detail.quickplayPlaybackContent(fallback: nil)
+    }
+
+    func play(detail: ContentDetail, fallback item: StorefrontItem?) {
+        activePlaybackContent = detail.quickplayPlaybackContent(fallback: item)
+    }
+
+    func closePlayer() {
+        activePlaybackContent = nil
     }
 
     func openSectionBrowse(section: StorefrontSection, cohort: QuickplayCohort) {
@@ -298,6 +360,10 @@ final class AppFlowViewModel: ObservableObject {
 
     func backFromDetail() {
         popRoute()
+    }
+
+    private func openPlayerBackedContent(_ item: StorefrontItem) {
+        activePlaybackContent = item.quickplayPlaybackContent()
     }
 
     func handleNavigationPathChange(from oldPath: [Route], to newPath: [Route]) {

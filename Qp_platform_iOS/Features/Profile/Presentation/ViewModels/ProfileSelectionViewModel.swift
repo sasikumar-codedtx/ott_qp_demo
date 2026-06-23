@@ -17,6 +17,10 @@ final class ProfileSelectionViewModel: ObservableObject {
         profiles.filter(\.showOnSelection)
     }
 
+    var canAddProfile: Bool {
+        selectionProfiles.count < 5
+    }
+
     var defaultEditableProfile: Profile? {
         profiles.first(where: { !$0.isKidsProfile }) ?? profiles.first
     }

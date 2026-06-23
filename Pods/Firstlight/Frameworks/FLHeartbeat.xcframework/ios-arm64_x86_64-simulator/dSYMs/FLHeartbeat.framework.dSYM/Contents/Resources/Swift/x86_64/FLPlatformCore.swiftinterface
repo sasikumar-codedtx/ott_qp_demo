@@ -1,0 +1,134 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -target x86_64-apple-ios12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name FLPlatformCore
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -interface-compiler-version 6.1.2
+import AVFoundation
+import FLFoundation
+@_exported import FLPlatformCore
+import Foundation
+import Swift
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public protocol PrimetimeToken : Swift.Decodable {
+  var token: Swift.String { get }
+  var expiresIn: Swift.Double? { get }
+}
+public protocol GeoLocation : Swift.Decodable {
+  var continent: Swift.String? { get }
+  var continentName: Swift.String? { get }
+  var country: Swift.String? { get }
+  var countryName: Swift.String? { get }
+  var region: Swift.String? { get }
+  var regionName: Swift.String? { get }
+  var city: Swift.String? { get }
+  var district: Swift.String? { get }
+  var zip: Swift.String? { get }
+  var lat: Swift.Double? { get }
+  var lon: Swift.Double? { get }
+  var timezone: Swift.String? { get }
+  var isp: Swift.String? { get }
+  var mobile: Swift.Bool? { get }
+  var proxy: Swift.Bool? { get }
+  var hosting: Swift.Bool? { get }
+  var zone: Swift.String? { get }
+}
+public protocol AnonymousToken : Swift.Decodable {
+  var token: Swift.String { get }
+  var expiresIn: Swift.Double? { get }
+}
+public enum PlatformCoreExtensions {
+  public static func getAdobePrimeTimeToken(endPoint: Swift.String, deviceId: Swift.String, deviceInfo: Swift.String, httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient(), platformAuthorizer: any FLPlatformCore.PlatformAuthorizer, completionHandler: @escaping (Swift.Result<any FLPlatformCore.PrimetimeToken, any Swift.Error>) -> Swift.Void)
+  public static func getAdobePrimeTimeToken(endPoint: Swift.String, deviceId: Swift.String, deviceInfo: Swift.String, userId: Swift.String, profileId: Swift.String? = nil, httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient(), platformAuthorizer: any FLPlatformCore.PlatformAuthorizer, completionHandler: @escaping (Swift.Result<any FLPlatformCore.PrimetimeToken, any Swift.Error>) -> Swift.Void)
+  public static func getGeoLocation(endPoint: Swift.String, queryParameters: FLFoundation.Parameters? = nil, httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient(), platformAuthorizer: any FLPlatformCore.PlatformAuthorizer, completionHandler: @escaping (Swift.Result<any FLPlatformCore.GeoLocation, any Swift.Error>) -> Swift.Void)
+  public static func getAnonymousUserToken(endPoint: Swift.String, platformClient: any FLPlatformCore.PlatformClient, httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient(), platformAuthorizer: any FLPlatformCore.PlatformAuthorizer, completionHandler: @escaping (Swift.Result<any FLPlatformCore.AnonymousToken, any Swift.Error>) -> Swift.Void)
+}
+public protocol PlatformAuthorizer {
+  var configuration: any FLPlatformCore.PlatformAuthorizerConfiguration { get }
+  var userAuthorizationDelegate: any FLPlatformCore.UserAuthorizationDelegate { get }
+  init?(configuration: any FLPlatformCore.PlatformAuthorizerConfiguration, userAuthorizationDelegate: any FLPlatformCore.UserAuthorizationDelegate, oAuthService: (any FLPlatformCore.OAuthService)?)
+  func dispose()
+  func ensureAuthorization(completionHandler: @escaping (Swift.Result<FLPlatformCore.AuthorizationData, any Swift.Error>) -> Swift.Void)
+}
+extension FLPlatformCore.PlatformAuthorizer {
+  public init?(configuration: any FLPlatformCore.PlatformAuthorizerConfiguration, userAuthorizationDelegate: any FLPlatformCore.UserAuthorizationDelegate, oAuthService: (any FLPlatformCore.OAuthService)? = nil)
+}
+public protocol PlatformAuthorizerConfiguration {
+  var clientId: Swift.String { get }
+  var clientSecret: Swift.String { get }
+  var xClientId: Swift.String { get }
+  var tokenEndPoint: Swift.String { get }
+  var headers: FLFoundation.Headers? { get }
+}
+public func version() -> Swift.String
+public enum FLPlatformCoreFactory {
+  public static func authorizerConfiguration(clientId: Swift.String, clientSecret: Swift.String, xClientId: Swift.String, tokenEndPoint: Swift.String, headers: FLFoundation.Headers? = nil) -> any FLPlatformCore.PlatformAuthorizerConfiguration
+  public static func authorizer(configuration: any FLPlatformCore.PlatformAuthorizerConfiguration, userAuthorizationDelegate: any FLPlatformCore.UserAuthorizationDelegate, oAuthService: (any FLPlatformCore.OAuthService)? = nil) -> (any FLPlatformCore.PlatformAuthorizer)?
+  public static func oAuthService(endPoint: Swift.String, httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient()) -> any FLPlatformCore.OAuthService
+  public static func createDevice(id: Swift.String? = nil, name: Swift.String? = nil) -> any FLPlatformCore.PlatformClient
+}
+public var platformAuthorizerSingleton: (any FLPlatformCore.PlatformAuthorizer)? {
+  get
+}
+public protocol OAuthService {
+  var endPoint: Swift.String { get }
+  func authorize(clientId: Swift.String, clientSecret: Swift.String, completionHandler: @escaping (Swift.Result<FLPlatformCore.AuthorizationData, any Swift.Error>) -> Swift.Void)
+}
+public protocol PlatformClient {
+  var id: Swift.String { get }
+  var name: Swift.String { get }
+  var deviceManufacturer: Swift.String? { get }
+  var deviceModelName: Swift.String? { get }
+  var deviceModelNumber: Swift.String? { get }
+  var deviceYear: Swift.String? { get }
+  var deviceOs: Swift.String? { get }
+  var deviceOsVersion: Swift.String? { get }
+  var supportedResolution: Swift.String? { get }
+  func securityStatus(bundleID: Swift.String?) -> (status: Swift.Bool, failureReason: Swift.String?)
+  func securityStatus(with additioanlChecks: [FLFoundation.SecurityChecks]) -> (status: Swift.Bool, failureReason: Swift.String?)
+}
+extension FLPlatformCore.PlatformClient {
+  public func securityStatus(bundleID: Swift.String? = nil) -> (status: Swift.Bool, failureReason: Swift.String?)
+  public func securityStatus(with additionalChecks: [FLFoundation.SecurityChecks]) -> (status: Swift.Bool, failureReason: Swift.String?)
+}
+extension UIKit.UIDevice {
+  @_Concurrency.MainActor @preconcurrency public static let deviceModelName: Swift.String
+}
+extension FLFoundation.HTTPClient {
+  public func authorizeRequest(_ url: any FLFoundation.URLProvider, method: FLFoundation.HTTPMethod = .get, headers: FLFoundation.Headers? = nil, queryParameters: FLFoundation.Parameters? = nil, execBeforeRequest: ((FLFoundation.RequestWithQuery) -> FLFoundation.RequestWithQuery)? = nil, with authorizer: any FLPlatformCore.PlatformAuthorizer) -> any FLFoundation.ResponseHandler
+  public func authorizeRequest<Parameters>(_ url: any FLFoundation.URLProvider, method: FLFoundation.HTTPMethod, headers: FLFoundation.Headers? = nil, httpBody: Parameters? = nil, execBeforeRequest: ((FLFoundation.RequestWithPayload<Parameters>) -> FLFoundation.RequestWithPayload<Parameters>)? = nil, with authorizer: any FLPlatformCore.PlatformAuthorizer) -> any FLFoundation.ResponseHandler where Parameters : Swift.Encodable
+}
+public struct AuthorizationData : Swift.Codable {
+  public var accessToken: Swift.String
+  public var tokenExpiresInSeconds: Swift.UInt64
+  public var tokenType: Swift.String
+  public var scope: Swift.String
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public protocol UserAuthorizationDelegate {
+  func didProvideUserAuthorizationTokenRequest(completionHandler: @escaping (Swift.Result<FLPlatformCore.UserAuthorizationData, any Swift.Error>) -> Swift.Void)
+}
+public struct UserAuthorizationData : Swift.Codable {
+  public var accessToken: Swift.String
+  public init(accessToken: Swift.String)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public func platformServiceTime() -> Foundation.TimeInterval
+public enum PlatformErrorCodes : Swift.Int, Swift.Error, Foundation.LocalizedError {
+  case ACCESS_TOKEN_FAILURE
+  case INVALID_ACCESS_TOKEN
+  case USER_ACCESS_TOKEN_FAILURE
+  case REQUEST_INTERRUPTED
+  case MALFORMED_RESPONSE
+  case SERVICE_ERROR
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+extension FLPlatformCore.PlatformErrorCodes : Swift.Equatable {}
+extension FLPlatformCore.PlatformErrorCodes : Swift.Hashable {}
+extension FLPlatformCore.PlatformErrorCodes : Swift.RawRepresentable {}

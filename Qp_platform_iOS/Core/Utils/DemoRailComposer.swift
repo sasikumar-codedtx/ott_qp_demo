@@ -2,10 +2,7 @@ import Foundation
 
 enum DemoRailComposer {
     static func continueWatching(from items: [StorefrontItem], limit: Int = 10) -> [StorefrontItem] {
-        let candidates = items.filter { $0.availableRatios.contains("0-16x9") || $0.availableRatios.contains("0-2x3") }
-        return Array(candidates.prefix(limit).enumerated().map { index, item in
-            item.withProgress(Double((index % 4) + 2) / 6.0)
-        })
+        Array(items.prefix(limit))
     }
 
     static func favorites(from items: [StorefrontItem], limit: Int = 10) -> [StorefrontItem] {

@@ -15,34 +15,18 @@ struct StorefrontView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            VStack(spacing: 0) {
+            ZStack(alignment: .bottom) {
+                VStack(spacing: 0) {
                 StorefrontHeaderView(topInset: proxy.safeAreaInsets.top)
 
                 content
+                }
 
-                StorefrontTabDockView(
-                    tabs: viewModel.tabs,
-                    selectedTabID: viewModel.selectedTabID,
-                    onSelectTab: { tab in
-                        Task { await viewModel.selectTab(tab) }
-                    },
-                    onOpenMore: {
-                        isTabMenuPresented = true
-                    }
-                )
-                .padding(.bottom, 14)
-
-                BottomNavigationBar(
-                    selection: bottomSelection,
-                    profileImageName: ProfileArtworkResolver.imageName(forName: profileName),
-                    onHomeTap: onOpenHome,
-                    onSearchTap: onOpenSearch,
-                    onShortsTap: onOpenShorts,
-                    onHotTap: onOpenHot,
-                    onProfileTap: onProfileTap
-                )
+                bottomChrome
+                    .padding(.bottom, max(proxy.safeAreaInsets.bottom - 2, 0))
+                    .ignoresSafeArea(.container, edges: .bottom)
             }
-            .ignoresSafeArea(edges: .top)
+            .ignoresSafeArea(edges: [.top, .bottom])
         }
         .task {
             await viewModel.loadInitialIfNeeded()
@@ -59,6 +43,46 @@ struct StorefrontView: View {
             .presentationDetents([.fraction(0.32)])
             .presentationDragIndicator(.visible)
         }
+    }
+
+    private var bottomChrome: some View {
+        VStack(spacing: 14) {
+                StorefrontTabDockView(
+                    tabs: viewModel.tabs,
+                    selectedTabID: viewModel.selectedTabID,
+                    onSelectTab: { tab in
+                        Task { await viewModel.selectTab(tab) }
+                    },
+                    onOpenMore: {
+                        isTabMenuPresented = true
+                    }
+                )
+
+                BottomNavigationBar(
+                    selection: bottomSelection,
+                    profileImageName: ProfileArtworkResolver.imageName(forName: profileName),
+                    onHomeTap: onOpenHome,
+                    onSearchTap: onOpenSearch,
+                    onShortsTap: onOpenShorts,
+                    onHotTap: onOpenHot,
+                    onProfileTap: onProfileTap
+                )
+            }
+        .padding(.bottom, 8)
+        .background(
+            ZStack(alignment: .bottom) {
+                Color.black.opacity(0.22)
+                    .frame(height: 128)
+                    .blur(radius: 18)
+
+                LinearGradient(
+                    colors: [Color.clear, Color.black.opacity(0.58), Color.black.opacity(0.94)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+                .allowsHitTesting(false)
+        )
     }
 
     @ViewBuilder
@@ -82,6 +106,7 @@ struct StorefrontView: View {
                             section: section,
                             isHomeTab: viewModel.selectedTabTitle == AppStrings.Common.home,
                             cohort: viewModel.activeCohort,
+                            heroVariant: viewModel.demoHeroVariant,
                             onViewAll: onViewAllSection,
                             onSelectItem: onSelectItem
                         )
@@ -98,7 +123,7 @@ struct StorefrontView: View {
                             .padding(.vertical, UIConstants.Spacing.md)
                     }
                 }
-                .padding(.bottom, UIConstants.Spacing.lg)
+                .padding(.bottom, 210)
             }
         }
     }

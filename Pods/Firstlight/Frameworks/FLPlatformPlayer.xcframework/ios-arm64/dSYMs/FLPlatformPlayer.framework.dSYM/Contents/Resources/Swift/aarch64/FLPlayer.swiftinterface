@@ -1,0 +1,221 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -target arm64-apple-ios12.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name FLPlayer
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -interface-compiler-version 6.1.2
+import AVFoundation
+import AVKit
+import Combine
+import CoreMedia
+import FLContentAuthorizer
+import FLFoundation
+@_exported import FLPlayer
+import FLPlayerInterface
+import Foundation
+import GroupActivities
+import MediaPlayer
+import Swift
+import UIKit
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public typealias OfflineManager = FLPlayer.DownloadManager & FLPlayer.OfflinePlaybackSession
+public protocol DownloadManager {
+  var delegate: (any FLPlayer.DownloadManagerDelegate)? { get set }
+  var isAllTasksRestored: Swift.Bool { get }
+  var downloadAutoPurgeOnExpiry: Swift.Bool { get set }
+  var allTasks: FLFoundation.Observable<[Swift.String : any FLPlayer.DownloadTask]> { get }
+  func initialise(_ completion: @escaping () -> Swift.Void)
+  @available(iOS, deprecated: 15.0, message: "Please use async version of this api")
+  func enqueue(request: FLPlayer.DownloadRequest, assetArtworkData: Foundation.Data?) -> Swift.Result<any FLPlayer.DownloadTask, any Swift.Error>
+  @available(iOS 15.0, *)
+  func enqueue(request: FLPlayer.DownloadRequest, assetArtworkData: Foundation.Data?) async -> Swift.Result<any FLPlayer.DownloadTask, any Swift.Error>
+  func purge(_ downloadTask: any FLPlayer.DownloadTask) -> Swift.Result<Swift.Void, any Swift.Error>
+  @available(iOS, deprecated: 15.0, message: "Please use async version of this api")
+  func retry(_ downloadTask: any FLPlayer.DownloadTask) -> Swift.Result<Swift.Void, any Swift.Error>
+  @available(iOS 15.0, *)
+  func retry(_ downloadTask: any FLPlayer.DownloadTask) async -> Swift.Result<Swift.Void, any Swift.Error>
+  func suspendAll()
+}
+extension FLPlayer.DownloadManager {
+  @available(iOS, deprecated: 15.0, message: "Please use async version of this api")
+  public func enqueue(request: FLPlayer.DownloadRequest, assetArtworkData: Foundation.Data? = nil) -> Swift.Result<any FLPlayer.DownloadTask, any Swift.Error>
+  @available(iOS 15.0, *)
+  public func enqueue(request: FLPlayer.DownloadRequest, assetArtworkData: Foundation.Data? = nil) async -> Swift.Result<any FLPlayer.DownloadTask, any Swift.Error>
+}
+public protocol OfflinePlaybackSession {
+  func playbackStarted(_ downloadTask: any FLPlayer.DownloadTask)
+  func playbackComplete(_ downloadTask: any FLPlayer.DownloadTask, with resumePosition: Foundation.TimeInterval?)
+  func playbackProgress(_ downloadTask: any FLPlayer.DownloadTask, currentPosition: Foundation.TimeInterval)
+}
+public protocol DownloadManagerDelegate {
+  func downloadTask(_ task: any FLPlayer.DownloadTask, didFailWithError error: any Swift.Error)
+  func downloadTask(_ task: any FLPlayer.DownloadTask, didChangeState state: FLPlayer.DownloadState)
+  func downloadTask(_ task: any FLPlayer.DownloadTask, didChangeProgress progress: Swift.Double)
+  func downloadTask(_ task: any FLPlayer.DownloadTask, didChangeExpiration expiration: Foundation.Date)
+  func downloadTaskAdded(_ task: any FLPlayer.DownloadTask)
+  func downloadTaskRemoved(_ task: any FLPlayer.DownloadTask)
+}
+public class DefaultStreamStartUpTimeData : FLPlayerInterface.StreamStartUpTimeData {
+  public var palNonceRequestTimeMs: Swift.Double
+  public var ssaiStreamUrlFetchTimeMs: Swift.Double
+  public var preRollAdLoadTimeMs: Swift.Double
+  public init(ssaiStreamUrlFetchTimeMs: Swift.Double = 0, preRollAdLoadTimeMs: Swift.Double = 0, palNonceRequestTimeMs: Swift.Double = 0)
+  public func start(forKey startUpTimeData: FLPlayerInterface.StartUpEventType)
+  public func finish(forKey startUpTimeData: FLPlayerInterface.StartUpEventType)
+  @objc deinit
+}
+public struct DownloadRequest {
+  public let contentId: Swift.String
+  public let contentUrl: Foundation.URL
+  public let title: Swift.String
+  public let preferredVideoBitrate: Swift.Int
+  public let preferredAudioTracks: FLPlayer.DownloadTrackPreference?
+  public let preferredTextTracks: FLPlayer.DownloadTrackPreference?
+  public let metadata: Swift.String?
+  public let expiration: Foundation.Date
+  public let playbackExpiryDuration: Foundation.TimeInterval?
+  public let skd: Swift.String
+  public init(contentId: Swift.String, contentUrl: Foundation.URL, title: Swift.String, preferredVideoBitrate: Swift.Int, preferredAudioTracks: FLPlayer.DownloadTrackPreference? = nil, preferredTextTracks: FLPlayer.DownloadTrackPreference? = nil, metadata: Swift.String? = nil, expiration: Foundation.Date = Date.distantFuture, playbackExpiryDuration: Foundation.TimeInterval? = nil, skd: Swift.String? = nil)
+}
+public enum DownloadTrackPreference {
+  case selectedTracks(preferredTracks: [FLPlayerInterface.MediaTrack]?)
+  case allTracks
+}
+public enum PlayerErrorCodes : Swift.Int, Swift.Error, Foundation.LocalizedError {
+  case MEDIA_SOURCE_FAILURE
+  case MEDIA_SOURCE_TIMEOUT
+  case DRM_PROVISIONING_FAILURE
+  case DRM_PROVISIONING_TIMEOUT
+  case DRM_LICENSE_FAILURE
+  case DRM_LICENSE_TIMEOUT
+  case DRM_LICENSE_EXPIRED
+  case MEDIA_PLAYBACK_FAILURE
+  case MEDIA_PLAYBACK_STALE
+  case EXTERNAL_FAILURE
+  case NETWORK_CONNECTION_FAILURE
+  case NETWORK_END_POINT_UNREACHABLE
+  case PLAYBACK_NOT_ALLOWED_ON_INSECURE_DEVICE
+  case PLAYBACK_NOT_SUPPORTED_ON_EXTERNAL_DISPLAY
+  case AIRPLAY_RECEIVER_TEMPORARILY_NOT_AVAILABLE
+  case MEDIA_SERVICES_WERE_RESET
+  case DRM_KEY_REDUNDANT_REQUEST
+  case DRM_KEY_FETCH_INTERRUPTED
+  case SHARE_PLAY_ACTIVATION_FAILURE
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public enum DownloadErrorCodes : Swift.Int, Swift.Error, Foundation.LocalizedError {
+  case DOWNLOAD_FAILURE
+  case DOWNLOAD_TASK_NOT_FOUND
+  case RETRY_FAILURE
+  case DRM_PERSISTENCE_FETCH_NOT_POSSIBLE
+  case DOWNLOAD_TASK_METADATA_NOT_FOUND
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public typealias SharePlayMetadata = [Swift.String : Swift.String]
+@available(iOS 15.0, tvOS 15.0, *)
+public protocol SharePlayAsset : Swift.Decodable, Swift.Encodable {
+  var platformAsset: any FLContentAuthorizer.PlatformAsset { get set }
+  var data: FLPlayer.SharePlayMetadata { get set }
+}
+@objc @_inheritsConvenienceInitializers @_Concurrency.MainActor @preconcurrency public class PlaybackView : UIKit.UIView {
+  @_Concurrency.MainActor @preconcurrency @objc override dynamic public class var layerClass: Swift.AnyClass {
+    @objc get
+  }
+  @_Concurrency.MainActor @preconcurrency @objc override dynamic public init(frame: CoreFoundation.CGRect)
+  @_Concurrency.MainActor @preconcurrency @objc required dynamic public init?(coder: Foundation.NSCoder)
+  @objc deinit
+}
+@available(iOS 15.0, tvOS 15.0, *)
+public protocol SharePlayDelegate : AnyObject {
+  func didReceiveAssetForSharePlay(asset: (any FLPlayer.SharePlayAsset)?)
+  func didEndSharePlaySession()
+  func didFailWith(error: any FLFoundation.FLError)
+  func didUpdateSharePlay(eligibility: Swift.Bool)
+}
+@available(iOS 15.0, tvOS 15.0, *)
+public protocol SharePlayManager {
+  var delegate: (any FLPlayer.SharePlayDelegate)? { get set }
+  func sharePlay(with asset: any FLPlayer.SharePlayAsset)
+  func coordinate(with player: (any FLPlayerInterface.Player)?)
+  func canSharePlay() -> Swift.Bool
+  func isConnected() -> Swift.Bool
+  func leaveSharePlaySession()
+  func endSharePlaySession()
+}
+public func version() -> Swift.String
+public enum FLPlayerFactory {
+  @available(*, deprecated, message: "Since offlineManeger introduced, we advise to use offlineManeger instead.")
+  public static var downloadManager: any FLPlayer.DownloadManager
+  public static var offlineManeger: any FLPlayer.DownloadManager & FLPlayer.OfflinePlaybackSession
+  @available(iOS 15.0, tvOS 15.0, *)
+  public static var sharePlayManager: any FLPlayer.SharePlayManager
+  public static func player(asset: AVFoundation.AVURLAsset, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)? = nil) -> any FLPlayerInterface.Player
+  public static func player(contentUrl: Foundation.URL, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)? = nil) -> any FLPlayerInterface.Player
+  public static func promoPlayer(asset: AVFoundation.AVURLAsset, promos: [FLPlayerInterface.Promo], adPlaybackPolicy: FLPlayerInterface.AdPlaybackPolicy? = nil, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)? = nil) -> any FLPlayerInterface.AdPlayer
+  public static func promoPlayer(contentUrl: Foundation.URL, promos: [FLPlayerInterface.Promo], adPlaybackPolicy: FLPlayerInterface.AdPlaybackPolicy? = nil, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)? = nil) -> any FLPlayerInterface.AdPlayer
+  public static func promoPlayer(asset: AVFoundation.AVURLAsset, promos: [FLPlayerInterface.Promo], policyHandler: any FLPlayerInterface.PlaybackPolicyHandler, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)? = nil) -> any FLPlayerInterface.AdPlayer
+  public static func promoPlayer(contentUrl: Foundation.URL, promos: [FLPlayerInterface.Promo], policyHandler: any FLPlayerInterface.PlaybackPolicyHandler, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)? = nil) -> any FLPlayerInterface.AdPlayer
+  public static func createQueuePlayer(with playerItem: AVFoundation.AVPlayerItem, contentAVURLAsset: AVFoundation.AVURLAsset, mediaType: Swift.String, mediaId: Swift.String? = nil, mediaMetadata: [Swift.String : Any]? = nil, customMetadata: [Swift.String : Any]? = nil, artWorkUrl: Swift.String? = nil) -> any FLPlayerInterface.Player
+  public static func thumbnailConfiguration(endPoint: Swift.String, noOfColumns: Swift.Int = 10, noOfRows: Swift.Int = 10, keyFrameDuration: Swift.Int = 6, thumbnailHeight: Swift.Int = 108, thumbnailWidth: Swift.Int = 192) -> any FLPlayerInterface.ContentThumbnailPreviewConfiguration
+  public static func createRemoteCommandHandler() -> any FLPlayerInterface.PlayerRemoteCommandControllable
+  public static func fairplaylicenseFetcher() -> any FLPlayerInterface.FairplayLicenseFetcher
+  @available(iOS 15.0, tvOS 15.0, *)
+  public static func assetForSharePlay(asset: any FLContentAuthorizer.PlatformAsset, data: FLPlayer.SharePlayMetadata) -> any FLPlayer.SharePlayAsset
+  public static func createPolicyHandler(adPlaybackPolicy: FLPlayerInterface.AdPlaybackPolicy? = nil, player: (any FLPlayerInterface.Player)? = nil) -> any FLPlayerInterface.PlaybackPolicyHandler
+  public static func createVODAdEventHandler(policyHandler: (any FLPlayerInterface.PlaybackPolicyHandler)?, adBreaks: [any FLPlayerInterface.AdBreak], ad: [any FLPlayerInterface.Ad], adCuepointSyncInterval: Foundation.TimeInterval = 0.3) -> any FLPlayerInterface.VODAdEventHandler
+  public static func createLiveAdEventHandler(adBreaks: [any FLPlayerInterface.AdBreak], ad: [any FLPlayerInterface.Ad]) -> any FLPlayerInterface.LiveAdEventHandler
+}
+public protocol DownloadTask : AnyObject {
+  var contentId: Swift.String { get }
+  var state: FLFoundation.Observable<FLPlayer.DownloadState> { get }
+  var progress: FLFoundation.Observable<Swift.Double> { get }
+  var urlAsset: AVFoundation.AVURLAsset? { get }
+  var metadata: Swift.String? { get }
+  var expiration: FLFoundation.Observable<Foundation.Date> { get }
+  var sizeOnDisk: Swift.UInt64 { get }
+  var preferredAudioTracks: [FLPlayerInterface.MediaTrack] { get }
+  var preferredTextTracks: [FLPlayerInterface.MediaTrack] { get }
+  var skd: Swift.String? { get }
+  var playbackInformation: FLFoundation.Observable<any FLPlayer.PlaybackInformation> { get }
+  func resume()
+  func pause()
+  func cancel()
+}
+public protocol PlaybackInformation : Swift.Decodable, Swift.Encodable {
+  var watchExpiry: Foundation.TimeInterval? { get }
+  var resumePosition: Foundation.TimeInterval { get }
+  var wasWatched: FLFoundation.Observable<Swift.Bool> { get }
+  var watchablePercentage: Swift.Double { get }
+}
+public enum DownloadState : Swift.Equatable {
+  case running
+  case suspended
+  case cancelled
+  case completed
+  case failed(error: any Swift.Error)
+  case stale
+  public static func == (lhs: FLPlayer.DownloadState, rhs: FLPlayer.DownloadState) -> Swift.Bool
+}
+extension Foundation.NSNotification.Name {
+  public static let kFLPlayerItemChange: Foundation.Notification.Name
+  public static let kGoogleDAINewAssetAvailable: Foundation.Notification.Name
+  public static let kBroadpeakNewAssetAvailable: Foundation.Notification.Name
+  public static let kAVPlayerReasonForWaitingToPlay: Foundation.Notification.Name
+}
+extension AVFoundation.AVURLAsset {
+  public func tracks(for trackType: FLPlayerInterface.MediaTrackType) -> [FLPlayerInterface.MediaTrack]?
+}
+extension FLPlayer.PlayerErrorCodes : Swift.Equatable {}
+extension FLPlayer.PlayerErrorCodes : Swift.Hashable {}
+extension FLPlayer.PlayerErrorCodes : Swift.RawRepresentable {}
+extension FLPlayer.DownloadErrorCodes : Swift.Equatable {}
+extension FLPlayer.DownloadErrorCodes : Swift.Hashable {}
+extension FLPlayer.DownloadErrorCodes : Swift.RawRepresentable {}

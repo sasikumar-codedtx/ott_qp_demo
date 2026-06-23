@@ -1,0 +1,4870 @@
+{
+  "ABIRoot": {
+    "kind": "Root",
+    "name": "FLBookmarks",
+    "printedName": "FLBookmarks",
+    "children": [
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Function",
+        "name": "version",
+        "printedName": "version()",
+        "children": [
+          {
+            "kind": "TypeNominal",
+            "name": "String",
+            "printedName": "Swift.String",
+            "usr": "s:SS"
+          }
+        ],
+        "declKind": "Func",
+        "usr": "s:11FLBookmarks7versionSSyF",
+        "mangledName": "$s11FLBookmarks7versionSSyF",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "funcSelfKind": "NonMutating"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "FLBookmarksFactory",
+        "printedName": "FLBookmarksFactory",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "bookmarkSessionConfiguration",
+            "printedName": "bookmarkSessionConfiguration(endPoint:bookmarkSyncInterval:bookmarkThresholdPercentage:thresholdPlaybackPositionMs:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkSessionConfiguration",
+                "printedName": "any FLBookmarks.BookmarkSessionConfiguration",
+                "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "hasDefaultArg": true,
+                "usr": "s:Sd"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Double?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Double?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks0A7FactoryO28bookmarkSessionConfiguration8endPoint0C12SyncInterval0C19ThresholdPercentage27thresholdPlaybackPositionMsAA08BookmarkdE0_pSS_S2dSgAJtFZ",
+            "mangledName": "$s11FLBookmarks0A7FactoryO28bookmarkSessionConfiguration8endPoint0C12SyncInterval0C19ThresholdPercentage27thresholdPlaybackPositionMsAA08BookmarkdE0_pSS_S2dSgAJtFZ",
+            "moduleName": "FLBookmarks",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "bookmarkService",
+            "printedName": "bookmarkService(endPoint:httpClient:authorizer:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkService",
+                "printedName": "any FLBookmarks.BookmarkService",
+                "usr": "s:11FLBookmarks15BookmarkServiceP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "HTTPClient",
+                "printedName": "any FLFoundation.HTTPClient",
+                "hasDefaultArg": true,
+                "usr": "s:12FLFoundation10HTTPClientP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "PlatformAuthorizer",
+                "printedName": "any FLPlatformCore.PlatformAuthorizer",
+                "usr": "s:14FLPlatformCore18PlatformAuthorizerP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks0A7FactoryO15bookmarkService8endPoint10httpClient10authorizerAA08BookmarkD0_pSS_12FLFoundation10HTTPClient_p14FLPlatformCore18PlatformAuthorizer_ptFZ",
+            "mangledName": "$s11FLBookmarks0A7FactoryO15bookmarkService8endPoint10httpClient10authorizerAA08BookmarkD0_pSS_12FLFoundation10HTTPClient_p14FLPlatformCore18PlatformAuthorizer_ptFZ",
+            "moduleName": "FLBookmarks",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "bookmarksManager",
+            "printedName": "bookmarksManager(configuration:itemId:seasonId:episodeId:videoId:mode:seasonNumber:episodeNumber:contentType:bookmarkService:authorizer:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarksManager",
+                "printedName": "any FLBookmarks.BookmarksManager",
+                "usr": "s:11FLBookmarks16BookmarksManagerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkSessionConfiguration",
+                "printedName": "any FLBookmarks.BookmarkSessionConfiguration",
+                "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.Mode?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Mode",
+                    "printedName": "FLPlayerInterface.Mode",
+                    "usr": "s:17FLPlayerInterface4ModeO"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkService",
+                "printedName": "any FLBookmarks.BookmarkService",
+                "usr": "s:11FLBookmarks15BookmarkServiceP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "(any FLPlatformCore.PlatformAuthorizer)?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "PlatformAuthorizer",
+                    "printedName": "any FLPlatformCore.PlatformAuthorizer",
+                    "usr": "s:14FLPlatformCore18PlatformAuthorizerP"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks0A7FactoryO16bookmarksManager13configuration6itemId06seasonG007episodeG005videoG04mode0H6Number0iL011contentType15bookmarkService10authorizerAA09BookmarksD0_pAA28BookmarkSessionConfiguration_p_S2SSgA2R17FLPlayerInterface4ModeOSgSiSgAwrA0sP0_p14FLPlatformCore18PlatformAuthorizer_pSgtFZ",
+            "mangledName": "$s11FLBookmarks0A7FactoryO16bookmarksManager13configuration6itemId06seasonG007episodeG005videoG04mode0H6Number0iL011contentType15bookmarkService10authorizerAA09BookmarksD0_pAA28BookmarkSessionConfiguration_p_S2SSgA2R17FLPlayerInterface4ModeOSgSiSgAwrA0sP0_p14FLPlatformCore18PlatformAuthorizer_pSgtFZ",
+            "moduleName": "FLBookmarks",
+            "static": true,
+            "deprecated": true,
+            "declAttributes": [
+              "AccessControl",
+              "Available",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "bookmarksManager",
+            "printedName": "bookmarksManager(configuration:bookmarkAttributes:bookmarkService:nextItem:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarksManager",
+                "printedName": "any FLBookmarks.BookmarksManager",
+                "usr": "s:11FLBookmarks16BookmarksManagerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkSessionConfiguration",
+                "printedName": "any FLBookmarks.BookmarkSessionConfiguration",
+                "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkAttributes",
+                "printedName": "FLPlayerInterface.BookmarkAttributes",
+                "usr": "s:17FLPlayerInterface18BookmarkAttributesV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkService",
+                "printedName": "any FLBookmarks.BookmarkService",
+                "usr": "s:11FLBookmarks15BookmarkServiceP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.BookmarkAttributes?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "BookmarkAttributes",
+                    "printedName": "FLPlayerInterface.BookmarkAttributes",
+                    "usr": "s:17FLPlayerInterface18BookmarkAttributesV"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks0A7FactoryO16bookmarksManager13configuration18bookmarkAttributes0F7Service8nextItemAA09BookmarksD0_pAA28BookmarkSessionConfiguration_p_17FLPlayerInterface0lG0VAA0lH0_pAMSgtFZ",
+            "mangledName": "$s11FLBookmarks0A7FactoryO16bookmarksManager13configuration18bookmarkAttributes0F7Service8nextItemAA09BookmarksD0_pAA28BookmarkSessionConfiguration_p_17FLPlayerInterface0lG0VAA0lH0_pAMSgtFZ",
+            "moduleName": "FLBookmarks",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "bookmarksManager",
+            "printedName": "bookmarksManager(configuration:bookmarkAttributes:authorizer:httpClient:nextItem:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarksManager",
+                "printedName": "any FLBookmarks.BookmarksManager",
+                "usr": "s:11FLBookmarks16BookmarksManagerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkSessionConfiguration",
+                "printedName": "any FLBookmarks.BookmarkSessionConfiguration",
+                "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkAttributes",
+                "printedName": "FLPlayerInterface.BookmarkAttributes",
+                "usr": "s:17FLPlayerInterface18BookmarkAttributesV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "PlatformAuthorizer",
+                "printedName": "any FLPlatformCore.PlatformAuthorizer",
+                "usr": "s:14FLPlatformCore18PlatformAuthorizerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "HTTPClient",
+                "printedName": "any FLFoundation.HTTPClient",
+                "hasDefaultArg": true,
+                "usr": "s:12FLFoundation10HTTPClientP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.BookmarkAttributes?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "BookmarkAttributes",
+                    "printedName": "FLPlayerInterface.BookmarkAttributes",
+                    "usr": "s:17FLPlayerInterface18BookmarkAttributesV"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks0A7FactoryO16bookmarksManager13configuration18bookmarkAttributes10authorizer10httpClient8nextItemAA09BookmarksD0_pAA28BookmarkSessionConfiguration_p_17FLPlayerInterface0nG0V14FLPlatformCore18PlatformAuthorizer_p12FLFoundation10HTTPClient_pANSgtFZ",
+            "mangledName": "$s11FLBookmarks0A7FactoryO16bookmarksManager13configuration18bookmarkAttributes10authorizer10httpClient8nextItemAA09BookmarksD0_pAA28BookmarkSessionConfiguration_p_17FLPlayerInterface0nG0V14FLPlatformCore18PlatformAuthorizer_p12FLFoundation10HTTPClient_pANSgtFZ",
+            "moduleName": "FLBookmarks",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "bookmarksManager",
+            "printedName": "bookmarksManager(configuration:bookmarkAttributes:authorizer:configurationCallback:httpClient:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarksManager",
+                "printedName": "any FLBookmarks.BookmarksManager",
+                "usr": "s:11FLBookmarks16BookmarksManagerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkSessionConfiguration",
+                "printedName": "any FLBookmarks.BookmarkSessionConfiguration",
+                "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkAttributes",
+                "printedName": "FLPlayerInterface.BookmarkAttributes",
+                "usr": "s:17FLPlayerInterface18BookmarkAttributesV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "PlatformAuthorizer",
+                "printedName": "any FLPlatformCore.PlatformAuthorizer",
+                "usr": "s:14FLPlatformCore18PlatformAuthorizerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "MediaPlaylistItemTransitionCallback",
+                "printedName": "any FLBookmarks.MediaPlaylistItemTransitionCallback",
+                "usr": "s:11FLBookmarks35MediaPlaylistItemTransitionCallbackP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "HTTPClient",
+                "printedName": "any FLFoundation.HTTPClient",
+                "hasDefaultArg": true,
+                "usr": "s:12FLFoundation10HTTPClientP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks0A7FactoryO16bookmarksManager13configuration18bookmarkAttributes10authorizer0E8Callback10httpClientAA09BookmarksD0_pAA28BookmarkSessionConfiguration_p_17FLPlayerInterface0mG0V14FLPlatformCore18PlatformAuthorizer_pAA027MediaPlaylistItemTransitionI0_p12FLFoundation10HTTPClient_ptFZ",
+            "mangledName": "$s11FLBookmarks0A7FactoryO16bookmarksManager13configuration18bookmarkAttributes10authorizer0E8Callback10httpClientAA09BookmarksD0_pAA28BookmarkSessionConfiguration_p_17FLPlayerInterface0mG0V14FLPlatformCore18PlatformAuthorizer_pAA027MediaPlaylistItemTransitionI0_p12FLFoundation10HTTPClient_ptFZ",
+            "moduleName": "FLBookmarks",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "bookmarksManager",
+            "printedName": "bookmarksManager(configuration:bookmarkAttributes:bookmarkService:configurationCallback:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarksManager",
+                "printedName": "any FLBookmarks.BookmarksManager",
+                "usr": "s:11FLBookmarks16BookmarksManagerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkSessionConfiguration",
+                "printedName": "any FLBookmarks.BookmarkSessionConfiguration",
+                "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkAttributes",
+                "printedName": "FLPlayerInterface.BookmarkAttributes",
+                "usr": "s:17FLPlayerInterface18BookmarkAttributesV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkService",
+                "printedName": "any FLBookmarks.BookmarkService",
+                "usr": "s:11FLBookmarks15BookmarkServiceP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "MediaPlaylistItemTransitionCallback",
+                "printedName": "any FLBookmarks.MediaPlaylistItemTransitionCallback",
+                "usr": "s:11FLBookmarks35MediaPlaylistItemTransitionCallbackP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks0A7FactoryO16bookmarksManager13configuration18bookmarkAttributes0F7Service0E8CallbackAA09BookmarksD0_pAA28BookmarkSessionConfiguration_p_17FLPlayerInterface0kG0VAA0kH0_pAA027MediaPlaylistItemTransitionI0_ptFZ",
+            "mangledName": "$s11FLBookmarks0A7FactoryO16bookmarksManager13configuration18bookmarkAttributes0F7Service0E8CallbackAA09BookmarksD0_pAA28BookmarkSessionConfiguration_p_17FLPlayerInterface0kG0VAA0kH0_pAA027MediaPlaylistItemTransitionI0_ptFZ",
+            "moduleName": "FLBookmarks",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:11FLBookmarks0A7FactoryO",
+        "mangledName": "$s11FLBookmarks0A7FactoryO",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "BookmarkRecord",
+        "printedName": "BookmarkRecord",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "itemId",
+            "printedName": "itemId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks14BookmarkRecordV6itemIdSSvp",
+            "mangledName": "$s11FLBookmarks14BookmarkRecordV6itemIdSSvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks14BookmarkRecordV6itemIdSSvg",
+                "mangledName": "$s11FLBookmarks14BookmarkRecordV6itemIdSSvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "offset",
+            "printedName": "offset",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "usr": "s:Sd"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks14BookmarkRecordV6offsetSdvp",
+            "mangledName": "$s11FLBookmarks14BookmarkRecordV6offsetSdvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks14BookmarkRecordV6offsetSdvg",
+                "mangledName": "$s11FLBookmarks14BookmarkRecordV6offsetSdvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "updatedTimestamp",
+            "printedName": "updatedTimestamp",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Double?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks14BookmarkRecordV16updatedTimestampSdSgvp",
+            "mangledName": "$s11FLBookmarks14BookmarkRecordV16updatedTimestampSdSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Double?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Double",
+                        "printedName": "Swift.Double",
+                        "usr": "s:Sd"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks14BookmarkRecordV16updatedTimestampSdSgvg",
+                "mangledName": "$s11FLBookmarks14BookmarkRecordV16updatedTimestampSdSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "seasonId",
+            "printedName": "seasonId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks14BookmarkRecordV8seasonIdSSSgvp",
+            "mangledName": "$s11FLBookmarks14BookmarkRecordV8seasonIdSSSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks14BookmarkRecordV8seasonIdSSSgvg",
+                "mangledName": "$s11FLBookmarks14BookmarkRecordV8seasonIdSSSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "episodeId",
+            "printedName": "episodeId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks14BookmarkRecordV9episodeIdSSSgvp",
+            "mangledName": "$s11FLBookmarks14BookmarkRecordV9episodeIdSSSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks14BookmarkRecordV9episodeIdSSSgvg",
+                "mangledName": "$s11FLBookmarks14BookmarkRecordV9episodeIdSSSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "videoId",
+            "printedName": "videoId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks14BookmarkRecordV7videoIdSSSgvp",
+            "mangledName": "$s11FLBookmarks14BookmarkRecordV7videoIdSSSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks14BookmarkRecordV7videoIdSSSgvg",
+                "mangledName": "$s11FLBookmarks14BookmarkRecordV7videoIdSSSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "mode",
+            "printedName": "mode",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.Mode?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Mode",
+                    "printedName": "FLPlayerInterface.Mode",
+                    "usr": "s:17FLPlayerInterface4ModeO"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks14BookmarkRecordV4mode17FLPlayerInterface4ModeOSgvp",
+            "mangledName": "$s11FLBookmarks14BookmarkRecordV4mode17FLPlayerInterface4ModeOSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "FLPlayerInterface.Mode?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Mode",
+                        "printedName": "FLPlayerInterface.Mode",
+                        "usr": "s:17FLPlayerInterface4ModeO"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks14BookmarkRecordV4mode17FLPlayerInterface4ModeOSgvg",
+                "mangledName": "$s11FLBookmarks14BookmarkRecordV4mode17FLPlayerInterface4ModeOSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "seasonNumber",
+            "printedName": "seasonNumber",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks14BookmarkRecordV12seasonNumberSiSgvp",
+            "mangledName": "$s11FLBookmarks14BookmarkRecordV12seasonNumberSiSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Int?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Int",
+                        "printedName": "Swift.Int",
+                        "usr": "s:Si"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks14BookmarkRecordV12seasonNumberSiSgvg",
+                "mangledName": "$s11FLBookmarks14BookmarkRecordV12seasonNumberSiSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "episodeNumber",
+            "printedName": "episodeNumber",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks14BookmarkRecordV13episodeNumberSiSgvp",
+            "mangledName": "$s11FLBookmarks14BookmarkRecordV13episodeNumberSiSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Int?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Int",
+                        "printedName": "Swift.Int",
+                        "usr": "s:Si"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks14BookmarkRecordV13episodeNumberSiSgvg",
+                "mangledName": "$s11FLBookmarks14BookmarkRecordV13episodeNumberSiSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "contentType",
+            "printedName": "contentType",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks14BookmarkRecordV11contentTypeSSSgvp",
+            "mangledName": "$s11FLBookmarks14BookmarkRecordV11contentTypeSSSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks14BookmarkRecordV11contentTypeSSSgvg",
+                "mangledName": "$s11FLBookmarks14BookmarkRecordV11contentTypeSSSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "playlistBookmarks",
+            "printedName": "playlistBookmarks",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[FLBookmarks.PlaylistBookmarkRecord]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Array",
+                    "printedName": "[FLBookmarks.PlaylistBookmarkRecord]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "PlaylistBookmarkRecord",
+                        "printedName": "FLBookmarks.PlaylistBookmarkRecord",
+                        "usr": "s:11FLBookmarks22PlaylistBookmarkRecordV"
+                      }
+                    ],
+                    "usr": "s:Sa"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks14BookmarkRecordV17playlistBookmarksSayAA08PlaylistbC0VGSgvp",
+            "mangledName": "$s11FLBookmarks14BookmarkRecordV17playlistBookmarksSayAA08PlaylistbC0VGSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "[FLBookmarks.PlaylistBookmarkRecord]?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Array",
+                        "printedName": "[FLBookmarks.PlaylistBookmarkRecord]",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "PlaylistBookmarkRecord",
+                            "printedName": "FLBookmarks.PlaylistBookmarkRecord",
+                            "usr": "s:11FLBookmarks22PlaylistBookmarkRecordV"
+                          }
+                        ],
+                        "usr": "s:Sa"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks14BookmarkRecordV17playlistBookmarksSayAA08PlaylistbC0VGSgvg",
+                "mangledName": "$s11FLBookmarks14BookmarkRecordV17playlistBookmarksSayAA08PlaylistbC0VGSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(from:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkRecord",
+                "printedName": "FLBookmarks.BookmarkRecord",
+                "usr": "s:11FLBookmarks14BookmarkRecordV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Decoder",
+                "printedName": "any Swift.Decoder",
+                "usr": "s:s7DecoderP"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:11FLBookmarks14BookmarkRecordV4fromACs7Decoder_p_tKcfc",
+            "mangledName": "$s11FLBookmarks14BookmarkRecordV4fromACs7Decoder_p_tKcfc",
+            "moduleName": "FLBookmarks",
+            "implicit": true,
+            "throwing": true,
+            "init_kind": "Designated"
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:11FLBookmarks14BookmarkRecordV",
+        "mangledName": "$s11FLBookmarks14BookmarkRecordV",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Decodable",
+            "printedName": "Decodable",
+            "usr": "s:Se",
+            "mangledName": "$sSe"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "PlaylistBookmarkRecord",
+        "printedName": "PlaylistBookmarkRecord",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "videoId",
+            "printedName": "videoId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks22PlaylistBookmarkRecordV7videoIdSSvp",
+            "mangledName": "$s11FLBookmarks22PlaylistBookmarkRecordV7videoIdSSvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks22PlaylistBookmarkRecordV7videoIdSSvg",
+                "mangledName": "$s11FLBookmarks22PlaylistBookmarkRecordV7videoIdSSvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "offset",
+            "printedName": "offset",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "usr": "s:Sd"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks22PlaylistBookmarkRecordV6offsetSdvp",
+            "mangledName": "$s11FLBookmarks22PlaylistBookmarkRecordV6offsetSdvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks22PlaylistBookmarkRecordV6offsetSdvg",
+                "mangledName": "$s11FLBookmarks22PlaylistBookmarkRecordV6offsetSdvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "playlistId",
+            "printedName": "playlistId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks22PlaylistBookmarkRecordV10playlistIdSSvp",
+            "mangledName": "$s11FLBookmarks22PlaylistBookmarkRecordV10playlistIdSSvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks22PlaylistBookmarkRecordV10playlistIdSSvg",
+                "mangledName": "$s11FLBookmarks22PlaylistBookmarkRecordV10playlistIdSSvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "updatedTimestamp",
+            "printedName": "updatedTimestamp",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "usr": "s:Sd"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks22PlaylistBookmarkRecordV16updatedTimestampSdvp",
+            "mangledName": "$s11FLBookmarks22PlaylistBookmarkRecordV16updatedTimestampSdvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks22PlaylistBookmarkRecordV16updatedTimestampSdvg",
+                "mangledName": "$s11FLBookmarks22PlaylistBookmarkRecordV16updatedTimestampSdvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(from:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "PlaylistBookmarkRecord",
+                "printedName": "FLBookmarks.PlaylistBookmarkRecord",
+                "usr": "s:11FLBookmarks22PlaylistBookmarkRecordV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Decoder",
+                "printedName": "any Swift.Decoder",
+                "usr": "s:s7DecoderP"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:11FLBookmarks22PlaylistBookmarkRecordV4fromACs7Decoder_p_tKcfc",
+            "mangledName": "$s11FLBookmarks22PlaylistBookmarkRecordV4fromACs7Decoder_p_tKcfc",
+            "moduleName": "FLBookmarks",
+            "implicit": true,
+            "throwing": true,
+            "init_kind": "Designated"
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:11FLBookmarks22PlaylistBookmarkRecordV",
+        "mangledName": "$s11FLBookmarks22PlaylistBookmarkRecordV",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Decodable",
+            "printedName": "Decodable",
+            "usr": "s:Se",
+            "mangledName": "$sSe"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "AssetBookmarkConfiguration",
+        "printedName": "AssetBookmarkConfiguration",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "assetId",
+            "printedName": "assetId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV7assetIdSSvp",
+            "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV7assetIdSSvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV7assetIdSSvg",
+                "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV7assetIdSSvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "seasonId",
+            "printedName": "seasonId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV8seasonIdSSSgvp",
+            "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV8seasonIdSSSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV8seasonIdSSSgvg",
+                "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV8seasonIdSSSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "episodeId",
+            "printedName": "episodeId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV9episodeIdSSSgvp",
+            "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV9episodeIdSSSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV9episodeIdSSSgvg",
+                "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV9episodeIdSSSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "seasonNumber",
+            "printedName": "seasonNumber",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV12seasonNumberSiSgvp",
+            "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV12seasonNumberSiSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Int?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Int",
+                        "printedName": "Swift.Int",
+                        "usr": "s:Si"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV12seasonNumberSiSgvg",
+                "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV12seasonNumberSiSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "episodeNumber",
+            "printedName": "episodeNumber",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV13episodeNumberSiSgvp",
+            "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV13episodeNumberSiSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Int?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Int",
+                        "printedName": "Swift.Int",
+                        "usr": "s:Si"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV13episodeNumberSiSgvg",
+                "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV13episodeNumberSiSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "videoId",
+            "printedName": "videoId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV7videoIdSSSgvp",
+            "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV7videoIdSSSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV7videoIdSSSgvg",
+                "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV7videoIdSSSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "mode",
+            "printedName": "mode",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.Mode?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Mode",
+                    "printedName": "FLPlayerInterface.Mode",
+                    "usr": "s:17FLPlayerInterface4ModeO"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV4mode17FLPlayerInterface4ModeOSgvp",
+            "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV4mode17FLPlayerInterface4ModeOSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "FLPlayerInterface.Mode?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Mode",
+                        "printedName": "FLPlayerInterface.Mode",
+                        "usr": "s:17FLPlayerInterface4ModeO"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV4mode17FLPlayerInterface4ModeOSgvg",
+                "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV4mode17FLPlayerInterface4ModeOSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "nextEpisodeDetails",
+            "printedName": "nextEpisodeDetails",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.BookmarkAttributes?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "BookmarkAttributes",
+                    "printedName": "FLPlayerInterface.BookmarkAttributes",
+                    "usr": "s:17FLPlayerInterface18BookmarkAttributesV"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV18nextEpisodeDetails17FLPlayerInterface0C10AttributesVSgvp",
+            "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV18nextEpisodeDetails17FLPlayerInterface0C10AttributesVSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "FLPlayerInterface.BookmarkAttributes?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "BookmarkAttributes",
+                        "printedName": "FLPlayerInterface.BookmarkAttributes",
+                        "usr": "s:17FLPlayerInterface18BookmarkAttributesV"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV18nextEpisodeDetails17FLPlayerInterface0C10AttributesVSgvg",
+                "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV18nextEpisodeDetails17FLPlayerInterface0C10AttributesVSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "contentType",
+            "printedName": "contentType",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV11contentTypeSSSgvp",
+            "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV11contentTypeSSSgvp",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV11contentTypeSSSgvg",
+                "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV11contentTypeSSSgvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(assetId:seasonId:episodeId:seasonNumber:episodeNumber:videoId:mode:nextEpisodeDetails:contentType:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AssetBookmarkConfiguration",
+                "printedName": "FLBookmarks.AssetBookmarkConfiguration",
+                "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.Mode?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Mode",
+                    "printedName": "FLPlayerInterface.Mode",
+                    "usr": "s:17FLPlayerInterface4ModeO"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.BookmarkAttributes?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "BookmarkAttributes",
+                    "printedName": "FLPlayerInterface.BookmarkAttributes",
+                    "usr": "s:17FLPlayerInterface18BookmarkAttributesV"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV7assetId06seasonF007episodeF00G6Number0hI005videoF04mode18nextEpisodeDetails11contentTypeACSS_SSSgAMSiSgAnM17FLPlayerInterface4ModeOSgAO0C10AttributesVSgAMtcfc",
+            "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV7assetId06seasonF007episodeF00G6Number0hI005videoF04mode18nextEpisodeDetails11contentTypeACSS_SSSgAMSiSgAnM17FLPlayerInterface4ModeOSgAO0C10AttributesVSgAMtcfc",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "init_kind": "Designated"
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV",
+        "mangledName": "$s11FLBookmarks26AssetBookmarkConfigurationV",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "MediaPlaylistItemTransitionCallback",
+        "printedName": "MediaPlaylistItemTransitionCallback",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "onMediaPlaylistItemTransition",
+            "printedName": "onMediaPlaylistItemTransition(for:completionHandler:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "MediaPlaylistItem",
+                "printedName": "any FLPlayerInterface.MediaPlaylistItem",
+                "usr": "s:17FLPlayerInterface17MediaPlaylistItemP"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLBookmarks.AssetBookmarkConfiguration?) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "FLBookmarks.AssetBookmarkConfiguration?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "AssetBookmarkConfiguration",
+                        "printedName": "FLBookmarks.AssetBookmarkConfiguration",
+                        "usr": "s:11FLBookmarks26AssetBookmarkConfigurationV"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks35MediaPlaylistItemTransitionCallbackP02onbcdE03for17completionHandlery17FLPlayerInterface0bcD0_p_yAA26AssetBookmarkConfigurationVSgctF",
+            "mangledName": "$s11FLBookmarks35MediaPlaylistItemTransitionCallbackP02onbcdE03for17completionHandlery17FLPlayerInterface0bcD0_p_yAA26AssetBookmarkConfigurationVSgctF",
+            "moduleName": "FLBookmarks",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.MediaPlaylistItemTransitionCallback>",
+            "sugared_genericSig": "<Self where Self : FLBookmarks.MediaPlaylistItemTransitionCallback>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:11FLBookmarks35MediaPlaylistItemTransitionCallbackP",
+        "mangledName": "$s11FLBookmarks35MediaPlaylistItemTransitionCallbackP",
+        "moduleName": "FLBookmarks",
+        "genericSig": "<τ_0_0 : AnyObject>",
+        "sugared_genericSig": "<Self : AnyObject>",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "BookmarksManager",
+        "printedName": "BookmarksManager",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "configuration",
+            "printedName": "configuration",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "BookmarkSessionConfiguration",
+                "printedName": "any FLBookmarks.BookmarkSessionConfiguration",
+                "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks16BookmarksManagerP13configurationAA28BookmarkSessionConfiguration_pvp",
+            "mangledName": "$s11FLBookmarks16BookmarksManagerP13configurationAA28BookmarkSessionConfiguration_pvp",
+            "moduleName": "FLBookmarks",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "BookmarkSessionConfiguration",
+                    "printedName": "any FLBookmarks.BookmarkSessionConfiguration",
+                    "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks16BookmarksManagerP13configurationAA28BookmarkSessionConfiguration_pvg",
+                "mangledName": "$s11FLBookmarks16BookmarksManagerP13configurationAA28BookmarkSessionConfiguration_pvg",
+                "moduleName": "FLBookmarks",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarksManager>",
+                "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarksManager>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "nextItem",
+            "printedName": "nextItem",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.BookmarkAttributes?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "BookmarkAttributes",
+                    "printedName": "FLPlayerInterface.BookmarkAttributes",
+                    "usr": "s:17FLPlayerInterface18BookmarkAttributesV"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks16BookmarksManagerP8nextItem17FLPlayerInterface18BookmarkAttributesVSgvp",
+            "mangledName": "$s11FLBookmarks16BookmarksManagerP8nextItem17FLPlayerInterface18BookmarkAttributesVSgvp",
+            "moduleName": "FLBookmarks",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "FLPlayerInterface.BookmarkAttributes?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "BookmarkAttributes",
+                        "printedName": "FLPlayerInterface.BookmarkAttributes",
+                        "usr": "s:17FLPlayerInterface18BookmarkAttributesV"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks16BookmarksManagerP8nextItem17FLPlayerInterface18BookmarkAttributesVSgvg",
+                "mangledName": "$s11FLBookmarks16BookmarksManagerP8nextItem17FLPlayerInterface18BookmarkAttributesVSgvg",
+                "moduleName": "FLBookmarks",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarksManager>",
+                "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarksManager>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "FLPlayerInterface.BookmarkAttributes?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "BookmarkAttributes",
+                        "printedName": "FLPlayerInterface.BookmarkAttributes",
+                        "usr": "s:17FLPlayerInterface18BookmarkAttributesV"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks16BookmarksManagerP8nextItem17FLPlayerInterface18BookmarkAttributesVSgvs",
+                "mangledName": "$s11FLBookmarks16BookmarksManagerP8nextItem17FLPlayerInterface18BookmarkAttributesVSgvs",
+                "moduleName": "FLBookmarks",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarksManager>",
+                "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarksManager>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks16BookmarksManagerP8nextItem17FLPlayerInterface18BookmarkAttributesVSgvM",
+                "mangledName": "$s11FLBookmarks16BookmarksManagerP8nextItem17FLPlayerInterface18BookmarkAttributesVSgvM",
+                "moduleName": "FLBookmarks",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarksManager>",
+                "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarksManager>",
+                "protocolReq": true,
+                "implicit": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "isThresholdReached",
+            "printedName": "isThresholdReached",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Observable",
+                "printedName": "FLFoundation.Observable<Swift.Bool>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "usr": "s:12FLFoundation10ObservableC"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks16BookmarksManagerP18isThresholdReached12FLFoundation10ObservableCySbGvp",
+            "mangledName": "$s11FLBookmarks16BookmarksManagerP18isThresholdReached12FLFoundation10ObservableCySbGvp",
+            "moduleName": "FLBookmarks",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Observable",
+                    "printedName": "FLFoundation.Observable<Swift.Bool>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Bool",
+                        "printedName": "Swift.Bool",
+                        "usr": "s:Sb"
+                      }
+                    ],
+                    "usr": "s:12FLFoundation10ObservableC"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks16BookmarksManagerP18isThresholdReached12FLFoundation10ObservableCySbGvg",
+                "mangledName": "$s11FLBookmarks16BookmarksManagerP18isThresholdReached12FLFoundation10ObservableCySbGvg",
+                "moduleName": "FLBookmarks",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarksManager>",
+                "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarksManager>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Function",
+            "name": "processPlaybackStateChange",
+            "printedName": "processPlaybackStateChange(player:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Player",
+                "printedName": "any FLPlayerInterface.Player",
+                "usr": "s:17FLPlayerInterface6PlayerP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks16BookmarksManagerP26processPlaybackStateChange6playery17FLPlayerInterface6Player_p_tF",
+            "mangledName": "$s11FLBookmarks16BookmarksManagerP26processPlaybackStateChange6playery17FLPlayerInterface6Player_p_tF",
+            "moduleName": "FLBookmarks",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarksManager>",
+            "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarksManager>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "processPlaybackProgress",
+            "printedName": "processPlaybackProgress(player:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Player",
+                "printedName": "any FLPlayerInterface.Player",
+                "usr": "s:17FLPlayerInterface6PlayerP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks16BookmarksManagerP23processPlaybackProgress6playery17FLPlayerInterface6Player_p_tF",
+            "mangledName": "$s11FLBookmarks16BookmarksManagerP23processPlaybackProgress6playery17FLPlayerInterface6Player_p_tF",
+            "moduleName": "FLBookmarks",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarksManager>",
+            "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarksManager>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:11FLBookmarks16BookmarksManagerP",
+        "mangledName": "$s11FLBookmarks16BookmarksManagerP",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "BookmarkSessionConfiguration",
+        "printedName": "BookmarkSessionConfiguration",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "endPoint",
+            "printedName": "endPoint",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP8endPointSSvp",
+            "mangledName": "$s11FLBookmarks28BookmarkSessionConfigurationP8endPointSSvp",
+            "moduleName": "FLBookmarks",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP8endPointSSvg",
+                "mangledName": "$s11FLBookmarks28BookmarkSessionConfigurationP8endPointSSvg",
+                "moduleName": "FLBookmarks",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarkSessionConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarkSessionConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "bookmarkSyncInterval",
+            "printedName": "bookmarkSyncInterval",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "usr": "s:Sd"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP20bookmarkSyncIntervalSdvp",
+            "mangledName": "$s11FLBookmarks28BookmarkSessionConfigurationP20bookmarkSyncIntervalSdvp",
+            "moduleName": "FLBookmarks",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP20bookmarkSyncIntervalSdvg",
+                "mangledName": "$s11FLBookmarks28BookmarkSessionConfigurationP20bookmarkSyncIntervalSdvg",
+                "moduleName": "FLBookmarks",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarkSessionConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarkSessionConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "bookmarkThresholdPercentage",
+            "printedName": "bookmarkThresholdPercentage",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Double?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP27bookmarkThresholdPercentageSdSgvp",
+            "mangledName": "$s11FLBookmarks28BookmarkSessionConfigurationP27bookmarkThresholdPercentageSdSgvp",
+            "moduleName": "FLBookmarks",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Double?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Double",
+                        "printedName": "Swift.Double",
+                        "usr": "s:Sd"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP27bookmarkThresholdPercentageSdSgvg",
+                "mangledName": "$s11FLBookmarks28BookmarkSessionConfigurationP27bookmarkThresholdPercentageSdSgvg",
+                "moduleName": "FLBookmarks",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarkSessionConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarkSessionConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "thresholdPlaybackPositionMs",
+            "printedName": "thresholdPlaybackPositionMs",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Double?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP27thresholdPlaybackPositionMsSdSgvp",
+            "mangledName": "$s11FLBookmarks28BookmarkSessionConfigurationP27thresholdPlaybackPositionMsSdSgvp",
+            "moduleName": "FLBookmarks",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Double?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Double",
+                        "printedName": "Swift.Double",
+                        "usr": "s:Sd"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP27thresholdPlaybackPositionMsSdSgvg",
+                "mangledName": "$s11FLBookmarks28BookmarkSessionConfigurationP27thresholdPlaybackPositionMsSdSgvg",
+                "moduleName": "FLBookmarks",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarkSessionConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarkSessionConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:11FLBookmarks28BookmarkSessionConfigurationP",
+        "mangledName": "$s11FLBookmarks28BookmarkSessionConfigurationP",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "AVFAudio",
+        "printedName": "AVFAudio",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "AVFoundation",
+        "printedName": "AVFoundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLBookmarks"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "SortBy",
+        "printedName": "SortBy",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "timestamp",
+            "printedName": "timestamp",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLBookmarks.SortBy.Type) -> FLBookmarks.SortBy",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "SortBy",
+                    "printedName": "FLBookmarks.SortBy",
+                    "usr": "s:11FLBookmarks6SortByO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FLBookmarks.SortBy.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "SortBy",
+                        "printedName": "FLBookmarks.SortBy",
+                        "usr": "s:11FLBookmarks6SortByO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:11FLBookmarks6SortByO9timestampyA2CmF",
+            "mangledName": "$s11FLBookmarks6SortByO9timestampyA2CmF",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(rawValue:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLBookmarks.SortBy?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "SortBy",
+                    "printedName": "FLBookmarks.SortBy",
+                    "usr": "s:11FLBookmarks6SortByO"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:11FLBookmarks6SortByO8rawValueACSgSS_tcfc",
+            "mangledName": "$s11FLBookmarks6SortByO8rawValueACSgSS_tcfc",
+            "moduleName": "FLBookmarks",
+            "implicit": true,
+            "init_kind": "Designated"
+          },
+          {
+            "kind": "Var",
+            "name": "rawValue",
+            "printedName": "rawValue",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks6SortByO8rawValueSSvp",
+            "mangledName": "$s11FLBookmarks6SortByO8rawValueSSvp",
+            "moduleName": "FLBookmarks",
+            "implicit": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks6SortByO8rawValueSSvg",
+                "mangledName": "$s11FLBookmarks6SortByO8rawValueSSvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:11FLBookmarks6SortByO",
+        "mangledName": "$s11FLBookmarks6SortByO",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "enumRawTypeName": "String",
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          },
+          {
+            "kind": "Conformance",
+            "name": "RawRepresentable",
+            "printedName": "RawRepresentable",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "RawValue",
+                "printedName": "RawValue",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:SY",
+            "mangledName": "$sSY"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "SortOrder",
+        "printedName": "SortOrder",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "ascending",
+            "printedName": "ascending",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLBookmarks.SortOrder.Type) -> FLBookmarks.SortOrder",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "SortOrder",
+                    "printedName": "FLBookmarks.SortOrder",
+                    "usr": "s:11FLBookmarks9SortOrderO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FLBookmarks.SortOrder.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "SortOrder",
+                        "printedName": "FLBookmarks.SortOrder",
+                        "usr": "s:11FLBookmarks9SortOrderO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:11FLBookmarks9SortOrderO9ascendingyA2CmF",
+            "mangledName": "$s11FLBookmarks9SortOrderO9ascendingyA2CmF",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "descending",
+            "printedName": "descending",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLBookmarks.SortOrder.Type) -> FLBookmarks.SortOrder",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "SortOrder",
+                    "printedName": "FLBookmarks.SortOrder",
+                    "usr": "s:11FLBookmarks9SortOrderO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FLBookmarks.SortOrder.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "SortOrder",
+                        "printedName": "FLBookmarks.SortOrder",
+                        "usr": "s:11FLBookmarks9SortOrderO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:11FLBookmarks9SortOrderO10descendingyA2CmF",
+            "mangledName": "$s11FLBookmarks9SortOrderO10descendingyA2CmF",
+            "moduleName": "FLBookmarks",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(rawValue:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLBookmarks.SortOrder?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "SortOrder",
+                    "printedName": "FLBookmarks.SortOrder",
+                    "usr": "s:11FLBookmarks9SortOrderO"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:11FLBookmarks9SortOrderO8rawValueACSgSS_tcfc",
+            "mangledName": "$s11FLBookmarks9SortOrderO8rawValueACSgSS_tcfc",
+            "moduleName": "FLBookmarks",
+            "implicit": true,
+            "init_kind": "Designated"
+          },
+          {
+            "kind": "Var",
+            "name": "rawValue",
+            "printedName": "rawValue",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLBookmarks9SortOrderO8rawValueSSvp",
+            "mangledName": "$s11FLBookmarks9SortOrderO8rawValueSSvp",
+            "moduleName": "FLBookmarks",
+            "implicit": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLBookmarks9SortOrderO8rawValueSSvg",
+                "mangledName": "$s11FLBookmarks9SortOrderO8rawValueSSvg",
+                "moduleName": "FLBookmarks",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:11FLBookmarks9SortOrderO",
+        "mangledName": "$s11FLBookmarks9SortOrderO",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "enumRawTypeName": "String",
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          },
+          {
+            "kind": "Conformance",
+            "name": "RawRepresentable",
+            "printedName": "RawRepresentable",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "RawValue",
+                "printedName": "RawValue",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:SY",
+            "mangledName": "$sSY"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "BookmarkService",
+        "printedName": "BookmarkService",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "getBookmark",
+            "printedName": "getBookmark(itemId:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<FLBookmarks.BookmarkRecord, any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<FLBookmarks.BookmarkRecord, any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "BookmarkRecord",
+                        "printedName": "FLBookmarks.BookmarkRecord",
+                        "usr": "s:11FLBookmarks14BookmarkRecordV"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks15BookmarkServiceP03getB06itemId10completionySS_ys6ResultOyAA0B6RecordVs5Error_pGctF",
+            "mangledName": "$s11FLBookmarks15BookmarkServiceP03getB06itemId10completionySS_ys6ResultOyAA0B6RecordVs5Error_pGctF",
+            "moduleName": "FLBookmarks",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarkService>",
+            "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarkService>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "getBookmarks",
+            "printedName": "getBookmarks(pageNumber:pageSize:sortBy:sortOrder:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLBookmarks.SortBy?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "SortBy",
+                    "printedName": "FLBookmarks.SortBy",
+                    "usr": "s:11FLBookmarks6SortByO"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLBookmarks.SortOrder?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "SortOrder",
+                    "printedName": "FLBookmarks.SortOrder",
+                    "usr": "s:11FLBookmarks9SortOrderO"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<[FLBookmarks.BookmarkRecord], any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<[FLBookmarks.BookmarkRecord], any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Array",
+                        "printedName": "[FLBookmarks.BookmarkRecord]",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "BookmarkRecord",
+                            "printedName": "FLBookmarks.BookmarkRecord",
+                            "usr": "s:11FLBookmarks14BookmarkRecordV"
+                          }
+                        ],
+                        "usr": "s:Sa"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks15BookmarkServiceP12getBookmarks10pageNumber0F4Size6sortBy0I5Order10completionySiSg_AjA04SortJ0OSgAA0mK0OSgys6ResultOySayAA0B6RecordVGs5Error_pGctF",
+            "mangledName": "$s11FLBookmarks15BookmarkServiceP12getBookmarks10pageNumber0F4Size6sortBy0I5Order10completionySiSg_AjA04SortJ0OSgAA0mK0OSgys6ResultOySayAA0B6RecordVGs5Error_pGctF",
+            "moduleName": "FLBookmarks",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarkService>",
+            "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarkService>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "getSeriesBookmarks",
+            "printedName": "getSeriesBookmarks(seriesIdentifier:pageNumber:pageSize:sortBy:sortOrder:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLBookmarks.SortBy?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "SortBy",
+                    "printedName": "FLBookmarks.SortBy",
+                    "usr": "s:11FLBookmarks6SortByO"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLBookmarks.SortOrder?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "SortOrder",
+                    "printedName": "FLBookmarks.SortOrder",
+                    "usr": "s:11FLBookmarks9SortOrderO"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<[FLBookmarks.BookmarkRecord], any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<[FLBookmarks.BookmarkRecord], any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Array",
+                        "printedName": "[FLBookmarks.BookmarkRecord]",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "BookmarkRecord",
+                            "printedName": "FLBookmarks.BookmarkRecord",
+                            "usr": "s:11FLBookmarks14BookmarkRecordV"
+                          }
+                        ],
+                        "usr": "s:Sa"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks15BookmarkServiceP18getSeriesBookmarks16seriesIdentifier10pageNumber0I4Size6sortBy0L5Order10completionySS_SiSgAkA04SortM0OSgAA0pN0OSgys6ResultOySayAA0B6RecordVGs5Error_pGctF",
+            "mangledName": "$s11FLBookmarks15BookmarkServiceP18getSeriesBookmarks16seriesIdentifier10pageNumber0I4Size6sortBy0L5Order10completionySS_SiSgAkA04SortM0OSgAA0pN0OSgys6ResultOySayAA0B6RecordVGs5Error_pGctF",
+            "moduleName": "FLBookmarks",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarkService>",
+            "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarkService>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "getPlaylistBookmarks",
+            "printedName": "getPlaylistBookmarks(playlistIdentifier:pageNumber:pageSize:sortBy:sortOrder:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLBookmarks.SortBy?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "SortBy",
+                    "printedName": "FLBookmarks.SortBy",
+                    "usr": "s:11FLBookmarks6SortByO"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLBookmarks.SortOrder?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "SortOrder",
+                    "printedName": "FLBookmarks.SortOrder",
+                    "usr": "s:11FLBookmarks9SortOrderO"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<[FLBookmarks.BookmarkRecord], any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<[FLBookmarks.BookmarkRecord], any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Array",
+                        "printedName": "[FLBookmarks.BookmarkRecord]",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "BookmarkRecord",
+                            "printedName": "FLBookmarks.BookmarkRecord",
+                            "usr": "s:11FLBookmarks14BookmarkRecordV"
+                          }
+                        ],
+                        "usr": "s:Sa"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks15BookmarkServiceP20getPlaylistBookmarks18playlistIdentifier10pageNumber0I4Size6sortBy0L5Order10completionySS_SiSgAkA04SortM0OSgAA0pN0OSgys6ResultOySayAA0B6RecordVGs5Error_pGctF",
+            "mangledName": "$s11FLBookmarks15BookmarkServiceP20getPlaylistBookmarks18playlistIdentifier10pageNumber0I4Size6sortBy0L5Order10completionySS_SiSgAkA04SortM0OSgAA0pN0OSgys6ResultOySayAA0B6RecordVGs5Error_pGctF",
+            "moduleName": "FLBookmarks",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarkService>",
+            "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarkService>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "getBookmarkCount",
+            "printedName": "getBookmarkCount(completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<Swift.Int, any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<Swift.Int, any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Int",
+                        "printedName": "Swift.Int",
+                        "usr": "s:Si"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks15BookmarkServiceP03getB5Count10completionyys6ResultOySis5Error_pGc_tF",
+            "mangledName": "$s11FLBookmarks15BookmarkServiceP03getB5Count10completionyys6ResultOySis5Error_pGc_tF",
+            "moduleName": "FLBookmarks",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarkService>",
+            "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarkService>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "putBookmark",
+            "printedName": "putBookmark(itemId:offset:seasonId:episodeId:videoId:mode:seasonNumber:episodeNumber:contentType:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "usr": "s:Sd"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.Mode?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Mode",
+                    "printedName": "FLPlayerInterface.Mode",
+                    "usr": "s:17FLPlayerInterface4ModeO"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<(), any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<(), any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks15BookmarkServiceP03putB06itemId6offset06seasonF007episodeF005videoF04mode0H6Number0iL011contentType10completionySS_SdSSSgA2O17FLPlayerInterface4ModeOSgSiSgAtOys6ResultOyyts5Error_pGctF",
+            "mangledName": "$s11FLBookmarks15BookmarkServiceP03putB06itemId6offset06seasonF007episodeF005videoF04mode0H6Number0iL011contentType10completionySS_SdSSSgA2O17FLPlayerInterface4ModeOSgSiSgAtOys6ResultOyyts5Error_pGctF",
+            "moduleName": "FLBookmarks",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarkService>",
+            "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarkService>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "deleteBookmark",
+            "printedName": "deleteBookmark(itemId:episodeId:videoId:mode:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.Mode?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Mode",
+                    "printedName": "FLPlayerInterface.Mode",
+                    "usr": "s:17FLPlayerInterface4ModeO"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<(), any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<(), any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks15BookmarkServiceP06deleteB06itemId07episodeF005videoF04mode10completionySS_SSSgAJ17FLPlayerInterface4ModeOSgys6ResultOyyts5Error_pGctF",
+            "mangledName": "$s11FLBookmarks15BookmarkServiceP06deleteB06itemId07episodeF005videoF04mode10completionySS_SSSgAJ17FLPlayerInterface4ModeOSgys6ResultOyyts5Error_pGctF",
+            "moduleName": "FLBookmarks",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarkService>",
+            "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarkService>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "putBookmark",
+            "printedName": "putBookmark(itemId:offset:seasonId:episodeId:videoId:mode:seasonNumber:episodeNumber:contentType:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "usr": "s:Sd"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.Mode?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Mode",
+                    "printedName": "FLPlayerInterface.Mode",
+                    "usr": "s:17FLPlayerInterface4ModeO"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<(), any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<(), any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks15BookmarkServicePAAE03putB06itemId6offset06seasonF007episodeF005videoF04mode0H6Number0iL011contentType10completionySS_SdSSSgA2O17FLPlayerInterface4ModeOSgSiSgAtOys6ResultOyyts5Error_pGctF",
+            "mangledName": "$s11FLBookmarks15BookmarkServicePAAE03putB06itemId6offset06seasonF007episodeF005videoF04mode0H6Number0iL011contentType10completionySS_SdSSSgA2O17FLPlayerInterface4ModeOSgSiSgAtOys6ResultOyyts5Error_pGctF",
+            "moduleName": "FLBookmarks",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarkService>",
+            "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarkService>",
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "deleteBookmark",
+            "printedName": "deleteBookmark(itemId:episodeId:videoId:mode:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.Mode?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Mode",
+                    "printedName": "FLPlayerInterface.Mode",
+                    "usr": "s:17FLPlayerInterface4ModeO"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<(), any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<(), any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLBookmarks15BookmarkServicePAAE06deleteB06itemId07episodeF005videoF04mode10completionySS_SSSgAJ17FLPlayerInterface4ModeOSgys6ResultOyyts5Error_pGctF",
+            "mangledName": "$s11FLBookmarks15BookmarkServicePAAE06deleteB06itemId07episodeF005videoF04mode10completionySS_SSSgAJ17FLPlayerInterface4ModeOSgys6ResultOyyts5Error_pGctF",
+            "moduleName": "FLBookmarks",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLBookmarks.BookmarkService>",
+            "sugared_genericSig": "<Self where Self : FLBookmarks.BookmarkService>",
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:11FLBookmarks15BookmarkServiceP",
+        "mangledName": "$s11FLBookmarks15BookmarkServiceP",
+        "moduleName": "FLBookmarks",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      }
+    ],
+    "json_format_version": 8
+  },
+  "ConstValues": [
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 242,
+      "length": 12,
+      "value": "\"pageNumber\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 290,
+      "length": 10,
+      "value": "\"pageSize\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 334,
+      "length": 6,
+      "value": "\"sort\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 377,
+      "length": 7,
+      "value": "\"order\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 420,
+      "length": 6,
+      "value": "\"mode\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 505,
+      "length": 24,
+      "value": "\"\/user\/bookmark\/lookup\/\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 600,
+      "length": 21,
+      "value": "\"\/user\/bookmark\/list\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 756,
+      "length": 35,
+      "value": "\"\/user\/bookmark\/series\/%@\/episodes\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 915,
+      "length": 35,
+      "value": "\"\/user\/bookmark\/playlist\/%@\/videos\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 1023,
+      "length": 22,
+      "value": "\"\/user\/bookmark\/count\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 1113,
+      "length": 23,
+      "value": "\"\/user\/bookmark\/create\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 1219,
+      "length": 24,
+      "value": "\"\/user\/bookmark\/delete\/\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 1404,
+      "length": 37,
+      "value": "\"\/user\/bookmark\/series\/%@\/episode\/%@\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/BookmarkServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 1606,
+      "length": 37,
+      "value": "\"\/user\/bookmark\/playlist\/%@\/video\/%@\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/FLBookmarks.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1587,
+      "length": 5,
+      "value": "60000"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/FLBookmarks.swift",
+      "kind": "FloatLiteral",
+      "offset": 1633,
+      "length": 4,
+      "value": "0.95"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultBookmarksManager.swift",
+      "kind": "StringLiteral",
+      "offset": 485,
+      "length": 73,
+      "value": "\"Next content for bookmark is nil, skipping next item bookmark creation.\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultBookmarksManager.swift",
+      "kind": "StringLiteral",
+      "offset": 648,
+      "length": 55,
+      "value": "\"Next content updated for bookamrk: \""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultBookmarksManager.swift",
+      "kind": "StringLiteral",
+      "offset": 702,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultBookmarksManager.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1091,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultBookmarksManager.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1139,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultBookmarksManager.swift",
+      "kind": "StringLiteral",
+      "offset": 1412,
+      "length": 27,
+      "value": "\"com.quickplay.FLBookmarks\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultBookmarksManager.swift",
+      "kind": "StringLiteral",
+      "offset": 1451,
+      "length": 11,
+      "value": "\"Bookmarks\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Model\/BookmarkRecord.swift",
+      "kind": "StringLiteral",
+      "offset": 1106,
+      "length": 4,
+      "value": "\"ut\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Model\/BookmarkRecord.swift",
+      "kind": "StringLiteral",
+      "offset": 1223,
+      "length": 6,
+      "value": "\"snum\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Model\/BookmarkRecord.swift",
+      "kind": "StringLiteral",
+      "offset": 1259,
+      "length": 7,
+      "value": "\"epnum\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Model\/BookmarkRecord.swift",
+      "kind": "StringLiteral",
+      "offset": 1294,
+      "length": 5,
+      "value": "\"cty\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Model\/BookmarkRecord.swift",
+      "kind": "StringLiteral",
+      "offset": 1333,
+      "length": 4,
+      "value": "\"pb\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Model\/BookmarkRecord.swift",
+      "kind": "StringLiteral",
+      "offset": 1810,
+      "length": 5,
+      "value": "\"vid\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Model\/BookmarkRecord.swift",
+      "kind": "StringLiteral",
+      "offset": 1838,
+      "length": 3,
+      "value": "\"o\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Model\/BookmarkRecord.swift",
+      "kind": "StringLiteral",
+      "offset": 1868,
+      "length": 5,
+      "value": "\"pid\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Model\/BookmarkRecord.swift",
+      "kind": "StringLiteral",
+      "offset": 1906,
+      "length": 4,
+      "value": "\"ut\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultQueueBookmarksManager.swift",
+      "kind": "BooleanLiteral",
+      "offset": 854,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultQueueBookmarksManager.swift",
+      "kind": "StringLiteral",
+      "offset": 1458,
+      "length": 40,
+      "value": "\"com.quickplay.FLBookmarks.QueueManager\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultQueueBookmarksManager.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1885,
+      "length": 3,
+      "value": "500"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultQueueBookmarksManager.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2102,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultQueueBookmarksManager.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2339,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultQueueBookmarksManager.swift",
+      "kind": "StringLiteral",
+      "offset": 2407,
+      "length": 27,
+      "value": "\"com.quickplay.FLBookmarks\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/Internal\/DefaultQueueBookmarksManager.swift",
+      "kind": "StringLiteral",
+      "offset": 2446,
+      "length": 16,
+      "value": "\"QueueBookmarks\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/BookmarkService.swift",
+      "kind": "StringLiteral",
+      "offset": 280,
+      "length": 4,
+      "value": "\"ut\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/BookmarkService.swift",
+      "kind": "StringLiteral",
+      "offset": 442,
+      "length": 5,
+      "value": "\"asc\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-bookmark\/Sources\/Universal\/BookmarkService.swift",
+      "kind": "StringLiteral",
+      "offset": 506,
+      "length": 6,
+      "value": "\"desc\""
+    }
+  ]
+}

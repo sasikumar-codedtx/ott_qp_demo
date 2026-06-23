@@ -1,0 +1,1793 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 5.7.2 (swiftlang-5.7.2.135.5 clang-1400.0.29.51)
+// swift-module-flags: -target arm64-apple-tvos13.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name NpawPlugin
+// swift-module-flags-ignorable: -enable-bare-slash-regex
+import AVFoundation
+import AVKit
+import CoreFoundation
+import CryptoKit
+import Foundation
+import OSLog
+import SQLite3
+import Swift
+import UIKit
+import _Concurrency
+import _StringProcessing
+import os
+@objc open class AVPlayerAdAdapter : NpawPlugin.AdAdapter {
+  @objc public init(player: AVFoundation.AVPlayer?)
+  @objc override open func unregisterListeners()
+  @objc override open func registerListeners()
+  @objc open func reset()
+  @objc override open func fireStart(params: [Swift.String : Swift.String] = [:])
+  @objc override open func fireStop(params: [Swift.String : Swift.String] = [:])
+  @objc override open var adPosition: NpawPlugin.AdAdapter.AdPosition {
+    @objc get
+  }
+  @objc override open var bitrate: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc override open var duration: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc override open var playhead: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc override open var resource: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc override public var playerName: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc override public var playerVersion: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc deinit
+}
+@objc open class AVPlayerAdapter : NpawPlugin.PlayerAdapter {
+  @objc public init(player: AVFoundation.AVPlayer?)
+  @objc public func enableLegacyBufferBehaviour(_ fireRelatedEvent: Swift.Bool = false)
+  @objc override open func unregisterListeners()
+  @objc override open func registerListeners()
+  @objc override open func fireStart(params: [Swift.String : Swift.String] = [:])
+  @objc override open func fireStop(params: [Swift.String : Swift.String] = [:])
+  @objc override open func firePause(params: [Swift.String : Swift.String] = [:])
+  @objc override open func fireResume(params: [Swift.String : Swift.String] = [:])
+  @objc override public func fireSeekBegin(convertFromBuffer: Swift.Bool = true, params: [Swift.String : Swift.String] = [:])
+  @objc override open func fireSeekEnd(params: [Swift.String : Swift.String] = [:])
+  @objc override open func getSeekDuration() -> Swift.Int
+  @objc public func legacySkipNextBufferInsideTimePeriod(period: Swift.Double = 1)
+  @objc override open var bitrate: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc override open var droppedFrames: Swift.Int {
+    @objc get
+    @objc set
+  }
+  @objc override open var duration: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc override open var latency: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc override open var playhead: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc override open var playrate: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc override open var rendition: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc override open var live: Foundation.NSNumber? {
+    @objc get
+    @objc set
+  }
+  @objc override open var resource: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc override open var throughput: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc override open var urlToParse: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc override open var videoCodec: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc override open var audioCodec: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc override open var playerName: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc override open var playerVersion: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc override open func getVersion() -> Swift.String
+  @objc deinit
+}
+@objc open class DefaultAdAdapter : NpawPlugin.AdAdapter {
+  @objc public init()
+  @objc deinit
+}
+@objc open class DefaultPlayerAdapter : NpawPlugin.PlayerAdapter {
+  @objc public init()
+  @objc deinit
+}
+public protocol AnalyticsOptionsChangeListener : AnyObject {
+  func onOptionChanged(optionName: Swift.String, newValue: Any?, options: NpawPlugin.AnalyticsOptions?)
+}
+@_inheritsConvenienceInitializers @objc public class AnalyticsOptions : NpawPlugin.VideoOptions, NpawPlugin.CoreOptions {
+  @objc public var appName: Swift.String?
+  @objc public var appReleaseVersion: Swift.String?
+  @objc public var sessionMetrics: [Swift.String : Any]?
+  @objc public var deviceBrand: Swift.String {
+    @objc get
+    @objc set
+  }
+  @objc public var deviceCode: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc public var deviceUUID: Swift.String?
+  @objc public var deviceIsAnonymous: Swift.Bool
+  @objc public var deviceModel: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc public var deviceOsName: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc public var deviceOsVersion: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc public var deviceType: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc public var deviceBrowserName: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc public var deviceBrowserVersion: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc public var deviceBrowserType: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc public var deviceBrowserEngine: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc public var host: Swift.String
+  public var method: NpawPlugin.HTTPMethod
+  @objc public var adBlockerDetected: Swift.Bool
+  @objc public var deviceEDID: Any? {
+    @objc get
+    @objc set
+  }
+  @objc public var profileId: Swift.String?
+  @available(*, deprecated, message: "Use `userId` instead.")
+  @objc public var userName: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc public var userId: Swift.String?
+  @objc public var userEmail: Swift.String?
+  @objc public var userAnonymousId: Swift.String?
+  @objc public var userType: Swift.String?
+  @objc public var userObfuscateIp: Swift.Bool
+  @objc public var networkIP: Swift.String?
+  @objc public var networkIsp: Swift.String?
+  @objc public var userPrivacyProtocol: Swift.String?
+  @objc public var autoDetectBackground: Swift.Bool
+  @objc public var enabled: Swift.Bool
+  @objc public var httpSecure: Swift.Bool
+  @objc public var offline: Swift.Bool
+  @objc public var authToken: Swift.String?
+  @objc public var authType: Swift.String
+  @objc override dynamic public init()
+  public func setChangeListener(_ listener: NpawPlugin.AnalyticsOptionsChangeListener?)
+  @objc deinit
+}
+@objc public protocol WillSendRequestListenerAppAnalytics {
+  @objc func willSendRequestAppAnalytics(serviceName: Swift.String, params: [Swift.String : Swift.String]) -> [Swift.String : Swift.String]
+}
+@_hasMissingDesignatedInitializers @objc public class AppAnalytics : ObjectiveC.NSObject, NpawPlugin.SessionAnalyticsListener {
+  @objc public var flags: NpawPlugin.AppAnalyticsFlags
+  public var arrayWillSendListeners: [NpawPlugin.WillSendRequestListenerAppAnalytics]
+  @objc public func addOnWillSendRequestListener(_ listener: NpawPlugin.WillSendRequestListenerAppAnalytics)
+  @objc public func removeOnWillSendRequestListener(_ listener: NpawPlugin.WillSendRequestListenerAppAnalytics)
+  @objc public func begin(screenName: Swift.String? = nil, dimensions: [Swift.String : Swift.String] = [:], forceNewSession forceNewSessionBool: Swift.Bool = false)
+  @objc public func fireSessionStart(screenName: Swift.String? = nil, dimensions: [Swift.String : Swift.String] = [:])
+  @objc public func forceNewSession(screenName: Swift.String? = nil, dimensions: [Swift.String : Swift.String] = [:])
+  @objc public func fireNav(screenName: Swift.String?)
+  @objc public func fireEvent(eventName: Swift.String?, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:], params: [Swift.String : Swift.String] = [:], hasEndDatetime: Swift.Bool = false)
+  public func processSessionEvent(eventName: Swift.String?, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:], params: inout [Swift.String : Swift.String], hasEndDatetime: Swift.Bool = false)
+  @objc public func processSessionEventObjc(eventName: Swift.String?, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:], params: Foundation.NSDictionary, hasEndDatetime: ObjectiveC.ObjCBool = false) -> [Swift.String : Swift.String]
+  @objc public func fireSessionEvent(params: [Swift.String : Swift.String], hasEndDatetime: Swift.Bool = false)
+  @objc public func fireEventEnd(eventName: Swift.String?, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:], params: [Swift.String : Swift.String] = [:])
+  public func processSessionEventEnd(eventName: Swift.String?, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:], params: inout [Swift.String : Swift.String])
+  @objc public func processSessionEventEndObjc(eventName: Swift.String?, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:], params: Foundation.NSDictionary) -> [Swift.String : Swift.String]
+  @objc public func fireSessionEventEnd(params: [Swift.String : Swift.String])
+  @objc public func end(params: [Swift.String : Swift.String] = [:])
+  @objc public func fireSessionStop(params: [Swift.String : Swift.String] = [:])
+  @objc public func destroy()
+  @objc public func trackAppError(errorCode: Swift.String, errorMessage: Swift.String, errorType: Swift.String? = nil, errorSource: Swift.String? = nil, metadata: Swift.String? = nil, page: Swift.String? = nil, fatal: Swift.Bool = false, duration: Foundation.NSNumber? = nil)
+  @objc public func trackLogEvent(logLevel: Swift.String, logCategory: Swift.String, errorSource: Swift.String? = nil, page: Swift.String? = nil, metadata: Swift.String? = nil)
+  @objc public func trackANREvent(anrType: Swift.String, page: Swift.String? = nil, duration: Foundation.NSNumber? = nil)
+  @objc public func trackLoginResult(authType: Swift.String, authStatus: Swift.String, retryCounter: Foundation.NSNumber? = nil, page: Swift.String? = nil, profileId: Swift.String? = nil, username: Swift.String? = nil)
+  @objc public func trackSignupResult(authType: Swift.String, authStatus: Swift.String, retryCounter: Foundation.NSNumber? = nil, page: Swift.String? = nil, profileId: Swift.String? = nil, username: Swift.String? = nil)
+  @objc public func trackAppStatus(batteryLevel: Swift.String? = nil, availableMemory: Swift.String? = nil, networkType: Swift.String? = nil, appForegroundBackground: Swift.String? = nil, diskSpace: Swift.String? = nil, batteryPercentage: Foundation.NSNumber? = nil, memoryMB: Foundation.NSNumber? = nil, diskMB: Foundation.NSNumber? = nil)
+  @objc public func trackAPIResponse(apiProvider: Swift.String, apiEndpoint: Swift.String, method: Swift.String, apiResponseCode: Swift.String, httpStatus: Swift.Int, page: Swift.String? = nil, responseTime: Foundation.NSNumber? = nil)
+  @objc public func trackEPGPerformance(epgProvider: Swift.String, refreshStatus: Swift.String, page: Swift.String? = nil, refreshDuration: Foundation.NSNumber? = nil, channelsLoaded: Foundation.NSNumber? = nil)
+  @objc public func trackRemoteControlEvent(rcuButton: Swift.String, actionTaken: Swift.String, eventSuccess: Swift.String, page: Swift.String? = nil)
+  @objc public func beforeSend(event: Swift.String, params: [Swift.String : Swift.String]) -> [Swift.String : Swift.String]
+  @objc public func afterSend(event: Swift.String, params: [Swift.String : Swift.String], success: Swift.Bool)
+  @objc public func sessionExpired()
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers @objc public class AppAnalyticsFlags : ObjectiveC.NSObject {
+  @objc public func isStarted() -> Swift.Bool
+  @objc deinit
+}
+public let CDN_NAME_LEVEL3: Swift.String
+public let CDN_NAME_CLOUDFRONT: Swift.String
+public let CDN_NAME_AKAMAI: Swift.String
+public let CDN_NAME_HIGHWINDS: Swift.String
+public let CDN_NAME_FASTLY: Swift.String
+public let CDN_NAME_TELEFONICA: Swift.String
+public let CDN_NAME_AMAZON: Swift.String
+public let CDN_NAME_EDGECAST: Swift.String
+public let CDN_NAME_NOS: Swift.String
+@_hasMissingDesignatedInitializers @objc public class CdnParse : ObjectiveC.NSObject {
+  @objc(NPAWCdnNodeType) public enum CdnNodeType : Swift.Int {
+    case unknown = 0
+    case hit = 1
+    case miss = 2
+    public init?(rawValue: Swift.Int)
+    public typealias RawValue = Swift.Int
+    public var rawValue: Swift.Int {
+      get
+    }
+  }
+  @objc(NPAWVariable) public enum VARIABLE : Swift.Int {
+    case HOST
+    case TYPE
+    case NAME
+    public init?(rawValue: Swift.Int)
+    public typealias RawValue = Swift.Int
+    public var rawValue: Swift.Int {
+      get
+    }
+  }
+  public typealias ValidCDN = (Swift.String?, Swift.String?, Swift.String?, NpawPlugin.CdnParse.CdnNodeType) -> Swift.Bool
+  @_inheritsConvenienceInitializers @objc public class CDNParserBuilder : ObjectiveC.NSObject {
+    @objc override dynamic public init()
+    @objc public func setName(_ name: Swift.String) -> NpawPlugin.CdnParse.CDNParserBuilder
+    @objc public func setRequestHeader(key: Swift.String, value: Swift.String) -> NpawPlugin.CdnParse.CDNParserBuilder
+    @objc public func addHeaderTransform(outputVariable: NpawPlugin.CdnParse.VARIABLE, headerName: Swift.String?, function: @escaping (Swift.String?) -> Swift.String?) -> NpawPlugin.CdnParse.CDNParserBuilder
+    @objc public func addVariableTransform(outputVariable: NpawPlugin.CdnParse.VARIABLE, inputVariable: NpawPlugin.CdnParse.VARIABLE, function: @escaping (Swift.String?) -> Swift.String?) -> NpawPlugin.CdnParse.CDNParserBuilder
+    public func addHeaderTransformNodeType(headerName: Swift.String, function: @escaping (Swift.String?) -> NpawPlugin.CdnParse.CdnNodeType?) -> NpawPlugin.CdnParse.CDNParserBuilder
+    public func addVariableTransformNodeType(inputVariable: NpawPlugin.CdnParse.VARIABLE, function: @escaping (Swift.String?) -> NpawPlugin.CdnParse.CdnNodeType?) -> NpawPlugin.CdnParse.CDNParserBuilder
+    @objc public func setValidCdn(_ validCDN: @escaping NpawPlugin.CdnParse.ValidCDN) -> NpawPlugin.CdnParse.CDNParserBuilder
+    public func copy() -> NpawPlugin.CdnParse.CDNParserBuilder
+    public func build() -> NpawPlugin.CdnParse
+    @objc deinit
+  }
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers @objcMembers public class BalancerOptions : ObjectiveC.NSObject {
+  @objc public var token: Swift.String?
+  @objc public var bucketName: Swift.String?
+  @objc public var profileName: Swift.String?
+  @objc public var isLive: Swift.Bool
+  @objc public var videoId: Swift.String?
+  @objc public var userAgent: Swift.String?
+  @objc public var `protocol`: Swift.String?
+  public var nva: Swift.Int?
+  public var nvb: Swift.Int?
+  @objc public var dynamicRules: NpawPlugin.DynamicRules?
+  @objc public var resource: Swift.String
+  @objc public var isDev: Swift.Bool
+  @objc public var forceDecisionCall: Swift.Bool
+  public var domainWhitelist: [Swift.String?]?
+  public var domainWhitelistRegex: [Swift.String?]?
+  @objc public var allowSpecialDelimitersInUrl: Swift.Bool
+  @objc public var signManifestUsingApi: Swift.Bool
+  @objc public var balanceManifests: Swift.Bool
+  @objc public var jwtToken: Swift.String?
+  @objc public var jwtAuthType: Swift.String
+  public var stripPathForDomainRegex: [Swift.String?]?
+  @objc public var stripPathRegex: Swift.String?
+  @objc public var enableAbsolutePathRewritingInManifest: Swift.Bool
+  @objc public var updateTime: Swift.Int
+  @objc public var noProbing: Swift.Bool
+  @objc public var chunkExpirationProbingMs: Swift.Int
+  @objc public var probeOnlyOnBanned: Swift.Bool
+  @objc public var balanceSubtitles: Swift.Bool
+  @objc public var balanceAudio: Swift.Bool
+  @objc public var authData: [Swift.String : Any]?
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc public protocol CDNProxyDelegate {
+  @objc func proxyDidStart()
+}
+@objc public class CacheStatusParser : ObjectiveC.NSObject, Swift.Decodable {
+  @objc(NPAWCacheStatusResult) public enum CacheStatusResult : Swift.Int, Swift.Codable {
+    case hit
+    case miss
+    case unknown
+    public init?(rawValue: Swift.Int)
+    public typealias RawValue = Swift.Int
+    public var rawValue: Swift.Int {
+      get
+    }
+  }
+  required public init(from decoder: Swift.Decoder) throws
+  @objc public func cacheStatus(for response: Foundation.URLResponse) -> NpawPlugin.CacheStatusParser.CacheStatusResult
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class DynamicRules : ObjectiveC.NSObject, Swift.Codable {
+  @objc public var mediaType: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc public var userType: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc public var contentType: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc public var custom1: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc override dynamic public init()
+  @objc deinit
+  public func encode(to encoder: Swift.Encoder) throws
+  required public init(from decoder: Swift.Decoder) throws
+}
+public class LatencyProbe : Swift.Codable {
+  public init(callTimeoutMilliseconds: Swift.Int = 500, timeBetweenCallsMilliseconds: Swift.Int = 1000, timeBetweenBurstsMilliseconds: Swift.Int = 5000)
+  @objc deinit
+  public func encode(to encoder: Swift.Encoder) throws
+  required public init(from decoder: Swift.Decoder) throws
+}
+@_inheritsConvenienceInitializers @objc final public class Settings : ObjectiveC.NSObject, Swift.Decodable {
+  @objc override dynamic public init()
+  @objc public init(activeSwitching: NpawPlugin.ActiveSwitching, bandwidthThreshold: Swift.Int, activateThreshold: Swift.Int, providers: [NpawPlugin.CDN], discarded: [NpawPlugin.CDN])
+  public init(from decoder: Swift.Decoder) throws
+  @objc deinit
+}
+@objc(NPAWActiveSwitching) public enum ActiveSwitching : Swift.Int, Swift.Codable {
+  case none
+  case qualityPriority
+  case cdnPriority
+  public var stringValue: Swift.String {
+    get
+  }
+  public init?(stringValue: Swift.String)
+  public init(from decoder: Swift.Decoder) throws
+  public func encode(to encoder: Swift.Encoder) throws
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@_hasMissingDesignatedInitializers @objc public class CDN : ObjectiveC.NSObject, Swift.Decodable {
+  public static func == (lhs: NpawPlugin.CDN, rhs: NpawPlugin.CDN) -> Swift.Bool
+  required public init(from decoder: Swift.Decoder) throws
+  @objc deinit
+}
+public class Identifier : Swift.Equatable, Swift.Hashable {
+  public var id: Swift.Int16 {
+    get
+  }
+  public init(id: Swift.UInt16)
+  public init(id: Swift.Int16)
+  public static func fromData(_ data: Foundation.Data) -> NpawPlugin.Identifier
+  public func toByteArray() -> Foundation.Data
+  public static func == (lhs: NpawPlugin.Identifier, rhs: NpawPlugin.Identifier) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  @objc deinit
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+@_hasMissingDesignatedInitializers @objc public class Core : ObjectiveC.NSObject {
+  @objc public var coreParams: NpawPlugin.CoreParams
+  public var accountCode: Swift.String {
+    get
+  }
+  @objc public func registerCommonVariable(productKey: Swift.String, variableKey: Swift.String, value: Any)
+  @objc public func getCommonVariable(productKey: Swift.String, variableKey: Swift.String) -> Any?
+  public func pushData(service: Swift.String, method: NpawPlugin.HTTPMethod, params: [Swift.String : Swift.String], success: ((NpawPlugin.NQSResponse?) -> Swift.Void)? = nil, failure: (() -> Swift.Void)? = nil)
+  public func pushPeriodicData(key: Swift.String, service: Swift.String, interval: Foundation.TimeInterval = 5, method: NpawPlugin.HTTPMethod, requestParams: @escaping NpawPlugin.RequestParams, success: ((NpawPlugin.NQSResponse?) -> Swift.Void)? = nil, failure: (() -> Swift.Void)? = nil)
+  public func markTokenFresh()
+  public func getAuthHeaders() -> [Swift.String : Swift.String]
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers public class NQSResponse : Swift.Codable {
+  required public init(from decoder: Swift.Decoder) throws
+  @objc deinit
+  public func encode(to encoder: Swift.Encoder) throws
+}
+@objc @_inheritsConvenienceInitializers @objcMembers public class ReqParams : ObjectiveC.NSObject {
+  @objc public static let CODE: Swift.String
+  @objc public static let SESSION_ROOT: Swift.String
+  @objc public static let SESSION_ID: Swift.String
+  @objc public static let PING_TIME: Swift.String
+  @objc public static let RESOURCE: Swift.String
+  @objc public static let ACCOUNT_CODE: Swift.String
+  @objc public static let USERNAME: Swift.String
+  @objc public static let PROFILE_ID: Swift.String
+  @objc public static let ANONYMOUS_USER: Swift.String
+  @objc public static let RENDITION: Swift.String
+  @objc public static let TITLE: Swift.String
+  @objc public static let PROGRAM: Swift.String
+  @objc public static let LIVE: Swift.String
+  @objc public static let SEGMENT_DURATION: Swift.String
+  @objc public static let MEDIA_DURATION: Swift.String
+  @objc public static let MEDIA_RESOURCE: Swift.String
+  @objc public static let TRANSACTION_CODE: Swift.String
+  @objc public static let PROPERTIES: Swift.String
+  @objc public static let CDN: Swift.String
+  @objc public static let PROFILE: Swift.String
+  @objc public static let BUCKET: Swift.String
+  @objc public static let PLAYER_VERSION: Swift.String
+  @objc public static let DIMENSIONS: Swift.String
+  @objc public static let PARAM_1: Swift.String
+  @objc public static let PARAM_2: Swift.String
+  @objc public static let PARAM_3: Swift.String
+  @objc public static let PARAM_4: Swift.String
+  @objc public static let PARAM_5: Swift.String
+  @objc public static let PARAM_6: Swift.String
+  @objc public static let PARAM_7: Swift.String
+  @objc public static let PARAM_8: Swift.String
+  @objc public static let PARAM_9: Swift.String
+  @objc public static let PARAM_10: Swift.String
+  @objc public static let PARAM_11: Swift.String
+  @objc public static let PARAM_12: Swift.String
+  @objc public static let PARAM_13: Swift.String
+  @objc public static let PARAM_14: Swift.String
+  @objc public static let PARAM_15: Swift.String
+  @objc public static let PARAM_16: Swift.String
+  @objc public static let PARAM_17: Swift.String
+  @objc public static let PARAM_18: Swift.String
+  @objc public static let PARAM_19: Swift.String
+  @objc public static let PARAM_20: Swift.String
+  @objc public static let PLUGIN_VERSION: Swift.String
+  @objc public static let LIB_VERSION: Swift.String
+  @objc public static let PLUGIN_INFO: Swift.String
+  @objc public static let ISP: Swift.String
+  @objc public static let CONNECTION_TYPE: Swift.String
+  @objc public static let IP: Swift.String
+  @objc public static let OBFUSCATE_IP: Swift.String
+  @objc public static let PRIVACY_PROTOCOL: Swift.String
+  @objc public static let PRELOAD_DURATION: Swift.String
+  @objc public static let PLAYER: Swift.String
+  @objc public static let REFERER: Swift.String
+  @objc public static let DEVICE_INFO: Swift.String
+  @objc public static let USER_TYPE: Swift.String
+  @objc public static let STREAMING_PROTOCOL: Swift.String
+  @objc public static let EXPERIMENTS: Swift.String
+  @objc public static let HOUSEHOLD_ID: Swift.String
+  @objc public static let NAV_CONTEXT: Swift.String
+  @objc public static let SMART_SWITCH_CONFIG_CODE: Swift.String
+  @objc public static let SMART_SWITCH_GROUP_CODE: Swift.String
+  @objc public static let SMART_SWITCH_CONTRACT_CODE: Swift.String
+  @objc public static let NODE_TYPE: Swift.String
+  @objc public static let NODE_TYPE_STRING: Swift.String
+  @objc public static let NODE_HOST: Swift.String
+  @objc public static let APP_NAME: Swift.String
+  @objc public static let APP_RELEASE_VERSION: Swift.String
+  @objc public static let EMAIL: Swift.String
+  @objc public static let PACKAGE: Swift.String
+  @objc public static let SAGA: Swift.String
+  @objc public static let TV_SHOW: Swift.String
+  @objc public static let SEASON: Swift.String
+  @objc public static let TITLE_EPISODE: Swift.String
+  @objc public static let TOTAL_BYTES: Swift.String
+  @objc public static let CHANNEL: Swift.String
+  @objc public static let CONTENT_ID: Swift.String
+  @objc public static let IMDB_ID: Swift.String
+  @objc public static let GRACENOTE_ID: Swift.String
+  @objc public static let CONTENT_TYPE: Swift.String
+  @objc public static let GENRE: Swift.String
+  @objc public static let CONTENT_LANGUAGE: Swift.String
+  @objc public static let SUBTITLES: Swift.String
+  @objc public static let CONTRACTED_RESOLUTION: Swift.String
+  @objc public static let COST: Swift.String
+  @objc public static let PRICE: Swift.String
+  @objc public static let PLAYBACK_TYPE: Swift.String
+  @objc public static let DRM: Swift.String
+  @objc public static let VIDEO_CODEC: Swift.String
+  @objc public static let AUDIO_CODEC: Swift.String
+  @objc public static let CODEC_SETTINGS: Swift.String
+  @objc public static let CODEC_PROFILE: Swift.String
+  @objc public static let CONTAINER_FORMAT: Swift.String
+  @objc public static let ADS_EXPECTED: Swift.String
+  @objc public static let DEVICE_ID: Swift.String
+  @objc public static let PARSED_RESOURCE: Swift.String
+  @objc public static let PLAYHEAD: Swift.String
+  @objc public static let AD_TITLE: Swift.String
+  @objc public static let AD_POSITION: Swift.String
+  @objc public static let AD_BREAK_NUMBER: Swift.String
+  @objc public static let AD_NUMBER_IN_BREAK: Swift.String
+  @objc public static let AD_NUMBER: Swift.String
+  @objc public static let AD_CAMPAIGN: Swift.String
+  @objc public static let AD_CREATIVE_ID: Swift.String
+  @objc public static let AD_PROVIDER: Swift.String
+  @objc public static let AD_RESOURCE: Swift.String
+  @objc public static let AD_DURATION: Swift.String
+  @objc public static let AD_PLAYER_VERSION: Swift.String
+  @objc public static let AD_PROPERTIES: Swift.String
+  @objc public static let AD_ADAPTER_VERSION: Swift.String
+  @objc public static let AD_VIEWABILITY: Swift.String
+  @objc public static let AD_VIEWED_DURATION: Swift.String
+  @objc public static let EXTRAPARAM_1: Swift.String
+  @objc public static let EXTRAPARAM_2: Swift.String
+  @objc public static let EXTRAPARAM_3: Swift.String
+  @objc public static let EXTRAPARAM_4: Swift.String
+  @objc public static let EXTRAPARAM_5: Swift.String
+  @objc public static let EXTRAPARAM_6: Swift.String
+  @objc public static let EXTRAPARAM_7: Swift.String
+  @objc public static let EXTRAPARAM_8: Swift.String
+  @objc public static let EXTRAPARAM_9: Swift.String
+  @objc public static let EXTRAPARAM_10: Swift.String
+  @objc public static let FULLSCREEN: Swift.String
+  @objc public static let AUDIO: Swift.String
+  @objc public static let SKIPPABLE: Swift.String
+  @objc public static let SYSTEM: Swift.String
+  @objc public static let JOIN_DURATION: Swift.String
+  @objc public static let PAUSE_DURATION: Swift.String
+  @objc public static let SEEK_DURATION: Swift.String
+  @objc public static let BUFFER_DURATION: Swift.String
+  @objc public static let BITRATE: Swift.String
+  @objc public static let AD_JOIN_DURATION: Swift.String
+  @objc public static let AD_PAUSE_DURATION: Swift.String
+  @objc public static let AD_BUFFER_DURATION: Swift.String
+  @objc public static let AD_TOTAL_DURATION: Swift.String
+  @objc public static let AD_PLAYHEAD: Swift.String
+  @objc public static let AD_BITRATE: Swift.String
+  @objc public static let AD_URL: Swift.String
+  @objc public static let AD_INSERTION_TYPE: Swift.String
+  @objc public static let DROPPED_FRAMES: Swift.String
+  @objc public static let PLAYRATE: Swift.String
+  @objc public static let LATENCY: Swift.String
+  @objc public static let PACKET_LOSS: Swift.String
+  @objc public static let PACKET_SENT: Swift.String
+  @objc public static let METRICS: Swift.String
+  @objc public static let GIVEN_BREAKS: Swift.String
+  @objc public static let EXPECTED_BREAKS: Swift.String
+  @objc public static let EXPECTED_PATTERN: Swift.String
+  @objc public static let BREAKS_TIME: Swift.String
+  @objc public static let GIVEN_ADS: Swift.String
+  @objc public static let EXPECTED_ADS: Swift.String
+  @objc public static let SESSION_METRICS: Swift.String
+  @objc public static let FPS: Swift.String
+  @objc public static let THROUGHPUT: Swift.String
+  @objc public static let LANGUAGE: Swift.String
+  @objc public static let DETAILS: Swift.String
+  @objc public static let DATA: Swift.String
+  @objc public static let P2P_DOWNLOADED_TRAFFIC: Swift.String
+  @objc public static let CDN_DOWNLOADED_TRAFFIC: Swift.String
+  @objc public static let CDN_BALANCER_RESPONSE_UUID: Swift.String
+  @objc public static let UPLOADED_TRAFFIC: Swift.String
+  @objc public static let TIMEMARK: Swift.String
+  @objc public static let TRANSPORT_FORMAT: Swift.String
+  @objc public static let ADS_BLOCKED: Swift.String
+  @objc public static let DEVICE_EDID: Swift.String
+  @objc public static let LINKED_VIEW_ID: Swift.String
+  @objc public static let TRIGGERED_EVENTS: Swift.String
+  @objc public static let CHRONOS: Swift.String
+  @objc public static let PAGE: Swift.String
+  @objc public static let ROUTE: Swift.String
+  @objc public static let NAME: Swift.String
+  @objc public static let VALUES: Swift.String
+  @objc public static let ERROR_LEVEL: Swift.String
+  @objc public static let HAS_END_DATETIME: Swift.String
+  @objc public static let CDN_PROFILE_NAME: Swift.String
+  @objc public static let CDN_PING_DETAILS: Swift.String
+  @objc public static let CDN_BALANCER_VERSION: Swift.String
+  @objc public static let CDN_TOKEN: Swift.String
+  @objc public static let ERROR_CODE: Swift.String
+  @objc public static let ERROR_MESSAGE: Swift.String
+  @objc public static let ERROR_METADATA: Swift.String
+  @objc public static let CDN_BALANCER_API_AVG_RESPONSE_TIME: Swift.String
+  @objc public static let CDN_BALANCER_API_MIN_RESPONSE_TIME: Swift.String
+  @objc public static let CDN_BALANCER_API_MAX_RESPONSE_TIME: Swift.String
+  @objc public static let CDN_BALANCER_API_RESPONSES: Swift.String
+  @objc public static let CDN_BALANCER_API_ERRORS: Swift.String
+  @objc public static let CDN_BALANCER_BUCKET: Swift.String
+  @objc public static let CDN_BALANCER_IS_LIVE: Swift.String
+  @objc public static let CDN_BALANCER_VIDEO_ID: Swift.String
+  @objc public static let CDN_BALANCER_FORCE_DECISION: Swift.String
+  @objc public static let CDN_BALANCER_REQUEST_PLATFORM: Swift.String
+  @objc public static let CDN_BALANCER_P2P_AVAILABLE: Swift.String
+  @objc public static let CDN_BALANCER_BOLINA_AVAILABLE: Swift.String
+  @objc public static let CDN_BALANCER_ACTIVE_SWITCHING_PRIORITY: Swift.String
+  @objc public static let CDN_BALANCER_PRIORITY_CDN: Swift.String
+  @objc public static let CDN_BALANCER_CHUNK_DURATION: Swift.String
+  @objc public static let CDN_BALANCER_ANNOUNCED_CDNS: Swift.String
+  @objc public static let BALANCER_BYTES: Swift.String
+  @objc public static let BALANCER_RATE: Swift.String
+  @objc public static let STREAM_KEY: Swift.String
+  @objc public static let DATA_OBJECT: Swift.String
+  @objc override dynamic public init()
+  @objc deinit
+}
+public struct Services {
+  public static let DATA: Swift.String
+  public static let DATA_OBJECT: Swift.String
+  public static let CONFIGURATION: Swift.String
+  public static let INIT: Swift.String
+  public static let START: Swift.String
+  public static let JOIN: Swift.String
+  public static let PAUSE: Swift.String
+  public static let RESUME: Swift.String
+  public static let SEEK: Swift.String
+  public static let BUFFER: Swift.String
+  public static let ERROR: Swift.String
+  public static let STOP: Swift.String
+  public static let PING: Swift.String
+  public static let CDNPING: Swift.String
+  public static let OFFLINE_EVENTS: Swift.String
+  public static let AD_INIT: Swift.String
+  public static let AD_START: Swift.String
+  public static let AD_JOIN: Swift.String
+  public static let AD_CLICK: Swift.String
+  public static let AD_PAUSE: Swift.String
+  public static let AD_RESUME: Swift.String
+  public static let AD_BUFFER: Swift.String
+  public static let AD_STOP: Swift.String
+  public static let AD_ERROR: Swift.String
+  public static let AD_MANIFEST: Swift.String
+  public static let AD_BREAKSTART: Swift.String
+  public static let AD_BREAKSTOP: Swift.String
+  public static let AD_QUARTILE: Swift.String
+  public static let PLUGIN_LOGS: Swift.String
+}
+public protocol CoreOptions {
+  var deviceUUID: Swift.String? { get set }
+  var deviceIsAnonymous: Swift.Bool { get set }
+  var host: Swift.String { get set }
+  var offline: Swift.Bool { get set }
+  var method: NpawPlugin.HTTPMethod { get set }
+  var authToken: Swift.String? { get set }
+  var authType: Swift.String { get set }
+}
+@_hasMissingDesignatedInitializers @objc public class CoreParams : ObjectiveC.NSObject {
+  @objc public func getDeviceUUID() -> Swift.String?
+  @objc deinit
+}
+@objc(NPAWOfflineEventResult) public enum OfflineEventResult : Swift.Int {
+  case success
+  case noData
+  case notSupported
+  case conditionsNotMet
+  case failure
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+extension NpawPlugin.OfflineEventResult {
+  public func toString() -> Swift.String
+}
+@objc @_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @available(*, deprecated, message: "Diagnostic Tool has been deprecated and is no longer supported.")
+@objcMembers public class DiagnosticOptions : ObjectiveC.NSObject, Swift.Codable {
+  @objc public var balancerEnabled: Swift.Bool
+  @objc public var videoAnalyticsEnabled: Swift.Bool
+  @objc public var adAnalyticsEnabled: Swift.Bool
+  @objc public var timeout: Swift.Int
+  @objc override dynamic public init()
+  @objc deinit
+  public func encode(to encoder: Swift.Encoder) throws
+  required public init(from decoder: Swift.Decoder) throws
+}
+@_hasMissingDesignatedInitializers @objc final public class NpawPluginInstance : ObjectiveC.NSObject {
+  @objc public static let DEFAULT_VIDEO_ADAPTER_IDENTIFIER: Swift.String
+  @objc final public let analyticsOptions: NpawPlugin.AnalyticsOptions
+  @objc final public let balancerOptions: NpawPlugin.BalancerOptions
+  @objc final public let diagnosticOptions: NpawPlugin.DiagnosticOptions
+  @objc final public let appAnalytics: NpawPlugin.AppAnalytics
+  @objc final public let productAnalytics: NpawPlugin.ProductAnalytics
+  @objc final public let accountCode: Swift.String
+  @objc final public let core: NpawPlugin.Core
+  @objc final public func getResource(url: Swift.String) -> Swift.String
+  @available(*, deprecated, message: "Diagnostic Tool has been deprecated and is no longer supported.")
+  @objc final public func report()
+  @objc final public func destroy()
+  @objc final public func getPluginVersion() -> Swift.String
+  @objc final public func getVideoAdapter() -> NpawPlugin.VideoAdapter?
+  @objc final public func getVideoAdapter(identifier: Swift.String?) -> NpawPlugin.VideoAdapter?
+  @objc final public func addVideoAdapterLifecycleListener(_ listener: NpawPlugin.VideoAdapterLifecycleListener?)
+  @objc final public func removeVideoAdapterLifecycleListener(_ listener: NpawPlugin.VideoAdapterLifecycleListener?)
+  @objc final public func fireOfflineEvents(completion: ((_ result: NpawPlugin.OfflineEventResult) -> Swift.Void)? = nil)
+  @objc public class Builder : ObjectiveC.NSObject {
+    @objc public init(accountCode: Swift.String)
+    @objc public func setBalancerOptions(balancerOptions: NpawPlugin.BalancerOptions) -> NpawPlugin.NpawPluginInstance.Builder
+    @objc public func setAnalyticsOptions(analyticsOptions: NpawPlugin.AnalyticsOptions) -> NpawPlugin.NpawPluginInstance.Builder
+    @available(*, deprecated, message: "Diagnostic Tool has been deprecated and is no longer supported.")
+    @objc public func setDiagnosticOptions(diagnosticOptions: NpawPlugin.DiagnosticOptions) -> NpawPlugin.NpawPluginInstance.Builder
+    @objc public func setLogLevel(_ level: NpawPlugin.Level) -> NpawPlugin.NpawPluginInstance.Builder
+    @objc public func build() -> NpawPlugin.NpawPluginInstance
+    @objc deinit
+  }
+  @objc final public func videoBuilder() -> NpawPlugin.NpawPluginInstance.VideoBuilder
+  @objc final public func removeAdapter(adapter: NpawPlugin.VideoAdapter)
+  @objc final public func removeAdapters()
+  @_hasMissingDesignatedInitializers @objc public class VideoBuilder : ObjectiveC.NSObject {
+    @objc public func setIdentifier(identifier: Swift.String?) -> NpawPlugin.NpawPluginInstance.VideoBuilder
+    @objc public func setOptions(options: NpawPlugin.VideoOptions) -> NpawPlugin.NpawPluginInstance.VideoBuilder
+    @objc public func setPlayerAdapter(playerAdapter: NpawPlugin.PlayerAdapter) -> NpawPlugin.NpawPluginInstance.VideoBuilder
+    @objc public func setAdAdapter(adAdapter: NpawPlugin.AdAdapter) -> NpawPlugin.NpawPluginInstance.VideoBuilder
+    @objc public func build() -> NpawPlugin.VideoAdapter
+    @objc deinit
+  }
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class NpawPluginProvider : ObjectiveC.NSObject {
+  @objc public static var shared: NpawPlugin.NpawPluginInstance? {
+    @objc get
+  }
+  @objc public class func initialize(accountCode: Swift.String, analyticsOptions: NpawPlugin.AnalyticsOptions? = nil, balancerOptions: NpawPlugin.BalancerOptions? = nil, diagnosticOptions: NpawPlugin.DiagnosticOptions? = nil, logLevel: NpawPlugin.Level = .error)
+  @objc public class func destroy()
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc public class Experiment : ObjectiveC.NSObject {
+  @objc public init(accountCode: Swift.String, userId: Swift.String?, profileId: Swift.String?, deviceId: Swift.String?)
+  @objc public func fetch()
+  @objc public func dispose()
+  @objc public func getVariant(experimentCode: Swift.String) -> NpawPlugin.ExperimentVariant?
+  @objc deinit
+}
+@objc public class ExperimentVariant : ObjectiveC.NSObject {
+  @objc final public let experimentCode: Swift.String
+  @objc final public let variantCode: Swift.String
+  @objc final public let variantPayload: [Swift.String : Swift.String]
+  @objc public init(experimentCode: Swift.String, variantCode: Swift.String, variantPayload: [Swift.String : Swift.String])
+  @objc deinit
+}
+@objc public protocol WillSendRequestListenerProductAnalytics {
+  @objc func willSendRequestProductAnalytics(serviceName: Swift.String, params: [Swift.String : Swift.String]) -> [Swift.String : Swift.String]
+}
+@_hasMissingDesignatedInitializers @objc public class ProductAnalytics : ObjectiveC.NSObject, NpawPlugin.SessionAnalyticsListener {
+  public static let VIDEOADAPTER_DEFAULT_IDENTIFIER: Swift.String
+  @objc public func addOnWillSendRequestListener(_ listener: NpawPlugin.WillSendRequestListenerProductAnalytics)
+  @objc public func removeOnWillSendRequestListener(_ listener: NpawPlugin.WillSendRequestListenerProductAnalytics)
+  @objc public func beforeSend(event: Swift.String, params: [Swift.String : Swift.String]) -> [Swift.String : Swift.String]
+  @objc public func afterSend(event: Swift.String, params: [Swift.String : Swift.String], success: Swift.Bool)
+  @objc public func sessionExpired()
+  @objc public func initialize(screenName: Swift.String, productAnalyticsSettings: NpawPlugin.ProductAnalyticsSettings)
+  @objc public func destroy()
+  @objc public var experiments: NpawPlugin.Experiment {
+    @objc get
+  }
+  @objc public func newSession()
+  @objc public func endSession()
+  @objc public func loginSuccessful(userId: Swift.String, profileId: Swift.String? = nil, profileType: Swift.String? = nil, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func loginUnsuccessful(dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func logout(dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func userProfileCreated(profileId: Swift.String, profileType: Swift.String? = nil, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func userProfileSelected(profileId: Swift.String, profileType: Swift.String? = nil, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func userProfileDeleted(profileId: Swift.String, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func trackNavByName(screenName: Swift.String, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func trackAttribution(utmSource: Swift.String, utmMedium: Swift.String? = nil, utmCampaign: Swift.String? = nil, utmTerm: Swift.String? = nil, utmContent: Swift.String? = nil, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func trackSectionVisible(section: Swift.String, sectionOrder: Swift.Int, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func trackSectionHidden(section: Swift.String, sectionOrder: Swift.Int, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func contentFocusIn(section: Swift.String, sectionOrder: Swift.Int, column: Swift.Int, row: Swift.Int, contentLink: Swift.String, contentLinkType: Swift.String? = nil, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func contentFocusOut()
+  @objc public func trackContentClick(section: Swift.String, sectionOrder: Swift.Int, column: Swift.Int, row: Swift.Int, contentLink: Swift.String, contentLinkType: Swift.String? = nil, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func trackPlayVOD(contentId: Swift.String, movieGroupTitle: Swift.String?, movieGroupId: Swift.String?, seriesSeasonTitle: Swift.String?, seriesSeasonId: Swift.String?, seriesTitle: Swift.String?, seriesId: Swift.String?, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:], videoAdapterIdentifier: Swift.String = VIDEOADAPTER_DEFAULT_IDENTIFIER)
+  @objc public func trackPlayEPG(channelId: Swift.String?, epgId: Swift.String?, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:], videoAdapterIdentifier: Swift.String = VIDEOADAPTER_DEFAULT_IDENTIFIER)
+  @objc public func trackPlay(contentLink: Swift.String, contentLinkType: Swift.String? = nil, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:], videoAdapterIdentifier: Swift.String = VIDEOADAPTER_DEFAULT_IDENTIFIER)
+  @objc public func trackPlayerInteraction(eventName: Swift.String, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:], videoAdapterIdentifier: Swift.String = VIDEOADAPTER_DEFAULT_IDENTIFIER)
+  @objc public func trackSearchQuery(searchQuery: Swift.String, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func trackSearchResult(resultCount: Swift.Int, searchQuery: Swift.String? = nil, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func trackSearchClick(section: Swift.String, sectionOrder: Swift.Int, column: Swift.Int, row: Swift.Int, contentLink: Swift.String, contentLinkType: Swift.String? = nil, searchQuery: Swift.String? = nil, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func trackEPGClick(channelId: Swift.String?, epgId: Swift.String?, epgMode: Swift.String?, contentId: Swift.String?, contentLink: Swift.String, contentLinkType: Swift.String, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func trackExternalAppLaunch(appName: Swift.String, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func trackExternalAppExit(appName: Swift.String, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func trackEngagementEvent(eventName: Swift.String, contentId: Swift.String? = nil, epgId: Swift.String? = nil, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:])
+  @objc public func trackClick(controlName: Swift.String, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:], hasEndDatetime: Swift.Bool = false)
+  @objc public func trackEvent(eventName: Swift.String, dimensions: [Swift.String : Swift.String] = [:], metrics: [Swift.String : Swift.Double] = [:], hasEndDatetime: Swift.Bool = false)
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class ProductAnalyticsSettings : ObjectiveC.NSObject {
+  public var profileId: Swift.String
+  public var profileType: Swift.String
+  public var highlightContentAfter: Swift.Int32
+  public var enableStateTracking: Swift.Bool
+  public var activeStateTimeout: Swift.Int32
+  public var activeStateDimension: Swift.Int32
+  public var manageAnonymousUsers: Swift.Bool
+  public var enableExperiments: Swift.Bool
+  public var enableEventQueueBeforeAdapterReady: Swift.Bool
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc public class AppSession : NpawPlugin.Session {
+  @objc public init(sessionId: Swift.String? = nil)
+  @objc deinit
+}
+@objc(NPAWSessionStateEnum) public enum SessionStateEnum : Swift.Int {
+  case notStarted
+  case active
+  case willStop
+  case stopped
+  case expired
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc public class Session : ObjectiveC.NSObject {
+  public typealias StateListener = (_ oldState: NpawPlugin.SessionStateEnum, _ newState: NpawPlugin.SessionStateEnum) -> Swift.Void
+  @objc final public let sessionId: Swift.String
+  @objc weak public var rootSession: NpawPlugin.Session?
+  @objc public var childSessions: [NpawPlugin.Session] {
+    get
+  }
+  @objc public var state: NpawPlugin.SessionStateEnum {
+    get
+  }
+  @objc public init(sessionId: Swift.String? = nil, rootSession: NpawPlugin.Session? = nil)
+  @objc deinit
+  public func addStateListener(_ listener: @escaping NpawPlugin.Session.StateListener)
+  public func removeStateListener(_ listener: @escaping NpawPlugin.Session.StateListener)
+  @objc public func addChild(session: NpawPlugin.Session)
+  @objc public func removeChild(session: NpawPlugin.Session)
+  @objc public func updateState(_ newState: NpawPlugin.SessionStateEnum)
+  @objc public func onParentStateChanged(_ newState: NpawPlugin.SessionStateEnum)
+  @objc public func isActive() -> Swift.Bool
+  @objc public func isExpired() -> Swift.Bool
+}
+@objc public protocol SessionAnalyticsListener {
+  @objc func beforeSend(event: Swift.String, params: [Swift.String : Swift.String]) -> [Swift.String : Swift.String]
+  @objc func afterSend(event: Swift.String, params: [Swift.String : Swift.String], success: Swift.Bool)
+  @objc func sessionExpired()
+}
+@objc public class SessionAnalytics : ObjectiveC.NSObject {
+  public init(core: NpawPlugin.Core, analyticsOptions: NpawPlugin.AnalyticsOptions)
+  @objc deinit
+  @objc public func createNewSession()
+  @objc public func start(params: [Swift.String : Swift.String] = [:], completion: ((_ success: Swift.Bool) -> Swift.Void)? = nil)
+  @objc public func stop(params: [Swift.String : Swift.String] = [:], completion: ((_ success: Swift.Bool) -> Swift.Void)? = nil)
+  @objc public func event(eventName: Swift.String, params: [Swift.String : Swift.String] = [:], hasEndDatetime: Swift.Bool = false)
+  @objc public func eventEnd(eventName: Swift.String, params: [Swift.String : Swift.String] = [:])
+  @objc public func fireError(params: [Swift.String : Swift.String] = [:])
+  @objc public func fireError(code: Swift.String, msg: Swift.String, metadata: Swift.String? = nil, duration: Foundation.NSNumber? = nil, params: [Swift.String : Swift.String] = [:])
+  @objc public func isActive() -> Swift.Bool
+  @objc public func isSessionStarted() -> Swift.Bool
+  @objc public func addListener(_ listener: NpawPlugin.SessionAnalyticsListener)
+  @objc public func removeListener(_ listener: NpawPlugin.SessionAnalyticsListener)
+  @objc public func destroy(completion: (() -> Swift.Void)? = nil)
+}
+@objc @_inheritsConvenienceInitializers @objcMembers final public class SessionState : ObjectiveC.NSObject {
+  @objc final public func canStartSession() -> Swift.Bool
+  @objc final public func startSession()
+  @objc final public func stopSession()
+  @objc final public func setWillStop()
+  @objc final public func setExpired()
+  @objc final public func isActive() -> Swift.Bool
+  @objc final public func isExpired() -> Swift.Bool
+  @objc final public func isSessionStarted() -> Swift.Bool
+  @objc final public func isLastRequestStop() -> Swift.Bool
+  final public func updateDurationIfActive() -> Foundation.TimeInterval?
+  @objc final public func getSessionDuration() -> Foundation.TimeInterval
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc public class VideoSession : NpawPlugin.Session {
+  @objc final public let viewId: Swift.String
+  public init(viewId: Swift.String, rootSession: NpawPlugin.Session, sessionTimeout: Foundation.TimeInterval? = nil, maxDuration: Foundation.TimeInterval? = nil, isSessionStarted: (() -> Swift.Bool)? = nil)
+  @objc override public func isActive() -> Swift.Bool
+  @objc override public func isExpired() -> Swift.Bool
+  @objc deinit
+}
+public enum HTTPMethod : Swift.String {
+  case GET
+  case POST
+  case HEAD
+  public var rawValue: Swift.String {
+    get
+  }
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+}
+public typealias RequestParams = () -> [Swift.String : Swift.String]?
+public struct VideoVariables {
+  public static let PRODUCT_KEY: Swift.String
+  public static let VIEW_CODE_VARIABLE_KEY: Swift.String
+}
+public struct BalancerVariables {
+  public static let PRODUCT_KEY: Swift.String
+  public static let BALANCER_BITRATE_VARIABLE_KEY: Swift.String
+  public static let BALANCER_TRAFFIC_VARIABLE_KEY: Swift.String
+  public static let BALANCER_P2P_TRAFFIC_VARIABLE_KEY: Swift.String
+  public static let BALANCER_P2P_UPLOAD_TRAFFIC_VARIABLE_KEY: Swift.String
+  public static let LAST_USED_HOST_USES_HTTPs_VARIABLE_KEY: Swift.String
+  public static let LAST_USED_HOST_VARIABLE_KEY: Swift.String
+  public static let LOCAL_HOST_VARIABLE_KEY: Swift.String
+  public static let ORIGINAL_HOST_VARIABLE_KEY: Swift.String
+  public static let ORIGINAL_HOST_USES_HTTPs_VARIABLE_KEY: Swift.String
+  public static let BALANCER_SEGMENT_DURATION_VARIABLE_KEY: Swift.String
+}
+public struct DeviceVariables {
+  public static let PRODUCT_KEY: Swift.String
+  public static let APP_ANALYTICS_DEVICE_STRING: Swift.String
+}
+public struct SessionExpire {
+  public static let DEFAULT_SESSION_TIMEOUT_MS: Swift.Double
+  public static let DEFAULT_MAX_SESSION_DURATION_MS: Swift.Double
+}
+@objc(NPAWLogLevel) public enum Level : Swift.Int {
+  case silent = 6
+  case error = 5
+  case warning = 4
+  case info = 3
+  case debug = 2
+  case verbose = 1
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+extension NpawPlugin.Level : Swift.CustomStringConvertible {
+  public var description: Swift.String {
+    get
+  }
+}
+@_hasMissingDesignatedInitializers @objc public class Log : ObjectiveC.NSObject {
+  @objc public static let core: NpawPlugin.Log
+  @objc public static let analytics: NpawPlugin.Log
+  @objc public static let balancer: NpawPlugin.Log
+  @objc public static let p2p: NpawPlugin.Log
+  @objc public static let diagnostics: NpawPlugin.Log
+  @objc public func reportLogMessage(project: Swift.AnyObject? = nil, level logLevel: NpawPlugin.Level, message: Swift.String)
+  @objc public func error(tag: Swift.AnyObject? = nil, _ message: Swift.String)
+  @objc public func warn(tag: Swift.AnyObject? = nil, _ message: Swift.String)
+  @objc public func info(tag: Swift.AnyObject? = nil, _ message: Swift.String)
+  @objc public func debug(tag: Swift.AnyObject? = nil, _ message: Swift.String)
+  @objc public func verbose(tag: Swift.AnyObject? = nil, _ message: Swift.String)
+  @objc public func exception(tag: Swift.AnyObject? = nil, _ exception: Foundation.NSException)
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc final public class Util : ObjectiveC.NSObject {
+  @objc public static func buildRenditionString(withWidth width: Swift.Int, height: Swift.Int, andBitrate bitrate: Swift.Double) -> Swift.String
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc open class AdAdapter : NpawPlugin.BaseAdapter, NpawPlugin.PlayerInfo {
+  @objc weak public var playerAdapter: NpawPlugin.PlayerAdapter?
+  @objc open var delegateToAdAdapter: Swift.Bool {
+    @objc get
+  }
+  @objc open func shouldDelayJoinTime() -> Swift.Bool
+  @objc(NPAWAdPosition) public enum AdPosition : Swift.Int {
+    case pre, mid, post, unknown
+    public init?(rawValue: Swift.Int)
+    public typealias RawValue = Swift.Int
+    public var rawValue: Swift.Int {
+      get
+    }
+  }
+  @objc(NPAWManifestError) public enum ManifestError : Swift.Int {
+    case noResponse
+    case emptyResponse
+    case wrongResponse
+    public var manifestErrorString: Swift.String {
+      get
+    }
+    public init?(rawValue: Swift.Int)
+    public typealias RawValue = Swift.Int
+    public var rawValue: Swift.Int {
+      get
+    }
+  }
+  @objc(NPAWInsertionType) public enum InsertionType : Swift.Int {
+    case clientSide
+    case serverSide
+    public var insertionTypeString: Swift.String {
+      get
+    }
+    public init?(rawValue: Swift.Int)
+    public typealias RawValue = Swift.Int
+    public var rawValue: Swift.Int {
+      get
+    }
+  }
+  @objc open var adPosition: NpawPlugin.AdAdapter.AdPosition {
+    @objc get
+  }
+  @objc open var givenBreaks: Swift.Int {
+    @objc get
+  }
+  @objc open var expectedBreaks: Swift.Int {
+    @objc get
+  }
+  @objc open var expectedPattern: [Swift.String : [Swift.Int]]? {
+    @objc get
+  }
+  @objc open var breaksTime: [Any]? {
+    @objc get
+  }
+  @objc open var givenAds: Swift.Int {
+    @objc get
+  }
+  @objc open var expectedAds: Swift.Int {
+    @objc get
+  }
+  @objc open var adInsertionType: Swift.String? {
+    @objc get
+  }
+  @objc open var adProvider: Swift.String? {
+    @objc get
+  }
+  @objc open var adCampaign: Swift.String? {
+    @objc get
+  }
+  @objc open var adCreativeId: Swift.String? {
+    @objc get
+  }
+  @objc open var isFullscreen: Swift.Bool {
+    @objc get
+    @objc set
+  }
+  @objc open var isAdSkippable: Foundation.NSNumber? {
+    @objc get
+  }
+  @objc open var isAudioEnabled: Foundation.NSNumber? {
+    @objc get
+  }
+  @objc open var adViewability: Swift.Int {
+    @objc get
+  }
+  @objc open var adViewedDuration: Swift.Int {
+    @objc get
+  }
+  @objc open var joinDuration: Swift.Int {
+    @objc get
+  }
+  @objc open var pauseDuration: Swift.Int {
+    @objc get
+  }
+  @objc open var bufferDuration: Swift.Int {
+    @objc get
+  }
+  @objc open var totalDuration: Swift.Int {
+    @objc get
+  }
+  @objc override open var playerName: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var playerVersion: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var title: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var playhead: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var bitrate: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var duration: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var resource: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var rendition: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var playrate: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var throughput: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var live: Foundation.NSNumber? {
+    @objc get
+    @objc set
+  }
+  @objc open var framesPerSecond: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var droppedFrames: Swift.Int {
+    @objc get
+    @objc set
+  }
+  @objc open var latency: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var videoCodec: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var audioCodec: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var packetLoss: Swift.Int {
+    @objc get
+    @objc set
+  }
+  @objc open var packetSent: Swift.Int {
+    @objc get
+    @objc set
+  }
+  @objc open var metrics: [Swift.String : [Swift.Int]]? {
+    @objc get
+    @objc set
+  }
+  @objc open var householdId: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var totalBytes: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var cdnTraffic: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var p2pTraffic: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var uploadTraffic: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var urlToParse: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open func fireAdInit(params: [Swift.String : Swift.String] = [:])
+  @objc open func fireClick(params: [Swift.String : Swift.String] = [:])
+  @objc open func fireQuartile(quartile: Swift.Int)
+  @objc open func fireManifest(params: [Swift.String : Swift.String] = [:])
+  @objc open func fireManifest(errorType: NpawPlugin.AdAdapter.ManifestError, errorMessage: Swift.String?)
+  @objc open func fireAdBreakStart(params: [Swift.String : Swift.String] = [:])
+  @objc open func fireAdBreakStop(params: [Swift.String : Swift.String] = [:])
+  @objc override open func firePause(params: [Swift.String : Swift.String] = [:])
+  @objc override open func fireResume(params: [Swift.String : Swift.String] = [:])
+  @objc override open func fireBufferBegin(convertFromSeek: Swift.Bool = false, params: [Swift.String : Swift.String] = [:])
+  @objc override open func fireBufferEnd(params: [Swift.String : Swift.String] = [:])
+  @objc override open func fireStop(params: [Swift.String : Swift.String] = [:])
+  @objc open func fireClick(adUrl: Swift.String?)
+  @objc open func fireSkip()
+  override public init(player: Swift.AnyObject?)
+  @objc deinit
+}
+@objc open class BaseAdapter : ObjectiveC.NSObject {
+  @objc public var player: Swift.AnyObject? {
+    @objc get
+    @objc set
+  }
+  public var flagsState: NpawPlugin.BaseFlags.View {
+    get
+  }
+  @objc public var chronos: NpawPlugin.BaseChronos {
+    get
+  }
+  public init(player: Swift.AnyObject?)
+  @objc open func registerListeners()
+  @objc open func unregisterListeners()
+  @objc weak public var videoOptions: NpawPlugin.VideoAdapter.CombinedOptions?
+  @objc open func dispose()
+  @objc open var playerName: Swift.String? {
+    @objc get
+  }
+  @objc open func getVersion() -> Swift.String
+  @objc open func fireStart(params: [Swift.String : Swift.String] = [:])
+  @objc open func fireJoin(params: [Swift.String : Swift.String] = [:])
+  @objc open func firePause(params: [Swift.String : Swift.String] = [:])
+  @objc open func fireResume(params: [Swift.String : Swift.String] = [:])
+  @objc open func fireBufferBegin(convertFromSeek: Swift.Bool = false, params: [Swift.String : Swift.String] = [:])
+  @objc open func fireBufferEnd(params: [Swift.String : Swift.String] = [:])
+  @objc open func fireStop(params: [Swift.String : Swift.String] = [:])
+  @objc open func fireError(code: Swift.String?, msg: Swift.String?, errorMetadata: Swift.String? = nil)
+  @objc open func fireError(params: [Swift.String : Swift.String])
+  @objc open func fireFatalError(code: Swift.String?, msg: Swift.String?, errorMetadata: Swift.String? = nil)
+  @objc open func fireFatalError(params: [Swift.String : Swift.String])
+  @objc public func addEventListener(_ eventListener: NpawPlugin.BaseAdapterEventListener)
+  @objc public func removeEventListeners()
+  @objc public func removeEventListener(_ eventListener: NpawPlugin.BaseAdapterEventListener) -> Swift.Bool
+  @objc deinit
+}
+@objc public protocol BaseAdapterEventListener {
+  @objc func onStart(params: [Swift.String : Swift.String])
+  @objc func onJoin(params: [Swift.String : Swift.String])
+  @objc func onPause(params: [Swift.String : Swift.String])
+  @objc func onResume(params: [Swift.String : Swift.String])
+  @objc func onStop(params: [Swift.String : Swift.String])
+  @objc func onBufferEnd(params: [Swift.String : Swift.String])
+  @objc func onError(params: [Swift.String : Swift.String])
+}
+@_inheritsConvenienceInitializers @objc public class BaseChronos : ObjectiveC.NSObject {
+  @objc public func getJoin() -> NpawPlugin.Chrono
+  @objc public func getSeek() -> NpawPlugin.Chrono
+  @objc public func getPause() -> NpawPlugin.Chrono
+  @objc public func getBuffer() -> NpawPlugin.Chrono
+  @objc public func getTotal() -> NpawPlugin.Chrono
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class BaseFlags : ObjectiveC.NSObject {
+  @_hasMissingDesignatedInitializers @objc public class View : ObjectiveC.NSObject {
+    @objc public var initialized: Swift.Bool {
+      @objc get
+    }
+    @objc public var started: Swift.Bool {
+      @objc get
+    }
+    @objc public var joined: Swift.Bool {
+      @objc get
+    }
+    @objc public var paused: Swift.Bool {
+      @objc get
+    }
+    @objc public var seeking: Swift.Bool {
+      @objc get
+    }
+    @objc public var buffering: Swift.Bool {
+      @objc get
+    }
+    @objc public var stopped: Swift.Bool {
+      @objc get
+    }
+    @objc public var insideAdBreak: Swift.Bool {
+      @objc get
+    }
+    @objc deinit
+  }
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc open class PlayerAdapter : NpawPlugin.BaseAdapter, NpawPlugin.PlayerInfo {
+  @objc weak public var adAdapter: NpawPlugin.AdAdapter?
+  @objc open func shouldDelayJoinTime() -> Swift.Bool
+  @objc open func releaseDelayedJoin()
+  @objc override open func fireJoin(params: [Swift.String : Swift.String] = [:])
+  @objc override open func fireStart(params: [Swift.String : Swift.String] = [:])
+  @objc open func fireSeekBegin(convertFromBuffer: Swift.Bool = true, params: [Swift.String : Swift.String] = [:])
+  @objc open func fireSeekEnd(params: [Swift.String : Swift.String] = [:])
+  @objc override open func fireBufferBegin(convertFromSeek: Swift.Bool = false, params: [Swift.String : Swift.String] = [:])
+  @objc override open func fireBufferEnd(params: [Swift.String : Swift.String] = [:])
+  @objc override open func firePause(params: [Swift.String : Swift.String] = [:])
+  @objc override open func fireResume(params: [Swift.String : Swift.String] = [:])
+  @objc open func fireEvent(eventName: Swift.String, dimensions: [Swift.String : Swift.String] = [:], values: [Swift.String : Swift.Double] = [:], topLevelDimensions: [Swift.String : Swift.String] = [:], hasEndDatetime: Swift.Bool = false)
+  @objc open func fireEventEnd(eventName: Swift.String, dimensions: [Swift.String : Swift.String] = [:], values: [Swift.String : Swift.Double] = [:], topLevelDimensions: [Swift.String : Swift.String] = [:])
+  @objc public func getJoinDuration() -> Swift.Int
+  @objc public func getPauseDuration() -> Swift.Int
+  @objc public func getBufferDuration() -> Swift.Int
+  @objc public func getSeekDuration() -> Swift.Int
+  @objc override open var playerName: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var playerVersion: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var title: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var resource: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var rendition: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var playhead: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var playrate: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var throughput: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var bitrate: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var duration: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var live: Foundation.NSNumber? {
+    @objc get
+    @objc set
+  }
+  @objc open var framesPerSecond: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var droppedFrames: Swift.Int {
+    @objc get
+    @objc set
+  }
+  @objc open var latency: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var videoCodec: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var audioCodec: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var packetLoss: Swift.Int {
+    @objc get
+    @objc set
+  }
+  @objc open var packetSent: Swift.Int {
+    @objc get
+    @objc set
+  }
+  @objc open var metrics: [Swift.String : [Swift.Int]]? {
+    @objc get
+    @objc set
+  }
+  @objc open var program: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var householdId: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var totalBytes: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var balancerSegmentDuration: Swift.Int {
+    @objc get
+    @objc set
+  }
+  @objc open var cdnTraffic: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var p2pTraffic: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var uploadTraffic: Swift.Double {
+    @objc get
+    @objc set
+  }
+  @objc open var urlToParse: Swift.String? {
+    @objc get
+    @objc set
+  }
+  @objc open var requiredMetadataForStart: [Swift.String] {
+    @objc get
+  }
+  @objc public func getOriginalResource(resource: Swift.String) -> Swift.String
+  @objc public func getLastUsedResource(resource: Swift.String) -> Swift.String
+  override public init(player: Swift.AnyObject?)
+  @objc deinit
+}
+@objc public protocol PlayerAdapterEventListener : NpawPlugin.BaseAdapterEventListener {
+  @objc func onSeekEnd(params: [Swift.String : Swift.String])
+  @objc func onVideoEvent(params: [Swift.String : Swift.String])
+  @objc func onVideoEventEnd(params: [Swift.String : Swift.String])
+  @objc func onData(params: [Swift.String : Swift.String])
+}
+@objc public protocol PlayerInfo {
+  @objc var playerName: Swift.String? { get set }
+  @objc var playerVersion: Swift.String? { get set }
+  @objc var title: Swift.String? { get set }
+  @objc var resource: Swift.String? { get set }
+  @objc var rendition: Swift.String? { get set }
+  @objc var playhead: Swift.Double { get set }
+  @objc var playrate: Swift.Double { get set }
+  @objc var throughput: Swift.Double { get set }
+  @objc var bitrate: Swift.Double { get set }
+  @objc var duration: Swift.Double { get set }
+  @objc var live: Foundation.NSNumber? { get set }
+  @objc var framesPerSecond: Swift.Double { get set }
+  @objc var droppedFrames: Swift.Int { get set }
+  @objc var latency: Swift.Double { get set }
+  @objc var videoCodec: Swift.String? { get set }
+  @objc var audioCodec: Swift.String? { get set }
+  @objc var packetLoss: Swift.Int { get set }
+  @objc var packetSent: Swift.Int { get set }
+  @objc var metrics: [Swift.String : [Swift.Int]]? { get set }
+  @objc var householdId: Swift.String? { get set }
+  @objc var totalBytes: Swift.Double { get set }
+  @objc var cdnTraffic: Swift.Double { get set }
+  @objc var p2pTraffic: Swift.Double { get set }
+  @objc var uploadTraffic: Swift.Double { get set }
+  @objc var urlToParse: Swift.String? { get set }
+}
+@_hasMissingDesignatedInitializers @objc public class VideoAdapter : ObjectiveC.NSObject {
+  public var isDestroyed: Swift.Bool {
+    get
+  }
+  @_hasMissingDesignatedInitializers @objc public class CombinedOptions : ObjectiveC.NSObject {
+    @objc public var forceInit: Swift.Bool {
+      @objc get
+    }
+    @objc public var waitForMetadata: Swift.Bool {
+      @objc get
+    }
+    @objc public var waitForMetadataTimeout: Swift.Int {
+      @objc get
+    }
+    @objc public var pendingMetadata: [Swift.String]? {
+      @objc get
+    }
+    @objc public var contentCdn: Swift.String? {
+      @objc get
+    }
+    @objc public var adTitle: Swift.String? {
+      @objc get
+    }
+    @objc public var adResource: Swift.String? {
+      @objc get
+    }
+    @objc public var ignorePauseSmallEvents: Swift.Bool {
+      @objc get
+    }
+    @objc public var errorsToIgnore: [Swift.String]? {
+      @objc get
+    }
+    @objc public var fatalErrors: [Swift.String]? {
+      @objc get
+    }
+    @objc public var nonFatalErrors: [Swift.String]? {
+      @objc get
+    }
+    @objc public var live: Foundation.NSNumber? {
+      @objc get
+    }
+    @objc public var contentIsLiveNoSeek: Swift.Bool {
+      @objc get
+    }
+    @objc public var urlToParse: Swift.String? {
+      @objc get
+    }
+    @objc public var contentResource: Swift.String? {
+      @objc get
+    }
+    @objc public var parseManifestAuth: [Swift.String : Swift.String]? {
+      @objc get
+    }
+    @objc public var parseManifest: Swift.Bool {
+      @objc get
+    }
+    @objc public var parseCdnNode: Swift.Bool {
+      @objc get
+    }
+    @objc public var parseCdnNodeRequestDelayed: Swift.Bool {
+      @objc get
+    }
+    @objc public var disableFallbackParseCdnNode: Swift.Bool {
+      @objc get
+    }
+    @objc public var parseCdnNodeList: [Swift.String]? {
+      @objc get
+    }
+    @objc public var parseCdnNodeAllowedGetMethodOnRetry: Swift.Bool {
+      @objc get
+    }
+    @objc public var parseCdnNameHeaderList: [Swift.String]? {
+      @objc get
+    }
+    @objc public var parseCdnNodeHeaderList: [Swift.String]? {
+      @objc get
+    }
+    @objc public var customCdnParseList: [NpawPlugin.CdnParse.CDNParserBuilder]? {
+      @objc get
+    }
+    @objc public var useConfiguredTimeOffset: Swift.Bool {
+      @objc get
+    }
+    @objc public var delegateToAdAdapter: Swift.Bool {
+      @objc get
+    }
+    @objc public var autoRestartOnMaxTimeExpiration: Swift.Bool {
+      @objc get
+    }
+    @objc public var contentPlaybackType: Swift.String? {
+      @objc get
+    }
+    @objc deinit
+  }
+  @objc weak public var analyticsOptions: NpawPlugin.AnalyticsOptions?
+  @objc public var options: NpawPlugin.VideoOptions
+  @objc final public let combinedOptions: NpawPlugin.VideoAdapter.CombinedOptions
+  @objc final public let identifier: Swift.String
+  @objc public var playerAdapter: NpawPlugin.PlayerAdapter {
+    @objc get
+    @objc set
+  }
+  @objc public var adAdapter: NpawPlugin.AdAdapter {
+    @objc get
+    @objc set
+  }
+  public var waitingForPostRollToEnd: Swift.Bool
+  @objc public func addOnWillSendRequestListener(_ willSendRequestListener: NpawPlugin.WillSendRequestListenerVideoAdapter)
+  @objc public func removeOnWillSendRequestListener(_ willSendRequestListener: NpawPlugin.WillSendRequestListenerVideoAdapter)
+  @objc public func shouldWaitForPostrollAd() -> Swift.Bool
+  @objc public func destroy()
+  @objc override dynamic public func isEqual(_ object: Any?) -> Swift.Bool
+  @objc override dynamic public var hash: Swift.Int {
+    @objc get
+  }
+  @objc deinit
+}
+extension NpawPlugin.VideoAdapter {
+  @objc dynamic public func getParam(_ param: Swift.String?) -> Any?
+  @objc dynamic public func fireInit(params: [Swift.String : Swift.String] = [:])
+  @objc dynamic public func startChrono(_ name: Swift.String)
+  @objc dynamic public func stopChrono(_ name: Swift.String)
+  @objc dynamic public func setChronoDuration(_ name: Swift.String, duration: Swift.Int)
+  @objc dynamic public func removeChrono(_ name: Swift.String)
+  @objc dynamic public func stop(params: [Swift.String : Swift.String] = [:])
+}
+@objc public protocol WillSendRequestListenerVideoAdapter {
+  @objc func willSendRequestVideoAdapter(serviceName: Swift.String, videoAdapter: NpawPlugin.VideoAdapter?, params: [Swift.String : Swift.String]) -> [Swift.String : Swift.String]
+}
+@_inheritsConvenienceInitializers @objc open class VideoAdapterLifecycleListener : ObjectiveC.NSObject {
+  @objc open func onVideoAdapterCreated(videoAdapter: NpawPlugin.VideoAdapter)
+  @objc open func onVideoAdapterPreDestroyed(videoAdapter: NpawPlugin.VideoAdapter)
+  @objc open func onVideoAdapterPostDestroyed(videoAdapter: NpawPlugin.VideoAdapter)
+  @objc open func onPlayerAdapterPreRegister(videoAdapter: NpawPlugin.VideoAdapter, oldPlayerAdapter: NpawPlugin.PlayerAdapter?, newPlayerAdapter: NpawPlugin.PlayerAdapter?)
+  @objc open func onPlayerAdapterPostRegister(videoAdapter: NpawPlugin.VideoAdapter, oldPlayerAdapter: NpawPlugin.PlayerAdapter?, newPlayerAdapter: NpawPlugin.PlayerAdapter?)
+  @objc open func onAdAdapterPreRegister(videoAdapter: NpawPlugin.VideoAdapter, oldAdAdapter: NpawPlugin.AdAdapter?, newAdAdapter: NpawPlugin.AdAdapter?)
+  @objc open func onAdAdapterPostRegister(videoAdapter: NpawPlugin.VideoAdapter, oldAdAdapter: NpawPlugin.AdAdapter?, newAdAdapter: NpawPlugin.AdAdapter?)
+  @objc open func onVideoAdapterPreStarted(videoAdapter: NpawPlugin.VideoAdapter)
+  @objc open func onVideoAdapterPostStarted(videoAdapter: NpawPlugin.VideoAdapter)
+  @objc open func onVideoAdapterPreStop(videoAdapter: NpawPlugin.VideoAdapter)
+  @objc open func onVideoAdapterPostStop(videoAdapter: NpawPlugin.VideoAdapter)
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class Chrono : ObjectiveC.NSObject {
+  @objc public func reset()
+  @objc public func start()
+  @objc public func pause()
+  @objc public func resume()
+  @objc public func stop() -> Swift.Int
+  @objc public func getDeltaTime() -> Swift.Int
+  @objc public func getDeltaTime(stopIfNeeded: Swift.Bool) -> Swift.Int
+  @objc public func copyChrono() -> NpawPlugin.Chrono
+  @objc public static func getNow() -> Swift.Int
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class VideoOptions : ObjectiveC.NSObject {
+  @objc open var live: Foundation.NSNumber?
+  @objc open var adBreaksTime: [Swift.Int]
+  @objc open var adCampaign: Swift.String?
+  @objc open var adCreativeId: Swift.String?
+  @objc open var adExpectedBreaks: Swift.Int
+  @objc open var adExpectedPattern: [Swift.String : [Swift.Int]]? {
+    @objc get
+    @objc set
+  }
+  @objc open var adGivenBreaks: Swift.Int
+  @objc open var adProvider: Swift.String?
+  @objc open var adResource: Swift.String?
+  @objc open var adTitle: Swift.String?
+  @objc open var givenAds: Swift.Int
+  @objc open var contentBitrate: Swift.Double
+  @objc open var contentCdn: Swift.String?
+  @objc open var contentCdnNode: Swift.String?
+  @objc open var contentCdnType: Swift.String?
+  @objc open var contentChannel: Swift.String?
+  @objc open var contentContractedResolution: Swift.String?
+  @objc open var contentCost: Swift.String?
+  @objc open var contentDrm: Swift.String?
+  @objc open var contentDuration: Swift.Double
+  @objc open var contentSegmentDuration: Swift.Int64
+  @objc open var contentEncodingAudioCodec: Swift.String?
+  @objc open var contentEncodingCodecProfile: Swift.String?
+  @objc open var contentEncodingCodecSettings: [Swift.String : Any]?
+  @objc open var contentEncodingContainerFormat: Swift.String?
+  @objc open var contentEncodingVideoCodec: Swift.String?
+  @objc open var contentEpisodeTitle: Swift.String?
+  @objc open var contentFps: Swift.Double
+  @objc open var contentGenre: Swift.String?
+  @objc open var contentGracenoteId: Swift.String?
+  @objc open var contentId: Swift.String?
+  @objc open var contentImdbId: Swift.String?
+  @objc open var referer: Swift.String?
+  @objc open var contentLanguage: Swift.String?
+  @objc open var contentMetadata: [Swift.String : Any]?
+  @objc open var contentMetrics: [Swift.String : Any]?
+  @objc open var contentPackage: Swift.String?
+  @objc open var contentPlaybackType: Swift.String?
+  @objc open var contentPrice: Swift.String?
+  @objc open var contentRendition: Swift.String?
+  @objc open var contentResource: Swift.String?
+  @objc open var contentSaga: Swift.String?
+  @objc open var contentSeason: Swift.String?
+  public struct StreamingProtocol {
+  }
+  @objc open var contentStreamingProtocol: Swift.String?
+  @objc open var contentSubtitles: Swift.String?
+  @objc open var contentThroughput: Swift.Int64
+  @objc open var contentTitle: Swift.String?
+  @objc open var contentTotalBytes: Swift.Int64
+  @objc open var contentTransactionCode: Swift.String?
+  @objc open var contentTvShow: Swift.String?
+  @objc open var contentType: Swift.String?
+  @objc open var contentCustomDimensions: [Swift.String : Swift.String]?
+  @objc open var contentCustomDimension1: Swift.String?
+  @objc open var contentCustomDimension2: Swift.String?
+  @objc open var contentCustomDimension3: Swift.String?
+  @objc open var contentCustomDimension4: Swift.String?
+  @objc open var contentCustomDimension5: Swift.String?
+  @objc open var contentCustomDimension6: Swift.String?
+  @objc open var contentCustomDimension7: Swift.String?
+  @objc open var contentCustomDimension8: Swift.String?
+  @objc open var contentCustomDimension9: Swift.String?
+  @objc open var contentCustomDimension10: Swift.String?
+  @objc open var contentCustomDimension11: Swift.String?
+  @objc open var contentCustomDimension12: Swift.String?
+  @objc open var contentCustomDimension13: Swift.String?
+  @objc open var contentCustomDimension14: Swift.String?
+  @objc open var contentCustomDimension15: Swift.String?
+  @objc open var contentCustomDimension16: Swift.String?
+  @objc open var contentCustomDimension17: Swift.String?
+  @objc open var contentCustomDimension18: Swift.String?
+  @objc open var contentCustomDimension19: Swift.String?
+  @objc open var contentCustomDimension20: Swift.String?
+  @objc open var adCustomDimension1: Swift.String?
+  @objc open var adCustomDimension2: Swift.String?
+  @objc open var adCustomDimension3: Swift.String?
+  @objc open var adCustomDimension4: Swift.String?
+  @objc open var adCustomDimension5: Swift.String?
+  @objc open var adCustomDimension6: Swift.String?
+  @objc open var adCustomDimension7: Swift.String?
+  @objc open var adCustomDimension8: Swift.String?
+  @objc open var adCustomDimension9: Swift.String?
+  @objc open var adCustomDimension10: Swift.String?
+  @objc open var linkedViewId: Swift.String?
+  @objc open var networkConnectionType: Swift.String?
+  @objc open var ignorePauseSmallEvents: Swift.Bool
+  @objc open var parseManifest: Swift.Bool
+  @objc open var parseManifestAuth: [Swift.String : Swift.String]?
+  @objc open var parseCdnNode: Swift.Bool
+  @objc open var parseCdnNodeAllowedGetMethodOnRetry: Swift.Bool
+  @objc open var parseCdnNodeList: [Swift.String]?
+  final public let defaultCdnNodeList: [Swift.String]
+  @objc open var parseCdnNameHeaderList: [Swift.String]?
+  @objc open var parseCdnNodeHeaderList: [Swift.String]?
+  @objc open var parseCdnNodeRequestDelayed: Swift.Bool
+  @objc open var disableFallbackParseCdnNode: Swift.Bool
+  @objc open var customCdnParseList: [NpawPlugin.CdnParse.CDNParserBuilder]?
+  @objc open var program: Swift.String?
+  @objc open var smartSwitchConfigCode: Swift.String?
+  @objc open var smartSwitchGroupCode: Swift.String?
+  @objc open var smartSwitchContractCode: Swift.String?
+  public enum TransportFormat : Swift.String {
+    case TS
+    case MP4
+    case CMF
+    public init?(rawValue: Swift.String)
+    public typealias RawValue = Swift.String
+    public var rawValue: Swift.String {
+      get
+    }
+  }
+  @objc open var transportFormat: Swift.String?
+  @objc open var urlToParse: Swift.String?
+  @objc open var errorsToIgnore: [Swift.String]?
+  @objc open var fatalErrors: [Swift.String]?
+  @objc open var nonFatalErrors: [Swift.String]?
+  @objc open var waitForMetadata: Foundation.NSNumber?
+  @objc open var waitForMetadataTimeout: Foundation.NSNumber?
+  @objc open var forceInit: Foundation.NSNumber?
+  @objc open var pendingMetadata: [Swift.String]?
+  @objc open var contentIsLiveNoSeek: Swift.Bool
+  @objc open var contentIsLiveNoMonitor: Swift.Bool
+  @objc open var adMetadata: [Swift.String : Any]?
+  @objc open var adIgnore: Swift.Bool
+  @objc open var delegateToAdAdapter: Swift.Bool
+  @objc open var autoRestartOnMaxTimeExpiration: Foundation.NSNumber?
+  @objc open var adPostRollTimeout: Swift.Double
+  @objc open var useConfiguredTimeOffset: Swift.Bool
+  @objc override dynamic public init()
+  @objc deinit
+}
+extension NpawPlugin.CdnParse.CdnNodeType : Swift.Equatable {}
+extension NpawPlugin.CdnParse.CdnNodeType : Swift.Hashable {}
+extension NpawPlugin.CdnParse.CdnNodeType : Swift.RawRepresentable {}
+extension NpawPlugin.CdnParse.VARIABLE : Swift.Equatable {}
+extension NpawPlugin.CdnParse.VARIABLE : Swift.Hashable {}
+extension NpawPlugin.CdnParse.VARIABLE : Swift.RawRepresentable {}
+extension NpawPlugin.CacheStatusParser.CacheStatusResult : Swift.Equatable {}
+extension NpawPlugin.CacheStatusParser.CacheStatusResult : Swift.Hashable {}
+extension NpawPlugin.CacheStatusParser.CacheStatusResult : Swift.RawRepresentable {}
+extension NpawPlugin.ActiveSwitching : Swift.Equatable {}
+extension NpawPlugin.ActiveSwitching : Swift.Hashable {}
+extension NpawPlugin.ActiveSwitching : Swift.RawRepresentable {}
+extension NpawPlugin.OfflineEventResult : Swift.Equatable {}
+extension NpawPlugin.OfflineEventResult : Swift.Hashable {}
+extension NpawPlugin.OfflineEventResult : Swift.RawRepresentable {}
+extension NpawPlugin.SessionStateEnum : Swift.Equatable {}
+extension NpawPlugin.SessionStateEnum : Swift.Hashable {}
+extension NpawPlugin.SessionStateEnum : Swift.RawRepresentable {}
+extension NpawPlugin.HTTPMethod : Swift.Equatable {}
+extension NpawPlugin.HTTPMethod : Swift.Hashable {}
+extension NpawPlugin.HTTPMethod : Swift.RawRepresentable {}
+extension NpawPlugin.Level : Swift.Equatable {}
+extension NpawPlugin.Level : Swift.Hashable {}
+extension NpawPlugin.Level : Swift.RawRepresentable {}
+extension NpawPlugin.AdAdapter.AdPosition : Swift.Equatable {}
+extension NpawPlugin.AdAdapter.AdPosition : Swift.Hashable {}
+extension NpawPlugin.AdAdapter.AdPosition : Swift.RawRepresentable {}
+extension NpawPlugin.AdAdapter.ManifestError : Swift.Equatable {}
+extension NpawPlugin.AdAdapter.ManifestError : Swift.Hashable {}
+extension NpawPlugin.AdAdapter.ManifestError : Swift.RawRepresentable {}
+extension NpawPlugin.AdAdapter.InsertionType : Swift.Equatable {}
+extension NpawPlugin.AdAdapter.InsertionType : Swift.Hashable {}
+extension NpawPlugin.AdAdapter.InsertionType : Swift.RawRepresentable {}
+extension NpawPlugin.VideoOptions.TransportFormat : Swift.Equatable {}
+extension NpawPlugin.VideoOptions.TransportFormat : Swift.Hashable {}
+extension NpawPlugin.VideoOptions.TransportFormat : Swift.RawRepresentable {}

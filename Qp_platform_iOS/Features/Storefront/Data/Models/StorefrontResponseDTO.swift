@@ -133,6 +133,7 @@ struct QuickplayContentItemDTO: Decodable {
     let ae: FlexibleBoolDTO?
     let vq: String?
     let rt: Int?
+    let apURL: String?
     let nu: String?
     let urn: String?
     let locs: [ContentPersonDTO]?
@@ -154,6 +155,7 @@ struct QuickplayContentItemDTO: Decodable {
         case ae
         case vq
         case rt
+        case apURL = "ap_url"
         case nu
         case urn
         case locs
@@ -162,7 +164,7 @@ struct QuickplayContentItemDTO: Decodable {
         case yearDate = "rdt"
     }
 
-    func toDomain(progress: Double? = nil) -> StorefrontItem {
+    func toDomain(config: QuickplayRuntimeConfig, progress: Double? = nil) -> StorefrontItem {
         StorefrontItem(
             id: id,
             title: lon?.preferredText ?? "Untitled",
@@ -178,11 +180,13 @@ struct QuickplayContentItemDTO: Decodable {
             availableRatios: ia ?? [],
             runtimeSeconds: rt,
             progress: progress,
-            canOpenDetail: true
+            canOpenDetail: true,
+            previewURL: apURL.flatMap(URL.init(string:)),
+            imageBaseURL: config.imageResizeURL
         )
     }
 
-    func toDetailDomain() -> ContentDetail {
+    func toDetailDomain(config: QuickplayRuntimeConfig) -> ContentDetail {
         ContentDetail(
             id: id,
             title: lon?.preferredText ?? "Untitled",
@@ -197,9 +201,11 @@ struct QuickplayContentItemDTO: Decodable {
             hasFreePreview: ad?.value == true || ae?.value == true,
             sponsorNames: ph?.preferredList ?? [],
             availableRatios: ia ?? [],
-            cast: (locs ?? []).map { $0.toDomain() },
+            cast: (locs ?? []).map { $0.toDomain(config: config) },
             directorNames: (lodr ?? []).map(\.localizedName),
-            momentSearchEnabled: (vsm ?? []).contains(where: { $0.ff?.value == true })
+            momentSearchEnabled: (vsm ?? []).contains(where: { $0.ff?.value == true }),
+            previewURL: apURL.flatMap(URL.init(string:)),
+            imageBaseURL: config.imageResizeURL
         )
     }
 }
@@ -209,7 +215,7 @@ struct QuickplayCollectionItemDTO: Decodable {
     let ia: [String]?
     let lon: [LocalizedTextDTO]?
 
-    func toDomain() -> StorefrontItem {
+    func toDomain(config: QuickplayRuntimeConfig) -> StorefrontItem {
         StorefrontItem(
             id: id,
             title: lon?.preferredText ?? "Untitled",
@@ -225,7 +231,9 @@ struct QuickplayCollectionItemDTO: Decodable {
             availableRatios: ia ?? ["0-1x1"],
             runtimeSeconds: nil,
             progress: nil,
-            canOpenDetail: false
+            canOpenDetail: false,
+            previewURL: nil,
+            imageBaseURL: config.imageResizeURL
         )
     }
 }

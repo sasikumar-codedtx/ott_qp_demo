@@ -37,14 +37,14 @@ struct StorefrontSectionBrowseView: View {
                     .offset(y: -10)
 
                 VStack(spacing: 0) {
-                    header(topInset: proxy.safeAreaInsets.top)
-
                     if viewModel.isInitialLoading && viewModel.items.isEmpty {
                         skeleton(columns: columns, layout: layout)
                     } else if let errorMessage = viewModel.errorMessage, viewModel.items.isEmpty {
                         ErrorView(title: viewModel.title.nilIfEmpty ?? AppStrings.Storefront.unavailableTitle, message: errorMessage, onRetry: {
                             Task { await viewModel.loadIfNeeded() }
                         })
+                    } else if viewModel.isRecommendedSection {
+                        recommendedBrowsePage
                     } else {
                         ScrollView(.vertical, showsIndicators: false) {
                             LazyVGrid(columns: columns, alignment: .center, spacing: 4) {
@@ -86,48 +86,151 @@ struct StorefrontSectionBrowseView: View {
         .task {
             await viewModel.loadIfNeeded()
         }
-    }
-
-    private func header(topInset: CGFloat) -> some View {
-        ZStack {
-            HStack {
-                Button(action: onBack) {
-                    Image(systemName: AppIcons.Navigation.back)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 46, height: 46)
-                        .background(
-                            UnevenRoundedRectangle(
-                                cornerRadii: .init(topLeading: 8, bottomLeading: 8, bottomTrailing: 18, topTrailing: 18),
-                                style: .continuous
-                            )
-                            .fill(Color.black.opacity(0.1))
-                            .overlay(
-                                UnevenRoundedRectangle(
-                                    cornerRadii: .init(topLeading: 8, bottomLeading: 8, bottomTrailing: 18, topTrailing: 18),
-                                    style: .continuous
-                                )
-                                .stroke(Color.white.opacity(0.2), lineWidth: 1.2)
-                            )
-                        )
-                }
-                .buttonStyle(.plain)
-
-                Spacer()
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                NavigationChromeButton(icon: AppIcons.Navigation.back, action: onBack)
             }
-
-            HStack(spacing: 6) {
-                Text(viewModel.title)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
-                Image(systemName: AppIcons.Navigation.next)
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.82))
+            ToolbarItem(placement: .principal) {
+                NavigationChromeTitle(title: viewModel.title)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, topInset + 12)
-        .padding(.bottom, 10)
+    }
+
+    private var recommendedBrowsePage: some View {
+        GeometryReader { proxy in
+            let horizontalPadding: CGFloat = 18
+            let containerWidth = proxy.size.width - (horizontalPadding * 2)
+            let featureHeight = containerWidth * 9 / 16
+            let gridWidth = (containerWidth - 10) / 2
+            let layout = StorefrontCardLayout(
+                size: CGSize(width: gridWidth, height: gridWidth * 9 / 16),
+                overlayHeight: 54,
+                visibleCount: 2
+            )
+            let featureItem = viewModel.items.first
+            let gridItems = featureItem.map { first in viewModel.items.filter { $0.id != first.id } } ?? viewModel.items
+
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 22) {
+                    if viewModel.isRefreshing {
+                        StorefrontBrowseRefreshIndicator()
+                            .frame(maxWidth: .infinity)
+                    }
+
+                    if let featureItem {
+                        recommendedFeatureCard(item: featureItem, width: containerWidth, height: featureHeight)
+                            .padding(.horizontal, horizontalPadding)
+                    }
+
+                    recommendedChipRow
+
+                    LazyVGrid(
+                        columns: [
+                            GridItem(.fixed(gridWidth), spacing: 10, alignment: .top),
+                            GridItem(.fixed(gridWidth), spacing: 10, alignment: .top)
+                        ],
+                        alignment: .center,
+                        spacing: 14
+                    ) {
+                        ForEach(gridItems) { item in
+                            StorefrontCardView(
+                                item: item,
+                                style: .landscape,
+                                layout: layout,
+                                rank: nil,
+                                onSelect: onSelectItem
+                            )
+                            .onAppear {
+                                Task {
+                                    await viewModel.loadMoreIfNeeded(currentItem: item)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, horizontalPadding)
+
+                    if viewModel.isLoadingMore {
+                        ProgressView()
+                            .tint(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                    }
+                }
+                .padding(.top, 18)
+                .padding(.bottom, 38)
+            }
+        }
+    }
+
+    private func recommendedFeatureCard(item: StorefrontItem, width: CGFloat, height: CGFloat) -> some View {
+        Button {
+            onSelectItem(item)
+        } label: {
+            ZStack(alignment: .bottomLeading) {
+                PosterImageView(
+                    url: item.imageURL(for: "0-16x9", width: Int(width * 3)),
+                    size: CGSize(width: width, height: height),
+                    cornerRadius: 18
+                )
+
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.clear, Color.black.opacity(0.34), Color.black.opacity(0.92)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Recommended")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Color(hex: "F5B919"))
+                        .padding(.horizontal, 10)
+                        .frame(height: 24)
+                        .background(Capsule().fill(Color.black.opacity(0.48)))
+
+                    Text(item.title)
+                        .font(.system(size: 24, weight: .black))
+                        .foregroundStyle(.white)
+                        .lineLimit(2)
+
+                    if !item.primaryMetaText.isEmpty {
+                        Text(item.primaryMetaText)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.74))
+                            .lineLimit(1)
+                    }
+                }
+                .padding(18)
+            }
+            .frame(width: width, height: height)
+        }
+        .buttonStyle(LiquidButtonPressStyle())
+    }
+
+    private var recommendedChipRow: some View {
+        let chips = viewModel.recommendationFilterTitles
+        return ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(chips, id: \.self) { chip in
+                    Text(chip)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(chip == chips.first ? .black : .white.opacity(0.78))
+                        .padding(.horizontal, 16)
+                        .frame(height: 34)
+                        .background(
+                            Capsule(style: .continuous)
+                                .fill(chip == chips.first ? Color.white : Color.white.opacity(0.08))
+                                .overlay(
+                                    Capsule(style: .continuous)
+                                        .stroke(Color.white.opacity(chip == chips.first ? 0 : 0.12), lineWidth: 1)
+                                )
+                        )
+                }
+            }
+            .padding(.horizontal, 18)
+        }
     }
 
     private func skeleton(columns: [GridItem], layout: StorefrontCardLayout) -> some View {

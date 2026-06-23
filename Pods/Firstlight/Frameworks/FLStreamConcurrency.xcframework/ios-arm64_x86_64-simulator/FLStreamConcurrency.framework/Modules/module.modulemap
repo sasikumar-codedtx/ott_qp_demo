@@ -1,0 +1,11 @@
+framework module FLStreamConcurrency {
+  umbrella header "FLStreamConcurrency.h"
+  export *
+
+  module * { export * }
+}
+
+module FLStreamConcurrency.Swift {
+  header "FLStreamConcurrency-Swift.h"
+  requires objc
+}

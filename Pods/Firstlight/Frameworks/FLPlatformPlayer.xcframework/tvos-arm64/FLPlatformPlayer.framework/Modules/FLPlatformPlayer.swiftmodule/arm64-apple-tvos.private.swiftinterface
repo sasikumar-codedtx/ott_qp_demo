@@ -1,0 +1,25 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -target arm64-apple-tvos12.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name FLPlatformPlayer
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -interface-compiler-version 6.1.2
+import AVFoundation
+import FLFoundation
+import FLPlatformCore
+@_exported import FLPlatformPlayer
+import FLPlayer
+import FLPlayerInterface
+import Swift
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public func version() -> Swift.String
+public enum FLPlatformPlayerFactory {
+  public static func player(asset: AVFoundation.AVURLAsset, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)? = nil) -> any FLPlayerInterface.Player
+  public static func player(contentUrl: Foundation.URL, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)? = nil) -> any FLPlayerInterface.Player
+  public static func promoPlayer(asset: AVFoundation.AVURLAsset, promos: [FLPlayerInterface.Promo], adPlaybackPolicy: FLPlayerInterface.AdPlaybackPolicy? = nil, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)? = nil) -> any FLPlayerInterface.AdPlayer
+  public static func promoPlayer(contentUrl: Foundation.URL, promos: [FLPlayerInterface.Promo], adPlaybackPolicy: FLPlayerInterface.AdPlaybackPolicy? = nil, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)? = nil) -> any FLPlayerInterface.AdPlayer
+  public static func promoPlayer(asset: AVFoundation.AVURLAsset, promos: [FLPlayerInterface.Promo], policyHandler: any FLPlayerInterface.PlaybackPolicyHandler, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)? = nil) -> any FLPlayerInterface.AdPlayer
+  public static func promoPlayer(contentUrl: Foundation.URL, promos: [FLPlayerInterface.Promo], policyHandler: any FLPlayerInterface.PlaybackPolicyHandler, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)? = nil) -> any FLPlayerInterface.AdPlayer
+  public static func fairplaylicenseFetcher() -> any FLPlayerInterface.FairplayLicenseFetcher
+  public static func fairplayLicenseFetcherDelegate(applicationCertificate: Foundation.Data, licenseUrl: Foundation.URL, skd: Swift.String, keyDeliveryType: FLPlayerInterface.KeyDeliveryType, platformAuthorizer: any FLPlatformCore.PlatformAuthorizer) -> any FLPlayerInterface.FairplayLicenseFetcherDelegate
+}

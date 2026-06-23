@@ -1,0 +1,7 @@
+interface:
+  display_name: "Sony Quickplay iOS POC"
+  short_description: "Build the Sony-style Quickplay iOS demo"
+  brand_color: "#DAB316"
+  default_prompt: "Use $sony-quickplay-ios-poc to implement this iOS POC change with the project architecture and Figma rules."
+policy:
+  allow_implicit_invocation: true

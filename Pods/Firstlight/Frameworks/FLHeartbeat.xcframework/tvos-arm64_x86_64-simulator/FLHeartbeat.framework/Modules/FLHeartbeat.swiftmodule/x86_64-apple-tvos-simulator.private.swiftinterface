@@ -1,0 +1,115 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -target x86_64-apple-tvos12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name FLHeartbeat
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -interface-compiler-version 6.1.2
+import AVFoundation
+import FLFoundation
+@_exported import FLHeartbeat
+import FLPlatformCore
+import FLPlayerInterface
+import Foundation
+import Swift
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public struct ProgramInfo : FLPlayerInterface.StreamTimelineMetadata {
+  public let programStartTime: Swift.String
+  public let programEndTime: Swift.String
+  public let isBlackout: Swift.Bool
+  public let programId: Swift.String?
+  public let custom: [Swift.String : Any]?
+  public init(programId: Swift.String?, programStartTime: Swift.String, programEndTime: Swift.String, isBlackout: Swift.Bool, custom: [Swift.String : Any]?)
+}
+public protocol HeartbeatManager {
+  var configuration: any FLHeartbeat.HeartbeatConfiguration { get }
+  var liveStartTime: Swift.String? { get set }
+  var liveEndTime: Swift.String? { get set }
+  func processPlaybackStateChange(player: any FLPlayerInterface.Player)
+  func processPlaybackProgress(player: any FLPlayerInterface.Player)
+  func addHeaders(header: FLFoundation.Headers)
+  func setMultiStreamMode(enabled: Swift.Bool)
+  func update(heartbeatToken: Swift.String)
+}
+public func version() -> Swift.String
+public enum FLHeartbeatFactory {
+  public static func heartbeatConfiguration(heartbeatEndPointUrl: Swift.String, streamConcurrencyEndPointUrl: Swift.String? = nil, multiStreamMode: Swift.Bool = false, syncInterval: Foundation.TimeInterval = 60000, maxAllowedFailures: Swift.UInt = 2, maxAllowedRetries: Swift.Int = 2, retryDelayInSec: Swift.Double = 1, recordBookmark: Swift.Bool = false, playbackStopOnPlaybackEnd: Swift.Bool = true, trackViewerCount: Swift.Bool? = false) -> any FLHeartbeat.HeartbeatConfiguration
+  public static func streamConcurrencyService(endPoint: Swift.String, httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient(), authorizer: any FLPlatformCore.PlatformAuthorizer) -> any FLHeartbeat.StreamConcurrencyService
+  public static func heartbeatService(contentId: Swift.String, deviceId: Swift.String, endPoint: Swift.String, httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient(), authorizer: any FLPlatformCore.PlatformAuthorizer) -> any FLHeartbeat.HeartbeatService
+  public static func heartbeatManager(configuration: any FLHeartbeat.HeartbeatConfiguration, deviceId: Swift.String, contentId: Swift.String, catalogType: Swift.String? = nil, primaryId: Swift.String? = nil, heartbeatToken: Swift.String, authorizer: any FLPlatformCore.PlatformAuthorizer, heartbeatService: (any FLHeartbeat.HeartbeatService)? = nil, streamConcurrencyService: (any FLHeartbeat.StreamConcurrencyService)? = nil, heartbeatHeaders: FLFoundation.Headers? = nil, liveStartTime: Swift.String? = nil, liveEndTime: Swift.String? = nil, liveEventType: Swift.String? = nil, live360StartTime: Swift.String? = nil, live360EndTime: Swift.String? = nil, pgmStartTime: Swift.String? = nil, pgmEndTime: Swift.String? = nil, httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient()) -> any FLHeartbeat.HeartbeatManager
+}
+public protocol HeartbeatService {
+  var contentId: Swift.String { get }
+  var deviceId: Swift.String { get }
+  func heartbeat(token: Swift.String, offset: Foundation.TimeInterval?, primaryId: Swift.String?, catalogType: Swift.String?, headers: FLFoundation.Headers?, completion: @escaping (Swift.Result<(any FLHeartbeat.HeartbeatResponse)?, any Swift.Error>) -> Swift.Void)
+}
+extension FLHeartbeat.HeartbeatService {
+  public func heartbeat(token: Swift.String, offset: Foundation.TimeInterval? = nil, primaryId: Swift.String? = nil, catalogType: Swift.String? = nil, headers: FLFoundation.Headers? = nil, completion: @escaping (Swift.Result<(any FLHeartbeat.HeartbeatResponse)?, any Swift.Error>) -> Swift.Void)
+}
+public protocol StreamConcurrencyService {
+  func putStreamForDevice(deviceId: Swift.String, contentId: Swift.String?, primaryId: Swift.String?, catalogType: Swift.String?, token: Swift.String?, headers: FLFoundation.Headers?, completion: @escaping (Swift.Result<Swift.Void, any Swift.Error>) -> Swift.Void)
+  func deleteStreamForDevice(deviceId: Swift.String, headers: FLFoundation.Headers?, completion: @escaping (Swift.Result<Swift.Void, any Swift.Error>) -> Swift.Void)
+}
+extension FLHeartbeat.StreamConcurrencyService {
+  public func putStreamForDevice(deviceId: Swift.String, contentId: Swift.String? = nil, primaryId: Swift.String? = nil, catalogType: Swift.String? = nil, token: Swift.String? = nil, headers: FLFoundation.Headers? = nil, completion: @escaping (Swift.Result<Swift.Void, any Swift.Error>) -> Swift.Void)
+  public func deleteStreamForDevice(deviceId: Swift.String, headers: FLFoundation.Headers? = nil, completion: @escaping (Swift.Result<Swift.Void, any Swift.Error>) -> Swift.Void)
+}
+public protocol HeartbeatConfiguration {
+  var heartbeatEndPointUrl: Swift.String { get }
+  var streamConcurrencyEndPointUrl: Swift.String? { get }
+  var multiStreamMode: Swift.Bool { get }
+  var syncInterval: Foundation.TimeInterval { get }
+  var maxAllowedFailures: Swift.UInt { get }
+  var maxAllowedRetries: Swift.Int { get }
+  var retryDelayInSec: Swift.Double { get }
+  var recordBookmark: Swift.Bool? { get }
+  var playbackStopOnPlaybackEnd: Swift.Bool? { get }
+  var trackViewerCount: Swift.Bool? { get }
+}
+public protocol HeartbeatResponse : Swift.Decodable {
+  var heartbeatToken: Swift.String? { get }
+  var blackoutUrl: Swift.String? { get }
+  var blackoutAction: FLPlayerInterface.BlackoutAction? { get }
+  var liveStartTime: Swift.String? { get }
+  var liveEndTime: Swift.String? { get }
+  var livePlaybackMode: Swift.String? { get }
+  var heartbeatAction: FLHeartbeat.HeartbeatAction? { get }
+  var live360Enabled: Swift.Bool? { get }
+  var live360StartTime: Swift.String? { get }
+  var live360EndTime: Swift.String? { get }
+  var live360ContentId: Swift.String? { get }
+  var pgmId: Swift.String? { get }
+  var pgmStartTime: Swift.String? { get }
+  var pgmEndTime: Swift.String? { get }
+  var isPgmBlackout: Swift.Bool { get }
+  var custom: [Swift.String : Any]? { get }
+}
+public enum HeartbeatAction : Swift.String, Swift.Codable {
+  case gracefulStop
+  case continueHeartbeat
+  case abortPlaybackRoaming
+  case abortPlaybackNotEntitled
+  case abortPlaybackBlackout
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum HeartbeatErrorCodes : Swift.Int, Swift.Error, Foundation.LocalizedError {
+  case BLACKOUT_DENY_FAILURE
+  case BLACKOUT_ALLOW_UPGRADE_FAILURE
+  case HEARTBEAT_ACTION_ABORT_ROAMING_ERROR
+  case HEARTBEAT_ACTION_ABORT_NOT_ENTITLED_ERROR
+  case HEARTBEAT_ACTION_ABORT_BLACKOUT
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+extension FLHeartbeat.HeartbeatAction : Swift.Equatable {}
+extension FLHeartbeat.HeartbeatAction : Swift.Hashable {}
+extension FLHeartbeat.HeartbeatAction : Swift.RawRepresentable {}
+extension FLHeartbeat.HeartbeatErrorCodes : Swift.Equatable {}
+extension FLHeartbeat.HeartbeatErrorCodes : Swift.Hashable {}
+extension FLHeartbeat.HeartbeatErrorCodes : Swift.RawRepresentable {}

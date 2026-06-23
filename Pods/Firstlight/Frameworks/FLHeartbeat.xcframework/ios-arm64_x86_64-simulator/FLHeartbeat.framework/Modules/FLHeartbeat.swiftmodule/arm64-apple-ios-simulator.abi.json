@@ -1,0 +1,5115 @@
+{
+  "ABIRoot": {
+    "kind": "Root",
+    "name": "FLHeartbeat",
+    "printedName": "FLHeartbeat",
+    "children": [
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "ProgramInfo",
+        "printedName": "ProgramInfo",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "programStartTime",
+            "printedName": "programStartTime",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat11ProgramInfoV16programStartTimeSSvp",
+            "mangledName": "$s11FLHeartbeat11ProgramInfoV16programStartTimeSSvp",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat11ProgramInfoV16programStartTimeSSvg",
+                "mangledName": "$s11FLHeartbeat11ProgramInfoV16programStartTimeSSvg",
+                "moduleName": "FLHeartbeat",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "programEndTime",
+            "printedName": "programEndTime",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat11ProgramInfoV14programEndTimeSSvp",
+            "mangledName": "$s11FLHeartbeat11ProgramInfoV14programEndTimeSSvp",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat11ProgramInfoV14programEndTimeSSvg",
+                "mangledName": "$s11FLHeartbeat11ProgramInfoV14programEndTimeSSvg",
+                "moduleName": "FLHeartbeat",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "isBlackout",
+            "printedName": "isBlackout",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat11ProgramInfoV10isBlackoutSbvp",
+            "mangledName": "$s11FLHeartbeat11ProgramInfoV10isBlackoutSbvp",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat11ProgramInfoV10isBlackoutSbvg",
+                "mangledName": "$s11FLHeartbeat11ProgramInfoV10isBlackoutSbvg",
+                "moduleName": "FLHeartbeat",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "programId",
+            "printedName": "programId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat11ProgramInfoV9programIdSSSgvp",
+            "mangledName": "$s11FLHeartbeat11ProgramInfoV9programIdSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat11ProgramInfoV9programIdSSSgvg",
+                "mangledName": "$s11FLHeartbeat11ProgramInfoV9programIdSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "custom",
+            "printedName": "custom",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[Swift.String : Any]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Dictionary",
+                    "printedName": "[Swift.String : Any]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "ProtocolComposition",
+                        "printedName": "Any"
+                      }
+                    ],
+                    "usr": "s:SD"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat11ProgramInfoV6customSDySSypGSgvp",
+            "mangledName": "$s11FLHeartbeat11ProgramInfoV6customSDySSypGSgvp",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "[Swift.String : Any]?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Dictionary",
+                        "printedName": "[Swift.String : Any]",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "String",
+                            "printedName": "Swift.String",
+                            "usr": "s:SS"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "ProtocolComposition",
+                            "printedName": "Any"
+                          }
+                        ],
+                        "usr": "s:SD"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat11ProgramInfoV6customSDySSypGSgvg",
+                "mangledName": "$s11FLHeartbeat11ProgramInfoV6customSDySSypGSgvg",
+                "moduleName": "FLHeartbeat",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(programId:programStartTime:programEndTime:isBlackout:custom:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "ProgramInfo",
+                "printedName": "FLHeartbeat.ProgramInfo",
+                "usr": "s:11FLHeartbeat11ProgramInfoV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[Swift.String : Any]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Dictionary",
+                    "printedName": "[Swift.String : Any]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "ProtocolComposition",
+                        "printedName": "Any"
+                      }
+                    ],
+                    "usr": "s:SD"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:11FLHeartbeat11ProgramInfoV9programId0D9StartTime0d3EndG010isBlackout6customACSSSg_S2SSbSDySSypGSgtcfc",
+            "mangledName": "$s11FLHeartbeat11ProgramInfoV9programId0D9StartTime0d3EndG010isBlackout6customACSSSg_S2SSbSDySSypGSgtcfc",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "init_kind": "Designated"
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:11FLHeartbeat11ProgramInfoV",
+        "mangledName": "$s11FLHeartbeat11ProgramInfoV",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "StreamTimelineMetadata",
+            "printedName": "StreamTimelineMetadata",
+            "usr": "s:17FLPlayerInterface22StreamTimelineMetadataP",
+            "mangledName": "$s17FLPlayerInterface22StreamTimelineMetadataP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "HeartbeatManager",
+        "printedName": "HeartbeatManager",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "configuration",
+            "printedName": "configuration",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "HeartbeatConfiguration",
+                "printedName": "any FLHeartbeat.HeartbeatConfiguration",
+                "usr": "s:11FLHeartbeat22HeartbeatConfigurationP"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat16HeartbeatManagerP13configurationAA0B13Configuration_pvp",
+            "mangledName": "$s11FLHeartbeat16HeartbeatManagerP13configurationAA0B13Configuration_pvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatConfiguration",
+                    "printedName": "any FLHeartbeat.HeartbeatConfiguration",
+                    "usr": "s:11FLHeartbeat22HeartbeatConfigurationP"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat16HeartbeatManagerP13configurationAA0B13Configuration_pvg",
+                "mangledName": "$s11FLHeartbeat16HeartbeatManagerP13configurationAA0B13Configuration_pvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatManager>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatManager>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "liveStartTime",
+            "printedName": "liveStartTime",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat16HeartbeatManagerP13liveStartTimeSSSgvp",
+            "mangledName": "$s11FLHeartbeat16HeartbeatManagerP13liveStartTimeSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat16HeartbeatManagerP13liveStartTimeSSSgvg",
+                "mangledName": "$s11FLHeartbeat16HeartbeatManagerP13liveStartTimeSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatManager>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatManager>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat16HeartbeatManagerP13liveStartTimeSSSgvs",
+                "mangledName": "$s11FLHeartbeat16HeartbeatManagerP13liveStartTimeSSSgvs",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatManager>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatManager>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat16HeartbeatManagerP13liveStartTimeSSSgvM",
+                "mangledName": "$s11FLHeartbeat16HeartbeatManagerP13liveStartTimeSSSgvM",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatManager>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatManager>",
+                "protocolReq": true,
+                "implicit": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "liveEndTime",
+            "printedName": "liveEndTime",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat16HeartbeatManagerP11liveEndTimeSSSgvp",
+            "mangledName": "$s11FLHeartbeat16HeartbeatManagerP11liveEndTimeSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat16HeartbeatManagerP11liveEndTimeSSSgvg",
+                "mangledName": "$s11FLHeartbeat16HeartbeatManagerP11liveEndTimeSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatManager>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatManager>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat16HeartbeatManagerP11liveEndTimeSSSgvs",
+                "mangledName": "$s11FLHeartbeat16HeartbeatManagerP11liveEndTimeSSSgvs",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatManager>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatManager>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat16HeartbeatManagerP11liveEndTimeSSSgvM",
+                "mangledName": "$s11FLHeartbeat16HeartbeatManagerP11liveEndTimeSSSgvM",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatManager>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatManager>",
+                "protocolReq": true,
+                "implicit": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Function",
+            "name": "processPlaybackStateChange",
+            "printedName": "processPlaybackStateChange(player:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Player",
+                "printedName": "any FLPlayerInterface.Player",
+                "usr": "s:17FLPlayerInterface6PlayerP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat16HeartbeatManagerP26processPlaybackStateChange6playery17FLPlayerInterface6Player_p_tF",
+            "mangledName": "$s11FLHeartbeat16HeartbeatManagerP26processPlaybackStateChange6playery17FLPlayerInterface6Player_p_tF",
+            "moduleName": "FLHeartbeat",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatManager>",
+            "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatManager>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "processPlaybackProgress",
+            "printedName": "processPlaybackProgress(player:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Player",
+                "printedName": "any FLPlayerInterface.Player",
+                "usr": "s:17FLPlayerInterface6PlayerP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat16HeartbeatManagerP23processPlaybackProgress6playery17FLPlayerInterface6Player_p_tF",
+            "mangledName": "$s11FLHeartbeat16HeartbeatManagerP23processPlaybackProgress6playery17FLPlayerInterface6Player_p_tF",
+            "moduleName": "FLHeartbeat",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatManager>",
+            "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatManager>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "addHeaders",
+            "printedName": "addHeaders(header:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Dictionary",
+                "printedName": "[Swift.String : Swift.String]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:SD"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat16HeartbeatManagerP10addHeaders6headerySDyS2SG_tF",
+            "mangledName": "$s11FLHeartbeat16HeartbeatManagerP10addHeaders6headerySDyS2SG_tF",
+            "moduleName": "FLHeartbeat",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatManager>",
+            "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatManager>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "setMultiStreamMode",
+            "printedName": "setMultiStreamMode(enabled:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat16HeartbeatManagerP18setMultiStreamMode7enabledySb_tF",
+            "mangledName": "$s11FLHeartbeat16HeartbeatManagerP18setMultiStreamMode7enabledySb_tF",
+            "moduleName": "FLHeartbeat",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatManager>",
+            "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatManager>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "update",
+            "printedName": "update(heartbeatToken:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat16HeartbeatManagerP6update14heartbeatTokenySS_tF",
+            "mangledName": "$s11FLHeartbeat16HeartbeatManagerP6update14heartbeatTokenySS_tF",
+            "moduleName": "FLHeartbeat",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatManager>",
+            "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatManager>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:11FLHeartbeat16HeartbeatManagerP",
+        "mangledName": "$s11FLHeartbeat16HeartbeatManagerP",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat"
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat"
+      },
+      {
+        "kind": "Function",
+        "name": "version",
+        "printedName": "version()",
+        "children": [
+          {
+            "kind": "TypeNominal",
+            "name": "String",
+            "printedName": "Swift.String",
+            "usr": "s:SS"
+          }
+        ],
+        "declKind": "Func",
+        "usr": "s:11FLHeartbeat7versionSSyF",
+        "mangledName": "$s11FLHeartbeat7versionSSyF",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "funcSelfKind": "NonMutating"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "FLHeartbeatFactory",
+        "printedName": "FLHeartbeatFactory",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "heartbeatConfiguration",
+            "printedName": "heartbeatConfiguration(heartbeatEndPointUrl:streamConcurrencyEndPointUrl:multiStreamMode:syncInterval:maxAllowedFailures:maxAllowedRetries:retryDelayInSec:recordBookmark:playbackStopOnPlaybackEnd:trackViewerCount:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "HeartbeatConfiguration",
+                "printedName": "any FLHeartbeat.HeartbeatConfiguration",
+                "usr": "s:11FLHeartbeat22HeartbeatConfigurationP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "hasDefaultArg": true,
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "hasDefaultArg": true,
+                "usr": "s:Sd"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "UInt",
+                "printedName": "Swift.UInt",
+                "hasDefaultArg": true,
+                "usr": "s:Su"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "hasDefaultArg": true,
+                "usr": "s:Si"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "hasDefaultArg": true,
+                "usr": "s:Sd"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "hasDefaultArg": true,
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "hasDefaultArg": true,
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Bool?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat0A7FactoryO22heartbeatConfiguration0C11EndPointUrl017streamConcurrencyefG015multiStreamMode12syncInterval18maxAllowedFailures0oP7Retries15retryDelayInSec14recordBookmark022playbackStopOnPlaybackE016trackViewerCountAA09HeartbeatD0_pSS_SSSgSbSdSuSiSdS3bSgtFZ",
+            "mangledName": "$s11FLHeartbeat0A7FactoryO22heartbeatConfiguration0C11EndPointUrl017streamConcurrencyefG015multiStreamMode12syncInterval18maxAllowedFailures0oP7Retries15retryDelayInSec14recordBookmark022playbackStopOnPlaybackE016trackViewerCountAA09HeartbeatD0_pSS_SSSgSbSdSuSiSdS3bSgtFZ",
+            "moduleName": "FLHeartbeat",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "streamConcurrencyService",
+            "printedName": "streamConcurrencyService(endPoint:httpClient:authorizer:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "StreamConcurrencyService",
+                "printedName": "any FLHeartbeat.StreamConcurrencyService",
+                "usr": "s:11FLHeartbeat24StreamConcurrencyServiceP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "HTTPClient",
+                "printedName": "any FLFoundation.HTTPClient",
+                "hasDefaultArg": true,
+                "usr": "s:12FLFoundation10HTTPClientP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "PlatformAuthorizer",
+                "printedName": "any FLPlatformCore.PlatformAuthorizer",
+                "usr": "s:14FLPlatformCore18PlatformAuthorizerP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat0A7FactoryO24streamConcurrencyService8endPoint10httpClient10authorizerAA06StreamdE0_pSS_12FLFoundation10HTTPClient_p14FLPlatformCore18PlatformAuthorizer_ptFZ",
+            "mangledName": "$s11FLHeartbeat0A7FactoryO24streamConcurrencyService8endPoint10httpClient10authorizerAA06StreamdE0_pSS_12FLFoundation10HTTPClient_p14FLPlatformCore18PlatformAuthorizer_ptFZ",
+            "moduleName": "FLHeartbeat",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "heartbeatService",
+            "printedName": "heartbeatService(contentId:deviceId:endPoint:httpClient:authorizer:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "HeartbeatService",
+                "printedName": "any FLHeartbeat.HeartbeatService",
+                "usr": "s:11FLHeartbeat16HeartbeatServiceP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "HTTPClient",
+                "printedName": "any FLFoundation.HTTPClient",
+                "hasDefaultArg": true,
+                "usr": "s:12FLFoundation10HTTPClientP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "PlatformAuthorizer",
+                "printedName": "any FLPlatformCore.PlatformAuthorizer",
+                "usr": "s:14FLPlatformCore18PlatformAuthorizerP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat0A7FactoryO16heartbeatService9contentId06deviceF08endPoint10httpClient10authorizerAA09HeartbeatD0_pSS_S2S12FLFoundation10HTTPClient_p14FLPlatformCore18PlatformAuthorizer_ptFZ",
+            "mangledName": "$s11FLHeartbeat0A7FactoryO16heartbeatService9contentId06deviceF08endPoint10httpClient10authorizerAA09HeartbeatD0_pSS_S2S12FLFoundation10HTTPClient_p14FLPlatformCore18PlatformAuthorizer_ptFZ",
+            "moduleName": "FLHeartbeat",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "heartbeatManager",
+            "printedName": "heartbeatManager(configuration:deviceId:contentId:catalogType:primaryId:heartbeatToken:authorizer:heartbeatService:streamConcurrencyService:heartbeatHeaders:liveStartTime:liveEndTime:liveEventType:live360StartTime:live360EndTime:pgmStartTime:pgmEndTime:httpClient:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "HeartbeatManager",
+                "printedName": "any FLHeartbeat.HeartbeatManager",
+                "usr": "s:11FLHeartbeat16HeartbeatManagerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "HeartbeatConfiguration",
+                "printedName": "any FLHeartbeat.HeartbeatConfiguration",
+                "usr": "s:11FLHeartbeat22HeartbeatConfigurationP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "PlatformAuthorizer",
+                "printedName": "any FLPlatformCore.PlatformAuthorizer",
+                "usr": "s:14FLPlatformCore18PlatformAuthorizerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "(any FLHeartbeat.HeartbeatService)?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatService",
+                    "printedName": "any FLHeartbeat.HeartbeatService",
+                    "usr": "s:11FLHeartbeat16HeartbeatServiceP"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "(any FLHeartbeat.StreamConcurrencyService)?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "StreamConcurrencyService",
+                    "printedName": "any FLHeartbeat.StreamConcurrencyService",
+                    "usr": "s:11FLHeartbeat24StreamConcurrencyServiceP"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[Swift.String : Swift.String]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Dictionary",
+                    "printedName": "[Swift.String : Swift.String]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:SD"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "HTTPClient",
+                "printedName": "any FLFoundation.HTTPClient",
+                "hasDefaultArg": true,
+                "usr": "s:12FLFoundation10HTTPClientP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat0A7FactoryO16heartbeatManager13configuration8deviceId07contentG011catalogType07primaryG00C5Token10authorizer0C7Service017streamConcurrencyN00C7Headers13liveStartTime0r3EndT00r5EventJ007live360sT00wuT003pgmsT00xuT010httpClientAA09HeartbeatD0_pAA22HeartbeatConfiguration_p_S3SSgAYSS14FLPlatformCore18PlatformAuthorizer_pAA09HeartbeatN0_pSgAA06StreampN0_pSgSDyS2SGSgA7Y12FLFoundation10HTTPClient_ptFZ",
+            "mangledName": "$s11FLHeartbeat0A7FactoryO16heartbeatManager13configuration8deviceId07contentG011catalogType07primaryG00C5Token10authorizer0C7Service017streamConcurrencyN00C7Headers13liveStartTime0r3EndT00r5EventJ007live360sT00wuT003pgmsT00xuT010httpClientAA09HeartbeatD0_pAA22HeartbeatConfiguration_p_S3SSgAYSS14FLPlatformCore18PlatformAuthorizer_pAA09HeartbeatN0_pSgAA06StreampN0_pSgSDyS2SGSgA7Y12FLFoundation10HTTPClient_ptFZ",
+            "moduleName": "FLHeartbeat",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:11FLHeartbeat0A7FactoryO",
+        "mangledName": "$s11FLHeartbeat0A7FactoryO",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "HeartbeatService",
+        "printedName": "HeartbeatService",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "contentId",
+            "printedName": "contentId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat16HeartbeatServiceP9contentIdSSvp",
+            "mangledName": "$s11FLHeartbeat16HeartbeatServiceP9contentIdSSvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat16HeartbeatServiceP9contentIdSSvg",
+                "mangledName": "$s11FLHeartbeat16HeartbeatServiceP9contentIdSSvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatService>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatService>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "deviceId",
+            "printedName": "deviceId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat16HeartbeatServiceP8deviceIdSSvp",
+            "mangledName": "$s11FLHeartbeat16HeartbeatServiceP8deviceIdSSvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat16HeartbeatServiceP8deviceIdSSvg",
+                "mangledName": "$s11FLHeartbeat16HeartbeatServiceP8deviceIdSSvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatService>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatService>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Function",
+            "name": "heartbeat",
+            "printedName": "heartbeat(token:offset:primaryId:catalogType:headers:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Double?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[Swift.String : Swift.String]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Dictionary",
+                    "printedName": "[Swift.String : Swift.String]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:SD"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<(any FLHeartbeat.HeartbeatResponse)?, any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<(any FLHeartbeat.HeartbeatResponse)?, any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Optional",
+                        "printedName": "(any FLHeartbeat.HeartbeatResponse)?",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "HeartbeatResponse",
+                            "printedName": "any FLHeartbeat.HeartbeatResponse",
+                            "usr": "s:11FLHeartbeat17HeartbeatResponseP"
+                          }
+                        ],
+                        "usr": "s:Sq"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat16HeartbeatServiceP9heartbeat5token6offset9primaryId11catalogType7headers10completionySS_SdSgSSSgALSDyS2SGSgys6ResultOyAA0B8Response_pSgs5Error_pGctF",
+            "mangledName": "$s11FLHeartbeat16HeartbeatServiceP9heartbeat5token6offset9primaryId11catalogType7headers10completionySS_SdSgSSSgALSDyS2SGSgys6ResultOyAA0B8Response_pSgs5Error_pGctF",
+            "moduleName": "FLHeartbeat",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatService>",
+            "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatService>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "heartbeat",
+            "printedName": "heartbeat(token:offset:primaryId:catalogType:headers:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Double?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[Swift.String : Swift.String]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Dictionary",
+                    "printedName": "[Swift.String : Swift.String]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:SD"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<(any FLHeartbeat.HeartbeatResponse)?, any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<(any FLHeartbeat.HeartbeatResponse)?, any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Optional",
+                        "printedName": "(any FLHeartbeat.HeartbeatResponse)?",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "HeartbeatResponse",
+                            "printedName": "any FLHeartbeat.HeartbeatResponse",
+                            "usr": "s:11FLHeartbeat17HeartbeatResponseP"
+                          }
+                        ],
+                        "usr": "s:Sq"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat16HeartbeatServicePAAE9heartbeat5token6offset9primaryId11catalogType7headers10completionySS_SdSgSSSgALSDyS2SGSgys6ResultOyAA0B8Response_pSgs5Error_pGctF",
+            "mangledName": "$s11FLHeartbeat16HeartbeatServicePAAE9heartbeat5token6offset9primaryId11catalogType7headers10completionySS_SdSgSSSgALSDyS2SGSgys6ResultOyAA0B8Response_pSgs5Error_pGctF",
+            "moduleName": "FLHeartbeat",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatService>",
+            "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatService>",
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:11FLHeartbeat16HeartbeatServiceP",
+        "mangledName": "$s11FLHeartbeat16HeartbeatServiceP",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat"
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "StreamConcurrencyService",
+        "printedName": "StreamConcurrencyService",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "putStreamForDevice",
+            "printedName": "putStreamForDevice(deviceId:contentId:primaryId:catalogType:token:headers:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[Swift.String : Swift.String]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Dictionary",
+                    "printedName": "[Swift.String : Swift.String]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:SD"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<(), any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<(), any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat24StreamConcurrencyServiceP03putB9ForDevice8deviceId07contentI007primaryI011catalogType5token7headers10completionySS_SSSgA3LSDyS2SGSgys6ResultOyyts5Error_pGctF",
+            "mangledName": "$s11FLHeartbeat24StreamConcurrencyServiceP03putB9ForDevice8deviceId07contentI007primaryI011catalogType5token7headers10completionySS_SSSgA3LSDyS2SGSgys6ResultOyyts5Error_pGctF",
+            "moduleName": "FLHeartbeat",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.StreamConcurrencyService>",
+            "sugared_genericSig": "<Self where Self : FLHeartbeat.StreamConcurrencyService>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "deleteStreamForDevice",
+            "printedName": "deleteStreamForDevice(deviceId:headers:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[Swift.String : Swift.String]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Dictionary",
+                    "printedName": "[Swift.String : Swift.String]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:SD"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<(), any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<(), any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat24StreamConcurrencyServiceP06deleteB9ForDevice8deviceId7headers10completionySS_SDyS2SGSgys6ResultOyyts5Error_pGctF",
+            "mangledName": "$s11FLHeartbeat24StreamConcurrencyServiceP06deleteB9ForDevice8deviceId7headers10completionySS_SDyS2SGSgys6ResultOyyts5Error_pGctF",
+            "moduleName": "FLHeartbeat",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.StreamConcurrencyService>",
+            "sugared_genericSig": "<Self where Self : FLHeartbeat.StreamConcurrencyService>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "putStreamForDevice",
+            "printedName": "putStreamForDevice(deviceId:contentId:primaryId:catalogType:token:headers:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[Swift.String : Swift.String]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Dictionary",
+                    "printedName": "[Swift.String : Swift.String]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:SD"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<(), any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<(), any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat24StreamConcurrencyServicePAAE03putB9ForDevice8deviceId07contentI007primaryI011catalogType5token7headers10completionySS_SSSgA3LSDyS2SGSgys6ResultOyyts5Error_pGctF",
+            "mangledName": "$s11FLHeartbeat24StreamConcurrencyServicePAAE03putB9ForDevice8deviceId07contentI007primaryI011catalogType5token7headers10completionySS_SSSgA3LSDyS2SGSgys6ResultOyyts5Error_pGctF",
+            "moduleName": "FLHeartbeat",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.StreamConcurrencyService>",
+            "sugared_genericSig": "<Self where Self : FLHeartbeat.StreamConcurrencyService>",
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "deleteStreamForDevice",
+            "printedName": "deleteStreamForDevice(deviceId:headers:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[Swift.String : Swift.String]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Dictionary",
+                    "printedName": "[Swift.String : Swift.String]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:SD"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<(), any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<(), any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:11FLHeartbeat24StreamConcurrencyServicePAAE06deleteB9ForDevice8deviceId7headers10completionySS_SDyS2SGSgys6ResultOyyts5Error_pGctF",
+            "mangledName": "$s11FLHeartbeat24StreamConcurrencyServicePAAE06deleteB9ForDevice8deviceId7headers10completionySS_SDyS2SGSgys6ResultOyyts5Error_pGctF",
+            "moduleName": "FLHeartbeat",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.StreamConcurrencyService>",
+            "sugared_genericSig": "<Self where Self : FLHeartbeat.StreamConcurrencyService>",
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:11FLHeartbeat24StreamConcurrencyServiceP",
+        "mangledName": "$s11FLHeartbeat24StreamConcurrencyServiceP",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "HeartbeatConfiguration",
+        "printedName": "HeartbeatConfiguration",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "heartbeatEndPointUrl",
+            "printedName": "heartbeatEndPointUrl",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat22HeartbeatConfigurationP20heartbeatEndPointUrlSSvp",
+            "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP20heartbeatEndPointUrlSSvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat22HeartbeatConfigurationP20heartbeatEndPointUrlSSvg",
+                "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP20heartbeatEndPointUrlSSvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "streamConcurrencyEndPointUrl",
+            "printedName": "streamConcurrencyEndPointUrl",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat22HeartbeatConfigurationP28streamConcurrencyEndPointUrlSSSgvp",
+            "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP28streamConcurrencyEndPointUrlSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat22HeartbeatConfigurationP28streamConcurrencyEndPointUrlSSSgvg",
+                "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP28streamConcurrencyEndPointUrlSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "multiStreamMode",
+            "printedName": "multiStreamMode",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat22HeartbeatConfigurationP15multiStreamModeSbvp",
+            "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP15multiStreamModeSbvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat22HeartbeatConfigurationP15multiStreamModeSbvg",
+                "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP15multiStreamModeSbvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "syncInterval",
+            "printedName": "syncInterval",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "usr": "s:Sd"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat22HeartbeatConfigurationP12syncIntervalSdvp",
+            "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP12syncIntervalSdvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat22HeartbeatConfigurationP12syncIntervalSdvg",
+                "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP12syncIntervalSdvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "maxAllowedFailures",
+            "printedName": "maxAllowedFailures",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "UInt",
+                "printedName": "Swift.UInt",
+                "usr": "s:Su"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat22HeartbeatConfigurationP18maxAllowedFailuresSuvp",
+            "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP18maxAllowedFailuresSuvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UInt",
+                    "printedName": "Swift.UInt",
+                    "usr": "s:Su"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat22HeartbeatConfigurationP18maxAllowedFailuresSuvg",
+                "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP18maxAllowedFailuresSuvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "maxAllowedRetries",
+            "printedName": "maxAllowedRetries",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat22HeartbeatConfigurationP17maxAllowedRetriesSivp",
+            "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP17maxAllowedRetriesSivp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat22HeartbeatConfigurationP17maxAllowedRetriesSivg",
+                "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP17maxAllowedRetriesSivg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "retryDelayInSec",
+            "printedName": "retryDelayInSec",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "usr": "s:Sd"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat22HeartbeatConfigurationP15retryDelayInSecSdvp",
+            "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP15retryDelayInSecSdvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat22HeartbeatConfigurationP15retryDelayInSecSdvg",
+                "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP15retryDelayInSecSdvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "recordBookmark",
+            "printedName": "recordBookmark",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Bool?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat22HeartbeatConfigurationP14recordBookmarkSbSgvp",
+            "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP14recordBookmarkSbSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Bool?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Bool",
+                        "printedName": "Swift.Bool",
+                        "usr": "s:Sb"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat22HeartbeatConfigurationP14recordBookmarkSbSgvg",
+                "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP14recordBookmarkSbSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "playbackStopOnPlaybackEnd",
+            "printedName": "playbackStopOnPlaybackEnd",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Bool?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat22HeartbeatConfigurationP25playbackStopOnPlaybackEndSbSgvp",
+            "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP25playbackStopOnPlaybackEndSbSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Bool?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Bool",
+                        "printedName": "Swift.Bool",
+                        "usr": "s:Sb"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat22HeartbeatConfigurationP25playbackStopOnPlaybackEndSbSgvg",
+                "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP25playbackStopOnPlaybackEndSbSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "trackViewerCount",
+            "printedName": "trackViewerCount",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Bool?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat22HeartbeatConfigurationP16trackViewerCountSbSgvp",
+            "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP16trackViewerCountSbSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Bool?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Bool",
+                        "printedName": "Swift.Bool",
+                        "usr": "s:Sb"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat22HeartbeatConfigurationP16trackViewerCountSbSgvg",
+                "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP16trackViewerCountSbSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:11FLHeartbeat22HeartbeatConfigurationP",
+        "mangledName": "$s11FLHeartbeat22HeartbeatConfigurationP",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "HeartbeatResponse",
+        "printedName": "HeartbeatResponse",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "heartbeatToken",
+            "printedName": "heartbeatToken",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP14heartbeatTokenSSSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP14heartbeatTokenSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP14heartbeatTokenSSSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP14heartbeatTokenSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "blackoutUrl",
+            "printedName": "blackoutUrl",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP11blackoutUrlSSSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP11blackoutUrlSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP11blackoutUrlSSSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP11blackoutUrlSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "blackoutAction",
+            "printedName": "blackoutAction",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.BlackoutAction?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "BlackoutAction",
+                    "printedName": "FLPlayerInterface.BlackoutAction",
+                    "usr": "s:17FLPlayerInterface14BlackoutActionO"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP14blackoutAction17FLPlayerInterface08BlackoutE0OSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP14blackoutAction17FLPlayerInterface08BlackoutE0OSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "FLPlayerInterface.BlackoutAction?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "BlackoutAction",
+                        "printedName": "FLPlayerInterface.BlackoutAction",
+                        "usr": "s:17FLPlayerInterface14BlackoutActionO"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP14blackoutAction17FLPlayerInterface08BlackoutE0OSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP14blackoutAction17FLPlayerInterface08BlackoutE0OSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "liveStartTime",
+            "printedName": "liveStartTime",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP13liveStartTimeSSSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP13liveStartTimeSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP13liveStartTimeSSSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP13liveStartTimeSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "liveEndTime",
+            "printedName": "liveEndTime",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP11liveEndTimeSSSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP11liveEndTimeSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP11liveEndTimeSSSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP11liveEndTimeSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "livePlaybackMode",
+            "printedName": "livePlaybackMode",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP16livePlaybackModeSSSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP16livePlaybackModeSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP16livePlaybackModeSSSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP16livePlaybackModeSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "heartbeatAction",
+            "printedName": "heartbeatAction",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLHeartbeat.HeartbeatAction?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatAction",
+                    "printedName": "FLHeartbeat.HeartbeatAction",
+                    "usr": "s:11FLHeartbeat15HeartbeatActionO"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP15heartbeatActionAA0bE0OSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP15heartbeatActionAA0bE0OSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "FLHeartbeat.HeartbeatAction?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "HeartbeatAction",
+                        "printedName": "FLHeartbeat.HeartbeatAction",
+                        "usr": "s:11FLHeartbeat15HeartbeatActionO"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP15heartbeatActionAA0bE0OSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP15heartbeatActionAA0bE0OSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "live360Enabled",
+            "printedName": "live360Enabled",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Bool?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP14live360EnabledSbSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP14live360EnabledSbSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Bool?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Bool",
+                        "printedName": "Swift.Bool",
+                        "usr": "s:Sb"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP14live360EnabledSbSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP14live360EnabledSbSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "live360StartTime",
+            "printedName": "live360StartTime",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP16live360StartTimeSSSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP16live360StartTimeSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP16live360StartTimeSSSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP16live360StartTimeSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "live360EndTime",
+            "printedName": "live360EndTime",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP14live360EndTimeSSSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP14live360EndTimeSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP14live360EndTimeSSSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP14live360EndTimeSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "live360ContentId",
+            "printedName": "live360ContentId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP16live360ContentIdSSSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP16live360ContentIdSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP16live360ContentIdSSSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP16live360ContentIdSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "pgmId",
+            "printedName": "pgmId",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP5pgmIdSSSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP5pgmIdSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP5pgmIdSSSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP5pgmIdSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "pgmStartTime",
+            "printedName": "pgmStartTime",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP12pgmStartTimeSSSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP12pgmStartTimeSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP12pgmStartTimeSSSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP12pgmStartTimeSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "pgmEndTime",
+            "printedName": "pgmEndTime",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP10pgmEndTimeSSSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP10pgmEndTimeSSSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP10pgmEndTimeSSSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP10pgmEndTimeSSSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "isPgmBlackout",
+            "printedName": "isPgmBlackout",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP13isPgmBlackoutSbvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP13isPgmBlackoutSbvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP13isPgmBlackoutSbvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP13isPgmBlackoutSbvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "custom",
+            "printedName": "custom",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[Swift.String : Any]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Dictionary",
+                    "printedName": "[Swift.String : Any]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "ProtocolComposition",
+                        "printedName": "Any"
+                      }
+                    ],
+                    "usr": "s:SD"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat17HeartbeatResponseP6customSDySSypGSgvp",
+            "mangledName": "$s11FLHeartbeat17HeartbeatResponseP6customSDySSypGSgvp",
+            "moduleName": "FLHeartbeat",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "[Swift.String : Any]?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Dictionary",
+                        "printedName": "[Swift.String : Any]",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "String",
+                            "printedName": "Swift.String",
+                            "usr": "s:SS"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "ProtocolComposition",
+                            "printedName": "Any"
+                          }
+                        ],
+                        "usr": "s:SD"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat17HeartbeatResponseP6customSDySSypGSgvg",
+                "mangledName": "$s11FLHeartbeat17HeartbeatResponseP6customSDySSypGSgvg",
+                "moduleName": "FLHeartbeat",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLHeartbeat.HeartbeatResponse>",
+                "sugared_genericSig": "<Self where Self : FLHeartbeat.HeartbeatResponse>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:11FLHeartbeat17HeartbeatResponseP",
+        "mangledName": "$s11FLHeartbeat17HeartbeatResponseP",
+        "moduleName": "FLHeartbeat",
+        "genericSig": "<τ_0_0 : Swift.Decodable>",
+        "sugared_genericSig": "<Self : Swift.Decodable>",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Decodable",
+            "printedName": "Decodable",
+            "usr": "s:Se",
+            "mangledName": "$sSe"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "HeartbeatAction",
+        "printedName": "HeartbeatAction",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "gracefulStop",
+            "printedName": "gracefulStop",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLHeartbeat.HeartbeatAction.Type) -> FLHeartbeat.HeartbeatAction",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatAction",
+                    "printedName": "FLHeartbeat.HeartbeatAction",
+                    "usr": "s:11FLHeartbeat15HeartbeatActionO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FLHeartbeat.HeartbeatAction.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "HeartbeatAction",
+                        "printedName": "FLHeartbeat.HeartbeatAction",
+                        "usr": "s:11FLHeartbeat15HeartbeatActionO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:11FLHeartbeat15HeartbeatActionO12gracefulStopyA2CmF",
+            "mangledName": "$s11FLHeartbeat15HeartbeatActionO12gracefulStopyA2CmF",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "continueHeartbeat",
+            "printedName": "continueHeartbeat",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLHeartbeat.HeartbeatAction.Type) -> FLHeartbeat.HeartbeatAction",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatAction",
+                    "printedName": "FLHeartbeat.HeartbeatAction",
+                    "usr": "s:11FLHeartbeat15HeartbeatActionO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FLHeartbeat.HeartbeatAction.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "HeartbeatAction",
+                        "printedName": "FLHeartbeat.HeartbeatAction",
+                        "usr": "s:11FLHeartbeat15HeartbeatActionO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:11FLHeartbeat15HeartbeatActionO08continueB0yA2CmF",
+            "mangledName": "$s11FLHeartbeat15HeartbeatActionO08continueB0yA2CmF",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "abortPlaybackRoaming",
+            "printedName": "abortPlaybackRoaming",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLHeartbeat.HeartbeatAction.Type) -> FLHeartbeat.HeartbeatAction",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatAction",
+                    "printedName": "FLHeartbeat.HeartbeatAction",
+                    "usr": "s:11FLHeartbeat15HeartbeatActionO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FLHeartbeat.HeartbeatAction.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "HeartbeatAction",
+                        "printedName": "FLHeartbeat.HeartbeatAction",
+                        "usr": "s:11FLHeartbeat15HeartbeatActionO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:11FLHeartbeat15HeartbeatActionO20abortPlaybackRoamingyA2CmF",
+            "mangledName": "$s11FLHeartbeat15HeartbeatActionO20abortPlaybackRoamingyA2CmF",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "abortPlaybackNotEntitled",
+            "printedName": "abortPlaybackNotEntitled",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLHeartbeat.HeartbeatAction.Type) -> FLHeartbeat.HeartbeatAction",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatAction",
+                    "printedName": "FLHeartbeat.HeartbeatAction",
+                    "usr": "s:11FLHeartbeat15HeartbeatActionO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FLHeartbeat.HeartbeatAction.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "HeartbeatAction",
+                        "printedName": "FLHeartbeat.HeartbeatAction",
+                        "usr": "s:11FLHeartbeat15HeartbeatActionO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:11FLHeartbeat15HeartbeatActionO24abortPlaybackNotEntitledyA2CmF",
+            "mangledName": "$s11FLHeartbeat15HeartbeatActionO24abortPlaybackNotEntitledyA2CmF",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "abortPlaybackBlackout",
+            "printedName": "abortPlaybackBlackout",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLHeartbeat.HeartbeatAction.Type) -> FLHeartbeat.HeartbeatAction",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatAction",
+                    "printedName": "FLHeartbeat.HeartbeatAction",
+                    "usr": "s:11FLHeartbeat15HeartbeatActionO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FLHeartbeat.HeartbeatAction.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "HeartbeatAction",
+                        "printedName": "FLHeartbeat.HeartbeatAction",
+                        "usr": "s:11FLHeartbeat15HeartbeatActionO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:11FLHeartbeat15HeartbeatActionO21abortPlaybackBlackoutyA2CmF",
+            "mangledName": "$s11FLHeartbeat15HeartbeatActionO21abortPlaybackBlackoutyA2CmF",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(rawValue:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLHeartbeat.HeartbeatAction?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatAction",
+                    "printedName": "FLHeartbeat.HeartbeatAction",
+                    "usr": "s:11FLHeartbeat15HeartbeatActionO"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:11FLHeartbeat15HeartbeatActionO8rawValueACSgSS_tcfc",
+            "mangledName": "$s11FLHeartbeat15HeartbeatActionO8rawValueACSgSS_tcfc",
+            "moduleName": "FLHeartbeat",
+            "implicit": true,
+            "init_kind": "Designated"
+          },
+          {
+            "kind": "Var",
+            "name": "rawValue",
+            "printedName": "rawValue",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat15HeartbeatActionO8rawValueSSvp",
+            "mangledName": "$s11FLHeartbeat15HeartbeatActionO8rawValueSSvp",
+            "moduleName": "FLHeartbeat",
+            "implicit": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat15HeartbeatActionO8rawValueSSvg",
+                "mangledName": "$s11FLHeartbeat15HeartbeatActionO8rawValueSSvg",
+                "moduleName": "FLHeartbeat",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:11FLHeartbeat15HeartbeatActionO",
+        "mangledName": "$s11FLHeartbeat15HeartbeatActionO",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "enumRawTypeName": "String",
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          },
+          {
+            "kind": "Conformance",
+            "name": "RawRepresentable",
+            "printedName": "RawRepresentable",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "RawValue",
+                "printedName": "RawValue",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:SY",
+            "mangledName": "$sSY"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Decodable",
+            "printedName": "Decodable",
+            "usr": "s:Se",
+            "mangledName": "$sSe"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Encodable",
+            "printedName": "Encodable",
+            "usr": "s:SE",
+            "mangledName": "$sSE"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "HeartbeatErrorCodes",
+        "printedName": "HeartbeatErrorCodes",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "BLACKOUT_DENY_FAILURE",
+            "printedName": "BLACKOUT_DENY_FAILURE",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLHeartbeat.HeartbeatErrorCodes.Type) -> FLHeartbeat.HeartbeatErrorCodes",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatErrorCodes",
+                    "printedName": "FLHeartbeat.HeartbeatErrorCodes",
+                    "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FLHeartbeat.HeartbeatErrorCodes.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "HeartbeatErrorCodes",
+                        "printedName": "FLHeartbeat.HeartbeatErrorCodes",
+                        "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO21BLACKOUT_DENY_FAILUREyA2CmF",
+            "mangledName": "$s11FLHeartbeat19HeartbeatErrorCodesO21BLACKOUT_DENY_FAILUREyA2CmF",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "BLACKOUT_ALLOW_UPGRADE_FAILURE",
+            "printedName": "BLACKOUT_ALLOW_UPGRADE_FAILURE",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLHeartbeat.HeartbeatErrorCodes.Type) -> FLHeartbeat.HeartbeatErrorCodes",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatErrorCodes",
+                    "printedName": "FLHeartbeat.HeartbeatErrorCodes",
+                    "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FLHeartbeat.HeartbeatErrorCodes.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "HeartbeatErrorCodes",
+                        "printedName": "FLHeartbeat.HeartbeatErrorCodes",
+                        "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO30BLACKOUT_ALLOW_UPGRADE_FAILUREyA2CmF",
+            "mangledName": "$s11FLHeartbeat19HeartbeatErrorCodesO30BLACKOUT_ALLOW_UPGRADE_FAILUREyA2CmF",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "HEARTBEAT_ACTION_ABORT_ROAMING_ERROR",
+            "printedName": "HEARTBEAT_ACTION_ABORT_ROAMING_ERROR",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLHeartbeat.HeartbeatErrorCodes.Type) -> FLHeartbeat.HeartbeatErrorCodes",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatErrorCodes",
+                    "printedName": "FLHeartbeat.HeartbeatErrorCodes",
+                    "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FLHeartbeat.HeartbeatErrorCodes.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "HeartbeatErrorCodes",
+                        "printedName": "FLHeartbeat.HeartbeatErrorCodes",
+                        "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO36HEARTBEAT_ACTION_ABORT_ROAMING_ERRORyA2CmF",
+            "mangledName": "$s11FLHeartbeat19HeartbeatErrorCodesO36HEARTBEAT_ACTION_ABORT_ROAMING_ERRORyA2CmF",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "HEARTBEAT_ACTION_ABORT_NOT_ENTITLED_ERROR",
+            "printedName": "HEARTBEAT_ACTION_ABORT_NOT_ENTITLED_ERROR",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLHeartbeat.HeartbeatErrorCodes.Type) -> FLHeartbeat.HeartbeatErrorCodes",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatErrorCodes",
+                    "printedName": "FLHeartbeat.HeartbeatErrorCodes",
+                    "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FLHeartbeat.HeartbeatErrorCodes.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "HeartbeatErrorCodes",
+                        "printedName": "FLHeartbeat.HeartbeatErrorCodes",
+                        "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO41HEARTBEAT_ACTION_ABORT_NOT_ENTITLED_ERRORyA2CmF",
+            "mangledName": "$s11FLHeartbeat19HeartbeatErrorCodesO41HEARTBEAT_ACTION_ABORT_NOT_ENTITLED_ERRORyA2CmF",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "HEARTBEAT_ACTION_ABORT_BLACKOUT",
+            "printedName": "HEARTBEAT_ACTION_ABORT_BLACKOUT",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FLHeartbeat.HeartbeatErrorCodes.Type) -> FLHeartbeat.HeartbeatErrorCodes",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatErrorCodes",
+                    "printedName": "FLHeartbeat.HeartbeatErrorCodes",
+                    "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FLHeartbeat.HeartbeatErrorCodes.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "HeartbeatErrorCodes",
+                        "printedName": "FLHeartbeat.HeartbeatErrorCodes",
+                        "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO31HEARTBEAT_ACTION_ABORT_BLACKOUTyA2CmF",
+            "mangledName": "$s11FLHeartbeat19HeartbeatErrorCodesO31HEARTBEAT_ACTION_ABORT_BLACKOUTyA2CmF",
+            "moduleName": "FLHeartbeat",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(rawValue:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLHeartbeat.HeartbeatErrorCodes?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "HeartbeatErrorCodes",
+                    "printedName": "FLHeartbeat.HeartbeatErrorCodes",
+                    "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO8rawValueACSgSi_tcfc",
+            "mangledName": "$s11FLHeartbeat19HeartbeatErrorCodesO8rawValueACSgSi_tcfc",
+            "moduleName": "FLHeartbeat",
+            "implicit": true,
+            "init_kind": "Designated"
+          },
+          {
+            "kind": "Var",
+            "name": "rawValue",
+            "printedName": "rawValue",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO8rawValueSivp",
+            "mangledName": "$s11FLHeartbeat19HeartbeatErrorCodesO8rawValueSivp",
+            "moduleName": "FLHeartbeat",
+            "implicit": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO8rawValueSivg",
+                "mangledName": "$s11FLHeartbeat19HeartbeatErrorCodesO8rawValueSivg",
+                "moduleName": "FLHeartbeat",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:11FLHeartbeat19HeartbeatErrorCodesO",
+        "mangledName": "$s11FLHeartbeat19HeartbeatErrorCodesO",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "enumRawTypeName": "Int",
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          },
+          {
+            "kind": "Conformance",
+            "name": "RawRepresentable",
+            "printedName": "RawRepresentable",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "RawValue",
+                "printedName": "RawValue",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:SY",
+            "mangledName": "$sSY"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Error",
+            "printedName": "Error",
+            "usr": "s:s5ErrorP",
+            "mangledName": "$ss5ErrorP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "LocalizedError",
+            "printedName": "LocalizedError",
+            "usr": "s:10Foundation14LocalizedErrorP",
+            "mangledName": "$s10Foundation14LocalizedErrorP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sendable",
+            "printedName": "Sendable",
+            "usr": "s:s8SendableP",
+            "mangledName": "$ss8SendableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "AVFoundation",
+        "printedName": "AVFoundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLHeartbeat",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      }
+    ],
+    "json_format_version": 8
+  },
+  "ConstValues": [
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/Model\/Internal\/DefaultHeatbeatResponse.swift",
+      "kind": "BooleanLiteral",
+      "offset": 864,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/Model\/Internal\/DefaultHeatbeatResponse.swift",
+      "kind": "StringLiteral",
+      "offset": 1604,
+      "length": 13,
+      "value": "\"pgmBlackout\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/FLHeartbeat.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2351,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/FLHeartbeat.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2433,
+      "length": 5,
+      "value": "60000"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/FLHeartbeat.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2513,
+      "length": 1,
+      "value": "2"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/FLHeartbeat.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2587,
+      "length": 1,
+      "value": "2"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/FLHeartbeat.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2662,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/FLHeartbeat.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2734,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/FLHeartbeat.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2821,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/FLHeartbeat.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2899,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatService\/Internal\/HeartbeatServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 439,
+      "length": 24,
+      "value": "\"\/user\/heartbeat\/update\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatService\/Internal\/HeartbeatServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 546,
+      "length": 13,
+      "value": "\"X-Heartbeat\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatService\/Internal\/HeartbeatServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 919,
+      "length": 6,
+      "value": "\"prid\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatService\/Internal\/HeartbeatServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 957,
+      "length": 5,
+      "value": "\"cty\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/StreamConcurrency\/Internal\/StreamConcurrencyServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 407,
+      "length": 21,
+      "value": "\"\/user\/stream\/create\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/StreamConcurrency\/Internal\/StreamConcurrencyServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 468,
+      "length": 22,
+      "value": "\"\/user\/stream\/delete\/\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/StreamConcurrency\/Internal\/StreamConcurrencyServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 573,
+      "length": 13,
+      "value": "\"X-Heartbeat\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/StreamConcurrency\/Internal\/StreamConcurrencyServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 866,
+      "length": 8,
+      "value": "\"itemId\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/StreamConcurrency\/Internal\/StreamConcurrencyServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 904,
+      "length": 6,
+      "value": "\"prid\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/StreamConcurrency\/Internal\/StreamConcurrencyServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 942,
+      "length": 5,
+      "value": "\"cty\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/Model\/HeartbeatResponse.swift",
+      "kind": "StringLiteral",
+      "offset": 1958,
+      "length": 15,
+      "value": "\"GRACEFUL_STOP\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/Model\/HeartbeatResponse.swift",
+      "kind": "StringLiteral",
+      "offset": 2041,
+      "length": 10,
+      "value": "\"CONTINUE\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/Model\/HeartbeatResponse.swift",
+      "kind": "StringLiteral",
+      "offset": 2133,
+      "length": 15,
+      "value": "\"ABORT_ROAMING\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/Model\/HeartbeatResponse.swift",
+      "kind": "StringLiteral",
+      "offset": 2249,
+      "length": 20,
+      "value": "\"ABORT_NOT_ENTITLED\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/Model\/HeartbeatResponse.swift",
+      "kind": "StringLiteral",
+      "offset": 2353,
+      "length": 16,
+      "value": "\"ABORT_BLACKOUT\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/ProgramBoundaryChecker\/Internal\/ProgramQueue.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1550,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatError\/HeartbeatErrorCodes.swift",
+      "kind": "IntegerLiteral",
+      "offset": 262,
+      "length": 6,
+      "value": "0x0401"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatError\/HeartbeatErrorCodes.swift",
+      "kind": "IntegerLiteral",
+      "offset": 391,
+      "length": 6,
+      "value": "0x0402"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatError\/HeartbeatErrorCodes.swift",
+      "kind": "IntegerLiteral",
+      "offset": 499,
+      "length": 6,
+      "value": "0x0403"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatError\/HeartbeatErrorCodes.swift",
+      "kind": "IntegerLiteral",
+      "offset": 614,
+      "length": 6,
+      "value": "0x0404"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatError\/HeartbeatErrorCodes.swift",
+      "kind": "IntegerLiteral",
+      "offset": 705,
+      "length": 6,
+      "value": "0x0405"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatManager\/Internal\/DefaultHearbeatManager.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2161,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatManager\/Internal\/DefaultHearbeatManager.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2277,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatManager\/Internal\/DefaultHearbeatManager.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2320,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatManager\/Internal\/DefaultHearbeatManager.swift",
+      "kind": "StringLiteral",
+      "offset": 2384,
+      "length": 27,
+      "value": "\"com.quickplay.FLHeartbeat\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-heartbeat\/Sources\/Universal\/HeartbeatManager\/Internal\/DefaultHearbeatManager.swift",
+      "kind": "StringLiteral",
+      "offset": 2423,
+      "length": 11,
+      "value": "\"Heartbeat\""
+    }
+  ]
+}

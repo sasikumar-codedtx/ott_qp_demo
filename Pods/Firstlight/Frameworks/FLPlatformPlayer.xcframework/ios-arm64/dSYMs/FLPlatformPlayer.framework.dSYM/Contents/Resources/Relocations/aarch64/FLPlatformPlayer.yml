@@ -1,0 +1,59 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/runner/Library/Developer/Xcode/DerivedData/FLPlatformPlayer-atbrefugjzmgdnhevpcqadhvnpzd/Build/Intermediates.noindex/ArchiveIntermediates/FLPlatformPlayer/InstallationBuildProductsLocation/Library/Frameworks/FLPlatformPlayer.framework/FLPlatformPlayer'
+relocations:
+  - { offset: 0x764D4, size: 0x8, addend: 0x0, symName: _FLPlatformPlayerVersionString, symObjAddr: 0x0, symBinAddr: 0x8190, symSize: 0x0 }
+  - { offset: 0x76509, size: 0x8, addend: 0x0, symName: _FLPlatformPlayerVersionNumber, symObjAddr: 0x40, symBinAddr: 0x81D0, symSize: 0x0 }
+  - { offset: 0x765E6, size: 0x8, addend: 0x0, symName: '_$sSD17dictionaryLiteralSDyxq_Gx_q_td_tcfCSS_SSTt0g5Tf4g_n', symObjAddr: 0xB40, symBinAddr: 0x4B40, symSize: 0x104 }
+  - { offset: 0x7698E, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateCMa', symObjAddr: 0x4DC, symBinAddr: 0x44DC, symSize: 0x38 }
+  - { offset: 0x769A2, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateCMr', symObjAddr: 0x514, symBinAddr: 0x4514, symSize: 0xA8 }
+  - { offset: 0x769B6, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateC17FLPlayerInterface0defG0AaD0efG0PWb', symObjAddr: 0x5BC, symBinAddr: 0x45BC, symSize: 0x4 }
+  - { offset: 0x769CA, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateCAC17FLPlayerInterface0efG0AAWl', symObjAddr: 0x5C0, symBinAddr: 0x45C0, symSize: 0x44 }
+  - { offset: 0x769E9, size: 0x8, addend: 0x0, symName: '_$ss22__RawDictionaryStorageC4findys10_HashTableV6BucketV6bucket_Sb5foundtxSHRzlFSS_Tg5', symObjAddr: 0x718, symBinAddr: 0x4718, symSize: 0x64 }
+  - { offset: 0x76A37, size: 0x8, addend: 0x0, symName: '_$ss22__RawDictionaryStorageC4find_9hashValues10_HashTableV6BucketV6bucket_Sb5foundtx_SitSHRzlFSS_Tg5', symObjAddr: 0x77C, symBinAddr: 0x477C, symSize: 0xE0 }
+  - { offset: 0x76AAF, size: 0x8, addend: 0x0, symName: ___swift_project_boxed_opaque_existential_1, symObjAddr: 0x970, symBinAddr: 0x4970, symSize: 0x24 }
+  - { offset: 0x76AC3, size: 0x8, addend: 0x0, symName: '_$s10Foundation4DataV15_RepresentationOWOe', symObjAddr: 0x9EC, symBinAddr: 0x49EC, symSize: 0x40 }
+  - { offset: 0x76AD7, size: 0x8, addend: 0x0, symName: ___swift_destroy_boxed_opaque_existential_1, symObjAddr: 0xA2C, symBinAddr: 0x4A2C, symSize: 0x20 }
+  - { offset: 0x76AEB, size: 0x8, addend: 0x0, symName: '_$s17FLPlayerInterface25FairplayKeyLoadingRequest_pWOb', symObjAddr: 0xA4C, symBinAddr: 0x4A4C, symSize: 0x18 }
+  - { offset: 0x76AFF, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateC010didProvideE7Request3for4with7assetIDy17FLPlayerInterface0d10KeyLoadingJ0_p_10Foundation4DataVSStFys6ResultOy0A4Core013AuthorizationT0Vs5Error_pGcfU_TA', symObjAddr: 0xA64, symBinAddr: 0x4A64, symSize: 0x10 }
+  - { offset: 0x76B13, size: 0x8, addend: 0x0, symName: '_$s10Foundation4DataV15_RepresentationOWOy', symObjAddr: 0xA74, symBinAddr: 0x4A74, symSize: 0x40 }
+  - { offset: 0x76B27, size: 0x8, addend: 0x0, symName: ___swift_instantiateConcreteTypeFromMangledName, symObjAddr: 0xAB4, symBinAddr: 0x4AB4, symSize: 0x44 }
+  - { offset: 0x76B3B, size: 0x8, addend: 0x0, symName: '_$ss6ResultOy14FLPlatformCore17AuthorizationDataVs5Error_pGWOc', symObjAddr: 0xAF8, symBinAddr: 0x4AF8, symSize: 0x48 }
+  - { offset: 0x76BBD, size: 0x8, addend: 0x0, symName: ___swift_allocate_boxed_opaque_existential_1, symObjAddr: 0xC88, symBinAddr: 0x4C88, symSize: 0x3C }
+  - { offset: 0x76BD1, size: 0x8, addend: 0x0, symName: '_$s10Foundation4DataVACSEAAWl', symObjAddr: 0xCC4, symBinAddr: 0x4CC4, symSize: 0x40 }
+  - { offset: 0x76BE5, size: 0x8, addend: 0x0, symName: '_$s10Foundation4DataVSgWOe', symObjAddr: 0xD04, symBinAddr: 0x4D04, symSize: 0x14 }
+  - { offset: 0x76BF9, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateC010didProvideE7Request3for4with7assetIDy17FLPlayerInterface0d10KeyLoadingJ0_p_10Foundation4DataVSStFys6ResultOy0A4Core013AuthorizationT0Vs5Error_pGcfU_y12FLFoundation8ResponseVyALSgGcfU_TA', symObjAddr: 0xD44, symBinAddr: 0x4D44, symSize: 0x8 }
+  - { offset: 0x76C41, size: 0x8, addend: 0x0, symName: '_$s10Foundation4DataVSgxSgSEsSERzlWl', symObjAddr: 0x10A8, symBinAddr: 0x50A8, symSize: 0x64 }
+  - { offset: 0x76C55, size: 0x8, addend: 0x0, symName: '_$s10Foundation4DataVSgMa', symObjAddr: 0x110C, symBinAddr: 0x510C, symSize: 0x50 }
+  - { offset: 0x76C69, size: 0x8, addend: 0x0, symName: '_$s12FLFoundation7FLError_pSgWOh', symObjAddr: 0x115C, symBinAddr: 0x515C, symSize: 0x40 }
+  - { offset: 0x76C7D, size: 0x8, addend: 0x0, symName: '_$ss6ResultOy10Foundation4DataVSgs5Error_pGWOe', symObjAddr: 0x119C, symBinAddr: 0x519C, symSize: 0xC }
+  - { offset: 0x76C91, size: 0x8, addend: 0x0, symName: '_$s10Foundation4DataVSgWOy', symObjAddr: 0x11A8, symBinAddr: 0x51A8, symSize: 0x14 }
+  - { offset: 0x76D00, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateC010didProvideE7Request3for4with7assetIDy17FLPlayerInterface0d10KeyLoadingJ0_p_10Foundation4DataVSStFys6ResultOy0A4Core013AuthorizationT0Vs5Error_pGcfU_', symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0x430 }
+  - { offset: 0x76EE4, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateCfD', symObjAddr: 0x430, symBinAddr: 0x4430, symSize: 0xAC }
+  - { offset: 0x76F26, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateC17FLPlayerInterface0defG0AadEP3skdSSvgTW', symObjAddr: 0x604, symBinAddr: 0x4604, symSize: 0x3C }
+  - { offset: 0x76F57, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateC17FLPlayerInterface0defG0AadEP15keyDeliveryTypeAD03KeykL0OvgTW', symObjAddr: 0x640, symBinAddr: 0x4640, symSize: 0x4C }
+  - { offset: 0x76FA6, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateC17FLPlayerInterface0defG0AadEP39didProvideApplicationCertificateRequest3foryAD0d10KeyLoadingN0_p_tFTW', symObjAddr: 0x68C, symBinAddr: 0x468C, symSize: 0x6C }
+  - { offset: 0x76FEC, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateC17FLPlayerInterface0defG0AadEP010didProvideE7Request3for4with7assetIDyAD0d10KeyLoadingL0_p_10Foundation4DataVSStFTW', symObjAddr: 0x6F8, symBinAddr: 0x46F8, symSize: 0x20 }
+  - { offset: 0x77016, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateC010didProvideE7Request3for4with7assetIDy17FLPlayerInterface0d10KeyLoadingJ0_p_10Foundation4DataVSStFTf4nndn_n', symObjAddr: 0x85C, symBinAddr: 0x485C, symSize: 0x114 }
+  - { offset: 0x770DE, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateC06handleE8Response33_7E0A65DA1637768450BDEC35907E5E23LL8response3fory12FLFoundation0I0Vy10Foundation4DataVSgG_17FLPlayerInterface0D17KeyLoadingRequest_ptFTf4nnd_n', symObjAddr: 0xD4C, symBinAddr: 0x4D4C, symSize: 0x35C }
+  - { offset: 0x772D6, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO15downloadManager8FLPlayer08DownloadE0_pvpZ', symObjAddr: 0x9F0, symBinAddr: 0xC948, symSize: 0x0 }
+  - { offset: 0x772E4, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer7versionSSyF', symObjAddr: 0x0, symBinAddr: 0x51BC, symSize: 0x280 }
+  - { offset: 0x773A6, size: 0x8, addend: 0x0, symName: '_$sypSgWOh', symObjAddr: 0x280, symBinAddr: 0x543C, symSize: 0x40 }
+  - { offset: 0x773BA, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO15downloadManager_WZ', symObjAddr: 0x304, symBinAddr: 0x547C, symSize: 0xC }
+  - { offset: 0x77583, size: 0x8, addend: 0x0, symName: ___swift_assign_boxed_opaque_existential_1, symObjAddr: 0x408, symBinAddr: 0x5580, symSize: 0x160 }
+  - { offset: 0x77597, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO15downloadManager8FLPlayer08DownloadE0_pvpZACmTk', symObjAddr: 0x66C, symBinAddr: 0x5750, symSize: 0x7C }
+  - { offset: 0x77627, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer37DefaultFairplayLicenseFetcherDelegateCAC17FLPlayerInterface0defG0AAWl', symObjAddr: 0x990, symBinAddr: 0x59D8, symSize: 0x44 }
+  - { offset: 0x7763B, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryOMa', symObjAddr: 0x9DC, symBinAddr: 0x5A24, symSize: 0x10 }
+  - { offset: 0x7776D, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO15downloadManager8FLPlayer08DownloadE0_pvgZ', symObjAddr: 0x310, symBinAddr: 0x5488, symSize: 0x74 }
+  - { offset: 0x777A1, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO15downloadManager8FLPlayer08DownloadE0_pvsZ', symObjAddr: 0x384, symBinAddr: 0x54FC, symSize: 0x84 }
+  - { offset: 0x777DF, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO15downloadManager8FLPlayer08DownloadE0_pvMZ', symObjAddr: 0x588, symBinAddr: 0x56E0, symSize: 0x6C }
+  - { offset: 0x7780D, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO15downloadManager8FLPlayer08DownloadE0_pvMZ.resume.0', symObjAddr: 0x5F4, symBinAddr: 0x574C, symSize: 0x4 }
+  - { offset: 0x7789A, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO6player5asset22thumbnailConfiguration17FLPlayerInterface0B0_pSo10AVURLAssetC_AG023ContentThumbnailPreviewG0_pSgtFZ', symObjAddr: 0x6E8, symBinAddr: 0x57CC, symSize: 0x4 }
+  - { offset: 0x778F0, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO6player10contentUrl22thumbnailConfiguration17FLPlayerInterface0B0_p10Foundation3URLV_AG023ContentThumbnailPreviewH0_pSgtFZ', symObjAddr: 0x6EC, symBinAddr: 0x57D0, symSize: 0x4 }
+  - { offset: 0x77930, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO05promoB05asset6promos16adPlaybackPolicy22thumbnailConfiguration17FLPlayerInterface02AdB0_pSo10AVURLAssetC_SayAI5PromoVGAI0nhI0VSgAI023ContentThumbnailPreviewK0_pSgtFZ', symObjAddr: 0x6F0, symBinAddr: 0x57D4, symSize: 0x4 }
+  - { offset: 0x7798C, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO05promoB010contentUrl6promos16adPlaybackPolicy22thumbnailConfiguration17FLPlayerInterface02AdB0_p10Foundation3URLV_SayAI5PromoVGAI0oiJ0VSgAI023ContentThumbnailPreviewL0_pSgtFZ', symObjAddr: 0x6F4, symBinAddr: 0x57D8, symSize: 0x4 }
+  - { offset: 0x779E9, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO05promoB05asset6promos13policyHandler22thumbnailConfiguration17FLPlayerInterface02AdB0_pSo10AVURLAssetC_SayAI5PromoVGAI014PlaybackPolicyH0_pAI023ContentThumbnailPreviewJ0_pSgtFZ', symObjAddr: 0x6F8, symBinAddr: 0x57DC, symSize: 0x4 }
+  - { offset: 0x77A46, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO05promoB010contentUrl6promos13policyHandler22thumbnailConfiguration17FLPlayerInterface02AdB0_p10Foundation3URLV_SayAI5PromoVGAI014PlaybackPolicyI0_pAI023ContentThumbnailPreviewK0_pSgtFZ', symObjAddr: 0x6FC, symBinAddr: 0x57E0, symSize: 0x4 }
+  - { offset: 0x77AA4, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO22fairplaylicenseFetcher17FLPlayerInterface015FairplayLicenseE0_pyFZ', symObjAddr: 0x700, symBinAddr: 0x57E4, symSize: 0x4 }
+  - { offset: 0x77B80, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO30fairplayLicenseFetcherDelegate22applicationCertificate10licenseUrl3skd15keyDeliveryType18platformAuthorizer17FLPlayerInterface08FairplayefG0_p10Foundation4DataV_AL3URLVSSAJ03KeynO0O0A4Core08PlatformQ0_ptFZ', symObjAddr: 0x704, symBinAddr: 0x57E8, symSize: 0x1F0 }
+...

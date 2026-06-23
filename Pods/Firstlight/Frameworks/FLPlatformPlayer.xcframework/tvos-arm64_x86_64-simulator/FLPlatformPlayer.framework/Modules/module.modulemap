@@ -1,0 +1,11 @@
+framework module FLPlatformPlayer {
+  umbrella header "FLPlatformPlayer.h"
+  export *
+
+  module * { export * }
+}
+
+module FLPlatformPlayer.Swift {
+  header "FLPlatformPlayer-Swift.h"
+  requires objc
+}

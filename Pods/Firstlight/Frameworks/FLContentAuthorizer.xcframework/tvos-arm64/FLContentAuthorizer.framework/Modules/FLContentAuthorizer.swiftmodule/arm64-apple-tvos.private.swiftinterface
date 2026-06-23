@@ -1,0 +1,289 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -target arm64-apple-tvos12.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name FLContentAuthorizer
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -interface-compiler-version 6.1.2
+@_exported import FLContentAuthorizer
+import FLFoundation
+import FLPlatformCore
+import FLPlayerInterface
+import Foundation
+import Swift
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public protocol ContentAuthorizationService {
+  func authorize(item: any FLContentAuthorizer.PlatformAuthorizationAsset, algorithm: FLFoundation.JWTAlgorithm, deviceSecret: FLContentAuthorizer.DeviceSecret, headers: FLFoundation.Headers?, completionHandler: @escaping (Swift.Result<any FLContentAuthorizer.PlaybackAsset, any Swift.Error>) -> Swift.Void)
+  func authorizePartner(item: any FLContentAuthorizer.PartnerPlatformAuthorizationAsset, algorithm: FLFoundation.JWTAlgorithm, deviceSecret: FLContentAuthorizer.DeviceSecret, headers: FLFoundation.Headers?, completionHandler: @escaping (Swift.Result<any FLContentAuthorizer.PartnerAuthorizationData, any Swift.Error>) -> Swift.Void)
+  func refreshLicense(item: any FLContentAuthorizer.PlatformLicenseRefreshAsset, algorithm: FLFoundation.JWTAlgorithm, deviceSecret: FLContentAuthorizer.DeviceSecret, headers: FLFoundation.Headers?, completionHandler: @escaping (Swift.Result<any FLContentAuthorizer.LicenseRefreshResponse, any Swift.Error>) -> Swift.Void)
+}
+public protocol ContentAuthorizerConfiguration {
+  var endPoint: Swift.String { get }
+  var deviceRegistrationEndPoint: Swift.String { get }
+  var licenseRefreshEndPoint: Swift.String? { get }
+  var syndicationSSOEndPoint: Swift.String? { get }
+}
+public protocol DeviceRegistrationService {
+  func registerDevice(device: any FLPlatformCore.PlatformClient, proxyDevice: (any FLPlatformCore.PlatformClient)?, completionHandler: @escaping (Swift.Result<FLContentAuthorizer.DeviceSecret, any Swift.Error>) -> Swift.Void)
+}
+extension FLContentAuthorizer.DeviceRegistrationService {
+  public func registerDevice(device: any FLPlatformCore.PlatformClient, proxyDevice: (any FLPlatformCore.PlatformClient)? = nil, completionHandler: @escaping (Swift.Result<FLContentAuthorizer.DeviceSecret, any Swift.Error>) -> Swift.Void)
+}
+public struct DeviceSecret {
+  public let secret: Swift.String
+  public let deviceId: Swift.String
+  public let expiryInSeconds: Swift.Int
+}
+extension FLContentAuthorizer.DeviceSecret : Swift.Decodable {
+  public init(from decoder: any Swift.Decoder) throws
+}
+public enum DRM : Swift.String, Swift.Codable {
+  case none
+  case clear
+  case fairplay
+  case widevine
+  case playready
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum ContentType : Swift.String, Swift.Codable {
+  case vod
+  case live
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum MediaFormat : Swift.String, Swift.Codable {
+  case hls
+  case smoothStream
+  case dash
+  case mp4
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum DeliveryType : Swift.String, Swift.Codable {
+  case streaming
+  case download
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum Quality : Swift.String, Swift.Codable {
+  case low
+  case medium
+  case high
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum LivePlaybackMode : Swift.String, Swift.Codable {
+  case live
+  case restart
+  case catchup
+  case live360
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum AdType : Swift.String, Swift.Codable {
+  case csai
+  case ssai
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public struct CsaiAdCuePointVast : Swift.Codable {
+  public var start: Swift.Int
+  public var end: Swift.Int
+  public var type: FLPlayerInterface.AdPosition
+  public var provider: Swift.String
+  public var url: Swift.String
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct LicenseTokenItem : Swift.Codable {
+  public var type: Swift.String
+  public var name: Swift.String
+  public var value: Swift.String
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct LicenseProvider : Swift.Codable {
+  public var provider: Swift.String
+  public var version: Swift.String
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct KeyframeMetadata : Swift.Codable {
+  public var name: Swift.String?
+  public var ia: [Swift.String]
+  public var frequency: Swift.Int
+  public var width: Swift.Int
+  public var height: Swift.Int
+  public var rows: Swift.Int
+  public var columns: Swift.Int
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public protocol ContentMetaData : Swift.Decodable, Swift.Encodable {
+  var contentId: Swift.String { get }
+  var contentType: FLContentAuthorizer.ContentType { get }
+  var catalogType: Swift.String { get }
+}
+public protocol PlayableAsset {
+  var contentId: Swift.String { get }
+  var primaryId: Swift.String? { get }
+  var mediaFormat: FLContentAuthorizer.MediaFormat { get }
+  var drm: FLContentAuthorizer.DRM { get }
+}
+public protocol PlaybackAsset : FLContentAuthorizer.PlayableAsset, Swift.Decodable {
+  var contentUrl: Swift.String { get }
+  var licenseUrl: Swift.String? { get }
+  var iat: Foundation.TimeInterval? { get }
+  var skd: Swift.String? { get }
+  var fpCertificateUrl: Swift.String? { get }
+  var licenseToken: [FLContentAuthorizer.LicenseTokenItem]? { get }
+  var licenseProvider: FLContentAuthorizer.LicenseProvider? { get }
+  var rentalExpiryTime: Swift.UInt64? { get }
+  var playbackExpiryDuration: Swift.UInt64? { get }
+  var heartbeatFlag: Swift.Bool? { get }
+  var heartbeatToken: Swift.String? { get }
+  var heartbeatFrequency: Foundation.TimeInterval? { get }
+  var blackoutAction: FLPlayerInterface.BlackoutAction? { get }
+  var isSSAIEnabled: Swift.Bool? { get }
+  var liveStartTime: Swift.String? { get }
+  var liveEndTime: Swift.String? { get }
+  var livePlaybackMode: FLContentAuthorizer.LivePlaybackMode? { get }
+  var liveEventType: Swift.String? { get }
+  var licenseRefreshToken: Swift.String? { get }
+  var keyframe: FLContentAuthorizer.KeyframeMetadata? { get }
+  var streamId: Swift.String? { get }
+  var promos: [FLPlayerInterface.Promo]? { get }
+  var adType: FLContentAuthorizer.AdType? { get }
+  var csaiAdCuePointVmap: Swift.String? { get }
+  var csaiAdCuePointVast: [FLContentAuthorizer.CsaiAdCuePointVast]? { get }
+  var assetKey: Swift.String? { get }
+  var live360Enabled: Swift.Bool? { get }
+  var live360StartTime: Swift.String? { get }
+  var live360EndTime: Swift.String? { get }
+  var live360ContentId: Swift.String? { get }
+  var pgmId: Swift.String? { get }
+  var pgmStartTime: Swift.String? { get }
+  var pgmEndTime: Swift.String? { get }
+  var isPgmBlackout: Swift.Bool { get }
+  var custom: [Swift.String : Any]? { get }
+  var contentSourceId: Swift.String? { get }
+  var ssaiAdProvider: Swift.String? { get }
+  var csaiAdProvider: Swift.String? { get }
+}
+public protocol PartnerAuthorizationData : Swift.Decodable {
+  var contentId: Swift.String { get }
+  var deeplinkUrl: Swift.String { get }
+  var deeplinkToken: Swift.String? { get }
+}
+public protocol PlatformAsset : FLContentAuthorizer.ContentMetaData, FLContentAuthorizer.PlayableAsset {
+  var quality: FLContentAuthorizer.Quality? { get }
+  var playbackMode: FLContentAuthorizer.LivePlaybackMode? { get }
+  var startTime: Swift.String? { get }
+  var endTime: Swift.String? { get }
+  var disableSSAI: Swift.String? { get }
+  var urlParameters: [Swift.String : Swift.String]? { get }
+  var custom: [Swift.String : Any]? { get }
+}
+public typealias PartnerPlatformAsset = FLContentAuthorizer.ContentMetaData
+public protocol PartnerPlatformAuthorizationAsset : FLContentAuthorizer.ContentMetaData {
+  var deviceId: Swift.String { get }
+  var deviceName: Swift.String { get }
+}
+public protocol PlatformAuthorizationAsset : FLContentAuthorizer.PlatformAsset {
+  var deviceId: Swift.String { get }
+  var deviceName: Swift.String { get }
+  var delivery: FLContentAuthorizer.DeliveryType { get }
+  var proxyDeviceId: Swift.String? { get }
+}
+public protocol LicenseRefreshAsset : Swift.Decodable, Swift.Encodable {
+  var contentId: Swift.String { get }
+  var drm: FLContentAuthorizer.DRM { get }
+  var delivery: FLContentAuthorizer.DeliveryType { get }
+  var licenseUrl: Swift.String { get }
+  var licenseRefreshToken: Swift.String { get }
+}
+public protocol PlatformLicenseRefreshAsset : FLContentAuthorizer.LicenseRefreshAsset {
+  var deviceId: Swift.String { get }
+  var deviceName: Swift.String { get }
+}
+public protocol LicenseRefreshResponse : Swift.Decodable {
+  var licenseUrl: Swift.String? { get }
+}
+public enum ContentAuthorizerErrorCodes : Swift.Int, Swift.Error, Foundation.LocalizedError {
+  case DEVICE_TOKEN_GENERATION_FAILURE
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public protocol ContentAuthorizer {
+  func ensureDeviceRegistration(completionHandler: ((Swift.Result<Swift.Bool, any Swift.Error>) -> Swift.Void)?)
+  func authorizeContent(asset: any FLContentAuthorizer.PlatformAsset, delivery: FLContentAuthorizer.DeliveryType, headers: FLFoundation.Headers?, completionHandler: @escaping (Swift.Result<any FLContentAuthorizer.PlaybackAsset, any Swift.Error>) -> Swift.Void)
+  func authorizePartnerContent(asset: any FLContentAuthorizer.ContentMetaData, headers: FLFoundation.Headers?, completionHandler: @escaping (Swift.Result<any FLContentAuthorizer.PartnerAuthorizationData, any Swift.Error>) -> Swift.Void)
+  func refreshLicense(asset: any FLContentAuthorizer.LicenseRefreshAsset, headers: FLFoundation.Headers?, completionHandler: @escaping (Swift.Result<any FLContentAuthorizer.LicenseRefreshResponse, any Swift.Error>) -> Swift.Void)
+  func invalidateDevice()
+}
+extension FLContentAuthorizer.ContentAuthorizer {
+  public func authorizeContent(asset: any FLContentAuthorizer.PlatformAsset, delivery: FLContentAuthorizer.DeliveryType, headers: FLFoundation.Headers? = nil, completionHandler: @escaping (Swift.Result<any FLContentAuthorizer.PlaybackAsset, any Swift.Error>) -> Swift.Void)
+  public func authorizePartnerContent(asset: any FLContentAuthorizer.ContentMetaData, completionHandler: @escaping (Swift.Result<any FLContentAuthorizer.PartnerAuthorizationData, any Swift.Error>) -> Swift.Void)
+  public func refreshLicense(asset: any FLContentAuthorizer.LicenseRefreshAsset, headers: FLFoundation.Headers? = nil, completionHandler: @escaping (Swift.Result<any FLContentAuthorizer.LicenseRefreshResponse, any Swift.Error>) -> Swift.Void)
+}
+public func version() -> Swift.String
+public enum FLContentAuthorizerFactory {
+  public static func contentAuthorizerConfiguration(endPoint: Swift.String, deviceRegistrationEndPoint: Swift.String, licenseRefreshEndPoint: Swift.String? = nil, syndicationSSOEndPoint: Swift.String? = nil) -> any FLContentAuthorizer.ContentAuthorizerConfiguration
+  public static func deviceRegistrationService(endPoint: Swift.String, httpClient: any FLFoundation.HTTPClient, platformAuthorizer: any FLPlatformCore.PlatformAuthorizer) -> any FLContentAuthorizer.DeviceRegistrationService
+  public static func contentAuthorizationService(endPoint: Swift.String, licenseRefreshEndPoint: Swift.String? = nil, syndicationSSOEndPoint: Swift.String? = nil, httpClient: any FLFoundation.HTTPClient, platformAuthorizer: any FLPlatformCore.PlatformAuthorizer) -> any FLContentAuthorizer.ContentAuthorizationService
+  public static func contentAuthorizer(configuration: any FLContentAuthorizer.ContentAuthorizerConfiguration, device: any FLPlatformCore.PlatformClient, proxyDevice: (any FLPlatformCore.PlatformClient)? = nil, deviceRegistrationService: (any FLContentAuthorizer.DeviceRegistrationService)? = nil, contentAuthorizationService: (any FLContentAuthorizer.ContentAuthorizationService)? = nil, platformAuthorizer: any FLPlatformCore.PlatformAuthorizer, httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient()) -> any FLContentAuthorizer.ContentAuthorizer
+  public static func platformAsset(contentId: Swift.String, contentType: FLContentAuthorizer.ContentType, catalogType: Swift.String, primaryId: Swift.String? = nil, mediaFormat: FLContentAuthorizer.MediaFormat = .hls, drm: FLContentAuthorizer.DRM = .fairplay, quality: FLContentAuthorizer.Quality? = nil, playbackMode: FLContentAuthorizer.LivePlaybackMode? = nil, startTime: Swift.String? = nil, endTime: Swift.String? = nil, disableSSAI: Swift.Bool? = nil, urlParameters: [Swift.String : Swift.String]? = nil, custom: [Swift.String : Any]? = nil) -> any FLContentAuthorizer.PlatformAsset
+  public static func vodPlatformAsset(contentId: Swift.String, catalogType: Swift.String, mediaFormat: FLContentAuthorizer.MediaFormat = .hls, drm: FLContentAuthorizer.DRM = .fairplay, quality: FLContentAuthorizer.Quality? = nil, disableSSAI: Swift.Bool? = nil, urlParameters: [Swift.String : Swift.String]? = nil, custom: [Swift.String : Any]? = nil) -> any FLContentAuthorizer.PlatformAsset
+  public static func livePlatformAsset(contentId: Swift.String, catalogType: Swift.String, mediaFormat: FLContentAuthorizer.MediaFormat = .hls, primaryId: Swift.String? = nil, drm: FLContentAuthorizer.DRM = .fairplay, quality: FLContentAuthorizer.Quality? = nil, disableSSAI: Swift.Bool? = nil, urlParameters: [Swift.String : Swift.String]? = nil, custom: [Swift.String : Any]? = nil) -> any FLContentAuthorizer.PlatformAsset
+  public static func liveRestartPlatformAsset(contentId: Swift.String, catalogType: Swift.String, mediaFormat: FLContentAuthorizer.MediaFormat = .hls, drm: FLContentAuthorizer.DRM = .fairplay, startTime: Swift.String, endtime: Swift.String, quality: FLContentAuthorizer.Quality? = nil, disableSSAI: Swift.Bool? = nil, urlParameters: [Swift.String : Swift.String]? = nil, custom: [Swift.String : Any]? = nil) -> any FLContentAuthorizer.PlatformAsset
+  public static func liveCatchupPlatformAsset(contentId: Swift.String, catalogType: Swift.String, mediaFormat: FLContentAuthorizer.MediaFormat = .hls, drm: FLContentAuthorizer.DRM = .fairplay, startTime: Swift.String, endTime: Swift.String, quality: FLContentAuthorizer.Quality? = nil, disableSSAI: Swift.Bool? = nil, urlParameters: [Swift.String : Swift.String]? = nil, custom: [Swift.String : Any]? = nil) -> any FLContentAuthorizer.PlatformAsset
+  public static func licenseRefreshAsset(contentId: Swift.String, drm: FLContentAuthorizer.DRM = .fairplay, delivery: FLContentAuthorizer.DeliveryType = .streaming, licenseUrl: Swift.String, licenseRefreshToken: Swift.String) -> any FLContentAuthorizer.LicenseRefreshAsset
+}
+extension FLContentAuthorizer.DRM : Swift.Equatable {}
+extension FLContentAuthorizer.DRM : Swift.Hashable {}
+extension FLContentAuthorizer.DRM : Swift.RawRepresentable {}
+extension FLContentAuthorizer.ContentType : Swift.Equatable {}
+extension FLContentAuthorizer.ContentType : Swift.Hashable {}
+extension FLContentAuthorizer.ContentType : Swift.RawRepresentable {}
+extension FLContentAuthorizer.MediaFormat : Swift.Equatable {}
+extension FLContentAuthorizer.MediaFormat : Swift.Hashable {}
+extension FLContentAuthorizer.MediaFormat : Swift.RawRepresentable {}
+extension FLContentAuthorizer.DeliveryType : Swift.Equatable {}
+extension FLContentAuthorizer.DeliveryType : Swift.Hashable {}
+extension FLContentAuthorizer.DeliveryType : Swift.RawRepresentable {}
+extension FLContentAuthorizer.Quality : Swift.Equatable {}
+extension FLContentAuthorizer.Quality : Swift.Hashable {}
+extension FLContentAuthorizer.Quality : Swift.RawRepresentable {}
+extension FLContentAuthorizer.LivePlaybackMode : Swift.Equatable {}
+extension FLContentAuthorizer.LivePlaybackMode : Swift.Hashable {}
+extension FLContentAuthorizer.LivePlaybackMode : Swift.RawRepresentable {}
+extension FLContentAuthorizer.AdType : Swift.Equatable {}
+extension FLContentAuthorizer.AdType : Swift.Hashable {}
+extension FLContentAuthorizer.AdType : Swift.RawRepresentable {}
+extension FLContentAuthorizer.ContentAuthorizerErrorCodes : Swift.Equatable {}
+extension FLContentAuthorizer.ContentAuthorizerErrorCodes : Swift.Hashable {}
+extension FLContentAuthorizer.ContentAuthorizerErrorCodes : Swift.RawRepresentable {}

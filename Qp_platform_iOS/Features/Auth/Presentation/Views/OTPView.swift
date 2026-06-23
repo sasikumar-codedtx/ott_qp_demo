@@ -9,269 +9,190 @@ struct OTPView: View {
     @FocusState private var isOTPFieldFocused: Bool
     @State private var autoSubmittedCode: String?
     @State private var isVerifying = false
-    @State private var showsSuccessOverlay = false
+    @State private var editedDigitIndex: Int?
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            VStack(spacing: 0) {
-                titleBar
+        GeometryReader { geometry in
+            let scale = min(geometry.size.width / 412, 1)
 
-                Spacer(minLength: 28)
+            ZStack(alignment: .top) {
+                LogoGlowView(size: 94, glowScale: 1)
+                    .position(x: geometry.size.width / 2, y: designY(198, scale: scale))
 
-                Image("logo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 94, height: 94)
+                VStack(spacing: 46) {
+                    recipientBlock
 
-                Spacer(minLength: 54)
+                    VStack(spacing: 10) {
+                        otpInput
 
-                VStack(spacing: 12) {
-                    Text(AppStrings.Auth.otpSubtitle)
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundStyle(Color.white.opacity(0.42))
+                        if viewModel.errorMessage != nil {
+                            Text(AppStrings.Auth.invalidOTPShort)
+                                .font(.system(size: 16, weight: .regular))
+                                .foregroundStyle(Color(hex: "D40202"))
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
 
-                    phoneRow
+                    resendRow
                 }
-
-                Spacer(minLength: 42)
-
-                otpInput
-                    .padding(.horizontal, UIConstants.Spacing.lg)
-
-                if viewModel.errorMessage != nil {
-                    Text(AppStrings.Auth.invalidOTPShort)
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundStyle(Color(hex: "D40202"))
-                        .padding(.top, 10)
-                } else {
-                    Spacer()
-                        .frame(height: 34)
-                }
-
-                HStack(spacing: 0) {
-                    Text(AppStrings.Auth.resendPrefix)
-                        .foregroundStyle(Color.white.opacity(0.38))
-                    Text(AppStrings.Auth.resendTimer)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(Color(hex: "3595DE"))
-                }
-                .font(.system(size: 14, weight: .regular))
-
-                Spacer(minLength: 28)
+                .frame(width: min(380, geometry.size.width - 44))
+                .position(x: geometry.size.width / 2, y: designY(viewModel.errorMessage == nil ? 430 : 439, scale: scale))
 
                 legalCopy
-                    .padding(.horizontal, 24)
+                    .frame(width: min(364, geometry.size.width - 48))
+                    .position(x: geometry.size.width / 2, y: designY(811, scale: scale))
 
-                Spacer()
+                hiddenOTPField
+
+                if isVerifying {
+                    VStack {
+                        Spacer()
+                        AuthLoadingToast(title: "Verifying OTP")
+                            .padding(.bottom, max(geometry.safeAreaInsets.bottom + 28, 42))
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
-            .padding(.top, UIConstants.Spacing.sm)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
             .onTapGesture {
-                isOTPFieldFocused = true
+                if !isVerifying {
+                    isOTPFieldFocused = true
+                }
             }
             .task {
+                try? await Task.sleep(for: .milliseconds(250))
                 isOTPFieldFocused = true
             }
             .onChange(of: viewModel.otpCode) { _, newValue in
-                if newValue.count < viewModel.otpLength {
-                    autoSubmittedCode = nil
-                    return
-                }
-
-                guard newValue.count == viewModel.otpLength, autoSubmittedCode != newValue else {
-                    return
-                }
-
-                autoSubmittedCode = newValue
-                Task {
-                    await verifyIfNeeded(code: newValue)
-                }
+                handleOTPChange(newValue)
             }
-            .allowsHitTesting(!showsSuccessOverlay)
-
-            if showsSuccessOverlay {
-                Color.black.opacity(0.82)
-                    .ignoresSafeArea()
-
-                successOverlay
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
+            .allowsHitTesting(!isVerifying)
+            .animation(.easeInOut(duration: 0.22), value: isVerifying)
+            .ignoresSafeArea(.keyboard, edges: .bottom)
         }
-        .animation(.easeInOut(duration: 0.28), value: showsSuccessOverlay)
-    }
+        .navigationBarBackButtonHidden(true)
+        .toolbar(.visible, for: .navigationBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                AuthNavigationBackButton(action: onBack)
+            }
 
-    private var titleBar: some View {
-        HStack {
-            Button(action: onBack) {
-                Image(systemName: AppIcons.Navigation.back)
-                    .font(.headline.weight(.semibold))
+            ToolbarItem(placement: .principal) {
+                Text(AppStrings.Auth.otpTitle)
+                    .font(.system(size: 20, weight: .bold))
                     .foregroundStyle(.white)
-                    .frame(width: 46, height: 46)
-                    .background(
-                        RoundedRectangle(cornerRadius: UIConstants.CornerRadius.lg, style: .continuous)
-                            .fill(Color.white.opacity(0.08))
-                    )
+                    .lineLimit(1)
             }
-            .buttonStyle(.plain)
-
-            Spacer()
-
-            Text(AppStrings.Auth.otpTitle)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(.white)
-
-            Spacer()
-
-            Color.clear.frame(width: 46, height: 46)
         }
-        .padding(.horizontal, UIConstants.Spacing.lg)
     }
 
-    private var phoneRow: some View {
-        HStack(spacing: 10) {
-            Text(maskedPhoneNumber)
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(.white)
+    private var recipientBlock: some View {
+        VStack(spacing: 12) {
+            Text(AppStrings.Auth.otpSubtitle)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundStyle(Color(hex: "6D6D6D"))
+                .frame(maxWidth: .infinity)
 
-            Button(action: onBack) {
-                Image(systemName: "square.and.pencil")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.88))
+            HStack(spacing: 12) {
+                Text(maskedPhoneNumber)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white)
+
+                Button(action: onBack) {
+                    Image(systemName: "pencil.line")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(.white)
+                        .frame(width: 16, height: 16)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity)
         }
     }
 
     private var otpInput: some View {
-        ZStack {
-            TextField(
-                "",
-                text: Binding(
-                    get: { viewModel.otpCode },
-                    set: { viewModel.updateOTPCode($0) }
-                ),
-                prompt: Text(AppStrings.Auth.otpPlaceholder).foregroundStyle(.clear)
-            )
-            .keyboardType(.numberPad)
-            .textContentType(.oneTimeCode)
-            .focused($isOTPFieldFocused)
-            .opacity(0.015)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        GeometryReader { proxy in
+            let slotSpacing: CGFloat = 10
+            let availableWidth = proxy.size.width
+            let slotWidth = min(61, (availableWidth - (slotSpacing * CGFloat(max(viewModel.otpLength - 1, 0)))) / CGFloat(max(viewModel.otpLength, 1)))
 
-            HStack(spacing: 10) {
+            HStack(spacing: slotSpacing) {
                 ForEach(Array(viewModel.otpDigits.enumerated()), id: \.offset) { index, digit in
                     otpSlot(
+                        index: index,
                         digit: digit,
+                        width: slotWidth,
                         isActive: isOTPFieldFocused && index == min(viewModel.otpCode.count, viewModel.otpLength - 1),
                         hasError: viewModel.errorMessage != nil
                     )
                 }
             }
+            .frame(width: availableWidth, height: 56)
         }
-        .frame(height: 64)
+        .frame(height: 56)
         .onTapGesture {
             isOTPFieldFocused = true
         }
     }
 
-    private func otpSlot(digit: String, isActive: Bool, hasError: Bool) -> some View {
-        RoundedRectangle(cornerRadius: UIConstants.CornerRadius.md, style: .continuous)
-            .fill(Color.white.opacity(0.06))
+    private func otpSlot(index: Int, digit: String, width: CGFloat, isActive: Bool, hasError: Bool) -> some View {
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .fill(Color.white.opacity(0.1))
             .overlay(
-                RoundedRectangle(cornerRadius: UIConstants.CornerRadius.md, style: .continuous)
-                    .stroke(borderColor(isActive: isActive, hasError: hasError), lineWidth: hasError || isActive ? 1.2 : 1)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(hasError ? Color(hex: "D40202") : Color.white.opacity(0.05), lineWidth: 1.2)
             )
-            .frame(maxWidth: .infinity)
-            .frame(height: 58)
+            .shadow(color: Color.white.opacity(0.05), radius: 3)
+            .frame(width: width, height: 56)
+            .scaleEffect(editedDigitIndex == index && !digit.isEmpty ? 1.035 : 1)
             .overlay {
-                Text(verbatim: digit.isEmpty ? "" : "*")
-                    .font(.system(size: 30, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(digit.isEmpty ? 0 : 0.96))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                Text(digit.isEmpty ? "0" : digit)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundStyle(digit.isEmpty ? Color(hex: "6D6D6D") : .white)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .animation(.spring(response: 0.22, dampingFraction: 0.72), value: digit)
+    }
+
+    private var resendRow: some View {
+        HStack(spacing: 0) {
+            Text(AppStrings.Auth.resendPrefix)
+                .foregroundStyle(Color(hex: "6D6D6D"))
+
+            Text(AppStrings.Auth.resendTimer)
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(Color(hex: "3595DE"))
+        }
+        .font(.system(size: 14, weight: .regular))
+        .frame(maxWidth: .infinity)
+    }
+
+    private var hiddenOTPField: some View {
+        TextField(
+            "",
+            text: Binding(
+                get: { viewModel.otpCode },
+                set: { viewModel.updateOTPCode($0) }
+            ),
+            prompt: Text(AppStrings.Auth.otpPlaceholder).foregroundStyle(.clear)
+        )
+        .keyboardType(.numberPad)
+        .textContentType(.oneTimeCode)
+        .focused($isOTPFieldFocused)
+        .opacity(0.01)
+        .frame(width: 1, height: 1)
+        .position(x: 1, y: 1)
     }
 
     private var legalCopy: some View {
         Text(legalAttributedText)
             .multilineTextAlignment(.center)
             .lineSpacing(4)
-    }
-
-    private var successOverlay: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            ZStack(alignment: .topTrailing) {
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(hex: "06350E"), Color(hex: "0A0A0F"), Color(hex: "070708")],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .overlay {
-                        Circle()
-                            .fill(Color.green.opacity(0.12))
-                            .frame(width: 320, height: 320)
-                            .blur(radius: 12)
-                            .offset(y: -22)
-                    }
-
-                Button(action: {}) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.72))
-                        .frame(width: 24, height: 24)
-                        .background(Circle().fill(Color.white.opacity(0.08)))
-                }
-                .buttonStyle(.plain)
-                .padding(.top, 10)
-                .padding(.trailing, 12)
-                .allowsHitTesting(false)
-
-                VStack(spacing: 14) {
-                    Image(systemName: "checkmark.seal")
-                        .font(.system(size: 62, weight: .medium))
-                        .foregroundStyle(Color.green)
-                        .padding(.top, 30)
-
-                    Text(AppStrings.Auth.signedInTitle)
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(.white)
-
-                    Text("demoquickplay@gmail.com | \(maskedPhoneNumber)")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color(hex: "FFC100"))
-                        .multilineTextAlignment(.center)
-
-                    HStack(spacing: 8) {
-                        Image(systemName: AppIcons.Action.crown)
-                            .font(.system(size: 14, weight: .bold))
-                        Text(AppStrings.Auth.subscriptionActive)
-                            .font(.system(size: 14, weight: .bold))
-                    }
-                    .foregroundStyle(Color(hex: "3F1F00"))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 36)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(Color(hex: "F5B919"))
-                    )
-                    .padding(.horizontal, 84)
-                    .padding(.top, 18)
-
-                    Text(AppStrings.Auth.subscriptionStatus)
-                        .font(.system(size: 13, weight: .regular))
-                        .foregroundStyle(.white.opacity(0.86))
-                        .padding(.bottom, 30)
-                }
-                .padding(.horizontal, 24)
-            }
-            .frame(height: 322)
-            .padding(.horizontal, 6)
-        }
-        .ignoresSafeArea()
     }
 
     private var legalAttributedText: AttributedString {
@@ -308,8 +229,34 @@ struct OTPView: View {
         return "+91 \(prefix)\(hidden)\(suffix)"
     }
 
+    private func handleOTPChange(_ newValue: String) {
+        let changedIndex = max(newValue.count - 1, 0)
+        editedDigitIndex = changedIndex
+
+        Task {
+            try? await Task.sleep(for: .milliseconds(170))
+            guard editedDigitIndex == changedIndex else { return }
+            editedDigitIndex = nil
+        }
+
+        if newValue.count < viewModel.otpLength {
+            autoSubmittedCode = nil
+            return
+        }
+
+        guard newValue.count == viewModel.otpLength, autoSubmittedCode != newValue else {
+            return
+        }
+
+        autoSubmittedCode = newValue
+        Task {
+            await verifyIfNeeded(code: newValue)
+        }
+    }
+
     private func verifyIfNeeded(code: String) async {
-        guard !isVerifying, !showsSuccessOverlay else { return }
+        guard !isVerifying else { return }
+        isOTPFieldFocused = false
         isVerifying = true
 
         let didVerify = await onVerify()
@@ -320,23 +267,24 @@ struct OTPView: View {
             return
         }
 
-        isOTPFieldFocused = false
-        showsSuccessOverlay = true
-
-        try? await Task.sleep(for: .seconds(1.65))
-        guard showsSuccessOverlay else { return }
+        try? await Task.sleep(for: .milliseconds(350))
         await onContinueAfterSuccess()
     }
 
-    private func borderColor(isActive: Bool, hasError: Bool) -> Color {
-        if hasError {
-            return Color(hex: "D40202")
-        }
-
-        if isActive {
-            return Color.white.opacity(0.72)
-        }
-
-        return Color.white.opacity(0.06)
+    private func designY(_ y: CGFloat, scale: CGFloat) -> CGFloat {
+        y * scale
     }
+}
+
+#Preview {
+    OTPView(
+        viewModel: AuthViewModel(
+            requestOTPUseCase: RequestOTPUseCase(repository: AuthRepositoryImpl(dataSource: AuthMockDataSource())),
+            verifyOTPUseCase: VerifyOTPUseCase(repository: AuthRepositoryImpl(dataSource: AuthMockDataSource()))
+        ),
+        onBack: {},
+        onVerify: { false },
+        onContinueAfterSuccess: {}
+    )
+    .background(AppBackgroundView(style: .auth))
 }

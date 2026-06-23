@@ -1,0 +1,937 @@
+{
+  "ABIRoot": {
+    "kind": "Root",
+    "name": "FLStreamConcurrency",
+    "printedName": "FLStreamConcurrency",
+    "children": [
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "StreamConcurrencyService",
+        "printedName": "StreamConcurrencyService",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "putStreamForDevice",
+            "printedName": "putStreamForDevice(deviceId:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<(), any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<(), any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:19FLStreamConcurrency06StreamB7ServiceP03putC9ForDevice8deviceId10completionySS_ys6ResultOyyts5Error_pGctF",
+            "mangledName": "$s19FLStreamConcurrency06StreamB7ServiceP03putC9ForDevice8deviceId10completionySS_ys6ResultOyyts5Error_pGctF",
+            "moduleName": "FLStreamConcurrency",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLStreamConcurrency.StreamConcurrencyService>",
+            "sugared_genericSig": "<Self where Self : FLStreamConcurrency.StreamConcurrencyService>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "deleteStreamForDevice",
+            "printedName": "deleteStreamForDevice(deviceId:completion:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Result<(), any Swift.Error>) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Result",
+                    "printedName": "Swift.Result<(), any Swift.Error>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Error",
+                        "printedName": "any Swift.Error",
+                        "usr": "s:s5ErrorP"
+                      }
+                    ],
+                    "usr": "s:s6ResultO"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:19FLStreamConcurrency06StreamB7ServiceP06deleteC9ForDevice8deviceId10completionySS_ys6ResultOyyts5Error_pGctF",
+            "mangledName": "$s19FLStreamConcurrency06StreamB7ServiceP06deleteC9ForDevice8deviceId10completionySS_ys6ResultOyyts5Error_pGctF",
+            "moduleName": "FLStreamConcurrency",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLStreamConcurrency.StreamConcurrencyService>",
+            "sugared_genericSig": "<Self where Self : FLStreamConcurrency.StreamConcurrencyService>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:19FLStreamConcurrency06StreamB7ServiceP",
+        "mangledName": "$s19FLStreamConcurrency06StreamB7ServiceP",
+        "moduleName": "FLStreamConcurrency",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency"
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Function",
+        "name": "version",
+        "printedName": "version()",
+        "children": [
+          {
+            "kind": "TypeNominal",
+            "name": "String",
+            "printedName": "Swift.String",
+            "usr": "s:SS"
+          }
+        ],
+        "declKind": "Func",
+        "usr": "s:19FLStreamConcurrency7versionSSyF",
+        "mangledName": "$s19FLStreamConcurrency7versionSSyF",
+        "moduleName": "FLStreamConcurrency",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "funcSelfKind": "NonMutating"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "FLStreamConcurrencyFactory",
+        "printedName": "FLStreamConcurrencyFactory",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "streamConcurrencyConfiguration",
+            "printedName": "streamConcurrencyConfiguration(endPoint:streamConcurrencySyncInterval:maxAllowedRetries:retryDelayInSec:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "StreamConcurrencyConfiguration",
+                "printedName": "any FLStreamConcurrency.StreamConcurrencyConfiguration",
+                "usr": "s:19FLStreamConcurrency06StreamB13ConfigurationP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "hasDefaultArg": true,
+                "usr": "s:Sd"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "hasDefaultArg": true,
+                "usr": "s:Si"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "hasDefaultArg": true,
+                "usr": "s:Sd"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:19FLStreamConcurrency0aB7FactoryO06streamB13Configuration8endPoint0dB12SyncInterval17maxAllowedRetries15retryDelayInSecAA06StreambE0_pSS_SdSiSdtFZ",
+            "mangledName": "$s19FLStreamConcurrency0aB7FactoryO06streamB13Configuration8endPoint0dB12SyncInterval17maxAllowedRetries15retryDelayInSecAA06StreambE0_pSS_SdSiSdtFZ",
+            "moduleName": "FLStreamConcurrency",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "streamConcurrencyService",
+            "printedName": "streamConcurrencyService(endPoint:token:httpClient:authorizer:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "StreamConcurrencyService",
+                "printedName": "any FLStreamConcurrency.StreamConcurrencyService",
+                "usr": "s:19FLStreamConcurrency06StreamB7ServiceP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "HTTPClient",
+                "printedName": "any FLFoundation.HTTPClient",
+                "hasDefaultArg": true,
+                "usr": "s:12FLFoundation10HTTPClientP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "PlatformAuthorizer",
+                "printedName": "any FLPlatformCore.PlatformAuthorizer",
+                "usr": "s:14FLPlatformCore18PlatformAuthorizerP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:19FLStreamConcurrency0aB7FactoryO06streamB7Service8endPoint5token10httpClient10authorizerAA06StreambE0_pSS_SSSg12FLFoundation10HTTPClient_p14FLPlatformCore18PlatformAuthorizer_ptFZ",
+            "mangledName": "$s19FLStreamConcurrency0aB7FactoryO06streamB7Service8endPoint5token10httpClient10authorizerAA06StreambE0_pSS_SSSg12FLFoundation10HTTPClient_p14FLPlatformCore18PlatformAuthorizer_ptFZ",
+            "moduleName": "FLStreamConcurrency",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "streamConcurrencyManager",
+            "printedName": "streamConcurrencyManager(configuration:deviceId:streamConcurrencyService:authorizer:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "StreamConcurrencyManager",
+                "printedName": "any FLStreamConcurrency.StreamConcurrencyManager",
+                "usr": "s:19FLStreamConcurrency06StreamB7ManagerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "StreamConcurrencyConfiguration",
+                "printedName": "any FLStreamConcurrency.StreamConcurrencyConfiguration",
+                "usr": "s:19FLStreamConcurrency06StreamB13ConfigurationP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "StreamConcurrencyService",
+                "printedName": "any FLStreamConcurrency.StreamConcurrencyService",
+                "usr": "s:19FLStreamConcurrency06StreamB7ServiceP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "PlatformAuthorizer",
+                "printedName": "any FLPlatformCore.PlatformAuthorizer",
+                "usr": "s:14FLPlatformCore18PlatformAuthorizerP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:19FLStreamConcurrency0aB7FactoryO06streamB7Manager13configuration8deviceId0dB7Service10authorizerAA06StreambE0_pAA0kB13Configuration_p_SSAA0kbI0_p14FLPlatformCore18PlatformAuthorizer_ptFZ",
+            "mangledName": "$s19FLStreamConcurrency0aB7FactoryO06streamB7Manager13configuration8deviceId0dB7Service10authorizerAA06StreambE0_pAA0kB13Configuration_p_SSAA0kbI0_p14FLPlatformCore18PlatformAuthorizer_ptFZ",
+            "moduleName": "FLStreamConcurrency",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:19FLStreamConcurrency0aB7FactoryO",
+        "mangledName": "$s19FLStreamConcurrency0aB7FactoryO",
+        "moduleName": "FLStreamConcurrency",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "StreamConcurrencyConfiguration",
+        "printedName": "StreamConcurrencyConfiguration",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "endPoint",
+            "printedName": "endPoint",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:19FLStreamConcurrency06StreamB13ConfigurationP8endPointSSvp",
+            "mangledName": "$s19FLStreamConcurrency06StreamB13ConfigurationP8endPointSSvp",
+            "moduleName": "FLStreamConcurrency",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:19FLStreamConcurrency06StreamB13ConfigurationP8endPointSSvg",
+                "mangledName": "$s19FLStreamConcurrency06StreamB13ConfigurationP8endPointSSvg",
+                "moduleName": "FLStreamConcurrency",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLStreamConcurrency.StreamConcurrencyConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLStreamConcurrency.StreamConcurrencyConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "streamConcurrencySyncInterval",
+            "printedName": "streamConcurrencySyncInterval",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "usr": "s:Sd"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:19FLStreamConcurrency06StreamB13ConfigurationP06streamB12SyncIntervalSdvp",
+            "mangledName": "$s19FLStreamConcurrency06StreamB13ConfigurationP06streamB12SyncIntervalSdvp",
+            "moduleName": "FLStreamConcurrency",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:19FLStreamConcurrency06StreamB13ConfigurationP06streamB12SyncIntervalSdvg",
+                "mangledName": "$s19FLStreamConcurrency06StreamB13ConfigurationP06streamB12SyncIntervalSdvg",
+                "moduleName": "FLStreamConcurrency",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLStreamConcurrency.StreamConcurrencyConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLStreamConcurrency.StreamConcurrencyConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "maxAllowedRetries",
+            "printedName": "maxAllowedRetries",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:19FLStreamConcurrency06StreamB13ConfigurationP17maxAllowedRetriesSivp",
+            "mangledName": "$s19FLStreamConcurrency06StreamB13ConfigurationP17maxAllowedRetriesSivp",
+            "moduleName": "FLStreamConcurrency",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:19FLStreamConcurrency06StreamB13ConfigurationP17maxAllowedRetriesSivg",
+                "mangledName": "$s19FLStreamConcurrency06StreamB13ConfigurationP17maxAllowedRetriesSivg",
+                "moduleName": "FLStreamConcurrency",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLStreamConcurrency.StreamConcurrencyConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLStreamConcurrency.StreamConcurrencyConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "retryDelayInSec",
+            "printedName": "retryDelayInSec",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "usr": "s:Sd"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:19FLStreamConcurrency06StreamB13ConfigurationP15retryDelayInSecSdvp",
+            "mangledName": "$s19FLStreamConcurrency06StreamB13ConfigurationP15retryDelayInSecSdvp",
+            "moduleName": "FLStreamConcurrency",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:19FLStreamConcurrency06StreamB13ConfigurationP15retryDelayInSecSdvg",
+                "mangledName": "$s19FLStreamConcurrency06StreamB13ConfigurationP15retryDelayInSecSdvg",
+                "moduleName": "FLStreamConcurrency",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLStreamConcurrency.StreamConcurrencyConfiguration>",
+                "sugared_genericSig": "<Self where Self : FLStreamConcurrency.StreamConcurrencyConfiguration>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:19FLStreamConcurrency06StreamB13ConfigurationP",
+        "mangledName": "$s19FLStreamConcurrency06StreamB13ConfigurationP",
+        "moduleName": "FLStreamConcurrency",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FLStreamConcurrency"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "StreamConcurrencyManager",
+        "printedName": "StreamConcurrencyManager",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "configuration",
+            "printedName": "configuration",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "StreamConcurrencyConfiguration",
+                "printedName": "any FLStreamConcurrency.StreamConcurrencyConfiguration",
+                "usr": "s:19FLStreamConcurrency06StreamB13ConfigurationP"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:19FLStreamConcurrency06StreamB7ManagerP13configurationAA0cB13Configuration_pvp",
+            "mangledName": "$s19FLStreamConcurrency06StreamB7ManagerP13configurationAA0cB13Configuration_pvp",
+            "moduleName": "FLStreamConcurrency",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "StreamConcurrencyConfiguration",
+                    "printedName": "any FLStreamConcurrency.StreamConcurrencyConfiguration",
+                    "usr": "s:19FLStreamConcurrency06StreamB13ConfigurationP"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:19FLStreamConcurrency06StreamB7ManagerP13configurationAA0cB13Configuration_pvg",
+                "mangledName": "$s19FLStreamConcurrency06StreamB7ManagerP13configurationAA0cB13Configuration_pvg",
+                "moduleName": "FLStreamConcurrency",
+                "genericSig": "<τ_0_0 where τ_0_0 : FLStreamConcurrency.StreamConcurrencyManager>",
+                "sugared_genericSig": "<Self where Self : FLStreamConcurrency.StreamConcurrencyManager>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Function",
+            "name": "processPlaybackStateChange",
+            "printedName": "processPlaybackStateChange(player:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Player",
+                "printedName": "any FLPlayerInterface.Player",
+                "usr": "s:17FLPlayerInterface6PlayerP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:19FLStreamConcurrency06StreamB7ManagerP26processPlaybackStateChange6playery17FLPlayerInterface6Player_p_tF",
+            "mangledName": "$s19FLStreamConcurrency06StreamB7ManagerP26processPlaybackStateChange6playery17FLPlayerInterface6Player_p_tF",
+            "moduleName": "FLStreamConcurrency",
+            "genericSig": "<τ_0_0 where τ_0_0 : FLStreamConcurrency.StreamConcurrencyManager>",
+            "sugared_genericSig": "<Self where Self : FLStreamConcurrency.StreamConcurrencyManager>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:19FLStreamConcurrency06StreamB7ManagerP",
+        "mangledName": "$s19FLStreamConcurrency06StreamB7ManagerP",
+        "moduleName": "FLStreamConcurrency",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      }
+    ],
+    "json_format_version": 8
+  },
+  "ConstValues": [
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/Internal\/DefaultStreamConcurrencyManager.swift",
+      "kind": "IntegerLiteral",
+      "offset": 450,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/Internal\/DefaultStreamConcurrencyManager.swift",
+      "kind": "IntegerLiteral",
+      "offset": 489,
+      "length": 5,
+      "value": "30000"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/Internal\/DefaultStreamConcurrencyManager.swift",
+      "kind": "BooleanLiteral",
+      "offset": 635,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/Internal\/DefaultStreamConcurrencyManager.swift",
+      "kind": "BooleanLiteral",
+      "offset": 684,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/Internal\/DefaultStreamConcurrencyManager.swift",
+      "kind": "BooleanLiteral",
+      "offset": 727,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/Internal\/DefaultStreamConcurrencyManager.swift",
+      "kind": "StringLiteral",
+      "offset": 828,
+      "length": 35,
+      "value": "\"com.quickplay.FLStreamConcurrency\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/Internal\/DefaultStreamConcurrencyManager.swift",
+      "kind": "StringLiteral",
+      "offset": 875,
+      "length": 19,
+      "value": "\"StreamConcurrency\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/Internal\/DefaultStreamConcurrencyManager.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2080,
+      "length": 4,
+      "value": "1000"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/Internal\/DefaultStreamConcurrencyManager.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2095,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/Internal\/StreamConcurrencyServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 229,
+      "length": 21,
+      "value": "\"\/user\/stream\/create\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/Internal\/StreamConcurrencyServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 286,
+      "length": 22,
+      "value": "\"\/user\/stream\/delete\/\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/Internal\/StreamConcurrencyServiceProvider.swift",
+      "kind": "StringLiteral",
+      "offset": 351,
+      "length": 13,
+      "value": "\"X-Heartbeat\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/FLStreamConcurrency.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1663,
+      "length": 5,
+      "value": "30000"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/FLStreamConcurrency.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1749,
+      "length": 1,
+      "value": "2"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/fl-ios-sdk\/fl-ios-sdk\/fl-ios-pltfm-stream-concurrency\/Sources\/Universal\/FLStreamConcurrency.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1832,
+      "length": 1,
+      "value": "1"
+    }
+  ]
+}

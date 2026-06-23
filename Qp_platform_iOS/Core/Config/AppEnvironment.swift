@@ -19,17 +19,29 @@ nonisolated enum AppEnvironment {
         static let launchConfigURL = "https://config-service-cdn.cms-qp.opt.quickplay.com/launch/config"
         static let fallbackCatalogBaseURL = "https://catalog-service-cdn.cms-qp.opt.quickplay.com"
         static let fallbackStorefrontBaseURL = "https://storefront.cms-qp.opt.quickplay.com"
-        static let microDramaStorefrontListURL = "\(fallbackStorefrontBaseURL)/storefront/list?reg=all&dt=androidmobile&client=sony-sony-androidmobile&pf=regular&chrt=Sony1"
-        static let newAndHotStorefrontListURL = "\(fallbackStorefrontBaseURL)/storefront/list?reg=all&dt=androidmobile&client=sony-sony-androidmobile&pf=regular&chrt=Sony1"
         static let fallbackDetailBaseURL = "https://data-store.cms-qp.opt.quickplay.com"
         static let fallbackSearchBaseURL = "https://search-cdn.cms-qp.opt.quickplay.com"
         static let fallbackRecommendationBaseURL = "https://rg-srv.cms-qp.opt.quickplay.com"
         static let fallbackImageBaseURL = "https://image-resizer-cloud.cms-qp.opt.quickplay.com"
         static let fallbackPersonalisationBaseURL = "https://user-catalog.edge-qp.opt.quickplay.com"
+        static let playerOAuthURL = "https://api.ahastag.firstlight.ai/oauth2/token"
+        static let playerRegistrationURL = "https://api.ahastag.firstlight.ai"
+        static let playerContentAuthURL = "https://api.ahastag.firstlight.ai"
+        static let playerGuestFlatURL = "https://auth-gw.ahastag.firstlight.ai"
+        static let playerHeartbeatURL = "https://api.ahastag.firstlight.ai"
+        static let playerStreamConcurrencyURL = "https://stream-cloud.ahastag.firstlight.ai"
     }
 
     enum Demo {
         static let supportPhoneNumber = "+91 6398926078"
         static let hasActiveSubscription = false
+        static let mockShortsVideoURLStrings = [
+            "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+            "https://www.w3schools.com/html/mov_bbb.mp4",
+            "https://www.w3schools.com/html/movie.mp4",
+            "https://media.w3.org/2010/05/sintel/trailer.mp4",
+            "https://media.w3.org/2010/05/bunny/trailer.mp4",
+            "https://media.w3.org/2010/05/video/movie_300.mp4"
+        ]
     }
 }

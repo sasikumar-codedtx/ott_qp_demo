@@ -4,10 +4,26 @@ struct ContentPerson: Identifiable, Equatable, Hashable {
     let id: String
     let name: String
     let imageRatios: [String]
+    let imageBaseURL: String
 
     func imageURL(width: Int) -> URL? {
-        guard imageRatios.contains("0-1x1") else { return nil }
-        return URL(string: "\(AppEnvironment.Endpoint.fallbackImageBaseURL)/image/\(id)/0-1x1.png?width=\(width)")
+        guard imageRatios.isEmpty == false else { return nil }
+        return ImageURLBuilder(baseURL: imageBaseURL).imageURL(
+            id: id,
+            ratio: "0-1x1",
+            availableRatios: imageRatios,
+            width: width,
+            preferredFallbacks: ["0-1x1", "0-2x3", "0-3x4", "0-16x9"]
+        )
+    }
+
+    var initials: String {
+        let parts = name
+            .split(separator: " ")
+            .prefix(2)
+            .compactMap(\.first)
+        let initials = String(parts).uppercased()
+        return initials.isEmpty ? "?" : initials
     }
 }
 
@@ -28,13 +44,17 @@ struct ContentDetail: Equatable {
     let cast: [ContentPerson]
     let directorNames: [String]
     let momentSearchEnabled: Bool
+    let previewURL: URL?
+    let imageBaseURL: String
 
     func imageURL(for ratio: String, width: Int) -> URL? {
-        let resolvedRatio = availableRatios.contains(ratio)
-            ? ratio
-            : (availableRatios.first(where: { $0 == "0-16x9" || $0 == "11-16x9" || $0 == "0-2x3" || $0 == "0-1x1" }) ?? ratio)
-
-        return URL(string: "\(AppEnvironment.Endpoint.fallbackImageBaseURL)/image/\(id)/\(resolvedRatio).png?width=\(width)")
+        ImageURLBuilder(baseURL: imageBaseURL).imageURL(
+            id: id,
+            ratio: ratio,
+            availableRatios: availableRatios,
+            width: width,
+            preferredFallbacks: ["0-16x9", "11-16x9", "0-2x3", "0-1x1"]
+        )
     }
 
     var metaLine: String {

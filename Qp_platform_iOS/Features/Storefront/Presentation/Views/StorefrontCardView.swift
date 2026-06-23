@@ -183,12 +183,20 @@ struct StorefrontCardView: View {
                 }
 
                 if let rank {
-                    HStack(spacing: -6) {
-                        Text("\(rank)")
-                            .font(.system(size: 56, weight: .black))
-                            .foregroundStyle(Color.black.opacity(0.7))
-                            .offset(x: -6, y: 18)
-                        Spacer()
+                    HStack {
+                        if rank <= 10 {
+                            Image("trendingNumber\(rank)")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: min(size.width * 0.48, 74), height: min(size.height * 0.46, 94))
+                                .shadow(color: Color.black.opacity(0.5), radius: 8, x: 0, y: 4)
+                                .offset(x: -8, y: 14)
+                        } else {
+                            Text("\(rank)")
+                                .font(.system(size: 56, weight: .black))
+                                .foregroundStyle(Color.black.opacity(0.7))
+                                .offset(x: -6, y: 18)
+                        }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 }

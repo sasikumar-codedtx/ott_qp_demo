@@ -32,7 +32,7 @@ struct StorefrontEntertainmentHeroView: View {
                     } label: {
                         heroCard(item: item)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(LiquidButtonPressStyle())
                     .id(item.id)
                 }
             }
@@ -55,11 +55,7 @@ struct StorefrontEntertainmentHeroView: View {
 
     private func heroCard(item: StorefrontItem) -> some View {
         ZStack(alignment: .bottom) {
-            PosterImageView(
-                url: item.imageURL(for: "0-2x3", width: 1080),
-                size: CGSize(width: 358, height: 537),
-                cornerRadius: 16
-            )
+            heroMedia(item: item, size: CGSize(width: 358, height: 537), ratio: "0-2x3", cornerRadius: 16)
             .overlay(
                 LinearGradient(
                     colors: [
@@ -132,6 +128,17 @@ struct StorefrontEntertainmentHeroView: View {
         .frame(width: 358, height: 537)
     }
 
+    private func heroMedia(item: StorefrontItem, size: CGSize, ratio: String, cornerRadius: CGFloat) -> some View {
+        Group {
+            PosterImageView(
+                url: item.imageURL(for: ratio, width: Int(size.width * 3)),
+                size: size,
+                cornerRadius: cornerRadius
+            )
+        }
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+    }
+
     private func metadataRow(for item: StorefrontItem) -> some View {
         HStack(spacing: 8) {
             if cohort != .entertainment {
@@ -157,38 +164,24 @@ struct StorefrontEntertainmentHeroView: View {
 
     private func ctaRow(for item: StorefrontItem) -> some View {
         HStack(spacing: 10) {
-            Button {
+            SonyGlassPrimaryButton(
+                title: cohort == .entertainment ? item.watchLabel : "More Info",
+                systemImage: cohort == .entertainment ? AppIcons.Action.play : "info.circle.fill",
+                minWidth: cohort == .entertainment ? 208 : 196,
+                height: 56
+            ) {
                 if item.canOpenDetail {
                     onSelectItem(item)
                 }
-            } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: cohort == .entertainment ? AppIcons.Action.play : "info.circle.fill")
-                        .font(.system(size: 18, weight: .bold))
-                    Text(cohort == .entertainment ? item.watchLabel : "More Info")
-                        .font(.system(size: 16, weight: .bold))
-                }
-                .foregroundStyle(.black)
-                .frame(minWidth: cohort == .entertainment ? 208 : 196)
-                .frame(height: 56)
-                .background(
-                    Capsule(style: .continuous)
-                        .fill(.white)
-                )
             }
-            .buttonStyle(.plain)
 
-            Button(action: {}) {
-                ZStack {
-                    Circle()
-                        .fill(Color.white.opacity(0.2))
-                    Image(systemName: AppIcons.Action.plus)
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundStyle(.white)
-                }
-                .frame(width: 56, height: 56)
-            }
-            .buttonStyle(.plain)
+            SonyGlassIconButton(
+                systemImage: AppIcons.Action.plus,
+                size: 56,
+                iconSize: 24,
+                cornerStyle: .circle,
+                action: {}
+            )
         }
     }
 

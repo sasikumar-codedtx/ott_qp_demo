@@ -1,0 +1,561 @@
+{
+  "ABIRoot": {
+    "kind": "Root",
+    "name": "FLPlatformPlayer",
+    "printedName": "FLPlatformPlayer",
+    "children": [
+      {
+        "kind": "Import",
+        "name": "FLFoundation",
+        "printedName": "FLFoundation",
+        "declKind": "Import",
+        "moduleName": "FLPlatformPlayer"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLPlatformPlayer"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayer",
+        "printedName": "FLPlayer",
+        "declKind": "Import",
+        "moduleName": "FLPlatformPlayer"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLPlatformPlayer"
+      },
+      {
+        "kind": "Import",
+        "name": "AVFoundation",
+        "printedName": "AVFoundation",
+        "declKind": "Import",
+        "moduleName": "FLPlatformPlayer",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlatformCore",
+        "printedName": "FLPlatformCore",
+        "declKind": "Import",
+        "moduleName": "FLPlatformPlayer"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayer",
+        "printedName": "FLPlayer",
+        "declKind": "Import",
+        "moduleName": "FLPlatformPlayer"
+      },
+      {
+        "kind": "Import",
+        "name": "FLPlayerInterface",
+        "printedName": "FLPlayerInterface",
+        "declKind": "Import",
+        "moduleName": "FLPlatformPlayer"
+      },
+      {
+        "kind": "Function",
+        "name": "version",
+        "printedName": "version()",
+        "children": [
+          {
+            "kind": "TypeNominal",
+            "name": "String",
+            "printedName": "Swift.String",
+            "usr": "s:SS"
+          }
+        ],
+        "declKind": "Func",
+        "usr": "s:16FLPlatformPlayer7versionSSyF",
+        "mangledName": "$s16FLPlatformPlayer7versionSSyF",
+        "moduleName": "FLPlatformPlayer",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "funcSelfKind": "NonMutating"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "FLPlatformPlayerFactory",
+        "printedName": "FLPlatformPlayerFactory",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "player",
+            "printedName": "player(asset:thumbnailConfiguration:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Player",
+                "printedName": "any FLPlayerInterface.Player",
+                "usr": "s:17FLPlayerInterface6PlayerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "AVURLAsset",
+                "printedName": "AVFoundation.AVURLAsset",
+                "usr": "c:objc(cs)AVURLAsset"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "(any FLPlayerInterface.ContentThumbnailPreviewConfiguration)?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "ContentThumbnailPreviewConfiguration",
+                    "printedName": "any FLPlayerInterface.ContentThumbnailPreviewConfiguration",
+                    "usr": "s:17FLPlayerInterface36ContentThumbnailPreviewConfigurationP"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:16FLPlatformPlayer0aB7FactoryO6player5asset22thumbnailConfiguration17FLPlayerInterface0B0_pSo10AVURLAssetC_AG023ContentThumbnailPreviewG0_pSgtFZ",
+            "mangledName": "$s16FLPlatformPlayer0aB7FactoryO6player5asset22thumbnailConfiguration17FLPlayerInterface0B0_pSo10AVURLAssetC_AG023ContentThumbnailPreviewG0_pSgtFZ",
+            "moduleName": "FLPlatformPlayer",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "player",
+            "printedName": "player(contentUrl:thumbnailConfiguration:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Player",
+                "printedName": "any FLPlayerInterface.Player",
+                "usr": "s:17FLPlayerInterface6PlayerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "URL",
+                "printedName": "Foundation.URL",
+                "usr": "s:10Foundation3URLV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "(any FLPlayerInterface.ContentThumbnailPreviewConfiguration)?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "ContentThumbnailPreviewConfiguration",
+                    "printedName": "any FLPlayerInterface.ContentThumbnailPreviewConfiguration",
+                    "usr": "s:17FLPlayerInterface36ContentThumbnailPreviewConfigurationP"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:16FLPlatformPlayer0aB7FactoryO6player10contentUrl22thumbnailConfiguration17FLPlayerInterface0B0_p10Foundation3URLV_AG023ContentThumbnailPreviewH0_pSgtFZ",
+            "mangledName": "$s16FLPlatformPlayer0aB7FactoryO6player10contentUrl22thumbnailConfiguration17FLPlayerInterface0B0_p10Foundation3URLV_AG023ContentThumbnailPreviewH0_pSgtFZ",
+            "moduleName": "FLPlatformPlayer",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "promoPlayer",
+            "printedName": "promoPlayer(asset:promos:adPlaybackPolicy:thumbnailConfiguration:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AdPlayer",
+                "printedName": "any FLPlayerInterface.AdPlayer",
+                "usr": "s:17FLPlayerInterface8AdPlayerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "AVURLAsset",
+                "printedName": "AVFoundation.AVURLAsset",
+                "usr": "c:objc(cs)AVURLAsset"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Array",
+                "printedName": "[FLPlayerInterface.Promo]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Promo",
+                    "printedName": "FLPlayerInterface.Promo",
+                    "usr": "s:17FLPlayerInterface5PromoV"
+                  }
+                ],
+                "usr": "s:Sa"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.AdPlaybackPolicy?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "AdPlaybackPolicy",
+                    "printedName": "FLPlayerInterface.AdPlaybackPolicy",
+                    "usr": "s:17FLPlayerInterface16AdPlaybackPolicyV"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "(any FLPlayerInterface.ContentThumbnailPreviewConfiguration)?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "ContentThumbnailPreviewConfiguration",
+                    "printedName": "any FLPlayerInterface.ContentThumbnailPreviewConfiguration",
+                    "usr": "s:17FLPlayerInterface36ContentThumbnailPreviewConfigurationP"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:16FLPlatformPlayer0aB7FactoryO05promoB05asset6promos16adPlaybackPolicy22thumbnailConfiguration17FLPlayerInterface02AdB0_pSo10AVURLAssetC_SayAI5PromoVGAI0nhI0VSgAI023ContentThumbnailPreviewK0_pSgtFZ",
+            "mangledName": "$s16FLPlatformPlayer0aB7FactoryO05promoB05asset6promos16adPlaybackPolicy22thumbnailConfiguration17FLPlayerInterface02AdB0_pSo10AVURLAssetC_SayAI5PromoVGAI0nhI0VSgAI023ContentThumbnailPreviewK0_pSgtFZ",
+            "moduleName": "FLPlatformPlayer",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "promoPlayer",
+            "printedName": "promoPlayer(contentUrl:promos:adPlaybackPolicy:thumbnailConfiguration:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AdPlayer",
+                "printedName": "any FLPlayerInterface.AdPlayer",
+                "usr": "s:17FLPlayerInterface8AdPlayerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "URL",
+                "printedName": "Foundation.URL",
+                "usr": "s:10Foundation3URLV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Array",
+                "printedName": "[FLPlayerInterface.Promo]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Promo",
+                    "printedName": "FLPlayerInterface.Promo",
+                    "usr": "s:17FLPlayerInterface5PromoV"
+                  }
+                ],
+                "usr": "s:Sa"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FLPlayerInterface.AdPlaybackPolicy?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "AdPlaybackPolicy",
+                    "printedName": "FLPlayerInterface.AdPlaybackPolicy",
+                    "usr": "s:17FLPlayerInterface16AdPlaybackPolicyV"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "(any FLPlayerInterface.ContentThumbnailPreviewConfiguration)?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "ContentThumbnailPreviewConfiguration",
+                    "printedName": "any FLPlayerInterface.ContentThumbnailPreviewConfiguration",
+                    "usr": "s:17FLPlayerInterface36ContentThumbnailPreviewConfigurationP"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:16FLPlatformPlayer0aB7FactoryO05promoB010contentUrl6promos16adPlaybackPolicy22thumbnailConfiguration17FLPlayerInterface02AdB0_p10Foundation3URLV_SayAI5PromoVGAI0oiJ0VSgAI023ContentThumbnailPreviewL0_pSgtFZ",
+            "mangledName": "$s16FLPlatformPlayer0aB7FactoryO05promoB010contentUrl6promos16adPlaybackPolicy22thumbnailConfiguration17FLPlayerInterface02AdB0_p10Foundation3URLV_SayAI5PromoVGAI0oiJ0VSgAI023ContentThumbnailPreviewL0_pSgtFZ",
+            "moduleName": "FLPlatformPlayer",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "promoPlayer",
+            "printedName": "promoPlayer(asset:promos:policyHandler:thumbnailConfiguration:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AdPlayer",
+                "printedName": "any FLPlayerInterface.AdPlayer",
+                "usr": "s:17FLPlayerInterface8AdPlayerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "AVURLAsset",
+                "printedName": "AVFoundation.AVURLAsset",
+                "usr": "c:objc(cs)AVURLAsset"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Array",
+                "printedName": "[FLPlayerInterface.Promo]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Promo",
+                    "printedName": "FLPlayerInterface.Promo",
+                    "usr": "s:17FLPlayerInterface5PromoV"
+                  }
+                ],
+                "usr": "s:Sa"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "PlaybackPolicyHandler",
+                "printedName": "any FLPlayerInterface.PlaybackPolicyHandler",
+                "usr": "s:17FLPlayerInterface21PlaybackPolicyHandlerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "(any FLPlayerInterface.ContentThumbnailPreviewConfiguration)?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "ContentThumbnailPreviewConfiguration",
+                    "printedName": "any FLPlayerInterface.ContentThumbnailPreviewConfiguration",
+                    "usr": "s:17FLPlayerInterface36ContentThumbnailPreviewConfigurationP"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:16FLPlatformPlayer0aB7FactoryO05promoB05asset6promos13policyHandler22thumbnailConfiguration17FLPlayerInterface02AdB0_pSo10AVURLAssetC_SayAI5PromoVGAI014PlaybackPolicyH0_pAI023ContentThumbnailPreviewJ0_pSgtFZ",
+            "mangledName": "$s16FLPlatformPlayer0aB7FactoryO05promoB05asset6promos13policyHandler22thumbnailConfiguration17FLPlayerInterface02AdB0_pSo10AVURLAssetC_SayAI5PromoVGAI014PlaybackPolicyH0_pAI023ContentThumbnailPreviewJ0_pSgtFZ",
+            "moduleName": "FLPlatformPlayer",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "promoPlayer",
+            "printedName": "promoPlayer(contentUrl:promos:policyHandler:thumbnailConfiguration:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AdPlayer",
+                "printedName": "any FLPlayerInterface.AdPlayer",
+                "usr": "s:17FLPlayerInterface8AdPlayerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "URL",
+                "printedName": "Foundation.URL",
+                "usr": "s:10Foundation3URLV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Array",
+                "printedName": "[FLPlayerInterface.Promo]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Promo",
+                    "printedName": "FLPlayerInterface.Promo",
+                    "usr": "s:17FLPlayerInterface5PromoV"
+                  }
+                ],
+                "usr": "s:Sa"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "PlaybackPolicyHandler",
+                "printedName": "any FLPlayerInterface.PlaybackPolicyHandler",
+                "usr": "s:17FLPlayerInterface21PlaybackPolicyHandlerP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "(any FLPlayerInterface.ContentThumbnailPreviewConfiguration)?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "ContentThumbnailPreviewConfiguration",
+                    "printedName": "any FLPlayerInterface.ContentThumbnailPreviewConfiguration",
+                    "usr": "s:17FLPlayerInterface36ContentThumbnailPreviewConfigurationP"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:16FLPlatformPlayer0aB7FactoryO05promoB010contentUrl6promos13policyHandler22thumbnailConfiguration17FLPlayerInterface02AdB0_p10Foundation3URLV_SayAI5PromoVGAI014PlaybackPolicyI0_pAI023ContentThumbnailPreviewK0_pSgtFZ",
+            "mangledName": "$s16FLPlatformPlayer0aB7FactoryO05promoB010contentUrl6promos13policyHandler22thumbnailConfiguration17FLPlayerInterface02AdB0_p10Foundation3URLV_SayAI5PromoVGAI014PlaybackPolicyI0_pAI023ContentThumbnailPreviewK0_pSgtFZ",
+            "moduleName": "FLPlatformPlayer",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "fairplaylicenseFetcher",
+            "printedName": "fairplaylicenseFetcher()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "FairplayLicenseFetcher",
+                "printedName": "any FLPlayerInterface.FairplayLicenseFetcher",
+                "usr": "s:17FLPlayerInterface22FairplayLicenseFetcherP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:16FLPlatformPlayer0aB7FactoryO22fairplaylicenseFetcher17FLPlayerInterface015FairplayLicenseE0_pyFZ",
+            "mangledName": "$s16FLPlatformPlayer0aB7FactoryO22fairplaylicenseFetcher17FLPlayerInterface015FairplayLicenseE0_pyFZ",
+            "moduleName": "FLPlatformPlayer",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "fairplayLicenseFetcherDelegate",
+            "printedName": "fairplayLicenseFetcherDelegate(applicationCertificate:licenseUrl:skd:keyDeliveryType:platformAuthorizer:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "FairplayLicenseFetcherDelegate",
+                "printedName": "any FLPlayerInterface.FairplayLicenseFetcherDelegate",
+                "usr": "s:17FLPlayerInterface30FairplayLicenseFetcherDelegateP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Data",
+                "printedName": "Foundation.Data",
+                "usr": "s:10Foundation4DataV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "URL",
+                "printedName": "Foundation.URL",
+                "usr": "s:10Foundation3URLV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "KeyDeliveryType",
+                "printedName": "FLPlayerInterface.KeyDeliveryType",
+                "usr": "s:17FLPlayerInterface15KeyDeliveryTypeO"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "PlatformAuthorizer",
+                "printedName": "any FLPlatformCore.PlatformAuthorizer",
+                "usr": "s:14FLPlatformCore18PlatformAuthorizerP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:16FLPlatformPlayer0aB7FactoryO30fairplayLicenseFetcherDelegate22applicationCertificate10licenseUrl3skd15keyDeliveryType18platformAuthorizer17FLPlayerInterface08FairplayefG0_p10Foundation4DataV_AL3URLVSSAJ03KeynO0O0A4Core08PlatformQ0_ptFZ",
+            "mangledName": "$s16FLPlatformPlayer0aB7FactoryO30fairplayLicenseFetcherDelegate22applicationCertificate10licenseUrl3skd15keyDeliveryType18platformAuthorizer17FLPlayerInterface08FairplayefG0_p10Foundation4DataV_AL3URLVSSAJ03KeynO0O0A4Core08PlatformQ0_ptFZ",
+            "moduleName": "FLPlatformPlayer",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:16FLPlatformPlayer0aB7FactoryO",
+        "mangledName": "$s16FLPlatformPlayer0aB7FactoryO",
+        "moduleName": "FLPlatformPlayer",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          }
+        ]
+      }
+    ],
+    "json_format_version": 8
+  },
+  "ConstValues": []
+}

@@ -12,13 +12,13 @@ No dedicated confirmed URL is wired yet. App currently falls back to entertainme
 Current placeholder:
 `https://storefront.cms-qp.opt.quickplay.com/storefront/list?reg=all&dt=androidmobile&client=sony-sony-androidmobile&pf=regular&chrt=Sony1`
 Current usage:
-Placeholder only. Currently used as the dedicated placeholder storefront source when Micro Drama preference/affinity is dominant.
+Placeholder only. Currently used by the bottom `New & Hot` demo surface, which prefers the `Micro Drama` tab when that tab exists in the returned storefront.
 
 - `New & Hot storefront`
 Current placeholder:
 `https://storefront.cms-qp.opt.quickplay.com/storefront/list?reg=all&dt=androidmobile&client=sony-sony-androidmobile&pf=regular&chrt=Sony1`
 Current usage:
-Placeholder only. Currently used by the dedicated New & Hot storefront surface.
+Same placeholder is currently reused for the dedicated `New & Hot` surface in this demo.
 
 ## Needed from product/backend
 

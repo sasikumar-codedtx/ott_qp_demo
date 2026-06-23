@@ -1,20 +1,15 @@
 import Combine
 import Foundation
 
-enum SearchCategory: String, CaseIterable, Identifiable {
-    case trending = "All"
-    case clips = "Clips"
-    case shows = "Shows"
-    case microDrama = "Micro drama"
-    case movies = "Movies"
-
-    var id: String { rawValue }
+struct SearchFilter: Identifiable, Equatable, Hashable {
+    let id: String
+    let title: String
 }
 
 @MainActor
 final class SearchViewModel: ObservableObject {
     @Published var query = ""
-    @Published var selectedCategory: SearchCategory = .trending
+    @Published var selectedFilterID: String = SearchViewModel.allFilter.id
     @Published private(set) var popularItems: [StorefrontItem] = []
     @Published private(set) var results: [StorefrontItem] = []
     @Published private(set) var isLoading = false
@@ -23,6 +18,8 @@ final class SearchViewModel: ObservableObject {
     private let useCase: SearchContentUseCase
     private var cache: [String: [StorefrontItem]] = [:]
     private var cancellables = Set<AnyCancellable>()
+
+    static let allFilter = SearchFilter(id: "all", title: "All")
 
     init(useCase: SearchContentUseCase) {
         self.useCase = useCase
@@ -43,20 +40,20 @@ final class SearchViewModel: ObservableObject {
         query.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    var availableFilters: [SearchFilter] {
+        let classifications = results
+            .map(\.derivedSearchFilter)
+            .reduce(into: [String: SearchFilter]()) { partialResult, filter in
+                partialResult[filter.id] = filter
+            }
+
+        let sortedFilters = classifications.values.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+        return [Self.allFilter] + sortedFilters
+    }
+
     var displayedResults: [StorefrontItem] {
         let filtered = results.filter { item in
-            switch selectedCategory {
-            case .trending:
-                return true
-            case .clips:
-                return item.contentType.localizedCaseInsensitiveContains("highlight") || item.contentType.localizedCaseInsensitiveContains("clip")
-            case .shows:
-                return item.contentType.localizedCaseInsensitiveContains("series") || item.contentType.localizedCaseInsensitiveContains("show")
-            case .microDrama:
-                return item.contentType.localizedCaseInsensitiveContains("micro") || item.genres.contains(where: { $0.localizedCaseInsensitiveContains("micro") || $0.localizedCaseInsensitiveContains("drama") })
-            case .movies:
-                return item.contentType.localizedCaseInsensitiveContains("movie") || item.genres.contains(where: { $0.localizedCaseInsensitiveContains("movie") || $0.localizedCaseInsensitiveContains("film") })
-            }
+            selectedFilterID == Self.allFilter.id || item.derivedSearchFilter.id == selectedFilterID
         }
 
         return filtered.isEmpty ? results : filtered
@@ -66,7 +63,7 @@ final class SearchViewModel: ObservableObject {
         self.popularItems = Array(popularItems.prefix(15))
         query = ""
         results = []
-        selectedCategory = .trending
+        selectedFilterID = Self.allFilter.id
         errorMessage = nil
     }
 
@@ -75,7 +72,7 @@ final class SearchViewModel: ObservableObject {
             results = []
             errorMessage = nil
             isLoading = false
-            selectedCategory = .trending
+            selectedFilterID = Self.allFilter.id
             return
         }
 
@@ -88,13 +85,14 @@ final class SearchViewModel: ObservableObject {
 
         isLoading = true
         errorMessage = nil
-        selectedCategory = .trending
+        selectedFilterID = Self.allFilter.id
 
         do {
             let items = try await useCase.execute(term: term)
             cache[term.lowercased()] = items
             if normalizedQuery.caseInsensitiveCompare(term) == .orderedSame {
                 results = items
+                synchronizeSelectedFilter()
                 isLoading = false
             }
         } catch {
@@ -103,5 +101,36 @@ final class SearchViewModel: ObservableObject {
                 isLoading = false
             }
         }
+    }
+
+    private func synchronizeSelectedFilter() {
+        if availableFilters.contains(where: { $0.id == selectedFilterID }) == false {
+            selectedFilterID = Self.allFilter.id
+        }
+    }
+}
+
+extension StorefrontItem {
+    var derivedSearchFilter: SearchFilter {
+        let type = contentType.lowercased()
+        let searchableGenres = genres.map { $0.lowercased() }
+
+        if type.contains("highlight") || type.contains("clip") || type.contains("short") {
+            return SearchFilter(id: "clips", title: "Clips")
+        }
+
+        if type.contains("micro") || searchableGenres.contains(where: { $0.contains("micro") || $0.contains("drama") }) {
+            return SearchFilter(id: "micro-drama", title: "Micro Drama")
+        }
+
+        if type.contains("series") || type.contains("show") || type.contains("episode") {
+            return SearchFilter(id: "shows", title: "Shows")
+        }
+
+        if type.contains("movie") || searchableGenres.contains(where: { $0.contains("movie") || $0.contains("film") }) {
+            return SearchFilter(id: "movies", title: "Movies")
+        }
+
+        return SearchFilter(id: type.nilIfEmpty ?? "content", title: contentType.capitalized)
     }
 }

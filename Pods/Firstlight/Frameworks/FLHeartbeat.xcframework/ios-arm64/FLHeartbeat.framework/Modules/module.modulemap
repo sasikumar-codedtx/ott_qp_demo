@@ -1,0 +1,11 @@
+framework module FLHeartbeat {
+  umbrella header "FLHeartbeat.h"
+  export *
+
+  module * { export * }
+}
+
+module FLHeartbeat.Swift {
+  header "FLHeartbeat-Swift.h"
+  requires objc
+}

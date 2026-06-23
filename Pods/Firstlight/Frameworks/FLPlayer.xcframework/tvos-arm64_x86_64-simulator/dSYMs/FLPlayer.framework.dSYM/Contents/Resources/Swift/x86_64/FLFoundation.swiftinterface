@@ -1,0 +1,1031 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -target x86_64-apple-tvos12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name FLFoundation
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -interface-compiler-version 6.1.2
+import CommonCrypto
+import Darwin
+@_exported import FLFoundation
+import Foundation
+import MachO
+import Metal
+import Swift
+import UIKit
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+@_exported import os.log
+@_exported import os
+@_hasMissingDesignatedInitializers @available(iOS 13.0, tvOS 13.0, *)
+public class DevicePerformanceClassifier {
+  public static func getDeviceCapabilities() -> FLFoundation.DeviceCapability
+  public static func getTotalCPUCoreCount() -> Swift.Int
+  public static func getAllSupportedGPUFamily() -> [Metal.MTLGPUFamily]
+  public static func getTotalRamInGB() -> Swift.Double
+  public static func isHigherEndDevice(_ specification: FLFoundation.DeviceSpecification) -> Swift.Bool
+  public static func isMidRangeDevice(_ specification: FLFoundation.DeviceSpecification) -> Swift.Bool
+  public static func isLowEndDevice(_ specification: FLFoundation.DeviceSpecification) -> Swift.Bool
+  @objc deinit
+}
+public typealias ConnectionErrorHandler = (any Swift.Error) -> FLFoundation.ConnectionErrorAction
+public typealias HeaderTransform = ([Swift.String : Swift.String]) -> [Swift.String : Swift.String]
+public enum ConnectionErrorAction {
+  case proceed
+  case shutdown
+  public static func == (a: FLFoundation.ConnectionErrorAction, b: FLFoundation.ConnectionErrorAction) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct MessageEvent : Swift.Equatable, Swift.Hashable {
+  public let data: Swift.String
+  public let lastEventId: Swift.String
+  public init(data: Swift.String, lastEventId: Swift.String = "")
+  public static func == (a: FLFoundation.MessageEvent, b: FLFoundation.MessageEvent) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public protocol SidebandEventHandler {
+  func onOpened()
+  func onClosed()
+  func onMessage(eventType: Swift.String, messageEvent: FLFoundation.MessageEvent)
+  func onComment(comment: Swift.String)
+  func onError(error: any Swift.Error)
+}
+public enum ReadyState : Swift.String, Swift.Equatable {
+  case raw
+  case connecting
+  case open
+  case closed
+  case shutdown
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public class UnsuccessfulResponseError : Swift.Error {
+  final public let responseCode: Swift.Int
+  public init(responseCode: Swift.Int)
+  @objc deinit
+}
+public protocol Logger {
+  @inlinable func logDebug(format: Swift.StaticString, args: any Swift.CVarArg...)
+  @inlinable func logDebug(_ value: Any, file: Swift.String, function: Swift.String, line: Swift.UInt)
+  @inlinable func trace(file: Swift.String, function: Swift.String, line: Swift.UInt)
+  @inlinable func logInfo(format: Swift.StaticString, args: any Swift.CVarArg...)
+  @inlinable func logInfo(_ value: Any, file: Swift.String, function: Swift.String, line: Swift.UInt)
+  @inlinable func log(format: Swift.StaticString, args: any Swift.CVarArg...)
+  @inlinable func log(_ value: Any, file: Swift.String, function: Swift.String, line: Swift.UInt)
+  @inlinable func logError(format: Swift.StaticString, args: any Swift.CVarArg...)
+  @inlinable func logError(_ value: Any, file: Swift.String, function: Swift.String, line: Swift.UInt)
+  @inlinable func logFault(format: Swift.StaticString, args: any Swift.CVarArg...)
+  @inlinable func logFault(_ value: Any, file: Swift.String, function: Swift.String, line: Swift.UInt)
+}
+extension FLFoundation.Logger {
+  @inlinable public func logDebug(_ value: Any, file: Swift.String = #file, function: Swift.String = #function, line: Swift.UInt = #line) {
+        logDebug(value, file: file, function: function, line: line)
+    }
+  @inlinable public func logInfo(_ value: Any, file: Swift.String = #file, function: Swift.String = #function, line: Swift.UInt = #line) {
+        logInfo(value, file: file, function: function, line: line)
+    }
+  @inlinable public func log(_ value: Any, file: Swift.String = #file, function: Swift.String = #function, line: Swift.UInt = #line) {
+        log(value, file: file, function: function, line: line)
+    }
+  @inlinable public func logError(_ value: Any, file: Swift.String = #file, function: Swift.String = #function, line: Swift.UInt = #line) {
+        logError(value, file: file, function: function, line: line)
+    }
+  @inlinable public func logFault(_ value: Any, file: Swift.String = #file, function: Swift.String = #function, line: Swift.UInt = #line) {
+        logFault(value, file: file, function: function, line: line)
+    }
+}
+public enum CryptoAlgorithm {
+  case MD5
+  case SHA1
+  case SHA224
+  case SHA256
+  case SHA384
+  case SHA512
+  public func hmac(message: Swift.String, key: Foundation.Data) -> Foundation.Data
+  public static func == (a: FLFoundation.CryptoAlgorithm, b: FLFoundation.CryptoAlgorithm) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension FLFoundation.RequestWithQuery : FLFoundation.URLRequestProvider {
+  public func urlRequest() throws -> Foundation.URLRequest
+}
+extension FLFoundation.RequestWithPayload : FLFoundation.URLRequestProvider {
+  public func urlRequest() throws -> Foundation.URLRequest
+}
+public class EventSource {
+  public init(config: FLFoundation.EventSource.Config)
+  public func start()
+  public func stop()
+  public func getLastEventId() -> Swift.String?
+  public struct Config {
+    public let handler: any FLFoundation.SidebandEventHandler
+    public let url: Foundation.URL
+    public var method: Swift.String
+    public var body: Foundation.Data?
+    public var lastEventId: Swift.String
+    public var headers: [Swift.String : Swift.String]
+    public var headerTransform: ([Swift.String : Swift.String]) -> [Swift.String : Swift.String]
+    public var reconnectTime: Swift.Double
+    public var maxReconnectTime: Swift.Double
+    public var backoffResetThreshold: Swift.Double
+    public var idleTimeout: Swift.Double
+    public var urlSessionConfiguration: Foundation.URLSessionConfiguration {
+      get
+      set
+    }
+    public var connectionErrorHandler: (_ error: any Swift.Error) -> FLFoundation.ConnectionErrorAction
+    public init(handler: any FLFoundation.SidebandEventHandler, url: Foundation.URL)
+  }
+  @objc deinit
+}
+@available(iOS 13.0, tvOS 13.0, *)
+public struct DeviceSpecification {
+  public init(processorCount: Swift.Int, ramInGB: Swift.Double, supportedGPUFamilies: [Metal.MTLGPUFamily])
+}
+public typealias Headers = [Swift.String : Swift.String]
+public typealias Parameters = [Swift.String : Any]
+public enum HTTPMethod : Swift.String, Swift.Hashable {
+  case get
+  case post
+  case put
+  case delete
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+extension Foundation.URLRequest {
+  public var method: FLFoundation.HTTPMethod? {
+    get
+    set
+  }
+}
+public protocol HTTPClient {
+  func request(_ url: any FLFoundation.URLProvider, method: FLFoundation.HTTPMethod, headers: FLFoundation.Headers?, queryParameters: FLFoundation.Parameters?) -> any FLFoundation.ResponseHandler
+  func request<Parameters>(_ url: any FLFoundation.URLProvider, method: FLFoundation.HTTPMethod, headers: FLFoundation.Headers?, httpBody: Parameters?) -> any FLFoundation.ResponseHandler where Parameters : Swift.Encodable
+}
+extension FLFoundation.HTTPClient {
+  public func request(_ url: any FLFoundation.URLProvider, method: FLFoundation.HTTPMethod = .get, headers: FLFoundation.Headers? = nil, queryParameters: FLFoundation.Parameters? = nil) -> any FLFoundation.ResponseHandler
+  public func request(_ requestWithQuery: FLFoundation.RequestWithQuery) -> any FLFoundation.ResponseHandler
+  public func request<Parameters>(_ url: any FLFoundation.URLProvider, method: FLFoundation.HTTPMethod, headers: FLFoundation.Headers? = nil, httpBody: Parameters? = nil) -> any FLFoundation.ResponseHandler where Parameters : Swift.Encodable
+  public func request<T>(_ requestWithPayload: FLFoundation.RequestWithPayload<T>) -> any FLFoundation.ResponseHandler where T : Swift.Encodable
+}
+final public class Observable<T> {
+  public typealias ValueChanged = (_ oldValue: T, _ newValue: T) -> Swift.Void
+  final public var value: T {
+    get
+    set
+  }
+  required public init(_ initialValue: T)
+  final public func add(_ observer: Swift.AnyObject, valueChanged: @escaping FLFoundation.Observable<T>.ValueChanged)
+  final public func remove(_ observer: Swift.AnyObject)
+  @objc deinit
+}
+public enum JWTHeaderKey : Swift.String {
+  case algorithm
+  case jwkSetUrl
+  case jsonWebKey
+  case keyId
+  case x509Url
+  case x509Certificate
+  case x509S1Thumbprint
+  case x509S256Thumbprint
+  case type
+  case contentType
+  case critical
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum JWTRegisteredClaimsKey : Swift.String {
+  case issuer
+  case subject
+  case audience
+  case expirationTime
+  case notBefore
+  case issuedAt
+  case jwtId
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public struct JWTHeader {
+  public mutating func add(_ header: FLFoundation.JWTHeaderKey, with value: Any)
+  public func stringRepresentation() -> Swift.String?
+}
+public struct JWTPayload {
+  public mutating func addRegisteredClaim(_ claim: FLFoundation.JWTRegisteredClaimsKey, with value: Any)
+  public mutating func addClaim(_ claim: Swift.String, with value: Any)
+  public func stringRepresentation() -> Swift.String?
+}
+public enum JWTAlgorithm {
+  case HMACSHA256(secret: Foundation.Data)
+  case HMACSHA384(secret: Foundation.Data)
+  case HMACSHA512(secret: Foundation.Data)
+  public func alg() -> Swift.String
+  public func sign(message: Swift.String) -> Foundation.Data
+}
+public enum JWT {
+  public static func jws(header: any Swift.Encodable, payload: any Swift.Encodable, algorithm: FLFoundation.JWTAlgorithm) throws -> Swift.String?
+}
+public typealias FailedCheckType = (check: FLFoundation.FailedCheck, failMessage: Swift.String)
+public enum FailedCheck : Swift.CaseIterable {
+  case urlSchemes
+  case existenceOfSuspiciousFiles
+  case suspiciousFilesCanBeOpened
+  case restrictedDirectoriesWriteable
+  case fork
+  case symbolicLinks
+  case dyld
+  case openedPorts
+  case pSelectFlag
+  public static func == (a: FLFoundation.FailedCheck, b: FLFoundation.FailedCheck) -> Swift.Bool
+  public typealias AllCases = [FLFoundation.FailedCheck]
+  nonisolated public static var allCases: [FLFoundation.FailedCheck] {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension os.OSLog : FLFoundation.Logger {
+  @inlinable public func logDebug(format: Swift.StaticString, args: any Swift.CVarArg...) {
+             
+             
+            let type = OSLogType.default
+        let message = LogMessage(format: format, array: args)
+        logToConsole(representation: message, type: type)
+    }
+  @inlinable public func logDebug(_ value: Any, file: Swift.String = #file, function: Swift.String = #function, line: Swift.UInt = #line) {
+             
+             
+            let type = OSLogType.default
+        logMessage(value: value, file: file, function: function, line: line, type: type)
+    }
+  @inlinable public func trace(file: Swift.String = #file, function: Swift.String = #function, line: Swift.UInt = #line) {
+             
+             
+            let type = OSLogType.default
+        logMessage(value: "<OSLog.trace>", file: file, function: function, line: line, type: type)
+    }
+  @inlinable public func logInfo(format: Swift.StaticString, args: any Swift.CVarArg...) {
+             
+             
+            let type = OSLogType.default
+        let message = LogMessage(format: format, array: args)
+        logToConsole(representation: message, type: type)
+    }
+  @inlinable public func logInfo(_ value: Any, file: Swift.String = #file, function: Swift.String = #function, line: Swift.UInt = #line) {
+             
+             
+            let type = OSLogType.default
+        logMessage(value: value, file: file, function: function, line: line, type: type)
+    }
+  @inlinable public func log(format: Swift.StaticString, args: any Swift.CVarArg...) {
+        let message = LogMessage(format: format, array: args)
+        logToConsole(representation: message, type: .default)
+    }
+  @inlinable public func log(_ value: Any, file: Swift.String = #file, function: Swift.String = #function, line: Swift.UInt = #line) {
+        logMessage(value: value, file: file, function: function, line: line, type: .default)
+    }
+  @inlinable public func logError(format: Swift.StaticString, args: any Swift.CVarArg...) {
+        let message = LogMessage(format: format, array: args)
+        logToConsole(representation: message, type: .error)
+    }
+  @inlinable public func logError(_ value: Any, file: Swift.String = #file, function: Swift.String = #function, line: Swift.UInt = #line) {
+        logMessage(value: value, file: file, function: function, line: line, type: .error)
+    }
+  @inlinable public func logFault(format: Swift.StaticString, args: any Swift.CVarArg...) {
+        let message = LogMessage(format: format, array: args)
+        logToConsole(representation: message, type: .fault)
+    }
+  @inlinable public func logFault(_ value: Any, file: Swift.String = #file, function: Swift.String = #function, line: Swift.UInt = #line) {
+        logMessage(value: value, file: file, function: function, line: line, type: .fault)
+    }
+  @usableFromInline
+  internal func logMessage(value: Any, file: Swift.String, function: Swift.String, line: Swift.UInt, type: os.OSLogType)
+  @usableFromInline
+  internal func logToConsole(representation: FLFoundation.LogMessage, type: os.OSLogType)
+}
+public struct LogMessage {
+  public let format: Swift.StaticString
+  public let args: [any Swift.CVarArg]
+  public init(_ format: Swift.StaticString, _ args: any Swift.CVarArg...)
+  public init(format: Swift.StaticString, array args: [any Swift.CVarArg])
+}
+public protocol CustomOSLogMessageConvertible {
+  func osLogMessage(file: Swift.String, function: Swift.String, line: Swift.UInt) -> FLFoundation.LogMessage
+}
+extension FLFoundation.CustomOSLogMessageConvertible {
+  @inlinable public func osLogMessage(file: Swift.String = #file, function: Swift.String = #function, line: Swift.UInt = #line) -> FLFoundation.LogMessage {
+        let pathDelimiter = Character("/")
+        let fileName = file.split(separator: pathDelimiter).last.flatMap { String($0) } ?? file
+            return LogMessage("[%{public}@:%{public}@:%ld]: %{private}@", fileName, function, line, osLogDescription)
+    }
+  @usableFromInline
+  internal var osLogDescription: Swift.String {
+    get
+  }
+}
+extension Foundation.NSError : FLFoundation.CustomOSLogMessageConvertible {
+}
+extension Swift.String : FLFoundation.CustomOSLogMessageConvertible {
+}
+extension Swift.Bool : FLFoundation.CustomOSLogMessageConvertible {
+}
+extension Swift.Int : FLFoundation.CustomOSLogMessageConvertible {
+}
+extension Swift.UInt : FLFoundation.CustomOSLogMessageConvertible {
+}
+extension Swift.Float : FLFoundation.CustomOSLogMessageConvertible {
+}
+extension Swift.Double : FLFoundation.CustomOSLogMessageConvertible {
+}
+public protocol Session {
+  func performRequest(_ requestProvider: any FLFoundation.URLRequestProvider) -> any FLFoundation.ResponseHandler
+  func cleanup()
+}
+public protocol SessionTask : FLFoundation.ResponseHandler, FLFoundation.Responsible {
+  var requestProvider: (any FLFoundation.URLRequestProvider)? { get set }
+  var task: Foundation.URLSessionTask? { get set }
+}
+public protocol Responsible {
+  func didFailToCreateURLRequest(with error: any Swift.Error)
+  func didReceiveResponse(dataTask: Foundation.URLSessionDataTask, response: Foundation.URLResponse)
+  func didReceiveData(_ data: Foundation.Data)
+  func didCompleteWithError(dataTask: Foundation.URLSessionTask, error: (any Swift.Error)?)
+}
+public typealias BlockWithCompletion<Input, Output> = ((Input, @escaping (Output) -> Swift.Void) -> Swift.Void)?
+infix operator => : LogicalConjunctionPrecedence
+public func => <Input, InterimOutput, Output>(lhs: FLFoundation.BlockWithCompletion<Input, InterimOutput>, rhs: FLFoundation.BlockWithCompletion<InterimOutput, Output>) -> FLFoundation.BlockWithCompletion<Input, Output>
+public func taskWithRetryOnNetworkFailure<T>(attempts: Swift.Int, delay: Swift.Double, task: @escaping (_ completion: @escaping (Swift.Result<T, any Swift.Error>) -> Swift.Void) -> Swift.Void, completion: @escaping (Swift.Result<T, any Swift.Error>) -> Swift.Void)
+public func dispatchAsyncToMainThreadIfNeeded(_ block: @escaping () -> Swift.Void)
+public func randomUUIDString() -> Swift.String
+public func decodeDictionaryToDecodable<T>(_ dictionary: [Swift.String : Any], to type: T.Type) throws -> T where T : Swift.Decodable
+public protocol Store {
+}
+public protocol KeyValueStore : FLFoundation.Store {
+  func object(forKey key: Swift.String) -> Any?
+  func set(_ value: Any?, forKey key: Swift.String)
+  func removeObject(forKey key: Swift.String)
+  func string(forKey key: Swift.String) -> Swift.String?
+  func array(forKey key: Swift.String) -> [Any]?
+  func dictionary(forKey key: Swift.String) -> [Swift.String : Any]?
+  func data(forKey key: Swift.String) -> Foundation.Data?
+  func stringArray(forKey key: Swift.String) -> [Swift.String]?
+  func integer(forKey key: Swift.String) -> Swift.Int
+  func float(forKey key: Swift.String) -> Swift.Float
+  func double(forKey key: Swift.String) -> Swift.Double
+  func bool(forKey key: Swift.String) -> Swift.Bool
+  func set(_ value: Swift.Int, forKey key: Swift.String)
+  func set(_ value: Swift.Float, forKey key: Swift.String)
+  func set(_ value: Swift.Double, forKey key: Swift.String)
+  func set(_ value: Swift.Bool, forKey key: Swift.String)
+  func sync() throws
+  func clear() throws
+}
+@available(iOS 13.0, tvOS 13.0, *)
+extension Metal.MTLGPUFamily : @retroactive Swift.CaseIterable {
+  public static var allCases: [Metal.MTLGPUFamily] {
+    get
+  }
+  @available(iOS 13.0, tvOS 13.0, *)
+  public typealias AllCases = [Metal.MTLGPUFamily]
+}
+@objc @_inheritsConvenienceInitializers public class NetworkSpeedTester : ObjectiveC.NSObject, Foundation.URLSessionDelegate, Foundation.URLSessionDataDelegate, Foundation.URLSessionTaskDelegate {
+  public func startSpeedTest(urls: FLFoundation.QualityURLSet, onProgress: @escaping (_ instantaneousMbps: Swift.Double, _ elapsedMs: Foundation.TimeInterval) -> Swift.Void, completion: @escaping (_ speedInMbps: Swift.Double?, _ dnsTime: Foundation.TimeInterval?, _ totalTime: Foundation.TimeInterval?, _ error: (any Swift.Error)?) -> Swift.Void)
+  @objc public func urlSession(_ session: Foundation.URLSession, dataTask: Foundation.URLSessionDataTask, didReceive data: Foundation.Data)
+  @objc public func urlSession(_ session: Foundation.URLSession, task: Foundation.URLSessionTask, didFinishCollecting metrics: Foundation.URLSessionTaskMetrics)
+  @objc override dynamic public init()
+  @objc deinit
+}
+public struct SpeedTestResult {
+  public let averageSpeedMbps: Swift.Double
+  public let averageDnsResolutionTimeMs: Foundation.TimeInterval
+  public let totalTestDurationMs: Foundation.TimeInterval
+}
+public struct QualityURLSet {
+  public let low: Foundation.URL
+  public let medium: Foundation.URL
+  public let high: Foundation.URL
+  public init(low: Foundation.URL, medium: Foundation.URL, high: Foundation.URL)
+  public var orderedURLs: [Foundation.URL] {
+    get
+  }
+}
+@_hasMissingDesignatedInitializers public class SpeedAnalyser {
+  public static func measureDownloadSpeed(urls: FLFoundation.QualityURLSet, delegate: any FLFoundation.SpeedTestDelegate)
+  @objc deinit
+}
+public protocol SpeedTestDelegate : AnyObject {
+  func speedTestDidFail(with error: any Swift.Error)
+  func speedTestDidChangeProgress(instantaneousMbps: Swift.Double, elapsedMs: Foundation.TimeInterval)
+  func speedTestDidComplete(with result: FLFoundation.SpeedTestResult)
+}
+public protocol StateReducer {
+  associatedtype InputEvent
+  associatedtype OutputCommand
+  mutating func handleEvent(event: Self.InputEvent) -> Self.OutputCommand
+  static var initialState: Self { get }
+}
+public protocol Event {
+  func event() -> Self
+}
+extension FLFoundation.Event {
+  public func event() -> Self
+}
+public protocol Command {
+  func command() -> Self
+}
+extension FLFoundation.Command {
+  public func command() -> Self
+}
+public protocol SearchElement {
+  func isMatch(position: Swift.Double) -> Swift.Bool
+  func isMinimumRange(_ value: Swift.Double) -> Swift.Bool
+}
+extension Swift.Array where Element : FLFoundation.SearchElement {
+  public func doBinarySearch(_ value: Swift.Double) -> (any FLFoundation.SearchElement)?
+}
+public struct VMapResponse : Swift.Decodable {
+  public let playerData: FLFoundation.VMapPlayerData?
+  public let sessionData: FLFoundation.VMapResponse.VMapSessionData?
+  public let thumbnailURL: FLFoundation.VMapResponse.VMapThumbnailURL?
+  public let adBreak: [FLFoundation.VMapAdBreak]?
+  public enum CodingKeys : Swift.String, Swift.CodingKey, Swift.CaseIterable {
+    case adBreak
+    case playerData
+    case sessionData
+    case thumbnailURL
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias AllCases = [FLFoundation.VMapResponse.CodingKeys]
+    public typealias RawValue = Swift.String
+    nonisolated public static var allCases: [FLFoundation.VMapResponse.CodingKeys] {
+      get
+    }
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(from decoder: any Swift.Decoder) throws
+  public static func secondsForTimeString(_ string: Swift.String?) -> Foundation.NSNumber?
+  public func calculatePreviousAdBreaksDuration(from limit: Swift.Int, adBreak: [FLFoundation.VMapAdBreak]?) -> Foundation.TimeInterval
+  public struct VMapSessionData : Swift.Decodable {
+    public let sessionId: Swift.String
+    public enum CodingKeys : Swift.String, Swift.CodingKey, Swift.CaseIterable {
+      case sessionId
+      public init?(rawValue: Swift.String)
+      public init?(stringValue: Swift.String)
+      public init?(intValue: Swift.Int)
+      public typealias AllCases = [FLFoundation.VMapResponse.VMapSessionData.CodingKeys]
+      public typealias RawValue = Swift.String
+      nonisolated public static var allCases: [FLFoundation.VMapResponse.VMapSessionData.CodingKeys] {
+        get
+      }
+      public var intValue: Swift.Int? {
+        get
+      }
+      public var rawValue: Swift.String {
+        get
+      }
+      public var stringValue: Swift.String {
+        get
+      }
+    }
+    public init(from decoder: any Swift.Decoder) throws
+  }
+  public struct VMapThumbnailURL : Swift.Decodable {
+    public let thumbnailURL: Swift.String
+    public enum CodingKeys : Swift.String, Swift.CodingKey, Swift.CaseIterable {
+      case thumbnailURL
+      public init?(rawValue: Swift.String)
+      public init?(stringValue: Swift.String)
+      public init?(intValue: Swift.Int)
+      public typealias AllCases = [FLFoundation.VMapResponse.VMapThumbnailURL.CodingKeys]
+      public typealias RawValue = Swift.String
+      nonisolated public static var allCases: [FLFoundation.VMapResponse.VMapThumbnailURL.CodingKeys] {
+        get
+      }
+      public var intValue: Swift.Int? {
+        get
+      }
+      public var rawValue: Swift.String {
+        get
+      }
+      public var stringValue: Swift.String {
+        get
+      }
+    }
+    public init(from decoder: any Swift.Decoder) throws
+  }
+}
+public struct VMapPlayerData : Swift.Decodable {
+  public let contentLength: Swift.String?
+  public let payloadLength: Swift.String?
+  public let contentUri: Foundation.URL?
+  public enum CodingKeys : Swift.String, Swift.CodingKey, Swift.CaseIterable {
+    case contentLength
+    case payloadLength
+    case contentUri
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias AllCases = [FLFoundation.VMapPlayerData.CodingKeys]
+    public typealias RawValue = Swift.String
+    nonisolated public static var allCases: [FLFoundation.VMapPlayerData.CodingKeys] {
+      get
+    }
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct VMapAdBreak : Swift.Decodable {
+  public var ad: [FLFoundation.VMapAd]?
+  public let timeOffset: Swift.String?
+  public enum CodingKeys : Swift.String, Swift.CodingKey, Swift.CaseIterable {
+    case ad, timeOffset
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias AllCases = [FLFoundation.VMapAdBreak.CodingKeys]
+    public typealias RawValue = Swift.String
+    nonisolated public static var allCases: [FLFoundation.VMapAdBreak.CodingKeys] {
+      get
+    }
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(from decoder: any Swift.Decoder) throws
+  public func convertToTimeInterval(playerDuration: Foundation.TimeInterval) -> Foundation.TimeInterval?
+  public var totalDuration: Foundation.TimeInterval {
+    get
+  }
+}
+public struct VMapAd : Swift.Decodable {
+  public var adId: Swift.String
+  public var adTitle: Swift.String?
+  public var adSystem: Swift.String?
+  public var adDuration: Swift.String?
+  public var adDescription: Swift.String?
+  public var adLinear: FLFoundation.VMapAdLinear?
+  public var duration: Foundation.TimeInterval {
+    get
+  }
+  public enum CodingKeys : Swift.String, Swift.CodingKey, Swift.CaseIterable {
+    case adId
+    case adTitle
+    case adSystem
+    case adDuration
+    case adLinear
+    case adDescription
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias AllCases = [FLFoundation.VMapAd.CodingKeys]
+    public typealias RawValue = Swift.String
+    nonisolated public static var allCases: [FLFoundation.VMapAd.CodingKeys] {
+      get
+    }
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct VMapAdLinear : Swift.Decodable {
+  public let skipOffset: Swift.String?
+  public let adDuration: Swift.String?
+  public let creativeId: Swift.String?
+  public var duration: Foundation.TimeInterval {
+    get
+  }
+  public var skipOffsetDuration: Foundation.TimeInterval {
+    get
+  }
+  public enum CodingKeys : Swift.String, Swift.CodingKey, Swift.CaseIterable {
+    case skipOffset
+    case adDuration
+    case creativeId
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias AllCases = [FLFoundation.VMapAdLinear.CodingKeys]
+    public typealias RawValue = Swift.String
+    nonisolated public static var allCases: [FLFoundation.VMapAdLinear.CodingKeys] {
+      get
+    }
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(from decoder: any Swift.Decoder) throws
+}
+public protocol URLProvider {
+  func url() throws -> Foundation.URL
+}
+extension Swift.String : FLFoundation.URLProvider {
+  public func url() throws -> Foundation.URL
+}
+extension Foundation.URL : FLFoundation.URLProvider {
+  public func url() throws -> Foundation.URL
+}
+extension Foundation.URLComponents : FLFoundation.URLProvider {
+  public func url() throws -> Foundation.URL
+}
+public protocol URLRequestProvider {
+  func urlRequest() throws -> Foundation.URLRequest
+}
+extension FLFoundation.URLRequestProvider {
+  public var urlRequest: Foundation.URLRequest? {
+    get
+  }
+}
+extension Foundation.URLRequest : FLFoundation.URLRequestProvider {
+  public func urlRequest() throws -> Foundation.URLRequest
+}
+extension Foundation.URLRequest {
+  public init(url: any FLFoundation.URLProvider, method: FLFoundation.HTTPMethod, headers: FLFoundation.Headers? = nil) throws
+}
+extension Swift.Int {
+  public var hexString: Swift.String {
+    get
+  }
+}
+extension Swift.String {
+  public var base64: Swift.String {
+    get
+  }
+  public var base64URL: Swift.String {
+    get
+  }
+  public var iso8601UTCDateToEpochTime: Foundation.TimeInterval {
+    get
+  }
+  public func decodeBase64EncodedString() -> Swift.String?
+  public func parseTimeStringFormatToSeconds() -> Foundation.NSNumber?
+}
+extension Swift.Double {
+  public func toMilliSeconds() -> Swift.Double
+}
+extension Swift.Result {
+  public var success: Success? {
+    get
+  }
+  public var failure: Failure? {
+    get
+  }
+  public init(value: Success, error: Failure?)
+  public func tryMap<NewSuccess>(_ transform: (Success) throws -> NewSuccess) -> Swift.Result<NewSuccess, any Swift.Error>
+  public func tryMapError<NewFailure>(_ transform: (Failure) throws -> NewFailure) -> Swift.Result<Success, any Swift.Error> where NewFailure : Swift.Error
+}
+extension Swift.UInt64 {
+  public func percentOf(_ value: Swift.UInt64) -> Swift.UInt64
+}
+extension Swift.Double {
+  public func roundToPlaces(places: Swift.Int) -> Swift.Double
+}
+extension Swift.Double {
+  public func percentOf(_ value: Swift.Double) -> Swift.Double
+}
+extension Swift.Encodable {
+  public func toString() throws -> Swift.String?
+}
+extension Swift.Decodable {
+  public static func decode(from string: Swift.String) throws -> Self?
+}
+extension Foundation.Data {
+  public init?(base64URLEncoded input: Swift.String)
+  public func base64URLEncodedString() -> Swift.String
+}
+extension Foundation.FileManager {
+  public func allocatedSizeOfDirectory(at directoryURL: Foundation.URL) throws -> Swift.UInt64
+}
+extension Swift.KeyedDecodingContainer {
+  public func decode(_ type: [Swift.String : Any].Type, forKey key: K) throws -> [Swift.String : Any]
+  public func decode(_: [[Swift.String : Any]].Type, forKey key: K) throws -> [[Swift.String : Any]]
+  public func decodeIfPresent(_ type: [Swift.String : Any].Type, forKey key: K) throws -> [Swift.String : Any]?
+  public func decode(_ type: [Any].Type, forKey key: K) throws -> [Any]
+  public func decodeIfPresent(_ type: [Any].Type, forKey key: K) throws -> [Any]?
+  public func decode(_: [Swift.String : Any].Type) throws -> [Swift.String : Any]
+}
+extension Swift.UnkeyedDecodingContainer {
+  public mutating func decode(_: [Any].Type) throws -> [Any]
+  public mutating func decode(_ type: [Swift.String : Any].Type) throws -> [Swift.String : Any]
+}
+public struct JSONCodingKeys : Swift.CodingKey {
+  public var stringValue: Swift.String
+  public var intValue: Swift.Int?
+  public init?(stringValue: Swift.String)
+  public init?(intValue: Swift.Int)
+}
+extension Swift.KeyedEncodingContainer {
+  public mutating func encodeIfPresent(_ value: [Swift.String : Any]?, forKey key: Swift.KeyedEncodingContainer<K>.Key) throws
+  public mutating func encodeIfPresent(_ value: [Any]?, forKey key: Swift.KeyedEncodingContainer<K>.Key) throws
+}
+extension Swift.Encodable {
+  public func toDictionary() -> [Swift.String : Any]?
+}
+extension Swift.String {
+  public var capitalizedFirstLetter: Swift.String {
+    get
+  }
+  public func convertToDictionary() -> [Swift.String : Any]?
+  public func convertDecodable<T>(type: T.Type) -> T? where T : Swift.Decodable
+}
+extension Foundation.NSError {
+  public var contextualDescription: Swift.String? {
+    get
+  }
+}
+public protocol VMapParser : AnyObject {
+  var string: Swift.String { get }
+  var allCases: [any FLFoundation.VMapKey] { get }
+  var delegate: (any FLFoundation.VMapParserDelegate)? { get set }
+  func parse(client: any FLFoundation.HTTPClient)
+}
+public protocol VMapParserDelegate : AnyObject {
+  func parser(downloadCompleted completed: Swift.Bool, with error: (any FLFoundation.FLError)?)
+  func parser(_ parser: any FLFoundation.VMapParser, didReceive output: FLFoundation.VMapResponse)
+  func parser(_ parser: any FLFoundation.VMapParser, didFail error: any FLFoundation.FLError)
+}
+extension FLFoundation.VMapParser {
+  public typealias Element = any FLFoundation.VMapKey
+}
+public protocol VMapKey : Swift.RawRepresentable {
+  var key: Swift.String { get }
+  var exposedKey: Swift.String { get }
+}
+extension FLFoundation.VMapKey where Self.RawValue == Swift.String {
+  public var exposedKey: Swift.String {
+    get
+  }
+}
+public struct WebVTTModel : FLFoundation.SearchElement {
+  public var startTime: Swift.Double
+  public var endTime: Swift.Double
+  public var imageUrl: Swift.String
+  public func isMatch(position: Swift.Double) -> Swift.Bool
+  public func isMinimumRange(_ value: Swift.Double) -> Swift.Bool
+  @available(*, deprecated, message: "Use isMatch(position:) instead.")
+  public func isMatch(duration: Swift.Double) -> Swift.Bool
+}
+public enum WebVTTErrorCodes : Swift.Int, Foundation.LocalizedError {
+  case WEBVTT_DOCUMENT_RETRIEVAL_FAILURE
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public struct RequestWithQuery {
+  public let url: any FLFoundation.URLProvider
+  public let method: FLFoundation.HTTPMethod
+  public let headers: FLFoundation.Headers?
+  public let queryParameters: FLFoundation.Parameters?
+  public init(url: any FLFoundation.URLProvider, method: FLFoundation.HTTPMethod, headers: FLFoundation.Headers? = nil, queryParameters: FLFoundation.Parameters? = nil)
+}
+public struct RequestWithPayload<HTTPBody> where HTTPBody : Swift.Encodable {
+  public let url: any FLFoundation.URLProvider
+  public let method: FLFoundation.HTTPMethod
+  public let headers: FLFoundation.Headers?
+  public let httpBody: HTTPBody?
+  public init(url: any FLFoundation.URLProvider, method: FLFoundation.HTTPMethod, headers: FLFoundation.Headers? = nil, httpBody: HTTPBody? = nil)
+}
+public protocol FLDeviceSecurity {
+  var allowPlaybackOnInsecureDevice: Swift.Bool { get set }
+  var isDeviceSecure: Swift.Bool { get }
+  var securityFailureReason: Swift.String? { get }
+  func setAdditionalChecks(checks: [FLFoundation.SecurityChecks])
+  func getDeviceSecurityStatus(check bundleId: Swift.String?) -> (status: Swift.Bool, failureReason: Swift.String?)
+  func getDeviceSecurityStatus(with additionalChecks: [FLFoundation.SecurityChecks]) -> (status: Swift.Bool, failureReason: Swift.String?)
+}
+extension FLFoundation.FLDeviceSecurity {
+  public func getDeviceSecurityStatus(check bundleId: Swift.String? = nil) -> (status: Swift.Bool, failureReason: Swift.String?)
+}
+public enum SecurityChecks {
+  case proxyCheck
+  case debuggerCheck
+  case emulatorCheck
+  case integrityCheck(bundleID: Swift.String)
+}
+public class MulticastDelegate<ProtocolType> {
+  public var delegates: [ProtocolType] {
+    get
+  }
+  public init(delegates: [ProtocolType] = [])
+  public func addDelegate(_ delegate: ProtocolType)
+  public func removeDelegate(delegate: ProtocolType)
+  public func invokeDelegates(_ closure: (ProtocolType) -> Swift.Void)
+  @objc deinit
+}
+public enum NetworkError : Swift.Error {
+  public enum ParameterEncodingFailureReason {
+    case missingURL
+    case jsonEncodingFailed(error: any Swift.Error)
+  }
+  public enum ParameterEncoderFailureReason {
+    public enum RequiredComponent {
+      case url
+      case httpMethod(rawValue: Swift.String)
+    }
+    case missingRequiredComponent(FLFoundation.NetworkError.ParameterEncoderFailureReason.RequiredComponent)
+    case encoderFailed(error: any Swift.Error)
+  }
+  case invalidURL(url: Swift.String)
+  case invalidRequest(url: Swift.String)
+  case parameterEncodingFailed(reason: FLFoundation.NetworkError.ParameterEncodingFailureReason)
+  case parameterEncoderFailed(reason: FLFoundation.NetworkError.ParameterEncoderFailureReason)
+  case responseDecoderFailed(reason: Swift.String)
+}
+public enum ErrorCategory {
+  public static let kErrorCategoryMaskAll: Swift.Int
+  public static let kErrorCategoryMaskNetwork: Swift.Int
+  public static let kErrorCategoryMaskServer: Swift.Int
+  public static let kErrorCategoryMaskThirdParty: Swift.Int
+  public static let kErrorCategoryMaskValidation: Swift.Int
+  public static let kErrorCategoryMaskInternal: Swift.Int
+  public static let kErrorCategoryMaskSecurity: Swift.Int
+  public static let kErrorCategoryMaskPlayback: Swift.Int
+  public static let kErrorCategoryMaskDownload: Swift.Int
+  public static let kErrorCategoryMaskAnalytics: Swift.Int
+}
+public func version() -> Swift.String
+public enum FLFoundationFactory {
+  public static func session(configuration: Foundation.URLSessionConfiguration = .default) -> any FLFoundation.Session
+  public static func sessionTask(requestProvider: any FLFoundation.URLRequestProvider) -> any FLFoundation.SessionTask
+  public static func httpClient(configuration: Foundation.URLSessionConfiguration = .default, defaultHeaders: FLFoundation.Headers? = nil) -> any FLFoundation.HTTPClient
+  public static func httpClient(session: any FLFoundation.Session, defaultHeaders: FLFoundation.Headers? = nil) -> any FLFoundation.HTTPClient
+  public static func keyValueStore(name: Swift.String, storeDirectory: Swift.String? = nil) -> any FLFoundation.KeyValueStore
+  public static func logger(with subsystem: Swift.String, category: Swift.String) -> any FLFoundation.Logger
+  public static func error(errorCode: Swift.Int, errorDescription: Swift.String, internalError: (any FLFoundation.FLError)? = nil, contextualDescription: Swift.String? = nil) -> any FLFoundation.FLError
+  public static func error(errorCode: Swift.Int, errorDescription: Swift.String, internalError: (any FLFoundation.FLError)? = nil, contextualDescription: Swift.String? = nil, exceptionError: any Swift.Error) -> any FLFoundation.FLExceptionError
+  public static func flDeviceSecurity() -> any FLFoundation.FLDeviceSecurity
+  public static func createVMapParser(url: Swift.String, allCases: [any FLFoundation.VMapKey]) -> any FLFoundation.VMapParser
+  public static func retriveWebVTT(for url: Swift.String, client: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient(), completion: @escaping (Swift.Result<[FLFoundation.WebVTTModel], any Swift.Error>) -> Swift.Void)
+  public static func buildUserAgent() -> Swift.String
+}
+public protocol FLError : Swift.Error {
+  var errorCode: Swift.Int { get }
+  var errorDescription: Swift.String { get }
+  var internalError: (any FLFoundation.FLError)? { get }
+  var contextualDescription: Swift.String? { get }
+}
+extension FLFoundation.FLError {
+  public var hexErrorCode: Swift.String {
+    get
+  }
+  public var componentErrorCode: Swift.Int {
+    get
+  }
+  public func doesBelongToCategory(_ category: Swift.Int) -> Swift.Bool
+}
+public protocol FLExceptionError : FLFoundation.FLError {
+  var exceptionalError: any Swift.Error { get }
+}
+extension FLFoundation.FLError {
+  public var httpStatusCode: Swift.Int? {
+    get
+  }
+}
+public struct Response<Success> {
+  public let urlRequest: Foundation.URLRequest?
+  public let urlResponse: Foundation.HTTPURLResponse?
+  public let responseData: Foundation.Data?
+  public let result: Swift.Result<Success, any Swift.Error>
+  public var value: Success? {
+    get
+  }
+  public var error: (any Swift.Error)? {
+    get
+  }
+  public init(urlRequest: Foundation.URLRequest?, urlResponse: Foundation.HTTPURLResponse?, responseData: Foundation.Data?, result: Swift.Result<Success, any Swift.Error>)
+}
+extension FLFoundation.Response : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+}
+public protocol ResponseHandler {
+  func cancel()
+  func response(completionHandler: @escaping (FLFoundation.Response<Foundation.Data?>) -> Swift.Void)
+  func response(completionHandler: @escaping (FLFoundation.Response<Swift.Void>) -> Swift.Void)
+  func responseDecodable<T>(completionHandler: @escaping (FLFoundation.Response<T>) -> Swift.Void) where T : Swift.Decodable
+  func responseConvertible<T>(completionHandler: @escaping (FLFoundation.Response<T>) -> Swift.Void) where T : FLFoundation.DataConvertible
+}
+public protocol DataConvertible {
+  static func convert(from data: Foundation.Data) throws -> Self
+}
+extension FLFoundation.DataConvertible {
+  public static func convert(from data: Foundation.Data? = nil) throws -> Self
+}
+extension Swift.String : FLFoundation.DataConvertible {
+  public static func convert(from data: Foundation.Data) throws -> Swift.String
+}
+extension Swift.Dictionary : FLFoundation.DataConvertible {
+  public static func convert(from data: Foundation.Data) throws -> Swift.Dictionary<Key, Value>
+}
+public enum DeviceCapability : Swift.String, Swift.Codable {
+  case HIGH_END
+  case MID_RANGE
+  case LOW_END
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+extension FLFoundation.ConnectionErrorAction : Swift.Equatable {}
+extension FLFoundation.ConnectionErrorAction : Swift.Hashable {}
+extension FLFoundation.ReadyState : Swift.Hashable {}
+extension FLFoundation.ReadyState : Swift.RawRepresentable {}
+extension FLFoundation.CryptoAlgorithm : Swift.Equatable {}
+extension FLFoundation.CryptoAlgorithm : Swift.Hashable {}
+extension FLFoundation.HTTPMethod : Swift.RawRepresentable {}
+extension FLFoundation.JWTHeaderKey : Swift.Equatable {}
+extension FLFoundation.JWTHeaderKey : Swift.Hashable {}
+extension FLFoundation.JWTHeaderKey : Swift.RawRepresentable {}
+extension FLFoundation.JWTRegisteredClaimsKey : Swift.Equatable {}
+extension FLFoundation.JWTRegisteredClaimsKey : Swift.Hashable {}
+extension FLFoundation.JWTRegisteredClaimsKey : Swift.RawRepresentable {}
+extension FLFoundation.FailedCheck : Swift.Equatable {}
+extension FLFoundation.FailedCheck : Swift.Hashable {}
+extension FLFoundation.VMapResponse.CodingKeys : Swift.Equatable {}
+extension FLFoundation.VMapResponse.CodingKeys : Swift.Hashable {}
+extension FLFoundation.VMapResponse.CodingKeys : Swift.RawRepresentable {}
+extension FLFoundation.VMapResponse.VMapSessionData.CodingKeys : Swift.Equatable {}
+extension FLFoundation.VMapResponse.VMapSessionData.CodingKeys : Swift.Hashable {}
+extension FLFoundation.VMapResponse.VMapSessionData.CodingKeys : Swift.RawRepresentable {}
+extension FLFoundation.VMapResponse.VMapThumbnailURL.CodingKeys : Swift.Equatable {}
+extension FLFoundation.VMapResponse.VMapThumbnailURL.CodingKeys : Swift.Hashable {}
+extension FLFoundation.VMapResponse.VMapThumbnailURL.CodingKeys : Swift.RawRepresentable {}
+extension FLFoundation.VMapPlayerData.CodingKeys : Swift.Equatable {}
+extension FLFoundation.VMapPlayerData.CodingKeys : Swift.Hashable {}
+extension FLFoundation.VMapPlayerData.CodingKeys : Swift.RawRepresentable {}
+extension FLFoundation.VMapAdBreak.CodingKeys : Swift.Equatable {}
+extension FLFoundation.VMapAdBreak.CodingKeys : Swift.Hashable {}
+extension FLFoundation.VMapAdBreak.CodingKeys : Swift.RawRepresentable {}
+extension FLFoundation.VMapAd.CodingKeys : Swift.Equatable {}
+extension FLFoundation.VMapAd.CodingKeys : Swift.Hashable {}
+extension FLFoundation.VMapAd.CodingKeys : Swift.RawRepresentable {}
+extension FLFoundation.VMapAdLinear.CodingKeys : Swift.Equatable {}
+extension FLFoundation.VMapAdLinear.CodingKeys : Swift.Hashable {}
+extension FLFoundation.VMapAdLinear.CodingKeys : Swift.RawRepresentable {}
+extension FLFoundation.WebVTTErrorCodes : Swift.Equatable {}
+extension FLFoundation.WebVTTErrorCodes : Swift.Hashable {}
+extension FLFoundation.WebVTTErrorCodes : Swift.RawRepresentable {}
+extension FLFoundation.DeviceCapability : Swift.Equatable {}
+extension FLFoundation.DeviceCapability : Swift.Hashable {}
+extension FLFoundation.DeviceCapability : Swift.RawRepresentable {}

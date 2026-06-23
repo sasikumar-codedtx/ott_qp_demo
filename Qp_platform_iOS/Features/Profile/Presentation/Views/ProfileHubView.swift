@@ -2,20 +2,48 @@ import SwiftUI
 
 struct ProfileHubView: View {
     @ObservedObject var viewModel: ProfileHubViewModel
+    let profiles: [Profile]
     let onBack: () -> Void
     let onOpenSettings: () -> Void
     let onSwitchProfile: () -> Void
+    let onSelectProfile: (Profile) -> Void
     let onSelectItem: (StorefrontItem) -> Void
+    @State private var showsProfileSwitch = false
 
     var body: some View {
         GeometryReader { proxy in
-            VStack(spacing: 0) {
-                header(topInset: proxy.safeAreaInsets.top)
-
-                content
-            }
+            content(topInset: proxy.safeAreaInsets.top)
             .ignoresSafeArea(edges: .top)
         }
+        .overlay {
+            if showsProfileSwitch {
+                ZStack {
+                    Color.black.opacity(0.78)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            showsProfileSwitch = false
+                        }
+
+                    ProfileSwitchSheetView(
+                        profiles: profiles,
+                        selectedProfile: viewModel.selectedProfile,
+                        onSelect: { profile in
+                            showsProfileSwitch = false
+                            onSelectProfile(profile)
+                        },
+                        onEditProfiles: {
+                            showsProfileSwitch = false
+                            onSwitchProfile()
+                        },
+                        onClose: {
+                            showsProfileSwitch = false
+                        }
+                    )
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            }
+        }
+        .animation(.easeInOut(duration: 0.22), value: showsProfileSwitch)
         .task {
             await viewModel.loadIfNeeded()
         }
@@ -24,74 +52,75 @@ struct ProfileHubView: View {
     private func header(topInset: CGFloat) -> some View {
         GeometryReader { proxy in
             let screenWidth = max(proxy.size.width, 320)
-            let headerHeight = 234 + topInset
+            let headerHeight = 248 + topInset
 
             VStack(spacing: 0) {
                 ZStack(alignment: .top) {
-                    if let heroItem = viewModel.heroItem {
-                        PosterImageView(
-                            url: heroItem.imageURL(for: "0-16x9", width: Int(screenWidth * 3)),
-                            size: CGSize(width: screenWidth, height: headerHeight),
-                            cornerRadius: 0
-                        )
-                    } else {
-                        LinearGradient(
-                            colors: [Color(hex: "351236"), Color(hex: "0E0A14")],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                        .frame(height: headerHeight)
-                    }
+                    Image("proBg")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: screenWidth, height: headerHeight)
+                        .clipped()
 
                     LinearGradient(
-                        colors: [Color.black.opacity(0.08), Color.black.opacity(0.18), Color.black.opacity(0.82)],
+                        colors: [Color.black.opacity(0.12), Color.black.opacity(0.18), Color.black.opacity(0.86)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                     .frame(height: headerHeight)
 
-                    HStack {
-                        roundedIconButton(icon: AppIcons.Navigation.back, action: onBack)
+                    VStack {
                         Spacer()
-                        roundedIconButton(icon: AppIcons.Action.download, action: {})
-                        roundedIconButton(icon: AppIcons.Action.gear, action: onOpenSettings)
+
+                        HStack(spacing: 14) {
+                            ProfileAvatarView(
+                                imageName: viewModel.displayedProfileImageName,
+                                fallbackGlyph: String(viewModel.displayedProfileName.prefix(1)).uppercased(),
+                                size: 58
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
+
+                            Button(action: {
+                                showsProfileSwitch = true
+                            }) {
+                                HStack(spacing: 10) {
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(viewModel.displayedProfileName)
+                                            .font(.system(size: 18, weight: .bold))
+                                            .foregroundStyle(.white)
+
+                                        Text("Switch Profile")
+                                            .font(.system(size: 12, weight: .medium))
+                                            .foregroundStyle(Color.white.opacity(0.72))
+                                    }
+
+                                    Spacer()
+
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundStyle(.white)
+                                }
+                                .padding(.horizontal, 16)
+                                .frame(height: 58)
+                                .background(LiquidGlassBackground(cornerRadius: 18, tone: .dark))
+                            }
+                            .buttonStyle(LiquidButtonPressStyle())
+                        }
+                        .padding(.horizontal, UIConstants.Spacing.lg)
+                        .padding(.bottom, 14)
                     }
-                    .padding(.horizontal, UIConstants.Spacing.lg)
-                    .padding(.top, topInset + 8)
                 }
                 .frame(height: headerHeight)
-
-                Button(action: onSwitchProfile) {
-                    ZStack {
-                        HStack {
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 15, weight: .bold))
-                                .foregroundStyle(.white.opacity(0.88))
-                            Spacer()
-                        }
-
-                        HStack(spacing: 8) {
-                            Text(viewModel.displayedProfileName)
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(.white)
-
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(.white.opacity(0.82))
-                        }
-                    }
-                    .padding(.horizontal, UIConstants.Spacing.lg)
-                    .padding(.top, 16)
-                    .padding(.bottom, 16)
-                }
-                .buttonStyle(.plain)
             }
         }
-        .frame(height: 234 + topInset + 51)
+        .frame(height: 248 + topInset)
     }
 
     @ViewBuilder
-    private var content: some View {
+    private func content(topInset: CGFloat) -> some View {
         if viewModel.isLoading && viewModel.sections.isEmpty {
             LoadingView()
         } else if let errorMessage = viewModel.errorMessage, viewModel.sections.isEmpty {
@@ -101,6 +130,8 @@ struct ProfileHubView: View {
         } else {
             ScrollView(.vertical, showsIndicators: false) {
                 LazyVStack(alignment: .leading, spacing: UIConstants.Spacing.xl) {
+                    header(topInset: topInset)
+
                     if let leadingSection = viewModel.leadingSection {
                         profileRailSection(leadingSection, style: .poster, width: 188)
                     }
@@ -113,7 +144,14 @@ struct ProfileHubView: View {
                     }
 
                     ForEach(viewModel.trailingSections.filter { $0.id != "clips" }) { section in
-                        StorefrontSectionView(section: section, isHomeTab: false, cohort: viewModel.selectedProfile?.quickplayCohort ?? .entertainment, onViewAll: nil, onSelectItem: onSelectItem)
+                        StorefrontSectionView(
+                            section: section,
+                            isHomeTab: false,
+                            cohort: viewModel.selectedProfile?.quickplayCohort ?? .entertainment,
+                            heroVariant: .carousel,
+                            onViewAll: nil,
+                            onSelectItem: onSelectItem
+                        )
                     }
 
                     if !AppEnvironment.Demo.hasActiveSubscription {
@@ -158,15 +196,10 @@ struct ProfileHubView: View {
             }
             .padding(UIConstants.Spacing.lg)
             .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.white.opacity(0.05))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(Color.white.opacity(0.06), lineWidth: 1)
-                    )
+                LiquidGlassBackground(cornerRadius: 14, tone: .dark)
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(LiquidButtonPressStyle())
     }
 
     private var upgradeCard: some View {
@@ -208,18 +241,9 @@ struct ProfileHubView: View {
                         .foregroundStyle(.white)
                 }
                 .frame(height: 46)
-                .background(
-                    RoundedRectangle(cornerRadius: UIConstants.CornerRadius.lg, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color(hex: "FF9D3E"), Color(hex: "FF5A00")],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                )
+                .background(LiquidGlassBackground(cornerRadius: UIConstants.CornerRadius.lg, tone: .accent, isHighlighted: true))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(LiquidButtonPressStyle())
 
             Text(AppStrings.Profile.subscribeLater)
                 .font(.caption)
@@ -245,10 +269,7 @@ struct ProfileHubView: View {
 
     private var footer: some View {
         VStack(spacing: UIConstants.Spacing.md) {
-            Image("logo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 72, height: 72)
+            LogoGlowView(size: 72, glowScale: 1.45)
 
             Text(AppStrings.Profile.sonyFooter)
                 .font(.footnote)
@@ -261,19 +282,12 @@ struct ProfileHubView: View {
     private func roundedIconButton(icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.headline.weight(.semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: 42, height: 42)
-                .background(
-                    Circle()
-                        .fill(Color.black.opacity(0.26))
-                        .overlay(
-                            Circle()
-                                .stroke(Color(hex: "B67014").opacity(0.9), lineWidth: 1.1)
-                        )
-                )
+                .frame(width: 44, height: 44)
+                .background(LiquidGlassBackground(cornerRadius: 16, tone: .dark))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(LiquidButtonPressStyle())
     }
 
     private func featurePill(_ title: String) -> some View {

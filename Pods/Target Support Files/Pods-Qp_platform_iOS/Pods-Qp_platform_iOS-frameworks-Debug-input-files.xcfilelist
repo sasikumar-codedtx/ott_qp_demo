@@ -1,0 +1,11 @@
+${PODS_ROOT}/Target Support Files/Pods-Qp_platform_iOS/Pods-Qp_platform_iOS-frameworks.sh
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLAnalytics/FLAnalytics.framework/FLAnalytics
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLBookmarks/FLBookmarks.framework/FLBookmarks
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLContentAuthorizer/FLContentAuthorizer.framework/FLContentAuthorizer
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLFoundation/FLFoundation.framework/FLFoundation
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLHeartbeat/FLHeartbeat.framework/FLHeartbeat
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLPlatformCore/FLPlatformCore.framework/FLPlatformCore
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLPlatformPlayer/FLPlatformPlayer.framework/FLPlatformPlayer
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLPlayer/FLPlayer.framework/FLPlayer
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLPlayerInterface/FLPlayerInterface.framework/FLPlayerInterface
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLStreamConcurrency/FLStreamConcurrency.framework/FLStreamConcurrency

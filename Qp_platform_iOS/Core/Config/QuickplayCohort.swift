@@ -32,12 +32,12 @@ enum QuickplayCohort: String, Codable, CaseIterable, Hashable {
 
     var storefrontID: String {
         switch self {
-        case .entertainment, .realityShows:
+        case .entertainment:
             return "EBFB096C-CA11-4E32-A231-8A7FA15B5E13"
         case .sports:
-            return "64FBBA08-49B1-49C6-8F8D-B7F2D3CDA7F6"
-        case .kids:
-            return "0A328EC5-E221-4AE1-924B-1FAD40E321D2"
+            return "DCBF412C-437B-404F-BE31-F18D7F4BEB87"
+        case .realityShows, .kids:
+            return "383C7B3E-0BC0-4629-B80C-BC074EA96753"
         }
     }
 }

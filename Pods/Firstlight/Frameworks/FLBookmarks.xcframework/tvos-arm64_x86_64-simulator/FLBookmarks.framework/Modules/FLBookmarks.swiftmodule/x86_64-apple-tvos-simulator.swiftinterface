@@ -1,0 +1,111 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -target x86_64-apple-tvos12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name FLBookmarks
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -interface-compiler-version 6.1.2
+import AVFAudio
+import AVFoundation
+@_exported import FLBookmarks
+import FLFoundation
+import FLPlatformCore
+import FLPlayerInterface
+import Foundation
+import Swift
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public func version() -> Swift.String
+public enum FLBookmarksFactory {
+  public static func bookmarkSessionConfiguration(endPoint: Swift.String, bookmarkSyncInterval: Foundation.TimeInterval = 60000, bookmarkThresholdPercentage: Swift.Double? = 0.95, thresholdPlaybackPositionMs: Foundation.TimeInterval? = nil) -> any FLBookmarks.BookmarkSessionConfiguration
+  public static func bookmarkService(endPoint: Swift.String, httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient(), authorizer: any FLPlatformCore.PlatformAuthorizer) -> any FLBookmarks.BookmarkService
+  @available(*, deprecated, message: "This API has been deprecated. Please use `bookmarksManager(configuration: bookmarkAttributes: bookmarkService:)` or `bookmarksManager(configuration: bookmarkAttributes: authorizer: httpClient:)` instead.")
+  public static func bookmarksManager(configuration: any FLBookmarks.BookmarkSessionConfiguration, itemId: Swift.String, seasonId: Swift.String? = nil, episodeId: Swift.String? = nil, videoId: Swift.String? = nil, mode: FLPlayerInterface.Mode? = nil, seasonNumber: Swift.Int? = nil, episodeNumber: Swift.Int? = nil, contentType: Swift.String? = nil, bookmarkService: any FLBookmarks.BookmarkService, authorizer _: (any FLPlatformCore.PlatformAuthorizer)? = nil) -> any FLBookmarks.BookmarksManager
+  public static func bookmarksManager(configuration: any FLBookmarks.BookmarkSessionConfiguration, bookmarkAttributes: FLPlayerInterface.BookmarkAttributes, bookmarkService: any FLBookmarks.BookmarkService, nextItem: FLPlayerInterface.BookmarkAttributes? = nil) -> any FLBookmarks.BookmarksManager
+  public static func bookmarksManager(configuration: any FLBookmarks.BookmarkSessionConfiguration, bookmarkAttributes: FLPlayerInterface.BookmarkAttributes, authorizer: any FLPlatformCore.PlatformAuthorizer, httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient(), nextItem: FLPlayerInterface.BookmarkAttributes? = nil) -> any FLBookmarks.BookmarksManager
+  public static func bookmarksManager(configuration: any FLBookmarks.BookmarkSessionConfiguration, bookmarkAttributes: FLPlayerInterface.BookmarkAttributes, authorizer: any FLPlatformCore.PlatformAuthorizer, configurationCallback: any FLBookmarks.MediaPlaylistItemTransitionCallback, httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient()) -> any FLBookmarks.BookmarksManager
+  public static func bookmarksManager(configuration: any FLBookmarks.BookmarkSessionConfiguration, bookmarkAttributes: FLPlayerInterface.BookmarkAttributes, bookmarkService: any FLBookmarks.BookmarkService, configurationCallback: any FLBookmarks.MediaPlaylistItemTransitionCallback) -> any FLBookmarks.BookmarksManager
+}
+public struct BookmarkRecord : Swift.Decodable {
+  public let itemId: Swift.String
+  public let offset: Foundation.TimeInterval
+  public let updatedTimestamp: Foundation.TimeInterval?
+  public let seasonId: Swift.String?
+  public let episodeId: Swift.String?
+  public let videoId: Swift.String?
+  public let mode: FLPlayerInterface.Mode?
+  public let seasonNumber: Swift.Int?
+  public let episodeNumber: Swift.Int?
+  public let contentType: Swift.String?
+  public let playlistBookmarks: [FLBookmarks.PlaylistBookmarkRecord]?
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct PlaylistBookmarkRecord : Swift.Decodable {
+  public let videoId: Swift.String
+  public let offset: Foundation.TimeInterval
+  public let playlistId: Swift.String
+  public let updatedTimestamp: Foundation.TimeInterval
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct AssetBookmarkConfiguration {
+  public let assetId: Swift.String
+  public let seasonId: Swift.String?
+  public let episodeId: Swift.String?
+  public let seasonNumber: Swift.Int?
+  public let episodeNumber: Swift.Int?
+  public let videoId: Swift.String?
+  public let mode: FLPlayerInterface.Mode?
+  public let nextEpisodeDetails: FLPlayerInterface.BookmarkAttributes?
+  public let contentType: Swift.String?
+  public init(assetId: Swift.String, seasonId: Swift.String? = nil, episodeId: Swift.String? = nil, seasonNumber: Swift.Int? = nil, episodeNumber: Swift.Int? = nil, videoId: Swift.String? = nil, mode: FLPlayerInterface.Mode? = nil, nextEpisodeDetails: FLPlayerInterface.BookmarkAttributes? = nil, contentType: Swift.String? = nil)
+}
+public protocol MediaPlaylistItemTransitionCallback : AnyObject {
+  func onMediaPlaylistItemTransition(for item: any FLPlayerInterface.MediaPlaylistItem, completionHandler: @escaping (FLBookmarks.AssetBookmarkConfiguration?) -> Swift.Void)
+}
+public protocol BookmarksManager {
+  var configuration: any FLBookmarks.BookmarkSessionConfiguration { get }
+  var nextItem: FLPlayerInterface.BookmarkAttributes? { get set }
+  var isThresholdReached: FLFoundation.Observable<Swift.Bool> { get }
+  func processPlaybackStateChange(player: any FLPlayerInterface.Player)
+  func processPlaybackProgress(player: any FLPlayerInterface.Player)
+}
+public protocol BookmarkSessionConfiguration {
+  var endPoint: Swift.String { get }
+  var bookmarkSyncInterval: Foundation.TimeInterval { get }
+  var bookmarkThresholdPercentage: Swift.Double? { get }
+  var thresholdPlaybackPositionMs: Foundation.TimeInterval? { get }
+}
+public enum SortBy : Swift.String {
+  case timestamp
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum SortOrder : Swift.String {
+  case ascending
+  case descending
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public protocol BookmarkService {
+  func getBookmark(itemId: Swift.String, completion: @escaping (Swift.Result<FLBookmarks.BookmarkRecord, any Swift.Error>) -> Swift.Void)
+  func getBookmarks(pageNumber: Swift.Int?, pageSize: Swift.Int?, sortBy: FLBookmarks.SortBy?, sortOrder: FLBookmarks.SortOrder?, completion: @escaping (Swift.Result<[FLBookmarks.BookmarkRecord], any Swift.Error>) -> Swift.Void)
+  func getSeriesBookmarks(seriesIdentifier: Swift.String, pageNumber: Swift.Int?, pageSize: Swift.Int?, sortBy: FLBookmarks.SortBy?, sortOrder: FLBookmarks.SortOrder?, completion: @escaping (Swift.Result<[FLBookmarks.BookmarkRecord], any Swift.Error>) -> Swift.Void)
+  func getPlaylistBookmarks(playlistIdentifier: Swift.String, pageNumber: Swift.Int?, pageSize: Swift.Int?, sortBy: FLBookmarks.SortBy?, sortOrder: FLBookmarks.SortOrder?, completion: @escaping (Swift.Result<[FLBookmarks.BookmarkRecord], any Swift.Error>) -> Swift.Void)
+  func getBookmarkCount(completion: @escaping (Swift.Result<Swift.Int, any Swift.Error>) -> Swift.Void)
+  func putBookmark(itemId: Swift.String, offset: Foundation.TimeInterval, seasonId: Swift.String?, episodeId: Swift.String?, videoId: Swift.String?, mode: FLPlayerInterface.Mode?, seasonNumber: Swift.Int?, episodeNumber: Swift.Int?, contentType: Swift.String?, completion: @escaping (Swift.Result<Swift.Void, any Swift.Error>) -> Swift.Void)
+  func deleteBookmark(itemId: Swift.String, episodeId: Swift.String?, videoId: Swift.String?, mode: FLPlayerInterface.Mode?, completion: @escaping (Swift.Result<Swift.Void, any Swift.Error>) -> Swift.Void)
+}
+extension FLBookmarks.BookmarkService {
+  public func putBookmark(itemId: Swift.String, offset: Foundation.TimeInterval, seasonId: Swift.String? = nil, episodeId: Swift.String? = nil, videoId: Swift.String? = nil, mode: FLPlayerInterface.Mode? = nil, seasonNumber: Swift.Int? = nil, episodeNumber: Swift.Int? = nil, contentType: Swift.String? = nil, completion: @escaping (Swift.Result<Swift.Void, any Swift.Error>) -> Swift.Void)
+  public func deleteBookmark(itemId: Swift.String, episodeId: Swift.String? = nil, videoId: Swift.String? = nil, mode: FLPlayerInterface.Mode? = nil, completion: @escaping (Swift.Result<Swift.Void, any Swift.Error>) -> Swift.Void)
+}
+extension FLBookmarks.SortBy : Swift.Equatable {}
+extension FLBookmarks.SortBy : Swift.Hashable {}
+extension FLBookmarks.SortBy : Swift.RawRepresentable {}
+extension FLBookmarks.SortOrder : Swift.Equatable {}
+extension FLBookmarks.SortOrder : Swift.Hashable {}
+extension FLBookmarks.SortOrder : Swift.RawRepresentable {}

@@ -1,17 +1,22 @@
 import SwiftUI
+import UIKit
 
 struct ProfileEditorView: View {
     @ObservedObject var viewModel: ProfileEditorViewModel
     let onBack: () -> Void
     let onChooseAvatar: () -> Void
     let onSave: () -> Void
+    let onDelete: () -> Void
+    @FocusState private var isNameFieldFocused: Bool
+    @State private var isDeleteAlertPresented = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
+            Color(hex: "0A0A0A")
+                .ignoresSafeArea()
+
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 18) {
-                    titleBar
-
                     if viewModel.step == .details {
                         detailsContent
                     } else {
@@ -28,19 +33,47 @@ struct ProfileEditorView: View {
                 .padding(.top, UIConstants.Spacing.lg)
                 .padding(.bottom, 120)
             }
+            .scrollDismissesKeyboard(.interactively)
 
             if viewModel.isGenderPickerPresented || viewModel.isDatePickerPresented {
                 Color.black.opacity(0.82)
                     .ignoresSafeArea()
                     .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            viewModel.isGenderPickerPresented = false
-                            viewModel.isDatePickerPresented = false
-                        }
+                        dismissPickers()
                     }
             }
 
             bottomSheetOverlay
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                NavigationChromeButton(icon: AppIcons.Navigation.back, action: handleBackTap)
+            }
+            ToolbarItem(placement: .principal) {
+                NavigationChromeTitle(title: viewModel.title)
+            }
+            if viewModel.canDeleteProfile {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        dismissKeyboard()
+                        isDeleteAlertPresented = true
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.system(size: 21, weight: .regular))
+                            .foregroundStyle(.white.opacity(0.9))
+                            .frame(width: 46, height: 46)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .alert("Delete Profile?", isPresented: $isDeleteAlertPresented) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive, action: onDelete)
+        } message: {
+            Text("This profile will be removed from the device.")
         }
         .safeAreaInset(edge: .bottom) {
             Button(action: handlePrimaryAction) {
@@ -49,16 +82,20 @@ struct ProfileEditorView: View {
                     .foregroundStyle(Color(hex: "151424"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .background(
-                        RoundedRectangle(cornerRadius: UIConstants.CornerRadius.sm, style: .continuous)
-                            .fill(Color.white)
-                    )
+                    .background(LiquidGlassBackground(cornerRadius: UIConstants.CornerRadius.sm, tone: .light, isHighlighted: true))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(LiquidButtonPressStyle())
             .padding(.horizontal, UIConstants.Spacing.lg)
             .padding(.top, 12)
             .padding(.bottom, 14)
-            .background(Color.black.opacity(0.96))
+            .background(
+                LinearGradient(
+                    colors: [Color.black.opacity(0), Color(hex: "0A0A0A"), Color(hex: "0A0A0A")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+            )
             .opacity(viewModel.isGenderPickerPresented || viewModel.isDatePickerPresented ? 0 : 1)
             .allowsHitTesting(!(viewModel.isGenderPickerPresented || viewModel.isDatePickerPresented))
         }
@@ -67,35 +104,10 @@ struct ProfileEditorView: View {
         .animation(.easeInOut(duration: 0.22), value: viewModel.isDatePickerPresented)
     }
 
-    private var titleBar: some View {
-        HStack {
-            Button(action: handleBackTap) {
-                Image(systemName: AppIcons.Navigation.back)
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 46, height: 46)
-                    .background(
-                        RoundedRectangle(cornerRadius: UIConstants.CornerRadius.lg, style: .continuous)
-                            .fill(Color.white.opacity(0.08))
-                    )
-            }
-            .buttonStyle(.plain)
-
-            Spacer()
-
-            Text(viewModel.title)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(.white)
-
-            Spacer()
-
-            Color.clear.frame(width: 46, height: 46)
-        }
-    }
-
     private var detailsContent: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 6) {
             avatarStrip
+                .padding(.bottom, 18)
             nameField
             dateOfBirthField
             genderField
@@ -104,63 +116,198 @@ struct ProfileEditorView: View {
         }
     }
 
-    private var avatarStrip: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 16) {
-                ForEach(viewModel.avatarOptions) { option in
-                    Button {
-                        viewModel.selectAvatar(option)
-                    } label: {
-                        VStack(spacing: 8) {
-                            ProfileAvatarView(
-                                imageName: option.imageName,
-                                fallbackGlyph: option.label.prefix(1).uppercased(),
-                                size: 90
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 19.2, style: .continuous)
-                                    .stroke(option.imageName == viewModel.draft.imageName ? Color.white : .clear, lineWidth: 3)
-                                    .padding(-8)
-                            )
+    private var selectedAvatarPreview: some View {
+        VStack(spacing: 12) {
+            ProfileAvatarView(
+                imageName: viewModel.draft.imageName,
+                fallbackGlyph: String(profileDisplayName.prefix(1)).uppercased(),
+                size: 112
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .stroke(Color.white.opacity(0.92), lineWidth: 3)
+                    .padding(-6)
+            )
+            .shadow(color: Color(hex: "F4B000").opacity(0.24), radius: 18, x: 0, y: 10)
 
-                            Text(option.label)
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(.white)
-                        }
-                        .frame(width: 90)
+            Text(profileDisplayName)
+                .font(.system(size: 24, weight: .black))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
+
+            Text("Selected profile image")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Color.white.opacity(0.56))
+                .multilineTextAlignment(.center)
+
+            Button(action: handleChooseAvatar) {
+                Text("Change Avatar")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14)
+                    .frame(height: 34)
+                    .background(LiquidGlassBackground(cornerRadius: 12, tone: .dark, isHighlighted: true))
+            }
+            .buttonStyle(LiquidButtonPressStyle())
+            .padding(.top, 2)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 20)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.1),
+                            Color.white.opacity(0.045),
+                            Color(hex: "251022").opacity(0.62)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                )
+        )
+        .simultaneousGesture(TapGesture().onEnded(dismissKeyboard))
+    }
+
+    private var avatarStrip: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 24) {
+                    ForEach(editorCarouselProfiles) { profile in
+                        editorProfileTile(profile)
+                            .id(profile.id)
+                    }
+                }
+                .padding(.horizontal, max(16, (UIScreen.main.bounds.width - 105.6) / 2))
+                .padding(.top, 4)
+                .padding(.bottom, 12)
+            }
+            .onAppear {
+                centerSelectedAvatar(using: proxy)
+            }
+            .onChange(of: viewModel.draft.sourceID) { _, _ in
+                centerSelectedAvatar(using: proxy)
+            }
+        }
+        .padding(.horizontal, -UIConstants.Spacing.lg)
+        .overlay(alignment: .leading) {
+            LinearGradient(colors: [Color.black.opacity(0.75), Color.clear], startPoint: .leading, endPoint: .trailing)
+                .frame(width: 40)
+                .allowsHitTesting(false)
+        }
+        .overlay(alignment: .trailing) {
+            LinearGradient(colors: [Color.clear, Color.black.opacity(0.75)], startPoint: .leading, endPoint: .trailing)
+                .frame(width: 40)
+                .allowsHitTesting(false)
+        }
+    }
+
+    private func centerSelectedAvatar(using proxy: ScrollViewProxy) {
+        guard let selectedID = editorCarouselProfiles.first(where: { profile in
+            profile.id == viewModel.draft.sourceID || (profile.imageName == viewModel.draft.imageName && viewModel.mode == .createNew)
+        })?.id else { return }
+
+        DispatchQueue.main.async {
+            withAnimation(.easeInOut(duration: 0.24)) {
+                proxy.scrollTo(selectedID, anchor: .center)
+            }
+        }
+    }
+
+    private var editorCarouselProfiles: [Profile] {
+        let temporaryProfile = Profile(
+            id: viewModel.draft.sourceID ?? UUID(),
+            name: profileDisplayName,
+            imageName: viewModel.draft.imageName,
+            preference: viewModel.draft.preference,
+            preferredLanguages: viewModel.draft.preferredLanguages,
+            dateOfBirth: viewModel.draft.dateOfBirth,
+            gender: viewModel.draft.gender,
+            isKidsProfile: viewModel.draft.isKidsProfile,
+            showOnSelection: true
+        )
+
+        let profiles: [Profile]
+        if viewModel.profiles.contains(where: { $0.id == viewModel.draft.sourceID }) {
+            profiles = viewModel.profiles
+        } else {
+            profiles = [temporaryProfile] + Array(viewModel.profiles.prefix(4))
+        }
+
+        guard let selectedIndex = profiles.firstIndex(where: { profile in
+            profile.id == viewModel.draft.sourceID || (profile.imageName == viewModel.draft.imageName && viewModel.mode == .createNew)
+        }) else {
+            return profiles
+        }
+
+        let before = profiles[..<selectedIndex].suffix(2)
+        let selected = profiles[selectedIndex]
+        let after = profiles[profiles.index(after: selectedIndex)...].prefix(2)
+
+        var centered = Array(before) + [selected] + Array(after)
+        if centered.count < min(5, profiles.count) {
+            let usedIDs = Set(centered.map(\.id))
+            centered += profiles.filter { !usedIDs.contains($0.id) }.prefix(min(5, profiles.count) - centered.count)
+        }
+        return centered
+    }
+
+    private func editorProfileTile(_ profile: Profile) -> some View {
+        let isSelected = profile.id == viewModel.draft.sourceID || profile.imageName == viewModel.draft.imageName && viewModel.mode == .createNew
+
+        return VStack(spacing: 8) {
+            ZStack {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .strokeBorder(Color.white, lineWidth: 3)
+                        .frame(width: 105.6, height: 105.6)
+                }
+
+                ProfileAvatarView(
+                    imageName: profile.imageName,
+                    fallbackGlyph: profile.fallbackGlyph,
+                    size: 89.636
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 19.208, style: .continuous))
+                .overlay {
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: 19.208, style: .continuous)
+                            .fill(Color.black.opacity(0.5))
+                    }
+                }
+
+                if isSelected {
+                    Button(action: handleChooseAvatar) {
+                        Image(systemName: "pencil.line")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 28, height: 28)
                     }
                     .buttonStyle(.plain)
                 }
-
-                Button(action: onChooseAvatar) {
-                    VStack(spacing: 8) {
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color.white.opacity(0.04))
-                            .frame(width: 106, height: 106)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                    .stroke(Color.white, lineWidth: 3)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 19.2, style: .continuous)
-                                    .fill(Color.black.opacity(0.52))
-                                    .padding(8)
-                            )
-                            .overlay(
-                                Image(systemName: "pencil.slash")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundStyle(.white.opacity(0.92))
-                            )
-
-                        Text(AppStrings.Profile.addProfile)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(.white)
-                    }
-                }
-                .buttonStyle(.plain)
             }
-            .padding(.vertical, 4)
+            .frame(width: 105.6, height: 105.6)
+
+            Text(profile.name)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .frame(width: 104)
         }
+        .frame(width: 104)
+    }
+
+    private var profileDisplayName: String {
+        viewModel.draft.name.nilIfEmpty ?? "New Profile"
     }
 
     private var nameField: some View {
@@ -172,6 +319,9 @@ struct ProfileEditorView: View {
 
                 TextField("", text: $viewModel.draft.name, prompt: Text(AppStrings.Profile.namePlaceholder).foregroundStyle(Color.white.opacity(0.38)))
                     .textInputAutocapitalization(.words)
+                    .submitLabel(.done)
+                    .focused($isNameFieldFocused)
+                    .onSubmit(dismissKeyboard)
                     .foregroundStyle(.white)
             }
         }
@@ -179,7 +329,7 @@ struct ProfileEditorView: View {
 
     private var dateOfBirthField: some View {
         Button {
-            viewModel.isDatePickerPresented = true
+            presentDatePicker()
         } label: {
             ProfileFieldShell(isTopRounded: false, isBottomRounded: false) {
                 HStack(spacing: 10) {
@@ -194,12 +344,12 @@ struct ProfileEditorView: View {
                 }
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(LiquidButtonPressStyle())
     }
 
     private var genderField: some View {
         Button {
-            viewModel.isGenderPickerPresented = true
+            presentGenderPicker()
         } label: {
             ProfileFieldShell(isTopRounded: false, isBottomRounded: false) {
                 HStack(spacing: 10) {
@@ -214,7 +364,7 @@ struct ProfileEditorView: View {
                 }
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(LiquidButtonPressStyle())
     }
 
     private var preferredContentField: some View {
@@ -228,27 +378,37 @@ struct ProfileEditorView: View {
             .padding(.horizontal, UIConstants.Spacing.lg)
             .frame(height: 56)
 
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                ForEach(ProfileLanguage.allCases) { language in
-                    ProfileLanguageCard(
-                        language: language,
-                        isSelected: viewModel.draft.preferredLanguages.contains(language)
-                    ) {
-                        viewModel.toggleLanguage(language)
+            ScrollView(.horizontal, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 10) {
+                        ForEach(Array(ProfileLanguage.allCases.enumerated()).filter { $0.offset.isMultiple(of: 2) }, id: \.element.id) { _, language in
+                            ProfileLanguageCard(
+                                language: language,
+                                isSelected: viewModel.draft.preferredLanguages.contains(language)
+                            ) {
+                                selectLanguage(language)
+                            }
+                        }
+                    }
+
+                    HStack(spacing: 10) {
+                        ForEach(Array(ProfileLanguage.allCases.enumerated()).filter { !$0.offset.isMultiple(of: 2) }, id: \.element.id) { _, language in
+                            ProfileLanguageCard(
+                                language: language,
+                                isSelected: viewModel.draft.preferredLanguages.contains(language)
+                            ) {
+                                selectLanguage(language)
+                            }
+                        }
                     }
                 }
+                .padding(.horizontal, 8)
+                .padding(.top, 2)
+                .padding(.bottom, 20)
             }
-            .padding(.horizontal, 8)
-            .padding(.top, 2)
-            .padding(.bottom, 20)
         }
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.white.opacity(0.08))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(Color.white.opacity(0.05), lineWidth: 1.2)
-                )
+            ProfilePanelBackground(cornerRadius: 8)
         )
     }
 
@@ -264,15 +424,11 @@ struct ProfileEditorView: View {
                 .labelsHidden()
                 .toggleStyle(SwitchToggleStyle(tint: Color(hex: "3595DE")))
         }
+        .simultaneousGesture(TapGesture().onEnded(dismissKeyboard))
         .padding(.horizontal, UIConstants.Spacing.lg)
         .frame(height: 56)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.white.opacity(0.08))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(Color.white.opacity(0.05), lineWidth: 1.2)
-                )
+            ProfilePanelBackground(cornerRadius: 20)
         )
     }
 
@@ -303,7 +459,7 @@ struct ProfileEditorView: View {
                         isSelected: preference == viewModel.draft.preference,
                         languages: viewModel.preferredLanguages(for: preference)
                     ) {
-                        viewModel.selectPreference(preference)
+                        selectPreference(preference)
                     }
                 }
             }
@@ -346,20 +502,21 @@ struct ProfileEditorView: View {
                         Spacer()
 
                         Button {
-                            viewModel.isGenderPickerPresented = false
+                            dismissPickers()
                         } label: {
                             Image(systemName: "xmark")
                                 .font(.system(size: 12, weight: .bold))
                                 .foregroundStyle(.white.opacity(0.82))
                                 .frame(width: 24, height: 24)
-                                .background(Circle().fill(Color.white.opacity(0.08)))
+                                .background(LiquidGlassCircleBackground(tone: .dark))
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(LiquidButtonPressStyle())
                     }
 
                     VStack(spacing: 4) {
                         ForEach(Array(ProfileGender.allCases.enumerated()), id: \.element.id) { index, gender in
                             Button {
+                                dismissKeyboard()
                                 viewModel.selectGender(gender)
                             } label: {
                                 HStack(spacing: 12) {
@@ -376,11 +533,13 @@ struct ProfileEditorView: View {
                                 .padding(.horizontal, 20)
                                 .frame(height: 56)
                                 .background(
-                                    RoundedRectangle(cornerRadius: roundedCorner(for: index, count: ProfileGender.allCases.count), style: .continuous)
-                                        .fill(Color.white.opacity(0.05))
+                                    ProfileGenderRowBackground(
+                                        cornerRadius: roundedCorner(for: index, count: ProfileGender.allCases.count),
+                                        isSelected: viewModel.draft.gender == gender
+                                    )
                                 )
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(LiquidButtonPressStyle())
                         }
                     }
                 }
@@ -396,15 +555,15 @@ struct ProfileEditorView: View {
                         Spacer()
 
                         Button {
-                            viewModel.isDatePickerPresented = false
+                            dismissPickers()
                         } label: {
                             Image(systemName: "xmark")
                                 .font(.system(size: 12, weight: .bold))
                                 .foregroundStyle(.white.opacity(0.82))
                                 .frame(width: 24, height: 24)
-                                .background(Circle().fill(Color.white.opacity(0.08)))
+                                .background(LiquidGlassCircleBackground(tone: .dark))
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(LiquidButtonPressStyle())
                     }
 
                     DatePicker(
@@ -419,25 +578,23 @@ struct ProfileEditorView: View {
                     .colorScheme(.dark)
 
                     Button {
-                        viewModel.isDatePickerPresented = false
+                        dismissPickers()
                     } label: {
                         Text(AppStrings.Profile.continueProfile)
                             .font(.system(size: 16, weight: .bold))
                             .foregroundStyle(Color(hex: "151424"))
                             .frame(maxWidth: .infinity)
                             .frame(height: 48)
-                            .background(
-                                RoundedRectangle(cornerRadius: UIConstants.CornerRadius.sm, style: .continuous)
-                                    .fill(Color.white)
-                            )
+                            .background(LiquidGlassBackground(cornerRadius: UIConstants.CornerRadius.sm, tone: .light, isHighlighted: true))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(LiquidButtonPressStyle())
                 }
             }
         }
     }
 
     private func handlePrimaryAction() {
+        dismissKeyboard()
         if viewModel.isSaveStep {
             onSave()
         } else {
@@ -446,10 +603,67 @@ struct ProfileEditorView: View {
     }
 
     private func handleBackTap() {
+        dismissKeyboard()
         if viewModel.handleBack() {
             return
         }
         onBack()
+    }
+
+    private func handleChooseAvatar() {
+        dismissKeyboard()
+        dismissPickers(animated: false)
+        onChooseAvatar()
+    }
+
+    private func selectAvatar(_ option: AvatarOption) {
+        dismissKeyboard()
+        viewModel.selectAvatar(option)
+    }
+
+    private func selectLanguage(_ language: ProfileLanguage) {
+        dismissKeyboard()
+        viewModel.toggleLanguage(language)
+    }
+
+    private func selectPreference(_ preference: ProfilePreference) {
+        dismissKeyboard()
+        viewModel.selectPreference(preference)
+    }
+
+    private func presentDatePicker() {
+        dismissKeyboard()
+        withAnimation(.easeInOut(duration: 0.2)) {
+            viewModel.isGenderPickerPresented = false
+            viewModel.isDatePickerPresented = true
+        }
+    }
+
+    private func presentGenderPicker() {
+        dismissKeyboard()
+        withAnimation(.easeInOut(duration: 0.2)) {
+            viewModel.isDatePickerPresented = false
+            viewModel.isGenderPickerPresented = true
+        }
+    }
+
+    private func dismissPickers(animated: Bool = true) {
+        dismissKeyboard()
+        let updates = {
+            viewModel.isGenderPickerPresented = false
+            viewModel.isDatePickerPresented = false
+        }
+
+        if animated {
+            withAnimation(.easeInOut(duration: 0.2), updates)
+        } else {
+            updates()
+        }
+    }
+
+    private func dismissKeyboard() {
+        isNameFieldFocused = false
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 
     private func roundedCorner(for index: Int, count: Int) -> CGFloat {
@@ -481,7 +695,7 @@ private struct ProfileFieldShell<Content: View>: View {
                     topTrailingRadius: isTopRounded ? 20 : 8,
                     style: .continuous
                 )
-                .fill(Color.white.opacity(0.08))
+                .fill(Color.white.opacity(0.05))
                 .overlay(
                     UnevenRoundedRectangle(
                         topLeadingRadius: isTopRounded ? 20 : 8,
@@ -496,6 +710,102 @@ private struct ProfileFieldShell<Content: View>: View {
     }
 }
 
+private struct ProfilePanelBackground: View {
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .fill(Color.white.opacity(0.05))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(Color.white.opacity(0.05), lineWidth: 1.2)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(Color.white.opacity(0.03), lineWidth: 1)
+                    .blur(radius: 2)
+            )
+    }
+}
+
+private struct ProfileLanguageCardBackground: View {
+    let isSelected: Bool
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .fill(
+                LinearGradient(
+                    colors: [Color(hex: "282828"), Color(hex: "1E1D1D")],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .overlay {
+                if isSelected {
+                    Color(hex: "3595DE").opacity(0.4)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(Color.white.opacity(0.05), lineWidth: 1.334)
+            )
+    }
+}
+
+private struct ProfileGenderRowBackground: View {
+    let cornerRadius: CGFloat
+    let isSelected: Bool
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .fill(Color.white.opacity(0.05))
+            .overlay {
+                if isSelected {
+                    Color(hex: "3595DE").opacity(0.22)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(Color.white.opacity(isSelected ? 0.12 : 0.05), lineWidth: 1.2)
+            )
+    }
+}
+
+private struct FigmaNavigationTextBackground: View {
+    var body: some View {
+        UnevenRoundedRectangle(
+            topLeadingRadius: 18,
+            bottomLeadingRadius: 18,
+            bottomTrailingRadius: 8,
+            topTrailingRadius: 8,
+            style: .continuous
+        )
+        .fill(.ultraThinMaterial)
+        .overlay(
+            UnevenRoundedRectangle(
+                topLeadingRadius: 18,
+                bottomLeadingRadius: 18,
+                bottomTrailingRadius: 8,
+                topTrailingRadius: 8,
+                style: .continuous
+            )
+            .fill(Color.white.opacity(0.1))
+        )
+        .overlay(
+            UnevenRoundedRectangle(
+                topLeadingRadius: 18,
+                bottomLeadingRadius: 18,
+                bottomTrailingRadius: 8,
+                topTrailingRadius: 8,
+                style: .continuous
+            )
+            .stroke(Color.white.opacity(0.1), lineWidth: 1.2)
+        )
+    }
+}
+
 private struct ProfileLanguageCard: View {
     let language: ProfileLanguage
     let isSelected: Bool
@@ -503,39 +813,49 @@ private struct ProfileLanguageCard: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 10) {
-                Text(language.monogram)
-                    .font(.system(size: 30, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.7))
+            ZStack(alignment: .topTrailing) {
+                HStack(spacing: 12) {
+                    Text(language.monogram)
+                        .font(.system(size: 32, weight: .medium))
+                        .foregroundStyle(Color.white.opacity(0.7))
+                        .frame(width: 32, alignment: .leading)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(language.nativeTitle)
-                        .font(.system(size: 15, weight: .regular))
-                    Text(language.englishTitle)
-                        .font(.system(size: 15, weight: .regular))
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(language.nativeTitle)
+                            .font(.system(size: 16, weight: .regular))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.76)
+                            .fixedSize(horizontal: true, vertical: false)
+
+                        Text(language.englishTitle)
+                            .font(.system(size: 16, weight: .regular))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.76)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                    .foregroundStyle(.white)
+
+                    Spacer(minLength: 0)
                 }
-                .foregroundStyle(.white)
-
-                Spacer()
+                .padding(.leading, 16)
+                .padding(.trailing, 28)
 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(Color(hex: "4DA3FF"))
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(10)
                 }
             }
-            .padding(.horizontal, 16)
-            .frame(height: 74)
+            .frame(width: 162, alignment: .leading)
+            .frame(height: 74.72)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(isSelected ? Color(hex: "3595DE").opacity(0.16) : Color.white.opacity(0.04))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .stroke(Color.white.opacity(isSelected ? 0.16 : 0.05), lineWidth: 1.2)
-                    )
+                ProfileLanguageCardBackground(isSelected: isSelected)
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(LiquidButtonPressStyle())
     }
 }
 
@@ -585,23 +905,10 @@ private struct CohortPreferenceCard: View {
             }
             .padding(18)
             .background(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: isSelected
-                                ? [Color(hex: "31204E"), Color(hex: "4A1E21"), Color(hex: "8B4D12")]
-                                : [Color.white.opacity(0.08), Color.white.opacity(0.04)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .stroke(isSelected ? Color(hex: "F5B919").opacity(0.7) : Color.white.opacity(0.05), lineWidth: 1.2)
-                    )
+                LiquidGlassBackground(cornerRadius: 20, tone: .accent, isHighlighted: isSelected)
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(LiquidButtonPressStyle())
     }
 }
 
@@ -621,10 +928,14 @@ private struct BottomSheetContainer<Content: View>: View {
                 RoundedRectangle(cornerRadius: 30, style: .continuous)
                     .fill(
                         LinearGradient(
-                            colors: [Color(hex: "191919"), Color(hex: "070708")],
+                            colors: [Color(hex: "181818"), Color(hex: "0A0A0A")],
                             startPoint: .top,
                             endPoint: .bottom
                         )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30, style: .continuous)
+                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
                     )
             )
             .overlay(alignment: .top) {

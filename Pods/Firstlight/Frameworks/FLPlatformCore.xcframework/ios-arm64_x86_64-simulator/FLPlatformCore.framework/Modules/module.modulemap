@@ -1,0 +1,11 @@
+framework module FLPlatformCore {
+  umbrella header "FLPlatformCore.h"
+  export *
+
+  module * { export * }
+}
+
+module FLPlatformCore.Swift {
+  header "FLPlatformCore-Swift.h"
+  requires objc
+}

@@ -1,0 +1,11 @@
+framework module FLPlayer {
+  umbrella header "FLPlayer.h"
+  export *
+
+  module * { export * }
+}
+
+module FLPlayer.Swift {
+  header "FLPlayer-Swift.h"
+  requires objc
+}

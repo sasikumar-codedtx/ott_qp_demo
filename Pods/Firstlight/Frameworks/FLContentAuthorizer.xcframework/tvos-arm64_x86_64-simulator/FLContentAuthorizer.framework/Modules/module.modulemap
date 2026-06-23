@@ -1,0 +1,11 @@
+framework module FLContentAuthorizer {
+  umbrella header "FLContentAuthorizer.h"
+  export *
+
+  module * { export * }
+}
+
+module FLContentAuthorizer.Swift {
+  header "FLContentAuthorizer-Swift.h"
+  requires objc
+}

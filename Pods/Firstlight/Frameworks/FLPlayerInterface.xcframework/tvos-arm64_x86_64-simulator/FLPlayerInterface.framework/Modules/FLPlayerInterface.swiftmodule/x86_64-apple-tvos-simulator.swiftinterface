@@ -1,0 +1,960 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -target x86_64-apple-tvos12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name FLPlayerInterface
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -interface-compiler-version 6.1.2
+import AVFoundation
+import AVKit
+import CoreMedia
+import FLFoundation
+@_exported import FLPlayerInterface
+import Foundation
+import MediaPlayer
+import Swift
+import UIKit
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public enum PlaybackFastForwardRule : Swift.String, Swift.Codable, Swift.CaseIterable {
+  case TRICK_FW_PLAY_ALL
+  case TRICK_FW_PLAY_FIRST
+  case TRICK_FW_PLAY_LAST
+  case TRICK_FW_SKIP_ALL
+  public init?(rawValue: Swift.String)
+  public typealias AllCases = [FLPlayerInterface.PlaybackFastForwardRule]
+  public typealias RawValue = Swift.String
+  nonisolated public static var allCases: [FLPlayerInterface.PlaybackFastForwardRule] {
+    get
+  }
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum PlaybackRewindRule : Swift.String, Swift.Codable, Swift.CaseIterable {
+  case TRICK_RW_PLAY_ALL
+  case TRICK_RW_PLAY_FIRST
+  case TRICK_RW_PLAY_LAST
+  case TRICK_RW_SKIP_ALL
+  public init?(rawValue: Swift.String)
+  public typealias AllCases = [FLPlayerInterface.PlaybackRewindRule]
+  public typealias RawValue = Swift.String
+  nonisolated public static var allCases: [FLPlayerInterface.PlaybackRewindRule] {
+    get
+  }
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum PlaybackInterruptedRule : Swift.String, Swift.Codable, Swift.CaseIterable {
+  case INTERRUPT_SKIP
+  case INTERRUPT_RESTART
+  case INTERRUPT_RESUME
+  public init?(rawValue: Swift.String)
+  public typealias AllCases = [FLPlayerInterface.PlaybackInterruptedRule]
+  public typealias RawValue = Swift.String
+  nonisolated public static var allCases: [FLPlayerInterface.PlaybackInterruptedRule] {
+    get
+  }
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum PlaybackAutoSeekRule : Swift.String, Swift.Codable, Swift.CaseIterable {
+  case AUTO_SEEK_SKIP_ALL
+  case AUTO_SEEK_PLAY_PREROLL
+  case AUTO_SEEK_PLAY_MIDROLL
+  case AUTO_SEEK_PLAY_ALL
+  case AUTO_SEEK_PLAY_LAST
+  public init?(rawValue: Swift.String)
+  public typealias AllCases = [FLPlayerInterface.PlaybackAutoSeekRule]
+  public typealias RawValue = Swift.String
+  nonisolated public static var allCases: [FLPlayerInterface.PlaybackAutoSeekRule] {
+    get
+  }
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum PlaybackRepeatedRule : Swift.String, Swift.Codable, Swift.CaseIterable {
+  case REPEAT_ALWAYS_PLAY
+  case REPEAT_PLAY_ONCE
+  public init?(rawValue: Swift.String)
+  public typealias AllCases = [FLPlayerInterface.PlaybackRepeatedRule]
+  public typealias RawValue = Swift.String
+  nonisolated public static var allCases: [FLPlayerInterface.PlaybackRepeatedRule] {
+    get
+  }
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public struct AdPlaybackPolicy {
+  public let fastForwardRule: FLPlayerInterface.PlaybackFastForwardRule
+  public let rewindRule: FLPlayerInterface.PlaybackRewindRule
+  public let interruptRule: FLPlayerInterface.PlaybackInterruptedRule
+  public let autoSeekRule: FLPlayerInterface.PlaybackAutoSeekRule
+  public let repeatRule: FLPlayerInterface.PlaybackRepeatedRule
+  public init(fastForwardRule: FLPlayerInterface.PlaybackFastForwardRule = .TRICK_FW_PLAY_LAST, rewindRule: FLPlayerInterface.PlaybackRewindRule = .TRICK_RW_SKIP_ALL, interruptRule: FLPlayerInterface.PlaybackInterruptedRule = .INTERRUPT_RESUME, autoSeekRule: FLPlayerInterface.PlaybackAutoSeekRule = .AUTO_SEEK_PLAY_PREROLL, repeatRule: FLPlayerInterface.PlaybackRepeatedRule = .REPEAT_ALWAYS_PLAY)
+}
+public enum AdPosition : Swift.String, Swift.Codable {
+  case preroll
+  case midroll
+  case postroll
+  case unknown
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public protocol AdBreak {
+  var position: FLPlayerInterface.AdPosition { get }
+  var startTime: Foundation.TimeInterval { get }
+  var duration: Foundation.TimeInterval { get }
+  var totalAds: Swift.Int { get }
+  var isPlayed: Swift.Bool { get set }
+}
+extension FLPlayerInterface.AdBreak {
+  public var timeRange: AVKit.AVInterstitialTimeRange {
+    get
+  }
+  public func equal(other adBreak: any FLPlayerInterface.AdBreak) -> Swift.Bool
+  public func equalExceptTotalAds(other adBreak: any FLPlayerInterface.AdBreak) -> Swift.Bool
+  public func isWithinRange(at playhead: Foundation.TimeInterval) -> Swift.Bool
+}
+extension Swift.Array where Element == any FLPlayerInterface.AdBreak {
+  public func isScheduled(at timePosition: Foundation.TimeInterval) -> Swift.Bool
+}
+public protocol Ad {
+  var adId: Swift.String { get }
+  var sequence: Swift.Int { get }
+  var duration: Foundation.TimeInterval { get }
+  var title: Swift.String { get }
+  var isSkippable: Swift.Bool { get }
+  var adBreak: (any FLPlayerInterface.AdBreak)? { get set }
+  var vastProperties: any FLPlayerInterface.VASTProperties { get }
+}
+public protocol AdVerification {
+  var vendorKey: Swift.String? { get }
+  var verificationParameter: Swift.String? { get }
+  var verificationResource: [any FLPlayerInterface.VerificationResource]? { get }
+}
+public protocol VerificationResource {
+  var name: Swift.String? { get }
+  var value: Swift.String? { get }
+  var attributes: [Swift.AnyHashable : Any]? { get }
+}
+public protocol VASTProperties {
+  var skipOffset: Foundation.TimeInterval? { get }
+  var isAutoPlay: Swift.Bool { get }
+  var adPosition: FLPlayerInterface.AdPosition { get }
+  var adSystem: Swift.String? { get }
+  var adTitle: Swift.String? { get }
+  var adServingId: Swift.String? { get }
+  var category: Swift.String? { get }
+  var description: Swift.String? { get }
+  var advertiser: Swift.String? { get }
+  var pricing: Swift.String? { get }
+  var survey: Swift.String? { get }
+  var expires: Swift.String? { get }
+  var creativeId: Swift.String? { get }
+  var industryIcons: [any FLPlayerInterface.IndustryIcon]? { get }
+  var extensions: (any FLPlayerInterface.Extensions)? { get }
+  var videoClickThroughURL: Swift.String? { get }
+}
+public protocol AdVideoProperties {
+  var adDurationMs: Foundation.TimeInterval { get }
+  var adAudioVolume: Swift.Float { get }
+}
+public protocol IndustryIcon {
+  var program: Swift.String? { get }
+  var width: Swift.String? { get }
+  var height: Swift.String? { get }
+  var xPosition: Swift.String? { get }
+  var yPosition: Swift.String? { get }
+  var duration: Swift.String? { get }
+  var offset: Swift.String? { get }
+  var apiFramework: Swift.String? { get }
+  var altText: Swift.String? { get }
+  var imageURL: Swift.String? { get }
+  var clickThroughURL: Swift.String? { get }
+  var fallbackImages: [any FLPlayerInterface.IconClickFallbackImage]? { get }
+}
+public protocol IconClickFallbackImage {
+  var program: Swift.String? { get }
+  var width: Swift.String? { get }
+  var height: Swift.String? { get }
+  var altText: Swift.String? { get }
+  var imageURL: Swift.String? { get }
+}
+public protocol Extensions {
+  var clickFallbackImages: [any FLPlayerInterface.IconClickFallbackImage]? { get }
+}
+public protocol AdRequest {
+}
+public enum AdTrackingEvent : Swift.String, Swift.Codable {
+  case adBreakStart
+  case adStart
+  case adFirstQuartile
+  case adMidpoint
+  case adThirdQuartile
+  case adPause
+  case adResume
+  case adMute
+  case adUnmute
+  case adEnd
+  case adBreakEnd
+  case adClicked
+  case adPlaybackViewTapped
+  case adIconTapped
+  case adIconFallbackImageClosed
+  case adSkipped
+  case adCompletedAll
+  case adCuePointChanged
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public class AdOverlayUIScope {
+  public var view: UIKit.UIView
+  public var purpose: FLPlayerInterface.AdOverlayPurpose
+  public var reason: Swift.String
+  public init(view: UIKit.UIView, purpose: FLPlayerInterface.AdOverlayPurpose, reason: Swift.String)
+  @objc deinit
+}
+public enum AdOverlayPurpose {
+  case playbackControls
+  case closeAd
+  case notVisible
+  case other
+  public static func == (a: FLPlayerInterface.AdOverlayPurpose, b: FLPlayerInterface.AdOverlayPurpose) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public protocol StreamInformation {
+  var numberOfDroppedVideoFrames: Swift.Int? { get }
+  var variantSwitchArray: [Swift.Double]? { get }
+  var numberOfVariantSwitches: Swift.Int? { get }
+  var videoResolution: CoreFoundation.CGSize? { get }
+  var lastPlayedVariant: Swift.Double? { get }
+  var maxVideoBitrateKbps: Swift.Double? { get }
+  var indicatedBitrateKbps: Swift.Double? { get }
+  var startupTime: CoreFoundation.CFTimeInterval { get }
+  var timeWeightedIBR: Swift.Double { get }
+  var stallRate: Swift.Double { get }
+  var stallWaitRatio: Swift.Double { get }
+  var totalStallTime: CoreFoundation.CFTimeInterval { get }
+  var numberOfStalls: Swift.Int { get }
+  var totalDurationWatched: Swift.Double { get }
+  var programWatchedDuration: Swift.Double { get }
+  var streamStartUpTimeData: (any FLPlayerInterface.StreamStartUpTimeData)? { get set }
+}
+public protocol NetworkInformation {
+  var observedBandwidth: Swift.Double? { get }
+  var highestVariantBandwidthKb: Swift.Double? { get }
+  var lowestVariantBandwidthKb: Swift.Double? { get }
+}
+public protocol StreamStartUpTimeData : AnyObject, Swift.CustomDebugStringConvertible {
+  var ssaiStreamUrlFetchTimeMs: Swift.Double { get }
+  var preRollAdLoadTimeMs: Swift.Double { get }
+  var palNonceRequestTimeMs: Swift.Double { get }
+  func start(forKey startUpTimeData: FLPlayerInterface.StartUpEventType)
+  func finish(forKey startUpTimeData: FLPlayerInterface.StartUpEventType)
+}
+extension FLPlayerInterface.StreamStartUpTimeData {
+  public var debugDescription: Swift.String {
+    get
+  }
+}
+public enum StartUpEventType : Swift.String {
+  case csaiPrerollAd
+  case ssaiStream
+  case ssaiPrerollAd
+  case palNonceRequest
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public func version() -> Swift.String
+public protocol Player : FLPlayerInterface.EventSendable, FLPlayerInterface.PlayerControllable, FLPlayerInterface.PlayerMediaTrackSelectable, FLPlayerInterface.PlayerNowPlayable, FLPlayerInterface.PlayerPictureInPicturePlayable, FLPlayerInterface.PlayerPreferable, FLPlayerInterface.PlayerQueuable {
+  @available(*, deprecated, message: "This property has been deprecated. Please use addDelegate(_:) and removeDelegate(_:) for event listening instead.")
+  var delegate: (any FLPlayerInterface.EventSendableDelegate & FLPlayerInterface.PlayerAuxiliaryEventsDelegate & FLPlayerInterface.PlayerControllableDelegate & FLPlayerInterface.PlayerMediaTrackSelectableDelegate & FLPlayerInterface.PlayerPictureInPicturePlayableDelegate & FLPlayerInterface.PlayerTrackAvailabilityDelegate & FLPlayerInterface.QueuePlayerDelegate)? { get set }
+  func addPreloadBlock(block: @escaping (any FLPlayerInterface.Player) -> Swift.Void)
+  func addStateChangeBlock(block: @escaping (any FLPlayerInterface.Player) -> Swift.Void)
+  func addHeartBeatBlock(block: @escaping (any FLPlayerInterface.Player) -> Swift.Void)
+  func addDelegate(_ delegate: any FLPlayerInterface.EventSendableDelegate & FLPlayerInterface.PlayerAuxiliaryEventsDelegate & FLPlayerInterface.PlayerControllableDelegate & FLPlayerInterface.PlayerMediaTrackSelectableDelegate & FLPlayerInterface.PlayerPictureInPicturePlayableDelegate & FLPlayerInterface.PlayerTrackAvailabilityDelegate & FLPlayerInterface.QueuePlayerDelegate)
+  func removeDelegate(_ delegate: any FLPlayerInterface.EventSendableDelegate & FLPlayerInterface.PlayerAuxiliaryEventsDelegate & FLPlayerInterface.PlayerControllableDelegate & FLPlayerInterface.PlayerMediaTrackSelectableDelegate & FLPlayerInterface.PlayerPictureInPicturePlayableDelegate & FLPlayerInterface.PlayerTrackAvailabilityDelegate & FLPlayerInterface.QueuePlayerDelegate)
+  var avPlayerViewControllerCallback: any FLPlayerInterface.FLAVPlayerViewControllerCallback { get }
+}
+public protocol PlayerQueuable {
+  var allItems: FLFoundation.Observable<[any FLPlayerInterface.MediaPlaylistItem]> { get }
+  func addAsset(mediaPlaylistRequestItem: FLPlayerInterface.MediaPlaylistRequestItem) -> Swift.Bool
+  func addAssets(mediaPlaylistRequestItems: [FLPlayerInterface.MediaPlaylistRequestItem])
+  func removeItem(item: any FLPlayerInterface.MediaPlaylistItem)
+  func playNext()
+  func playPrevious()
+  func play(item: any FLPlayerInterface.MediaPlaylistItem)
+  func hasPreviousMediaPlaylistItem() -> Swift.Bool
+  func hasNextMediaPlaylistItem() -> Swift.Bool
+}
+public protocol PlayerControllable : AnyObject {
+  var avURLAsset: AVFoundation.AVURLAsset? { get }
+  var rawPlayer: Any? { get }
+  var playbackView: UIKit.UIView? { get }
+  var videoAspect: AVFoundation.AVLayerVideoGravity { get set }
+  var playbackState: FLFoundation.Observable<FLPlayerInterface.PlayerState> { get }
+  var isReadyForDisplay: FLFoundation.Observable<Swift.Bool> { get }
+  var isBuffering: FLFoundation.Observable<Swift.Bool> { get }
+  var isSeeking: FLFoundation.Observable<Swift.Bool> { get }
+  var duration: Foundation.TimeInterval { get }
+  var bufferedRange: Swift.Range<Foundation.TimeInterval>? { get }
+  var seekableRange: Swift.Range<Foundation.TimeInterval>? { get }
+  var currentTime: Foundation.TimeInterval { get }
+  var currentEpochTime: Foundation.TimeInterval { get }
+  var playerContext: FLPlayerInterface.PlayerContext { get }
+  var rate: Swift.Float { get set }
+  var streamInformation: (any FLPlayerInterface.StreamInformation)? { get }
+  @available(iOS 16.0, tvOS 16.0, *)
+  var defaultRate: Swift.Float { get set }
+  var volume: Swift.Float { get set }
+  var isMuted: Swift.Bool { get set }
+  var textStyleRules: [AVFoundation.AVTextStyleRule]? { get set }
+  @available(iOS 15.0, tvOS 15.0, *)
+  func getAllVariantTracks(completion: @escaping ([AVFoundation.AVAssetVariant]?) -> Swift.Void)
+  func addPeriodicTimeObserver(forInterval interval: CoreMedia.CMTime, queue: Dispatch.DispatchQueue?, using block: @escaping (CoreMedia.CMTime) -> Swift.Void) -> Any?
+  func removeTimeObserver(_ observer: Any)
+  func replaceAsset(_ asset: AVFoundation.AVURLAsset, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)?)
+  func load()
+  func play()
+  func pause()
+  func seek(to time: Swift.Double, beforeTolerance: Swift.Double, afterTolerance: Swift.Double)
+  func seek(to date: Foundation.Date)
+  func stop()
+  func abort(with error: any FLFoundation.FLError)
+  func getThumbnail(for progress: Foundation.TimeInterval, completionHandler: @escaping (UIKit.UIImage) -> Swift.Void)
+  func addInterstitialTimeRange(_ ranges: [AVKit.AVInterstitialTimeRange])
+  func getThumbnailUrl(for position: Swift.Double) -> Swift.String?
+}
+extension FLPlayerInterface.PlayerControllable {
+  public var isLive: Swift.Bool {
+    get
+  }
+  public var currentOffsetFromLiveEdge: Foundation.TimeInterval? {
+    get
+  }
+  public var seekableRangeInEpoch: Swift.Range<Foundation.TimeInterval>? {
+    get
+  }
+  public func replaceAsset(_ asset: AVFoundation.AVURLAsset, thumbnailConfiguration: (any FLPlayerInterface.ContentThumbnailPreviewConfiguration)? = nil)
+  public func seek(to time: Swift.Double)
+  public func seekToLiveEdge()
+  public func togglePlayPause()
+  @available(iOS 15.0, tvOS 15.0, *)
+  public func getAllVariantTracks(completion: @escaping ([AVFoundation.AVAssetVariant]?) -> Swift.Void)
+  public func getThumbnailUrl(for _: Swift.Double) -> Swift.String?
+}
+public protocol PlayerMediaTrackSelectable {
+  func tracks(for trackType: FLPlayerInterface.MediaTrackType) -> [FLPlayerInterface.MediaTrack]?
+  func selectedTrack(for trackType: FLPlayerInterface.MediaTrackType) -> FLPlayerInterface.MediaTrack?
+  func selectTrack(_ track: FLPlayerInterface.MediaTrack?, for trackType: FLPlayerInterface.MediaTrackType)
+}
+public protocol PlayerPreferable {
+  func load(with preferences: [FLPlayerInterface.PlayerPreference])
+  func set(preferences: [FLPlayerInterface.PlayerPreference])
+}
+public protocol PlayerPictureInPicturePlayable : AnyObject {
+  @available(tvOS 14.0, *)
+  var isPictureInPictureSupported: Swift.Bool { get }
+  @available(tvOS 14.0, *)
+  var isPicureInPicturePossible: Swift.Bool { get }
+  @available(tvOS 14.0, *)
+  var isPictureInPictureActive: Swift.Bool { get }
+  @available(tvOS 14.0, *)
+  var isPictureInPictureSuspended: Swift.Bool { get }
+  @available(tvOS 14.0, *)
+  var canStopPictureInPicture: Swift.Bool { get }
+  @available(iOS 14.0, tvOS 14.0, *)
+  var requiresLinearPlayback: Swift.Bool? { get set }
+  @available(tvOS 14.0, *)
+  var pictureInPictureProxy: (any AVKit.AVPictureInPictureControllerDelegate)? { get set }
+  @available(tvOS 14.0, *)
+  func startPictureInPicture()
+  @available(tvOS 14.0, *)
+  func stopPictureInPicture()
+}
+public protocol PlayerNowPlayable : AnyObject {
+  var remoteCommandHandler: (any FLPlayerInterface.PlayerRemoteCommandControllable)? { get set }
+  var nowPlayingInfo: [Swift.String : Any]? { get set }
+}
+public enum PlayerState : Swift.Int {
+  case idle
+  case loading
+  case loaded
+  case playing
+  case paused
+  case stopping
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public enum PlayerContext {
+  case main
+  case ad
+  case promo
+  public static func == (a: FLPlayerInterface.PlayerContext, b: FLPlayerInterface.PlayerContext) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum AudioInterruptionState {
+  case began
+  case ended
+  public static func == (a: FLPlayerInterface.AudioInterruptionState, b: FLPlayerInterface.AudioInterruptionState) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension FLPlayerInterface.PlayerQueuable {
+  public func addAsset(mediaPlaylistRequestItem _: FLPlayerInterface.MediaPlaylistRequestItem) -> Swift.Bool
+  public func addAssets(mediaPlaylistRequestItems _: [FLPlayerInterface.MediaPlaylistRequestItem])
+  public func removeItem(item _: any FLPlayerInterface.MediaPlaylistItem)
+  public func playNext()
+  public func playPrevious()
+  public func hasPreviousMediaPlaylistItem() -> Swift.Bool
+  public func hasNextMediaPlaylistItem() -> Swift.Bool
+  public func play(item _: any FLPlayerInterface.MediaPlaylistItem)
+}
+extension FLPlayerInterface.Player {
+  public func updatePlayPostionInControlCenter(duration: Swift.Double, rate: Swift.Float, currentTime: Swift.Double, isLive: Swift.Bool)
+}
+extension AVFoundation.AVURLAsset {
+  @available(iOS 15.0, tvOS 15.0, *)
+  public func getAllVariantTracks(completion: @escaping ([AVFoundation.AVAssetVariant]?) -> Swift.Void)
+}
+public protocol FLInterstitialEventsDelegate : AnyObject {
+  func playerViewController(_ playerViewController: AVKit.AVPlayerViewController, to targetTime: CoreMedia.CMTime) -> CoreMedia.CMTime
+  func didPresent(_ playerViewController: AVKit.AVPlayerViewController)
+  func willPresent(_ playerViewController: AVKit.AVPlayerViewController)
+  func getContentPosition(for playhead: CoreMedia.CMTime) -> Foundation.TimeInterval
+}
+extension FLPlayerInterface.FLInterstitialEventsDelegate {
+  public func playerViewController(_: AVKit.AVPlayerViewController, to targetTime: CoreMedia.CMTime) -> CoreMedia.CMTime
+  public func didPresent(_ playerViewController: AVKit.AVPlayerViewController)
+  public func willPresent(_ playerViewController: AVKit.AVPlayerViewController)
+  public func getContentPosition(for playhead: CoreMedia.CMTime) -> Foundation.TimeInterval
+}
+public protocol PALSessionConfiguration {
+  var willAdAutoPlay: FLPlayerInterface.PALFlag? { get }
+  var willAdPlayMuted: FLPlayerInterface.PALFlag? { get }
+  var continuousPlayback: FLPlayerInterface.PALFlag? { get }
+  var descriptionUrl: Foundation.URL { get }
+  var iconsSupported: Swift.Bool? { get }
+  var nonceLengthLimit: Swift.UInt? { get }
+  var playerType: Swift.String? { get }
+  var playerVersion: Swift.String { get }
+  var ppid: Swift.String { get }
+  var videoHeight: Swift.UInt? { get }
+  var videoWidth: Swift.UInt? { get }
+  var omidPartnerName: Swift.String? { get }
+  var omidPartnerVersion: Swift.String? { get }
+  var omidVersion: Swift.String? { get }
+  var sessionID: Swift.String? { get }
+  var allowStorage: Swift.Bool? { get }
+}
+public enum PALFlag {
+  case auto
+  case `false`
+  case `true`
+  public static func == (a: FLPlayerInterface.PALFlag, b: FLPlayerInterface.PALFlag) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum MediaTrackType : Swift.Codable {
+  case audio
+  case closedCaption
+  case subtitle
+  case video
+  public static func == (a: FLPlayerInterface.MediaTrackType, b: FLPlayerInterface.MediaTrackType) -> Swift.Bool
+  public func encode(to encoder: any Swift.Encoder) throws
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+  public init(from decoder: any Swift.Decoder) throws
+}
+public enum MediaTrackCharacteristic : Swift.String, Swift.Codable {
+  case accessibilityDescribesVideo
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public struct MediaTrack : Swift.Codable {
+  public let trackType: FLPlayerInterface.MediaTrackType?
+  public let displayName: Swift.String?
+  public let locale: Foundation.Locale?
+  public var isDefault: Swift.Bool
+  public let isoLanguageCode: Swift.String?
+  public let mediaCharacteristic: [FLPlayerInterface.MediaTrackCharacteristic]
+  public init(trackType: FLPlayerInterface.MediaTrackType?, displayName: Swift.String?, locale: Foundation.Locale?, isDefault: Swift.Bool = false, isoLanguageCode: Swift.String?, mediaCharacteristic: [FLPlayerInterface.MediaTrackCharacteristic] = [])
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+extension FLPlayerInterface.MediaTrack : Swift.Equatable {
+  public static func == (lhs: FLPlayerInterface.MediaTrack, rhs: FLPlayerInterface.MediaTrack) -> Swift.Bool
+}
+extension FLPlayerInterface.MediaTrack : Swift.CustomDebugStringConvertible {
+  public var debugDescription: Swift.String {
+    get
+  }
+}
+public enum Mode : Swift.String, Swift.Codable {
+  case series
+  case episode
+  case playlist
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public struct BookmarkAttributes : Swift.Codable {
+  public let itemId: Swift.String
+  public let seasonId: Swift.String?
+  public let episodeId: Swift.String?
+  public let videoId: Swift.String?
+  public let mode: FLPlayerInterface.Mode?
+  public let offset: Swift.Int?
+  public let seasonNumber: Swift.Int?
+  public let episodeNumber: Swift.Int?
+  public let contentType: Swift.String?
+  public init(itemId: Swift.String, seasonId: Swift.String? = nil, episodeId: Swift.String? = nil, videoId: Swift.String? = nil, mode: FLPlayerInterface.Mode? = nil, offset: Swift.Int? = nil, seasonNumber: Swift.Int? = nil, episodeNumber: Swift.Int? = nil, contentType: Swift.String? = nil)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct CustomBookmarkData : Swift.Codable {
+  public init(contentId: Swift.String?, seasonId: Swift.String?, episodeId: Swift.String?, mode: FLPlayerInterface.Mode?, seasonNumber: Swift.Int? = nil, episodeNumber: Swift.Int? = nil, nextEpisodeDetails: FLPlayerInterface.BookmarkAttributes?, contentType: Swift.String?)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public protocol KeyLoadingRequest {
+}
+public protocol FLAVPlayerViewControllerCallback {
+  func playerWillSeek(_ playerViewController: AVKit.AVPlayerViewController, to targetTime: CoreMedia.CMTime) -> CoreMedia.CMTime
+  func playerDidSeek(_ playerViewController: AVKit.AVPlayerViewController, to targetTime: CoreMedia.CMTime)
+  func mediaSelectionDidChange(_ playerViewController: AVKit.AVPlayerViewController, didSelect option: AVFoundation.AVMediaSelectionOption?, in group: AVFoundation.AVMediaSelectionGroup)
+}
+public class WatchedAdDetector {
+  public init(cuepointSyncInterval: Foundation.TimeInterval = 0.3, cuepoints: [Foundation.TimeInterval], player: any FLPlayerInterface.Player, getAdBreakFromCuepoint: @escaping (_ cuepoint: Foundation.TimeInterval) -> (any FLPlayerInterface.AdBreak)?, _ onAdBreakStartDetected: @escaping (Foundation.TimeInterval) -> Swift.Void)
+  @objc deinit
+}
+public protocol PlaybackPolicyHandler : AnyObject {
+  var player: (any FLPlayerInterface.Player)? { get set }
+  var adPlaybackPolicy: FLPlayerInterface.AdPlaybackPolicy? { get }
+  func set(adBreaks: [any FLPlayerInterface.AdBreak])
+  func applicationDidEnterBackground()
+  func playbackDidInterrupt()
+  func resolveSeekIntentForInitialPlayback(position: Foundation.TimeInterval) -> Foundation.TimeInterval
+  func resolveSeekIntent(position: Foundation.TimeInterval) -> Foundation.TimeInterval
+  func getAutoSeekPositionIfAny() -> Foundation.TimeInterval?
+  func getContentPositionForPlayhead(playhead: Foundation.TimeInterval) -> Foundation.TimeInterval
+  func getPlayheadForContentPosition(position: Foundation.TimeInterval) -> Foundation.TimeInterval
+  func getContentDuration() -> Foundation.TimeInterval
+  func getInterruptedPositionIfAny() -> Foundation.TimeInterval?
+  func getWatchedAdBreaks() -> [any FLPlayerInterface.AdBreak]?
+}
+public protocol OpenMeasurementEventDelegate {
+  func adVerificationDidStart(adVerification: [any FLPlayerInterface.AdVerification]?, vastProperties: any FLPlayerInterface.VASTProperties, adVideoProperties: any FLPlayerInterface.AdVideoProperties)
+  func adVerificationDidEnd()
+  func adDidTrackEvent(event: FLPlayerInterface.AdTrackingEvent)
+}
+public enum AdInsertionType {
+  case CSAI_SeperatePlayer
+  case CSAI_SamePlayer
+  case SSAI_SamePlayer
+  case none
+  public static func == (a: FLPlayerInterface.AdInsertionType, b: FLPlayerInterface.AdInsertionType) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public protocol AdPlayer : FLPlayerInterface.Player {
+  var adSessionId: Swift.String? { get }
+  var interstitialEventDelegate: (any FLPlayerInterface.FLInterstitialEventsDelegate)? { get }
+  @available(*, deprecated, message: "This property has been deprecated. Please use addDelegate(_:) and removeDelegate(_:) for event listening instead.")
+  var adDelegate: (any FLPlayerInterface.AdPlayerDelegate)? { get set }
+  var adInsertionType: FLPlayerInterface.AdInsertionType { get }
+  var omEventDelegate: (any FLPlayerInterface.OpenMeasurementEventDelegate)? { get set }
+  func skipAd()
+  func discardAdBreak()
+  func getCuePoints() -> [Swift.Int]
+  func registerFriendlyObstraction(adOverlayScope: [FLPlayerInterface.AdOverlayUIScope])
+  func unregisterAllFriendlyObstractions()
+}
+public struct Promo : Swift.Codable {
+  public var contentId: Swift.String
+  public var catalogType: Swift.String
+  public var start: Foundation.TimeInterval
+  public var end: Foundation.TimeInterval
+  public var duration: Foundation.TimeInterval
+  public var skippable: Swift.Bool?
+  public var skipOffset: Foundation.TimeInterval?
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public typealias PlayerDelegate = FLPlayerInterface.EventSendableDelegate & FLPlayerInterface.PlayerAuxiliaryEventsDelegate & FLPlayerInterface.PlayerControllableDelegate & FLPlayerInterface.PlayerMediaTrackSelectableDelegate & FLPlayerInterface.PlayerPictureInPicturePlayableDelegate & FLPlayerInterface.PlayerTrackAvailabilityDelegate & FLPlayerInterface.QueuePlayerDelegate
+public protocol PlayerControllableDelegate : AnyObject {
+  func playerStateDidChange(state: FLPlayerInterface.PlayerState)
+  func playerBufferStateDidChange(isBuffering: Swift.Bool)
+  func playerSeekStateDidChange(isSeeking: Swift.Bool)
+  func playerDidFail(with error: any FLFoundation.FLError)
+  func playerRateDidChange(rate: Swift.Float)
+  func playerBufferedRangeDidChange(range: Swift.Range<Foundation.TimeInterval>)
+  func playerDurationDidChange(duration: Foundation.TimeInterval)
+  func playerAudioVolumeDidChange(volume: Swift.Float)
+  func playerAudioRouteDidChange(from: AVFAudio.AVAudioSession.Port?, to: AVFAudio.AVAudioSession.Port?)
+  func playerAudioInterruptionDidOccur(state: FLPlayerInterface.AudioInterruptionState)
+  func playerDidReceiveTimedMetadata(groups: [AVFoundation.AVTimedMetadataGroup])
+  func playerDidReceiveDateRangeMetadata(groups: [AVFoundation.AVDateRangeMetadataGroup])
+  func playerDidFinishPlaying()
+}
+public protocol PlayerMediaTrackSelectableDelegate {
+  func playerTrackDidChange(mediaTrack: FLPlayerInterface.MediaTrack?)
+}
+public protocol PlayerTrackAvailabilityDelegate {
+  func onTrackAvailabilityChanged(forTrack type: FLPlayerInterface.MediaTrackType)
+}
+public protocol PlayerPictureInPicturePlayableDelegate {
+  @available(tvOS 14.0, *)
+  func playerDidStartPictureInPicture()
+  @available(tvOS 14.0, *)
+  func playerDidStopPictureInPicture()
+  @available(tvOS 14.0, *)
+  func playerDidFailToStartPictureInPicture(with error: any Swift.Error)
+  @available(tvOS 14.0, *)
+  func restoreUserInterfaceForPictureInPictureStopWithCompletionHandler(completionHandler: @escaping (Swift.Bool) -> Swift.Void)
+}
+public protocol PlayerAuxiliaryEventsDelegate {
+  func playerStreamInfoDidChange(streamInfo: (any FLPlayerInterface.StreamInformation)?)
+  func playerNetworkInfoDidChange(networkInfo: (any FLPlayerInterface.NetworkInformation)?)
+}
+public protocol QueuePlayerDelegate {
+  func playerDidTransition(to item: any FLPlayerInterface.MediaPlaylistItem)
+}
+extension FLPlayerInterface.QueuePlayerDelegate {
+  public func playerDidTransition(to _: any FLPlayerInterface.MediaPlaylistItem)
+}
+public protocol AdPlayerDelegate : FLPlayerInterface.AdEventHandlerDelegate, FLPlayerInterface.EventSendableDelegate, FLPlayerInterface.PlayerAuxiliaryEventsDelegate, FLPlayerInterface.PlayerControllableDelegate, FLPlayerInterface.PlayerMediaTrackSelectableDelegate, FLPlayerInterface.PlayerPictureInPicturePlayableDelegate, FLPlayerInterface.PlayerTrackAvailabilityDelegate, FLPlayerInterface.QueuePlayerDelegate {
+  func willLoadCuratedStreamAsset(_ urlAsset: AVFoundation.AVURLAsset)
+}
+extension FLPlayerInterface.AdPlayerDelegate {
+  public func willLoadCuratedStreamAsset(_: AVFoundation.AVURLAsset)
+}
+public protocol MediaPlaylistItem {
+  var contentAVURLAsset: AVFoundation.AVURLAsset { get }
+  var isCurrentlyPlaying: Swift.Bool { get }
+  var playerItem: AVFoundation.AVPlayerItem { get }
+  var mediaType: Swift.String { get set }
+  var mediaId: Swift.String? { get set }
+  var mediaMetadata: [Swift.String : Any]? { get set }
+  var customMetadata: [Swift.String : Any]? { get set }
+  var artWorkUrl: Swift.String? { get set }
+}
+public struct MediaPlaylistRequestItem {
+  public var contentAVURLAsset: AVFoundation.AVURLAsset
+  public var mediaType: Swift.String
+  public var mediaId: Swift.String?
+  public var mediaMetadata: [Swift.String : Any]?
+  public var customMetadata: [Swift.String : Any]?
+  public var artWorkUrl: Swift.String?
+  public init(contentAVURLAsset: AVFoundation.AVURLAsset, mediaType: Swift.String, mediaId: Swift.String? = nil, mediaMetadata: [Swift.String : Any]? = nil, customMetadata: [Swift.String : Any]? = nil, artWorkUrl: Swift.String? = nil)
+}
+public enum StreamTimelineEvent : Swift.String, Swift.Codable {
+  case liveProgramStart
+  case liveProgramEnd
+  case liveEventStart
+  case liveEventEnd
+  case blackout
+  case gameInfo
+  case gameEvent
+  case unknown
+  case live360Available
+  case live360Unavailable
+  case tritonAudioMediaTrackInfo
+  case tritonAdInfo
+  case tritonAudioMediaSpeechInfo
+  case tritonSweeperInfo
+  case tritonSBMUnavailable
+  case liveEventProgressEnd
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public protocol StreamTimelineMetadata {
+}
+public enum Action : Swift.String, Swift.Codable {
+  case none
+  case startPlayback
+  case stopPlayback
+  case show
+  case hide
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public protocol EventSendable {
+  func send(event: FLPlayerInterface.StreamTimelineEvent, suggestedAction: FLPlayerInterface.Action, metadata: (any FLPlayerInterface.StreamTimelineMetadata)?)
+}
+public protocol EventSendableDelegate {
+  func didReceive(event: FLPlayerInterface.StreamTimelineEvent, suggestedAction: FLPlayerInterface.Action, metadata: (any FLPlayerInterface.StreamTimelineMetadata)?)
+}
+public protocol PlayerRemoteCommandControllable : AnyObject {
+  var player: (any FLPlayerInterface.Player)? { get set }
+  func registerRemoteCommandHandlers()
+  func deregisterRemoteCommandHandlers()
+}
+public protocol Preference {
+  func preference() -> Self
+}
+extension FLPlayerInterface.Preference {
+  public func preference() -> Self
+}
+public enum PlayerPreference : FLPlayerInterface.Preference {
+  case initialPlaybackTime(time: Swift.Double)
+  case preferredPeakBitRate(bitrate: Swift.Double)
+  case preferredInitialForwardBufferDuration(duration: Foundation.TimeInterval)
+  case preferredForwardBufferDurationAfterRebuffer(duration: Foundation.TimeInterval)
+  case enableSecurityChecks(additionalChecks: [FLFoundation.SecurityChecks])
+  case allowPlaybackOnInsecureDevice(allow: Swift.Bool)
+  case preferredMaximumResolution(size: CoreFoundation.CGSize)
+  case canUseNetworkResourcesForLiveStreamingWhilePaused(paused: Swift.Bool)
+  case preferredMaximumResolutionForExpensiveNetworks(size: CoreFoundation.CGSize)
+  case startsOnFirstEligibleVariant(eligibleVariant: Swift.Bool)
+  case preferredPeakBitRateForExpensiveNetworks(preferredPeakBitRate: Swift.Double)
+  case addInterstitialMarkers
+  case allowRepeatPlayback(allow: Swift.Bool)
+  case assignRemoteActions(_: Swift.Bool)
+  case setRemoteActionTraversalInterval(_: FLPlayerInterface.PreferedIntervals)
+  case setRemoteMainAction(_: FLPlayerInterface.RemoteMainAction)
+  case shouldAutoResumeAfterInterruption(_: Swift.Bool)
+  case shouldSupportPIP(_: Swift.Bool)
+  case shouldHandleAudioInterruption(_: Swift.Bool)
+  case useSharedNowPlayingInfoCenter
+  case preferredTrack(trackType: FLPlayerInterface.MediaTrackType, mediaTrack: FLPlayerInterface.MediaTrack)
+  case audiovisualBackgroundPlaybackPolicy(_: FLPlayerInterface.PlayerAudiovisualBackgroundPlaybackPolicy)
+}
+public enum RemoteMainAction {
+  case playPauseToggle
+  case stopPlayback
+  public static func == (a: FLPlayerInterface.RemoteMainAction, b: FLPlayerInterface.RemoteMainAction) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum PreferedIntervals : Swift.Double {
+  case interval_10
+  case interval_15
+  case interval_30
+  case interval_60
+  public init?(rawValue: Swift.Double)
+  public typealias RawValue = Swift.Double
+  public var rawValue: Swift.Double {
+    get
+  }
+}
+public enum PlayerAudiovisualBackgroundPlaybackPolicy {
+  case automatic
+  case continuesIfPossible
+  case pauses
+  public static func == (a: FLPlayerInterface.PlayerAudiovisualBackgroundPlaybackPolicy, b: FLPlayerInterface.PlayerAudiovisualBackgroundPlaybackPolicy) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct PALConfiguration : FLPlayerInterface.PALSessionConfiguration {
+  public var willAdAutoPlay: FLPlayerInterface.PALFlag?
+  public var willAdPlayMuted: FLPlayerInterface.PALFlag?
+  public var continuousPlayback: FLPlayerInterface.PALFlag?
+  public var descriptionUrl: Foundation.URL
+  public var iconsSupported: Swift.Bool?
+  public var nonceLengthLimit: Swift.UInt?
+  public var omidPartnerName: Swift.String?
+  public var omidPartnerVersion: Swift.String?
+  public var omidVersion: Swift.String?
+  public var playerType: Swift.String?
+  public var playerVersion: Swift.String
+  public var ppid: Swift.String
+  public var videoHeight: Swift.UInt?
+  public var videoWidth: Swift.UInt?
+  public var sessionID: Swift.String?
+  public var allowStorage: Swift.Bool?
+  public init(willAdAutoPlay: FLPlayerInterface.PALFlag, willAdPlayMuted: FLPlayerInterface.PALFlag, continuousPlayback: FLPlayerInterface.PALFlag, descriptionUrl: Foundation.URL, iconsSupported: Swift.Bool, nonceLengthLimit: Swift.UInt, omidPartnerName: Swift.String, omidPartnerVersion: Swift.String, omidVersion: Swift.String, playerType: Swift.String, playerVersion: Swift.String, ppid: Swift.String, videoHeight: Swift.UInt, videoWidth: Swift.UInt, sessionID: Swift.String, allowStorage: Swift.Bool)
+}
+public protocol LicenseFetcher {
+}
+public struct QuartileTracker {
+  public init()
+  public mutating func reset()
+  public mutating func evaluate(ad: any FLPlayerInterface.Ad, progress: Foundation.TimeInterval, fire: (FLPlayerInterface.AdTrackingEvent) -> Swift.Void)
+}
+public protocol AdEventHandlerDelegate : AnyObject {
+  func adPlayer(ad: (any FLPlayerInterface.Ad)?, didFailWith error: any Swift.Error)
+  func adPlayerDidProvide(cuepoints: [Swift.Int])
+  func adPlayerDidStart(adBreak: any FLPlayerInterface.AdBreak)
+  func adPlayerDidStart(ad: any FLPlayerInterface.Ad)
+  func adPlayer(ad: (any FLPlayerInterface.Ad)?, didChange progress: Foundation.TimeInterval)
+  func adPlayer(ad: (any FLPlayerInterface.Ad)?, didChangeBuffer isBuffering: Swift.Bool)
+  func adPlayer(ad: (any FLPlayerInterface.Ad)?, didTrack event: FLPlayerInterface.AdTrackingEvent)
+  func adPlayerDidEnd(ad: any FLPlayerInterface.Ad)
+  func adPlayerDidEnd(adBreak: any FLPlayerInterface.AdBreak)
+}
+public protocol FLAdEventHandler : AnyObject {
+  var cuePoints: [Swift.Int] { get }
+  var adEventsCallback: (any FLPlayerInterface.AdEventHandlerDelegate)? { get set }
+  var isAdPlaying: Swift.Bool { get }
+  func processPlaybackProgess(player: any FLPlayerInterface.Player)
+  func playbackStateDidChange(oldState: FLPlayerInterface.PlayerState, newState: FLPlayerInterface.PlayerState)
+  func resolveSeekIntent(position: Foundation.TimeInterval) -> Foundation.TimeInterval?
+  func forceCompleteAdBreak()
+}
+public protocol AdEventSeekIntervalAdaptor : AnyObject {
+  func seekInterval(from handler: any FLPlayerInterface.FLAdEventHandler, position: Foundation.TimeInterval)
+}
+public protocol VODAdEventHandler : FLPlayerInterface.FLAdEventHandler {
+  var adEventAdaptor: (any FLPlayerInterface.AdEventSeekIntervalAdaptor)? { get set }
+  var policyHandler: (any FLPlayerInterface.PlaybackPolicyHandler)? { get }
+  func discardAdBreak() -> Foundation.TimeInterval?
+  func skipAdBreak() -> Foundation.TimeInterval?
+  func evaluateInterruptionOnPlay()
+}
+extension FLPlayerInterface.VODAdEventHandler {
+  public func getContentDuration() -> Foundation.TimeInterval?
+  public func getContentPositionForPlayhead(playhead: Foundation.TimeInterval) -> Foundation.TimeInterval?
+  public func resolveSeekIntent(position: Foundation.TimeInterval) -> Foundation.TimeInterval?
+  public func resolveSeekIntentForInitialPlayback(position: Foundation.TimeInterval) -> Foundation.TimeInterval?
+  public func playbackDidInterrupt()
+}
+public protocol LiveAdEventHandler : FLPlayerInterface.FLAdEventHandler {
+  var liveSeekEventCallback: (any FLPlayerInterface.LiveAdSeekableRangeDelegate)? { get set }
+  func update(_ adbreaks: [any FLPlayerInterface.AdBreak], ads: [any FLPlayerInterface.Ad])
+}
+public protocol LiveAdSeekableRangeDelegate : AnyObject {
+  var liveSeekableRange: Swift.Range<Foundation.TimeInterval>? { get }
+  func adPlayerDidExpire(adBreak: any FLPlayerInterface.AdBreak)
+}
+public enum BlackoutAction : Swift.String, Swift.Codable {
+  case allow
+  case deny
+  case allowWithUpgrade
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public protocol BlackoutMetadata : FLPlayerInterface.StreamTimelineMetadata {
+  var blackoutAction: FLPlayerInterface.BlackoutAction { get }
+  var blackoutUrl: Swift.String? { get }
+}
+public protocol ContentThumbnailPreviewConfiguration {
+  var endPoint: Swift.String { get }
+  var noOfColumns: Swift.Int { get }
+  var noOfRows: Swift.Int { get }
+  var keyFrameDuration: Swift.Int { get }
+  var thumbnailHeight: Swift.Int { get }
+  var thumbnailWidth: Swift.Int { get }
+}
+public protocol LicenseFetcherDelegate {
+}
+public enum KeyDeliveryType {
+  case streamingKey
+  @available(tvOS, unavailable)
+  case persistentStreamingKey
+  public static func == (a: FLPlayerInterface.KeyDeliveryType, b: FLPlayerInterface.KeyDeliveryType) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension FLPlayerInterface.PlaybackFastForwardRule : Swift.Equatable {}
+extension FLPlayerInterface.PlaybackFastForwardRule : Swift.Hashable {}
+extension FLPlayerInterface.PlaybackFastForwardRule : Swift.RawRepresentable {}
+extension FLPlayerInterface.PlaybackRewindRule : Swift.Equatable {}
+extension FLPlayerInterface.PlaybackRewindRule : Swift.Hashable {}
+extension FLPlayerInterface.PlaybackRewindRule : Swift.RawRepresentable {}
+extension FLPlayerInterface.PlaybackInterruptedRule : Swift.Equatable {}
+extension FLPlayerInterface.PlaybackInterruptedRule : Swift.Hashable {}
+extension FLPlayerInterface.PlaybackInterruptedRule : Swift.RawRepresentable {}
+extension FLPlayerInterface.PlaybackAutoSeekRule : Swift.Equatable {}
+extension FLPlayerInterface.PlaybackAutoSeekRule : Swift.Hashable {}
+extension FLPlayerInterface.PlaybackAutoSeekRule : Swift.RawRepresentable {}
+extension FLPlayerInterface.PlaybackRepeatedRule : Swift.Equatable {}
+extension FLPlayerInterface.PlaybackRepeatedRule : Swift.Hashable {}
+extension FLPlayerInterface.PlaybackRepeatedRule : Swift.RawRepresentable {}
+extension FLPlayerInterface.AdPosition : Swift.Equatable {}
+extension FLPlayerInterface.AdPosition : Swift.Hashable {}
+extension FLPlayerInterface.AdPosition : Swift.RawRepresentable {}
+extension FLPlayerInterface.AdTrackingEvent : Swift.Equatable {}
+extension FLPlayerInterface.AdTrackingEvent : Swift.Hashable {}
+extension FLPlayerInterface.AdTrackingEvent : Swift.RawRepresentable {}
+extension FLPlayerInterface.AdOverlayPurpose : Swift.Equatable {}
+extension FLPlayerInterface.AdOverlayPurpose : Swift.Hashable {}
+extension FLPlayerInterface.StartUpEventType : Swift.Equatable {}
+extension FLPlayerInterface.StartUpEventType : Swift.Hashable {}
+extension FLPlayerInterface.StartUpEventType : Swift.RawRepresentable {}
+extension FLPlayerInterface.PlayerState : Swift.Equatable {}
+extension FLPlayerInterface.PlayerState : Swift.Hashable {}
+extension FLPlayerInterface.PlayerState : Swift.RawRepresentable {}
+extension FLPlayerInterface.PlayerContext : Swift.Equatable {}
+extension FLPlayerInterface.PlayerContext : Swift.Hashable {}
+extension FLPlayerInterface.AudioInterruptionState : Swift.Equatable {}
+extension FLPlayerInterface.AudioInterruptionState : Swift.Hashable {}
+extension FLPlayerInterface.PALFlag : Swift.Equatable {}
+extension FLPlayerInterface.PALFlag : Swift.Hashable {}
+extension FLPlayerInterface.MediaTrackType : Swift.Equatable {}
+extension FLPlayerInterface.MediaTrackType : Swift.Hashable {}
+extension FLPlayerInterface.MediaTrackCharacteristic : Swift.Equatable {}
+extension FLPlayerInterface.MediaTrackCharacteristic : Swift.Hashable {}
+extension FLPlayerInterface.MediaTrackCharacteristic : Swift.RawRepresentable {}
+extension FLPlayerInterface.Mode : Swift.Equatable {}
+extension FLPlayerInterface.Mode : Swift.Hashable {}
+extension FLPlayerInterface.Mode : Swift.RawRepresentable {}
+extension FLPlayerInterface.AdInsertionType : Swift.Equatable {}
+extension FLPlayerInterface.AdInsertionType : Swift.Hashable {}
+extension FLPlayerInterface.StreamTimelineEvent : Swift.Equatable {}
+extension FLPlayerInterface.StreamTimelineEvent : Swift.Hashable {}
+extension FLPlayerInterface.StreamTimelineEvent : Swift.RawRepresentable {}
+extension FLPlayerInterface.Action : Swift.Equatable {}
+extension FLPlayerInterface.Action : Swift.Hashable {}
+extension FLPlayerInterface.Action : Swift.RawRepresentable {}
+extension FLPlayerInterface.RemoteMainAction : Swift.Equatable {}
+extension FLPlayerInterface.RemoteMainAction : Swift.Hashable {}
+extension FLPlayerInterface.PreferedIntervals : Swift.Equatable {}
+extension FLPlayerInterface.PreferedIntervals : Swift.Hashable {}
+extension FLPlayerInterface.PreferedIntervals : Swift.RawRepresentable {}
+extension FLPlayerInterface.PlayerAudiovisualBackgroundPlaybackPolicy : Swift.Equatable {}
+extension FLPlayerInterface.PlayerAudiovisualBackgroundPlaybackPolicy : Swift.Hashable {}
+extension FLPlayerInterface.BlackoutAction : Swift.Equatable {}
+extension FLPlayerInterface.BlackoutAction : Swift.Hashable {}
+extension FLPlayerInterface.BlackoutAction : Swift.RawRepresentable {}
+extension FLPlayerInterface.KeyDeliveryType : Swift.Equatable {}
+extension FLPlayerInterface.KeyDeliveryType : Swift.Hashable {}

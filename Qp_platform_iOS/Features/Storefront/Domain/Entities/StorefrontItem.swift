@@ -1,6 +1,6 @@
 import Foundation
 
-struct StorefrontItem: Identifiable, Equatable, Hashable {
+struct StorefrontItem: Identifiable, Equatable, Hashable, Codable {
     let id: String
     let title: String
     let description: String
@@ -16,13 +16,17 @@ struct StorefrontItem: Identifiable, Equatable, Hashable {
     let runtimeSeconds: Int?
     let progress: Double?
     let canOpenDetail: Bool
+    let previewURL: URL?
+    let imageBaseURL: String
 
     func imageURL(for ratio: String, width: Int) -> URL? {
-        let resolvedRatio = availableRatios.contains(ratio)
-            ? ratio
-            : (availableRatios.first(where: { $0 == "0-2x3" || $0 == "0-16x9" || $0 == "0-1x1" || $0 == "0-9x16" }) ?? ratio)
-
-        return URL(string: "\(AppEnvironment.Endpoint.fallbackImageBaseURL)/image/\(id)/\(resolvedRatio).png?width=\(width)")
+        ImageURLBuilder(baseURL: imageBaseURL).imageURL(
+            id: id,
+            ratio: ratio,
+            availableRatios: availableRatios,
+            width: width,
+            preferredFallbacks: ["0-2x3", "0-16x9", "0-1x1", "0-9x16"]
+        )
     }
 
     var primaryMetaText: String {
@@ -71,7 +75,7 @@ struct StorefrontItem: Identifiable, Equatable, Hashable {
         return false
     }
 
-    func withProgress(_ value: Double?) -> StorefrontItem {
+    nonisolated func withProgress(_ value: Double?) -> StorefrontItem {
         StorefrontItem(
             id: id,
             title: title,
@@ -87,7 +91,9 @@ struct StorefrontItem: Identifiable, Equatable, Hashable {
             availableRatios: availableRatios,
             runtimeSeconds: runtimeSeconds,
             progress: value,
-            canOpenDetail: canOpenDetail
+            canOpenDetail: canOpenDetail,
+            previewURL: previewURL,
+            imageBaseURL: imageBaseURL
         )
     }
 }

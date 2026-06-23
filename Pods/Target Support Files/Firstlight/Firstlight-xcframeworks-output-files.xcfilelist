@@ -1,0 +1,10 @@
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLAnalytics/FLAnalytics.framework
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLBookmarks/FLBookmarks.framework
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLContentAuthorizer/FLContentAuthorizer.framework
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLFoundation/FLFoundation.framework
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLHeartbeat/FLHeartbeat.framework
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLPlatformCore/FLPlatformCore.framework
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLPlatformPlayer/FLPlatformPlayer.framework
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLPlayer/FLPlayer.framework
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLPlayerInterface/FLPlayerInterface.framework
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Firstlight/FLStreamConcurrency/FLStreamConcurrency.framework

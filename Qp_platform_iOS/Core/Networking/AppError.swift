@@ -7,6 +7,8 @@ enum AppError: LocalizedError {
     case decodingFailed
     case invalidOTP
     case persistenceFailed
+    case profileUnavailable
+    case profileLimitReached
 
     var errorDescription: String? {
         switch self {
@@ -22,6 +24,10 @@ enum AppError: LocalizedError {
             return AppStrings.Auth.invalidOTP
         case .persistenceFailed:
             return "We could not save your changes."
+        case .profileUnavailable:
+            return "Keep at least one profile."
+        case .profileLimitReached:
+            return "You can create up to five profiles."
         }
     }
 }

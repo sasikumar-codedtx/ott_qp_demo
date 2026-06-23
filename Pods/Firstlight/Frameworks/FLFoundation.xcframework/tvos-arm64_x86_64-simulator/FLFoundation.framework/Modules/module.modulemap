@@ -1,0 +1,11 @@
+framework module FLFoundation {
+  umbrella header "FLFoundation.h"
+  export *
+
+  module * { export * }
+}
+
+module FLFoundation.Swift {
+  header "FLFoundation-Swift.h"
+  requires objc
+}

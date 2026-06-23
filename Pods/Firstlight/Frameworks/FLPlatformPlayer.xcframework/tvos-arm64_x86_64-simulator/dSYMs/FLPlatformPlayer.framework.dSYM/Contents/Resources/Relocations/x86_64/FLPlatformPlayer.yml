@@ -1,0 +1,18 @@
+---
+triple:          'x86_64-apple-darwin'
+binary-path:     '/Users/runner/Library/Developer/Xcode/DerivedData/FLPlatformPlayer-atbrefugjzmgdnhevpcqadhvnpzd/Build/Intermediates.noindex/ArchiveIntermediates/FLPlatformPlayerTVOS/InstallationBuildProductsLocation/Library/Frameworks/FLPlatformPlayer.framework/FLPlatformPlayer'
+relocations:
+  - { offset: 0x33, size: 0x8, addend: 0x0, symName: _FLPlatformPlayerVersionString, symObjAddr: 0x0, symBinAddr: 0x3A50, symSize: 0x0 }
+  - { offset: 0x67, size: 0x8, addend: 0x0, symName: _FLPlatformPlayerVersionNumber, symObjAddr: 0x40, symBinAddr: 0x3A90, symSize: 0x0 }
+  - { offset: 0xA3, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer7versionSSyF', symObjAddr: 0x0, symBinAddr: 0x1570, symSize: 0x2D0 }
+  - { offset: 0x184, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer7versionSSyF', symObjAddr: 0x0, symBinAddr: 0x1570, symSize: 0x2D0 }
+  - { offset: 0x248, size: 0x8, addend: 0x0, symName: '_$sypSgWOh', symObjAddr: 0x2D0, symBinAddr: 0x1840, symSize: 0x30 }
+  - { offset: 0x25B, size: 0x8, addend: 0x0, symName: ___swift_instantiateConcreteTypeFromMangledName, symObjAddr: 0x300, symBinAddr: 0x1870, symSize: 0x40 }
+  - { offset: 0x357, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryOMa', symObjAddr: 0x3A0, symBinAddr: 0x1910, symSize: 0xA }
+  - { offset: 0x3C4, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO6player5asset22thumbnailConfiguration17FLPlayerInterface0B0_pSo10AVURLAssetC_AG023ContentThumbnailPreviewG0_pSgtFZ', symObjAddr: 0x340, symBinAddr: 0x18B0, symSize: 0x10 }
+  - { offset: 0x415, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO6player10contentUrl22thumbnailConfiguration17FLPlayerInterface0B0_p10Foundation3URLV_AG023ContentThumbnailPreviewH0_pSgtFZ', symObjAddr: 0x350, symBinAddr: 0x18C0, symSize: 0x10 }
+  - { offset: 0x451, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO05promoB05asset6promos16adPlaybackPolicy22thumbnailConfiguration17FLPlayerInterface02AdB0_pSo10AVURLAssetC_SayAI5PromoVGAI0nhI0VSgAI023ContentThumbnailPreviewK0_pSgtFZ', symObjAddr: 0x360, symBinAddr: 0x18D0, symSize: 0x10 }
+  - { offset: 0x4A7, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO05promoB010contentUrl6promos16adPlaybackPolicy22thumbnailConfiguration17FLPlayerInterface02AdB0_p10Foundation3URLV_SayAI5PromoVGAI0oiJ0VSgAI023ContentThumbnailPreviewL0_pSgtFZ', symObjAddr: 0x370, symBinAddr: 0x18E0, symSize: 0x10 }
+  - { offset: 0x4FE, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO05promoB05asset6promos13policyHandler22thumbnailConfiguration17FLPlayerInterface02AdB0_pSo10AVURLAssetC_SayAI5PromoVGAI014PlaybackPolicyH0_pAI023ContentThumbnailPreviewJ0_pSgtFZ', symObjAddr: 0x380, symBinAddr: 0x18F0, symSize: 0x10 }
+  - { offset: 0x555, size: 0x8, addend: 0x0, symName: '_$s16FLPlatformPlayer0aB7FactoryO05promoB010contentUrl6promos13policyHandler22thumbnailConfiguration17FLPlayerInterface02AdB0_p10Foundation3URLV_SayAI5PromoVGAI014PlaybackPolicyI0_pAI023ContentThumbnailPreviewK0_pSgtFZ', symObjAddr: 0x390, symBinAddr: 0x1900, symSize: 0x10 }
+...

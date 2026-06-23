@@ -97,8 +97,9 @@ Current implemented model:
 - Storefront menu tabs reflect only what backend storefront returns
 - Micro Drama is not injected as a synthetic storefront menu tab
 - Micro Drama remains a preference/affinity bucket, not a cohort
-- When Micro Drama becomes the dominant preference signal, the Home storefront can route to a separate placeholder storefront source while effective cohort remains `entertainment`
-- New & Hot has its own dedicated storefront surface with a placeholder storefront source
+- Home storefront stays backend-driven and is not replaced by Micro Drama routing
+- New & Hot has its own dedicated storefront surface and currently reuses the placeholder Micro Drama storefront source
+- The New & Hot surface prefers the `Micro Drama` tab when that tab exists in the returned storefront
 - Cohort remains a backend routing bucket
 
 ## Pending architecture corrections

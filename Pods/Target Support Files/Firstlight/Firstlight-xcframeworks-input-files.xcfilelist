@@ -1,0 +1,11 @@
+${PODS_ROOT}/Target Support Files/Firstlight/Firstlight-xcframeworks.sh
+${PODS_ROOT}/Firstlight/Frameworks/FLAnalytics.xcframework
+${PODS_ROOT}/Firstlight/Frameworks/FLBookmarks.xcframework
+${PODS_ROOT}/Firstlight/Frameworks/FLContentAuthorizer.xcframework
+${PODS_ROOT}/Firstlight/Frameworks/FLFoundation.xcframework
+${PODS_ROOT}/Firstlight/Frameworks/FLHeartbeat.xcframework
+${PODS_ROOT}/Firstlight/Frameworks/FLPlatformCore.xcframework
+${PODS_ROOT}/Firstlight/Frameworks/FLPlatformPlayer.xcframework
+${PODS_ROOT}/Firstlight/Frameworks/FLPlayer.xcframework
+${PODS_ROOT}/Firstlight/Frameworks/FLPlayerInterface.xcframework
+${PODS_ROOT}/Firstlight/Frameworks/FLStreamConcurrency.xcframework

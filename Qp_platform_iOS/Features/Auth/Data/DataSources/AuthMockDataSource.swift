@@ -6,18 +6,18 @@ protocol AuthDataSourceProtocol {
 }
 
 final class AuthMockDataSource: AuthDataSourceProtocol {
-    private let invalidCode = "000000"
+    private let validCode = "121212"
 
     func requestOTP(for phoneNumber: String) async throws -> AuthSession {
-        try await Task.sleep(for: .milliseconds(250))
+        try await Task.sleep(for: .milliseconds(850))
         return AuthSession(phoneNumber: phoneNumber, otpLength: 6)
     }
 
     func verifyOTP(phoneNumber: String, code: String) async throws -> Bool {
-        try await Task.sleep(for: .milliseconds(200))
-        guard code != invalidCode else {
+        try await Task.sleep(for: .milliseconds(900))
+        guard code == validCode else {
             throw AppError.invalidOTP
         }
-        return code.count == 6
+        return true
     }
 }

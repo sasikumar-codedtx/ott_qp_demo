@@ -6,72 +6,71 @@ struct ProfileSelectionView: View {
     let onAddProfile: () -> Void
     let onManageProfiles: () -> Void
 
+    @State private var selectedProfileID: UUID?
+    @State private var isExitingToStorefront = false
+
+    private let designWidth: CGFloat = 412
+    private let designHeight: CGFloat = 917
+    private let avatarSize: CGFloat = 89.636
+    private let avatarGap: CGFloat = 32
+
+    private enum SelectionTile: Identifiable {
+        case profile(Profile)
+        case add
+
+        var id: String {
+            switch self {
+            case .profile(let profile):
+                return profile.id.uuidString
+            case .add:
+                return "add-profile"
+            }
+        }
+    }
+
     var body: some View {
         GeometryReader { proxy in
+            let screenSize = UIScreen.main.bounds.size
+            let fullWidth = max(proxy.size.width, screenSize.width)
+            let fullHeight = max(proxy.size.height, screenSize.height)
+            let scale = min((fullWidth - 12) / designWidth, fullHeight / designHeight, 1)
+            let canvasWidth = min(designWidth * scale, fullWidth)
+            let canvasHeight = min(designHeight * scale, fullHeight)
+
             ZStack {
-                Image("sliceBg")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: proxy.size.width, height: proxy.size.height)
-                    .clipped()
-                    .ignoresSafeArea()
+                background(width: fullWidth, height: fullHeight)
 
-                LinearGradient(
-                    colors: [
-                        Color.black.opacity(0.06),
-                        Color.black.opacity(0.2),
-                        Color.black.opacity(0.7),
-                        Color.black.opacity(0.96)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
-
-                Circle()
-                    .fill(Color.white.opacity(0.09))
-                    .frame(width: 590, height: 434)
-                    .blur(radius: 34)
-                    .offset(y: proxy.size.height * 0.39)
-
-                VStack(spacing: 0) {
-                    Spacer()
-                        .frame(height: proxy.safeAreaInsets.top + 74)
-
+                ZStack {
                     Image("logo")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 94, height: 94)
+                        .frame(width: 93.753 * scale, height: 93.471 * scale)
+                        .position(x: canvasWidth / 2, y: 150 * scale)
 
-                    Spacer()
+                    profileBlock(scale: scale, canvasWidth: canvasWidth)
+                        .position(x: canvasWidth / 2, y: 640 * scale)
 
-                    Text(AppStrings.Profile.chooseProfile)
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.bottom, 60)
-
-                    content
-
-                    Button(action: onManageProfiles) {
-                        HStack(spacing: 6) {
-                            Text(AppStrings.Profile.editProfile)
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.white)
-
-                            Image(systemName: "pencil")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(.white)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.top, 34)
-
-                    Spacer()
-                        .frame(height: max(proxy.safeAreaInsets.bottom, 24))
+                    editProfilesButton(scale: scale)
+                        .position(x: canvasWidth / 2, y: 861 * scale)
                 }
-                .padding(.horizontal, 16)
+                .frame(width: canvasWidth, height: canvasHeight)
+                .opacity(isExitingToStorefront ? 0.28 : 1)
+                .scaleEffect(isExitingToStorefront ? 1.025 : 1)
+                .animation(.easeInOut(duration: 0.26), value: isExitingToStorefront)
+
+                if viewModel.isLoading {
+                    LoadingView()
+                } else if let errorMessage = viewModel.errorMessage {
+                    ErrorView(title: AppStrings.Profile.yourProfiles, message: errorMessage, onRetry: {
+                        Task { await viewModel.load() }
+                    })
+                    .padding(.horizontal, 24)
+                }
             }
+            .frame(width: fullWidth, height: fullHeight)
+            .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
         }
+        .ignoresSafeArea()
         .task {
             if viewModel.profiles.isEmpty {
                 await viewModel.load()
@@ -79,64 +78,164 @@ struct ProfileSelectionView: View {
         }
     }
 
-    @ViewBuilder
-    private var content: some View {
-        if viewModel.isLoading {
-            LoadingView()
-        } else if let errorMessage = viewModel.errorMessage {
-            ErrorView(title: AppStrings.Profile.yourProfiles, message: errorMessage, onRetry: {
-                Task { await viewModel.load() }
-            })
-        } else {
-            LazyVGrid(
-                columns: Array(repeating: GridItem(.fixed(90), spacing: 32, alignment: .center), count: 3),
-                alignment: .center,
-                spacing: 32
-            ) {
-                ForEach(viewModel.selectionProfiles) { profile in
-                    Button {
-                        onSelect(profile)
-                    } label: {
-                        VStack(spacing: 8) {
-                            ProfileAvatarView(
-                                imageName: profile.imageName,
-                                fallbackGlyph: profile.fallbackGlyph,
-                                size: 90
-                            )
-                            Text(profile.name)
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(.white)
-                                .lineLimit(1)
-                        }
-                        .frame(width: 90)
-                    }
-                    .buttonStyle(.plain)
-                }
+    private func background(width: CGFloat, height: CGFloat) -> some View {
+        ZStack {
+            Image("sliceBg")
+                .resizable()
+                .scaledToFill()
+                // The exported Figma slice has gray edge pixels baked into both sides.
+                // Overscanning crops those pixels so the artwork truly reaches the screen edge.
+                .frame(width: width * 1.08, height: height * 1.08)
+        }
+        .frame(width: width, height: height)
+        .clipped()
+    }
 
-                Button(action: onAddProfile) {
-                    VStack(spacing: 8) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                .fill(Color.white.opacity(0.08))
-                                .frame(width: 90, height: 90)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                                )
+    private func profileBlock(scale: CGFloat, canvasWidth: CGFloat) -> some View {
+        VStack(spacing: 60 * scale) {
+            Text("Who’s Watching")
+                .font(.system(size: 24 * scale, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 332.907 * scale)
+                .lineLimit(1)
 
-                            Image(systemName: AppIcons.Action.plus)
-                                .font(.title2.weight(.bold))
-                                .foregroundStyle(.white)
-                        }
-                        Text(AppStrings.Profile.addProfile)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(.white)
-                    }
-                    .frame(width: 90)
+            profileRows(scale: scale)
+        }
+        .frame(width: 332.907 * scale)
+    }
+
+    private func profileRows(scale: CGFloat) -> some View {
+        let profileTiles = viewModel.selectionProfiles.prefix(5).map(SelectionTile.profile)
+        let tiles = viewModel.canAddProfile ? profileTiles + [.add] : profileTiles
+        let topRow = Array(tiles.prefix(3))
+        let bottomRow = Array(tiles.dropFirst(3).prefix(3))
+
+        return VStack(spacing: 32 * scale) {
+            HStack(spacing: avatarGap * scale) {
+                ForEach(topRow) { tile in
+                    tileView(tile, scale: scale)
                 }
-                .buttonStyle(.plain)
             }
-            .frame(maxWidth: .infinity)
+            .frame(width: 332.907 * scale)
+
+            HStack(spacing: avatarGap * scale) {
+                ForEach(bottomRow) { tile in
+                    tileView(tile, scale: scale)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func tileView(_ tile: SelectionTile, scale: CGFloat) -> some View {
+        switch tile {
+        case .profile(let profile):
+            profileButton(profile, scale: scale)
+        case .add:
+            addProfileButton(scale: scale)
+        }
+    }
+
+    private func profileButton(_ profile: Profile, scale: CGFloat) -> some View {
+        Button {
+            selectProfileWithAnimation(profile)
+        } label: {
+            VStack(spacing: 8 * scale) {
+                ProfileAvatarView(
+                    imageName: profile.imageName,
+                    fallbackGlyph: profile.fallbackGlyph,
+                    size: avatarSize * scale
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 19.208 * scale, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 19.208 * scale, style: .continuous)
+                        .stroke(profile.id == selectedProfileID ? Color.white.opacity(0.92) : .clear, lineWidth: 2.2 * scale)
+                        .padding(-4 * scale)
+                )
+                .shadow(
+                    color: profile.id == selectedProfileID ? Color(hex: "F4B000").opacity(0.35) : .clear,
+                    radius: 16 * scale,
+                    x: 0,
+                    y: 8 * scale
+                )
+
+                Text(profile.name)
+                    .font(.system(size: 12 * scale, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .frame(width: avatarSize * scale)
+            }
+            .frame(width: avatarSize * scale)
+            .scaleEffect(profile.id == selectedProfileID ? 1.1 : 1)
+            .opacity(isExitingToStorefront && profile.id != selectedProfileID ? 0.34 : 1)
+            .animation(.spring(response: 0.28, dampingFraction: 0.62), value: selectedProfileID)
+            .animation(.easeInOut(duration: 0.22), value: isExitingToStorefront)
+        }
+        .buttonStyle(LiquidButtonPressStyle())
+        .disabled(isExitingToStorefront)
+    }
+
+    private func addProfileButton(scale: CGFloat) -> some View {
+        Button(action: onAddProfile) {
+            VStack(spacing: 8 * scale) {
+                RoundedRectangle(cornerRadius: 19.208 * scale, style: .continuous)
+                    .fill(Color.white.opacity(0.08))
+                    .frame(width: avatarSize * scale, height: avatarSize * scale)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 19.208 * scale, style: .continuous)
+                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                    )
+                    .overlay(
+                        Image(systemName: "plus")
+                            .font(.system(size: 32 * scale, weight: .semibold))
+                            .foregroundStyle(.white)
+                    )
+
+                Text(AppStrings.Profile.addProfile)
+                    .font(.system(size: 12 * scale, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .frame(width: avatarSize * scale)
+            }
+            .frame(width: avatarSize * scale)
+        }
+        .buttonStyle(LiquidButtonPressStyle())
+        .disabled(isExitingToStorefront)
+    }
+
+    private func editProfilesButton(scale: CGFloat) -> some View {
+        Button(action: onManageProfiles) {
+            HStack(spacing: 6 * scale) {
+                Text(AppStrings.Profile.editProfilesCTA)
+                    .font(.system(size: 14 * scale, weight: .semibold))
+                    .foregroundStyle(.white)
+
+                Image(systemName: "pencil.line")
+                    .font(.system(size: 14 * scale, weight: .medium))
+                    .foregroundStyle(.white)
+                    .frame(width: 16 * scale, height: 16 * scale)
+            }
+            .frame(height: 20 * scale)
+        }
+        .buttonStyle(LiquidButtonPressStyle())
+    }
+
+    private func selectProfileWithAnimation(_ profile: Profile) {
+        guard !isExitingToStorefront else { return }
+        selectedProfileID = profile.id
+
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.prepare()
+        generator.impactOccurred(intensity: 0.82)
+
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.62)) {
+            isExitingToStorefront = true
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.42) {
+            onSelect(profile)
+            selectedProfileID = nil
+            isExitingToStorefront = false
         }
     }
 }

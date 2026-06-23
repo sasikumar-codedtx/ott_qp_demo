@@ -7,10 +7,17 @@ struct StorefrontHeaderView: View {
         VStack(spacing: 0) {
             HStack(spacing: UIConstants.Spacing.lg) {
                 HStack(spacing: UIConstants.Spacing.md) {
-                    Image("minilogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 48, height: 30)
+                    ZStack {
+                        Capsule()
+                            .fill(Color(hex: "F5B919").opacity(0.24))
+                            .frame(width: 62, height: 28)
+                            .blur(radius: 12)
+
+                        Image("minilogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 48, height: 30)
+                    }
 
                     Button(action: {}) {
                         HStack(spacing: 8) {
@@ -27,7 +34,7 @@ struct StorefrontHeaderView: View {
                                 .stroke(Color(hex: "F5B919"), lineWidth: 1)
                         )
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(LiquidButtonPressStyle())
                 }
 
                 Spacer()

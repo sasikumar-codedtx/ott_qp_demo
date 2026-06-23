@@ -359,10 +359,9 @@ private struct ShortsPrimaryButton: View {
                 .foregroundStyle(.black)
                 .padding(.horizontal, 18)
                 .padding(.vertical, 12)
-                .background(Color.white, in: Capsule())
-                .shadow(color: .white.opacity(0.12), radius: 4, y: 1)
+                .background(LiquidGlassBackground(cornerRadius: 24, tone: .light, isHighlighted: true))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(LiquidButtonPressStyle())
     }
 }
 
@@ -375,13 +374,9 @@ private struct ShortsInfoButton: View {
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(.white)
                 .frame(width: 40, height: 40)
-                .background(Color.white.opacity(0.18), in: Circle())
-                .overlay(
-                    Circle()
-                        .strokeBorder(Color.white.opacity(0.14), lineWidth: 1)
-                )
+                .background(LiquidGlassCircleBackground(tone: .dark))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(LiquidButtonPressStyle())
     }
 }
 
@@ -394,10 +389,18 @@ private struct ShortsRailActionButton: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 6) {
-                Image(systemName: symbol)
-                    .font(.system(size: 24, weight: .regular))
-                    .foregroundStyle(tint)
-                    .frame(width: 28, height: 28)
+                ZStack {
+                    LiquidGlassCircleBackground(tone: .dark)
+                    Image(systemName: symbol)
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(tint)
+                        .frame(width: 28, height: 28)
+                }
+                .frame(width: 46, height: 46)
+                .overlay(
+                    Circle()
+                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                )
 
                 Text(value ?? "0")
                     .font(.system(size: 12, weight: .semibold))
@@ -406,9 +409,9 @@ private struct ShortsRailActionButton: View {
                     .frame(height: 16)
                     .opacity(value == nil ? 0 : 1)
             }
-            .frame(width: 60, height: 62, alignment: .top)
+            .frame(width: 60, height: 72, alignment: .top)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(LiquidButtonPressStyle())
         .contentShape(Rectangle())
     }
 }

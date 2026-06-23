@@ -2,14 +2,7 @@ import Foundation
 
 struct MockShortsRepository: ShortsRepository {
     private let posts: [ShortsPost] = {
-        let baseURLs: [URL] = [
-            URL(string: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4")!,
-            URL(string: "https://www.w3schools.com/html/mov_bbb.mp4")!,
-            URL(string: "https://www.w3schools.com/html/movie.mp4")!,
-            URL(string: "https://media.w3.org/2010/05/sintel/trailer.mp4")!,
-            URL(string: "https://media.w3.org/2010/05/bunny/trailer.mp4")!,
-            URL(string: "https://media.w3.org/2010/05/video/movie_300.mp4")!
-        ]
+        let baseURLs = AppEnvironment.Demo.mockShortsVideoURLStrings.compactMap(URL.init(string:))
 
         let brandLines = [
             ["EDGE OF", "TOMORROW"],

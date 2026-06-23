@@ -9,6 +9,8 @@ actor DemoSessionStore {
         static let activeProfileID = "sony.quickplay.demo.active-profile-id"
         static let preferenceHistoryByProfile = "sony.quickplay.demo.preference-history-by-profile"
         static let prefersVoiceAISearch = "sony.quickplay.demo.prefers-voice-ai"
+        static let continueWatchingByProfile = "sony.quickplay.demo.continue-watching-by-profile"
+        static let hasCompletedLogin = "sony.quickplay.demo.has-completed-login"
     }
 
     private let historyThreshold = 6
@@ -19,6 +21,7 @@ actor DemoSessionStore {
     private var activeProfileID: String?
     private var preferenceHistoryByProfile: [String: [String]]
     private var prefersVoiceAISearch: Bool
+    private var continueWatchingByProfile: [String: [StorefrontItem]]
 
     init() {
         if
@@ -41,6 +44,12 @@ actor DemoSessionStore {
 
         activeProfileID = UserDefaults.standard.string(forKey: StorageKey.activeProfileID)
         preferenceHistoryByProfile = UserDefaults.standard.dictionary(forKey: StorageKey.preferenceHistoryByProfile) as? [String: [String]] ?? [:]
+        if let data = UserDefaults.standard.data(forKey: StorageKey.continueWatchingByProfile),
+           let stored = try? JSONDecoder().decode([String: [StorefrontItem]].self, from: data) {
+            continueWatchingByProfile = stored
+        } else {
+            continueWatchingByProfile = [:]
+        }
 
         if UserDefaults.standard.object(forKey: StorageKey.prefersVoiceAISearch) != nil {
             prefersVoiceAISearch = UserDefaults.standard.bool(forKey: StorageKey.prefersVoiceAISearch)
@@ -62,9 +71,18 @@ actor DemoSessionStore {
         activeProfileID = nil
         activeCohort = .entertainment
         activePreference = .entertainment
+        UserDefaults.standard.set(false, forKey: StorageKey.hasCompletedLogin)
         UserDefaults.standard.removeObject(forKey: StorageKey.activeProfileID)
         UserDefaults.standard.set(activeCohort.rawValue, forKey: StorageKey.activeCohort)
         UserDefaults.standard.set(activePreference.rawValue, forKey: StorageKey.activePreference)
+    }
+
+    func setHasCompletedLogin(_ hasCompletedLogin: Bool) {
+        UserDefaults.standard.set(hasCompletedLogin, forKey: StorageKey.hasCompletedLogin)
+    }
+
+    func hasCompletedLogin() -> Bool {
+        UserDefaults.standard.bool(forKey: StorageKey.hasCompletedLogin)
     }
 
     func setActiveCohort(_ cohort: QuickplayCohort) {
@@ -86,6 +104,21 @@ actor DemoSessionStore {
         }
         preferenceHistoryByProfile[key] = history
         UserDefaults.standard.set(preferenceHistoryByProfile, forKey: StorageKey.preferenceHistoryByProfile)
+
+        var continueItems = continueWatchingByProfile[key] ?? []
+        let progressValue = item.progress ?? 0.32
+        let storedItem = item.withProgress(progressValue)
+        continueItems.removeAll { $0.id == storedItem.id }
+        continueItems.insert(storedItem, at: 0)
+        if continueItems.count > maxHistoryCount {
+            continueItems.removeLast(continueItems.count - maxHistoryCount)
+        }
+        continueWatchingByProfile[key] = continueItems
+        persistContinueWatching()
+    }
+
+    func continueWatchingItems(limit: Int = 20) -> [StorefrontItem] {
+        Array((continueWatchingByProfile[historyKey] ?? []).prefix(limit))
     }
 
     func currentCohort() -> QuickplayCohort {
@@ -155,5 +188,10 @@ actor DemoSessionStore {
 
         let candidates = Set(counts.filter { $0.value == topCount }.map(\.key))
         return recentPreferences.reversed().first(where: { candidates.contains($0) })
+    }
+
+    private func persistContinueWatching() {
+        guard let data = try? JSONEncoder().encode(continueWatchingByProfile) else { return }
+        UserDefaults.standard.set(data, forKey: StorageKey.continueWatchingByProfile)
     }
 }

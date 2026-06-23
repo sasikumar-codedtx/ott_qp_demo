@@ -10,7 +10,6 @@ struct AppRootView: View {
                     destination(for: route)
                 }
         }
-        .toolbar(.hidden, for: .navigationBar)
         .preferredColorScheme(.dark)
         .task {
             await viewModel.start()
@@ -18,15 +17,15 @@ struct AppRootView: View {
         .onChange(of: viewModel.navigationPath) { oldPath, newPath in
             viewModel.handleNavigationPathChange(from: oldPath, to: newPath)
         }
+        .fullScreenCover(item: $viewModel.activePlaybackContent) { content in
+            QuickplayPlayerScreen(content: content, onDismiss: viewModel.closePlayer)
+        }
     }
 
     private var splashView: some View {
         VStack {
             Spacer()
-            Image("logo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 92, height: 92)
+            LogoGlowView(size: 92, glowScale: 1.5)
             Spacer()
         }
         .padding(.bottom, 40)
@@ -73,7 +72,7 @@ struct AppRootView: View {
                     bottomSelection: .home,
                     profileName: viewModel.activeProfile?.name ?? "Default",
                     onSelectItem: { item in
-                        viewModel.openDetail(item: item)
+                        viewModel.openContent(item: item)
                     },
                     onOpenHome: {
                         viewModel.openStorefront()
@@ -102,7 +101,7 @@ struct AppRootView: View {
                     bottomSelection: .hot,
                     profileName: viewModel.activeProfile?.name ?? "Default",
                     onSelectItem: { item in
-                        viewModel.openDetail(item: item)
+                        viewModel.openContent(item: item)
                     },
                     onOpenHome: {
                         viewModel.openStorefront()
@@ -130,20 +129,11 @@ struct AppRootView: View {
                     viewModel: viewModel.searchViewModel,
                     profileName: viewModel.activeProfile?.name ?? "Default",
                     prefersVoiceAISearch: viewModel.prefersVoiceAISearch,
-                    onSelectItem: { item in
-                        viewModel.openDetail(item: item)
-                    },
-                    onOpenHome: {
+                    onBack: {
                         viewModel.openStorefront()
                     },
-                    onOpenShorts: {
-                        viewModel.openShorts()
-                    },
-                    onOpenHot: {
-                        viewModel.openHotTab()
-                    },
-                    onProfileTap: {
-                        viewModel.openProfileHome()
+                    onSelectItem: { item in
+                        viewModel.openContent(item: item)
                     }
                 )
             }
@@ -181,6 +171,29 @@ struct AppRootView: View {
                 })
             }
             .routeNavigationChrome()
+        case .search:
+            surface(style: .search) {
+                SearchView(
+                    viewModel: viewModel.searchViewModel,
+                    profileName: viewModel.activeProfile?.name ?? "Default",
+                    prefersVoiceAISearch: viewModel.prefersVoiceAISearch,
+                    onBack: {
+                        viewModel.popRoute()
+                    },
+                    onSelectItem: { item in
+                        viewModel.openContent(item: item)
+                    }
+                )
+            }
+            .routeNavigationChrome()
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    NavigationChromeButton(icon: AppIcons.Navigation.back, action: viewModel.popRoute)
+                }
+                ToolbarItem(placement: .principal) {
+                    NavigationChromeTitle(title: AppStrings.Search.placeholder)
+                }
+            }
         case .profileEditor:
             surface(style: .profile) {
                 ProfileEditorView(
@@ -193,6 +206,9 @@ struct AppRootView: View {
                     },
                     onSave: {
                         viewModel.saveProfile()
+                    },
+                    onDelete: {
+                        viewModel.deleteProfile()
                     }
                 )
             }
@@ -214,6 +230,7 @@ struct AppRootView: View {
             surface(style: .storefront) {
                 ProfileHubView(
                     viewModel: viewModel.profileHubViewModel,
+                    profiles: viewModel.profileSelectionViewModel.selectionProfiles,
                     onBack: {
                         viewModel.backFromProfileHome()
                     },
@@ -223,12 +240,37 @@ struct AppRootView: View {
                     onSwitchProfile: {
                         viewModel.openProfileSelection()
                     },
+                    onSelectProfile: { profile in
+                        viewModel.switchActiveProfile(profile)
+                    },
                     onSelectItem: { item in
-                        viewModel.openDetail(item: item)
+                        viewModel.openContent(item: item)
                     }
                 )
             }
             .routeNavigationChrome()
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    NavigationChromeButton(icon: AppIcons.Navigation.back, action: viewModel.backFromProfileHome)
+                }
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 8) {
+                        ProfileAvatarView(
+                            imageName: ProfileArtworkResolver.imageName(forName: viewModel.activeProfile?.name ?? "Default"),
+                            fallbackGlyph: String((viewModel.activeProfile?.name ?? "P").prefix(1)).uppercased(),
+                            size: 28
+                        )
+                        Text(viewModel.activeProfile?.name ?? "Profile")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                    }
+                }
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    NavigationChromeButton(icon: AppIcons.Action.download, action: {})
+                    NavigationChromeButton(icon: AppIcons.Action.gear, action: viewModel.openSettings)
+                }
+            }
         case .settings:
             surface(style: .storefront) {
                 SettingsView(
@@ -260,12 +302,24 @@ struct AppRootView: View {
                     onBack: {
                         viewModel.backFromDetail()
                     },
+                    onPlay: { detail, item in
+                        viewModel.play(detail: detail, fallback: item)
+                    },
                     onSelectRecommendation: { item in
-                        viewModel.openDetail(item: item)
+                        viewModel.openContent(item: item)
                     }
                 )
             }
             .routeNavigationChrome()
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    NavigationChromeButton(icon: AppIcons.Navigation.back, action: viewModel.backFromDetail)
+                }
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    NavigationChromeButton(icon: AppIcons.Action.tv, action: {})
+                    NavigationChromeButton(icon: AppIcons.Action.share, action: {})
+                }
+            }
         case .sectionBrowse:
             surface(style: .storefront) {
                 StorefrontSectionBrowseView(
@@ -274,7 +328,7 @@ struct AppRootView: View {
                         viewModel.popRoute()
                     },
                     onSelectItem: { item in
-                        viewModel.openDetail(item: item)
+                        viewModel.openContent(item: item)
                     }
                 )
             }

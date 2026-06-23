@@ -15,18 +15,45 @@ final class StorefrontViewModel: ObservableObject {
     private let initialUseCase: GetInitialStorefrontUseCase
     private let pageUseCase: GetStorefrontPageUseCase
     private let initialStorefrontID: String?
+    private let preferredInitialTabTitle: String?
+    private let fixedCohort: QuickplayCohort?
     private var storefrontID: String?
     private var tabCache: [String: StorefrontPage] = [:]
     private var activeProfileID: UUID?
 
-    init(initialUseCase: GetInitialStorefrontUseCase, pageUseCase: GetStorefrontPageUseCase, initialStorefrontID: String? = nil) {
+    init(
+        initialUseCase: GetInitialStorefrontUseCase,
+        pageUseCase: GetStorefrontPageUseCase,
+        initialStorefrontID: String? = nil,
+        preferredInitialTabTitle: String? = nil,
+        fixedCohort: QuickplayCohort? = nil
+    ) {
         self.initialUseCase = initialUseCase
         self.pageUseCase = pageUseCase
         self.initialStorefrontID = initialStorefrontID
+        self.preferredInitialTabTitle = preferredInitialTabTitle
+        self.fixedCohort = fixedCohort
     }
 
     var selectedTabTitle: String {
         tabs.first(where: { $0.id == selectedTabID })?.title ?? AppStrings.Common.home
+    }
+
+    var demoHeroVariant: StorefrontHeroVariant {
+        let normalizedTitle = selectedTabTitle.lowercased()
+
+        if activeCohort == .sports || normalizedTitle.contains("sport") {
+            return .stackedSports
+        }
+
+        if activeCohort == .realityShows ||
+            normalizedTitle.contains("reality") ||
+            normalizedTitle.contains("show")
+        {
+            return .immersive
+        }
+
+        return .carousel
     }
 
     var searchSeedItems: [StorefrontItem] {
@@ -44,7 +71,7 @@ final class StorefrontViewModel: ObservableObject {
         let nextProfileID = profile?.id
         guard nextProfileID != activeProfileID else { return }
         activeProfileID = nextProfileID
-        activeCohort = profile?.quickplayCohort ?? .entertainment
+        activeCohort = fixedCohort ?? profile?.quickplayCohort ?? .entertainment
         tabs = []
         selectedTabID = nil
         sections = []
@@ -97,7 +124,11 @@ final class StorefrontViewModel: ObservableObject {
         append: Bool,
         preserveVisibleContent: Bool
     ) async {
-        activeCohort = await DemoSessionStore.shared.currentCohort()
+        if let fixedCohort {
+            activeCohort = fixedCohort
+        } else {
+            activeCohort = await DemoSessionStore.shared.currentCohort()
+        }
 
         if append {
             isLoadingMore = true
@@ -147,6 +178,16 @@ final class StorefrontViewModel: ObservableObject {
             selectedTabID = page.selectedTabID
             sections = combinedSections
             errorMessage = nil
+
+            if
+                !append,
+                tabID == nil,
+                let preferredInitialTabTitle,
+                let preferredTab = tabs.first(where: { $0.title.caseInsensitiveCompare(preferredInitialTabTitle) == .orderedSame }),
+                preferredTab.id != page.selectedTabID
+            {
+                await selectTab(preferredTab)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

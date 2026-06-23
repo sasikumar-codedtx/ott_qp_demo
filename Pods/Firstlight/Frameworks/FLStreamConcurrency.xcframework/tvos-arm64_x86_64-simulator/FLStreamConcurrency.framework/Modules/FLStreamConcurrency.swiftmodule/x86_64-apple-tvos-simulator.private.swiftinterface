@@ -1,0 +1,33 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -target x86_64-apple-tvos12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name FLStreamConcurrency
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -interface-compiler-version 6.1.2
+import FLFoundation
+import FLPlatformCore
+import FLPlayerInterface
+@_exported import FLStreamConcurrency
+import Foundation
+import Swift
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public protocol StreamConcurrencyManager {
+  var configuration: any FLStreamConcurrency.StreamConcurrencyConfiguration { get }
+  func processPlaybackStateChange(player: any FLPlayerInterface.Player)
+}
+public func version() -> Swift.String
+public enum FLStreamConcurrencyFactory {
+  public static func streamConcurrencyConfiguration(endPoint: Swift.String, streamConcurrencySyncInterval: Foundation.TimeInterval = 30000, maxAllowedRetries: Swift.Int = 2, retryDelayInSec: Swift.Double = 1) -> any FLStreamConcurrency.StreamConcurrencyConfiguration
+  public static func streamConcurrencyService(endPoint: Swift.String, token: Swift.String? = nil, httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient(), authorizer: any FLPlatformCore.PlatformAuthorizer) -> any FLStreamConcurrency.StreamConcurrencyService
+  public static func streamConcurrencyManager(configuration: any FLStreamConcurrency.StreamConcurrencyConfiguration, deviceId: Swift.String, streamConcurrencyService: any FLStreamConcurrency.StreamConcurrencyService, authorizer: any FLPlatformCore.PlatformAuthorizer) -> any FLStreamConcurrency.StreamConcurrencyManager
+}
+public protocol StreamConcurrencyService {
+  func putStreamForDevice(deviceId: Swift.String, completion: @escaping (Swift.Result<Swift.Void, any Swift.Error>) -> Swift.Void)
+  func deleteStreamForDevice(deviceId: Swift.String, completion: @escaping (Swift.Result<Swift.Void, any Swift.Error>) -> Swift.Void)
+}
+public protocol StreamConcurrencyConfiguration {
+  var endPoint: Swift.String { get }
+  var streamConcurrencySyncInterval: Foundation.TimeInterval { get }
+  var maxAllowedRetries: Swift.Int { get }
+  var retryDelayInSec: Swift.Double { get }
+}

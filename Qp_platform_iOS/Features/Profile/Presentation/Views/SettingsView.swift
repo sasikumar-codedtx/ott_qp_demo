@@ -62,55 +62,32 @@ struct SettingsView: View {
             .animation(.easeInOut(duration: 0.22), value: showsProfileSwitch)
             .animation(.easeInOut(duration: 0.22), value: activeAudioSheet)
         }
-        .ignoresSafeArea(edges: .top)
     }
 
     private func settingsPage(for screen: SettingsScreen, topInset: CGFloat) -> some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: UIConstants.Spacing.xl) {
-                pageHeader(for: screen)
                 pageContent(for: screen)
             }
             .padding(.horizontal, UIConstants.Spacing.lg)
-            .padding(.top, topInset + 4)
+            .padding(.top, max(topInset + 72, 88))
             .padding(.bottom, 40)
         }
         .background(Color.clear)
-    }
-
-    private func pageHeader(for screen: SettingsScreen) -> some View {
-        HStack {
-            Button(action: handleBack) {
-                Image(systemName: AppIcons.Navigation.back)
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
-                    .background(
-                        RoundedRectangle(cornerRadius: UIConstants.CornerRadius.lg, style: .continuous)
-                            .fill(Color.white.opacity(0.08))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: UIConstants.CornerRadius.lg, style: .continuous)
-                                    .stroke(Color.white.opacity(0.08), lineWidth: 0.75)
-                            )
-                    )
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                NavigationChromeButton(icon: AppIcons.Navigation.back, action: handleBack)
             }
-            .buttonStyle(.plain)
-
-            Spacer()
-
-            Text(screen.title)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(.white)
-
-            Spacer()
-
+            ToolbarItem(placement: .principal) {
+                NavigationChromeTitle(title: screen.title)
+            }
             if screen == .root {
-                Image(systemName: AppIcons.Action.headphones)
-                    .font(.system(size: 24, weight: .regular))
-                    .foregroundStyle(.white.opacity(0.86))
-                    .frame(width: 44, height: 44)
-            } else {
-                Color.clear.frame(width: 44, height: 44)
+                ToolbarItem(placement: .topBarTrailing) {
+                    Image(systemName: AppIcons.Action.headphones)
+                        .font(.system(size: 23, weight: .regular))
+                        .foregroundStyle(.white.opacity(0.86))
+                        .frame(width: 44, height: 44)
+                }
             }
         }
     }
@@ -272,12 +249,11 @@ struct SettingsView: View {
                 )
             )
             .labelsHidden()
-            .toggleStyle(SwitchToggleStyle(tint: Color(hex: "FF5E00")))
+            .toggleStyle(SonyLIVPillToggleStyle())
         }
         .padding(18)
         .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color.white.opacity(0.06))
+            LiquidGlassBackground(cornerRadius: 22, tone: .dark)
         )
     }
 
@@ -310,12 +286,9 @@ struct SettingsView: View {
                     .foregroundStyle(Color(hex: "151424"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(Color.white)
-                    )
+                    .background(LiquidGlassBackground(cornerRadius: 12, tone: .light, isHighlighted: true))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(LiquidButtonPressStyle())
         }
     }
 
@@ -335,12 +308,9 @@ struct SettingsView: View {
                     .foregroundStyle(Color(hex: "151424"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(Color.white)
-                    )
+                    .background(LiquidGlassBackground(cornerRadius: 12, tone: .light, isHighlighted: true))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(LiquidButtonPressStyle())
         }
     }
 
@@ -462,7 +432,7 @@ struct SettingsView: View {
             }
 
             if showsProfileSwitch {
-                ProfileSwitchOverlay(
+                ProfileSwitchSheetView(
                     profiles: Array(profiles.prefix(5)),
                     selectedProfile: currentProfile,
                     onSelect: { profile in
@@ -472,7 +442,8 @@ struct SettingsView: View {
                     onEditProfiles: {
                         showsProfileSwitch = false
                         onEditProfiles()
-                    }
+                    },
+                    onClose: nil
                 )
             }
 
@@ -542,7 +513,7 @@ struct SettingsView: View {
                         )
                 )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(LiquidButtonPressStyle())
 
             Text("Upgrade to 4k UHD • Dolby Atoms • Ads Free")
                 .font(.system(size: 14, weight: .bold))
@@ -645,7 +616,7 @@ struct SettingsView: View {
                     .frame(minHeight: row.subtitle == nil ? 67 : 70)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(LiquidButtonPressStyle())
 
                 if index < rows.count - 1 {
                     Divider()
@@ -654,41 +625,62 @@ struct SettingsView: View {
             }
         }
         .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Color.white.opacity(0.075), Color.white.opacity(0.05)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+            LiquidGlassBackground(cornerRadius: 22, tone: .dark)
         )
     }
 
     private func planCard(title: String, subtitle: String, price: String, featured: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
+        HStack(spacing: 14) {
+            if featured {
+                LogoGlowView(size: 44, glowScale: 1.8)
+                    .frame(width: 54, height: 54)
+            } else {
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.07))
+                    Image(systemName: AppIcons.Action.crown)
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(Color.white.opacity(0.72))
+                }
+                .frame(width: 54, height: 54)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
                 Text(title)
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(size: 18, weight: .black))
                     .foregroundStyle(.white)
-                Spacer()
+
+                Text(subtitle)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color.white.opacity(0.62))
+                    .lineLimit(2)
+            }
+
+            Spacer(minLength: 8)
+
+            HStack {
                 Text(price)
                     .font(.system(size: 14, weight: .bold))
                     .foregroundStyle(featured ? Color(hex: "F5B919") : .white.opacity(0.8))
             }
-
-            Text(subtitle)
-                .font(.system(size: 14, weight: .regular))
-                .foregroundStyle(Color.white.opacity(0.58))
         }
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(featured ? Color(hex: "2A1638") : Color.white.opacity(0.05))
+                .fill(
+                    LinearGradient(
+                        colors: featured
+                            ? [Color(hex: "311647"), Color(hex: "160C21"), Color(hex: "2B130E")]
+                            : [Color.white.opacity(0.07), Color.white.opacity(0.04)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
                         .stroke(featured ? Color(hex: "F5B919").opacity(0.65) : Color.white.opacity(0.05), lineWidth: 1)
                 )
+                .shadow(color: featured ? Color(hex: "F5A623").opacity(0.18) : Color.clear, radius: 18, x: 0, y: 0)
         )
     }
 
@@ -747,10 +739,7 @@ struct SettingsView: View {
 
     private var footer: some View {
         VStack(spacing: 14) {
-            Image("logo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 92, height: 92)
+            LogoGlowView(size: 92, glowScale: 1.45)
 
             Text(AppStrings.Profile.sonyFooter + " \u{2665}")
                 .font(.system(size: 13, weight: .regular))
@@ -884,6 +873,41 @@ private struct SettingsDocumentSection: Identifiable {
     let body: String
 }
 
+private struct SonyLIVPillToggleStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Button {
+            withAnimation(.spring(response: 0.28, dampingFraction: 0.78)) {
+                configuration.isOn.toggle()
+            }
+        } label: {
+            ZStack(alignment: configuration.isOn ? .trailing : .leading) {
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: configuration.isOn
+                                ? [Color(hex: "FFB347"), Color(hex: "FF5E00")]
+                                : [Color.white.opacity(0.16), Color.white.opacity(0.06)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .overlay(
+                        Capsule()
+                            .stroke(configuration.isOn ? Color(hex: "FFCF82").opacity(0.7) : Color.white.opacity(0.12), lineWidth: 1)
+                    )
+
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 24, height: 24)
+                    .shadow(color: Color.black.opacity(0.28), radius: 8, x: 0, y: 4)
+                    .padding(3)
+            }
+            .frame(width: 54, height: 30)
+        }
+        .buttonStyle(LiquidButtonPressStyle())
+    }
+}
+
 private struct SettingsChoiceSheet: View {
     let title: String
     let options: [String]
@@ -908,9 +932,9 @@ private struct SettingsChoiceSheet: View {
                             .font(.system(size: 12, weight: .bold))
                             .foregroundStyle(.white.opacity(0.82))
                             .frame(width: 24, height: 24)
-                            .background(Circle().fill(Color.white.opacity(0.08)))
+                            .background(LiquidGlassCircleBackground(tone: .dark))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(LiquidButtonPressStyle())
                 }
 
                 VStack(spacing: 4) {
@@ -930,11 +954,10 @@ private struct SettingsChoiceSheet: View {
                             .padding(.horizontal, 20)
                             .frame(height: 54)
                             .background(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(Color.white.opacity(0.05))
+                                LiquidGlassBackground(cornerRadius: 12, tone: .dark, isHighlighted: selectedValue == option)
                             )
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(LiquidButtonPressStyle())
                     }
                 }
             }
@@ -957,104 +980,6 @@ private struct SettingsChoiceSheet: View {
                     .frame(width: 54, height: 5)
                     .padding(.top, 10)
             }
-            .padding(.horizontal, 6)
-        }
-        .ignoresSafeArea()
-    }
-}
-
-private struct ProfileSwitchOverlay: View {
-    let profiles: [Profile]
-    let selectedProfile: Profile?
-    let onSelect: (Profile) -> Void
-    let onEditProfiles: () -> Void
-
-    private let columns = [
-        GridItem(.flexible(), spacing: 30),
-        GridItem(.flexible(), spacing: 30),
-        GridItem(.flexible(), spacing: 30)
-    ]
-
-    var body: some View {
-        VStack {
-            Spacer()
-
-            VStack(spacing: 18) {
-                Image("logo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 82, height: 82)
-
-                Text(AppStrings.Profile.switchProfile)
-                    .font(.system(size: 26, weight: .bold))
-                    .foregroundStyle(.white)
-
-                Text(AppStrings.Profile.switchProfileSubtitle)
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundStyle(Color.white.opacity(0.58))
-
-                LazyVGrid(columns: columns, spacing: 26) {
-                    ForEach(profiles) { profile in
-                        Button {
-                            onSelect(profile)
-                        } label: {
-                            VStack(spacing: 10) {
-                                ProfileAvatarView(
-                                    imageName: profile.imageName,
-                                    fallbackGlyph: profile.fallbackGlyph,
-                                    size: 90
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .stroke(profile.id == selectedProfile?.id ? Color.white : .clear, lineWidth: 2)
-                                )
-
-                                Text(profile.name)
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(.white)
-                            }
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.top, 10)
-
-                Button(action: onEditProfiles) {
-                    HStack(spacing: 8) {
-                        Text(AppStrings.Profile.editProfilesCTA)
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(.white)
-                        Image(systemName: "pencil")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.white)
-                    }
-                    .padding(.top, 8)
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 30)
-            .padding(.top, 26)
-            .padding(.bottom, 40)
-            .frame(maxWidth: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: 34, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(hex: "3A1361"),
-                                Color(hex: "1B102A"),
-                                Color(hex: "3D1711"),
-                                Color(hex: "151515")
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 34, style: .continuous)
-                            .stroke(Color.white.opacity(0.06), lineWidth: 1)
-                    )
-            )
             .padding(.horizontal, 6)
         }
         .ignoresSafeArea()

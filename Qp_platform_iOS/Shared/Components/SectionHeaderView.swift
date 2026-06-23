@@ -15,7 +15,7 @@ struct SectionHeaderView: View {
                 Button(action: onTap) {
                     headerContent
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(LiquidButtonPressStyle())
             } else {
                 headerContent
             }

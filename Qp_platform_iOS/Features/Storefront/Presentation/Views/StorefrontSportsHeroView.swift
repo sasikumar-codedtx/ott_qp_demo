@@ -3,33 +3,48 @@ import SwiftUI
 struct StorefrontSportsHeroView: View {
     let items: [StorefrontItem]
     let onSelectItem: (StorefrontItem) -> Void
-    @State private var currentIndex = 0
+    @State private var currentItemID: String?
 
     private var featuredItems: [StorefrontItem] {
-        Array(items.prefix(5))
+        Array(items.prefix(6))
+    }
+
+    private var currentIndex: Int {
+        guard
+            let currentItemID,
+            let index = featuredItems.firstIndex(where: { $0.id == currentItemID })
+        else {
+            return 0
+        }
+        return index
     }
 
     var body: some View {
-        VStack(spacing: 24) {
-            TabView(selection: $currentIndex) {
-                ForEach(Array(featuredItems.enumerated()), id: \.element.id) { index, item in
-                    Button {
-                        onSelectItem(item)
-                    } label: {
-                        sportsCard(item: item)
+        VStack(spacing: 18) {
+            GeometryReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: -18) {
+                        ForEach(Array(featuredItems.enumerated()), id: \.element.id) { index, item in
+                            Button {
+                                currentItemID = item.id
+                                onSelectItem(item)
+                            } label: {
+                                sportsCard(item: item, index: index, containerWidth: proxy.size.width)
+                            }
+                            .buttonStyle(LiquidButtonPressStyle())
+                            .id(item.id)
+                        }
                     }
-                    .buttonStyle(.plain)
-                    .tag(index)
+                    .scrollTargetLayout()
+                    .padding(.horizontal, 22)
                 }
+                .scrollTargetBehavior(.viewAligned)
+                .scrollPosition(id: $currentItemID, anchor: .center)
             }
-            .frame(height: 420)
-            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(height: 486)
             .onAppear {
-                guard !featuredItems.isEmpty else { return }
-                if currentIndex >= featuredItems.count {
-                    currentIndex = 0
-                } else if currentIndex == 0, featuredItems.count > 1 {
-                    currentIndex = Int.random(in: 0..<featuredItems.count)
+                if currentItemID == nil {
+                    currentItemID = featuredItems.first?.id
                 }
             }
 
@@ -43,61 +58,24 @@ struct StorefrontSportsHeroView: View {
         }
     }
 
-    private func sportsCard(item: StorefrontItem) -> some View {
-        let previousIndex = currentIndex == 0 ? max(featuredItems.count - 1, 0) : currentIndex - 1
-        let nextIndex = min(currentIndex + 1, max(featuredItems.count - 1, 0))
-        let leftItem = featuredItems[safe: previousIndex] ?? item
-        let rightItem = featuredItems[safe: nextIndex] ?? item
+    private func sportsCard(item: StorefrontItem, index: Int, containerWidth: CGFloat) -> some View {
+        let cardWidth = min(274, containerWidth * 0.68)
+        let cardHeight: CGFloat = 448
+        let isActive = index == currentIndex
 
-        return ZStack {
-            HStack(spacing: -178) {
-                heroLayer(item: leftItem, width: 227, height: 369)
-                    .offset(x: -10, y: 25)
-                    .scaleEffect(0.985)
-                    .opacity(0.92)
+        return ZStack(alignment: .bottomLeading) {
+            heroMedia(item: item, size: CGSize(width: cardWidth, height: cardHeight), width: 980, cornerRadius: 18)
 
-                heroLayer(item: rightItem, width: 227, height: 369)
-                    .offset(x: 10, y: 25)
-                    .scaleEffect(0.985)
-                    .opacity(0.92)
-            }
-            .animation(.spring(response: 0.34, dampingFraction: 0.84), value: currentIndex)
-
-            mainCard(item: item)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private func heroLayer(item: StorefrontItem, width: CGFloat, height: CGFloat) -> some View {
-        PosterImageView(
-            url: item.imageURL(for: "0-2x3", width: 720),
-            size: CGSize(width: width, height: height),
-            cornerRadius: 14
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color(hex: "318AC5"), lineWidth: 1)
-        )
-    }
-
-    private func mainCard(item: StorefrontItem) -> some View {
-        ZStack(alignment: .bottomLeading) {
-            PosterImageView(
-                url: item.imageURL(for: "0-2x3", width: 980),
-                size: CGSize(width: 349, height: 420),
-                cornerRadius: 12
-            )
-
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(
                     LinearGradient(
-                        colors: [Color.clear, Color.black.opacity(0.5), Color.black.opacity(0.82)],
+                        colors: [Color.clear, Color.black.opacity(0.16), Color.black.opacity(0.84)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
 
-            HStack(alignment: .bottom) {
+            VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 6) {
                     liveBadge
 
@@ -120,25 +98,32 @@ struct StorefrontSportsHeroView: View {
                     .foregroundStyle(.white.opacity(0.92))
                 }
 
-                Spacer()
-
-                ZStack {
-                    Circle()
-                        .fill(Color(hex: "E8B61A"))
-                    Image(systemName: AppIcons.Action.play)
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(.white)
-                }
-                .frame(width: 42, height: 42)
+                floatingControls
             }
-            .padding(.horizontal, 18)
-            .padding(.bottom, 18)
+            .padding(18)
         }
-        .frame(width: 349, height: 420)
+        .frame(width: cardWidth, height: cardHeight)
         .background(Color.black.opacity(0.001))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .shadow(color: Color.black.opacity(0.5), radius: 4, x: 5, y: 0)
-        .shadow(color: Color.black.opacity(0.5), radius: 4, x: -5, y: 0)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(isActive ? Color(hex: "2E95D3").opacity(0.95) : Color.white.opacity(0.12), lineWidth: isActive ? 1.4 : 1)
+        )
+        .scaleEffect(isActive ? 1 : 0.94)
+        .offset(y: isActive ? 0 : 26)
+        .shadow(color: Color(hex: "0A65A8").opacity(isActive ? 0.34 : 0.12), radius: isActive ? 24 : 10, x: 0, y: 10)
+        .animation(.spring(response: 0.34, dampingFraction: 0.84), value: currentIndex)
+    }
+
+    private func heroMedia(item: StorefrontItem, size: CGSize, width: Int, cornerRadius: CGFloat) -> some View {
+        Group {
+            PosterImageView(
+                url: item.imageURL(for: "0-2x3", width: width),
+                size: size,
+                cornerRadius: cornerRadius
+            )
+        }
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
     }
 
     private var liveBadge: some View {
@@ -157,10 +142,30 @@ struct StorefrontSportsHeroView: View {
                 .fill(Color.white.opacity(0.18))
         )
     }
-}
 
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        indices.contains(index) ? self[index] : nil
+    private var floatingControls: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(.ultraThinMaterial)
+                    .overlay(Circle().fill(Color.black.opacity(0.28)))
+                    .overlay(Circle().stroke(Color.white.opacity(0.16), lineWidth: 1))
+                Image(systemName: AppIcons.Action.plus)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+            .frame(width: 46, height: 46)
+
+            ZStack {
+                Circle()
+                    .fill(Color.white)
+                    .shadow(color: Color.white.opacity(0.2), radius: 18, x: 0, y: 4)
+                Image(systemName: AppIcons.Action.play)
+                    .font(.system(size: 18, weight: .black))
+                    .foregroundStyle(.black)
+                    .offset(x: 1)
+            }
+            .frame(width: 54, height: 54)
+        }
     }
 }

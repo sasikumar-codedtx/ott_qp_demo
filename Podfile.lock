@@ -1,0 +1,34 @@
+PODS:
+  - Firstlight/FLAnalytics (7.0.277)
+  - Firstlight/FLBookmarks (7.0.277)
+  - Firstlight/FLContentAuthorizer (7.0.277)
+  - Firstlight/FLFoundation (7.0.277)
+  - Firstlight/FLHeartbeat (7.0.277)
+  - Firstlight/FLPlatformCore (7.0.277)
+  - Firstlight/FLPlatformPlayer (7.0.277)
+  - Firstlight/FLPlayer (7.0.277)
+  - Firstlight/FLPlayerInterface (7.0.277)
+  - Firstlight/FLStreamConcurrency (7.0.277)
+
+DEPENDENCIES:
+  - Firstlight/FLAnalytics (= 7.0.277)
+  - Firstlight/FLBookmarks (= 7.0.277)
+  - Firstlight/FLContentAuthorizer (= 7.0.277)
+  - Firstlight/FLFoundation (= 7.0.277)
+  - Firstlight/FLHeartbeat (= 7.0.277)
+  - Firstlight/FLPlatformCore (= 7.0.277)
+  - Firstlight/FLPlatformPlayer (= 7.0.277)
+  - Firstlight/FLPlayer (= 7.0.277)
+  - Firstlight/FLPlayerInterface (= 7.0.277)
+  - Firstlight/FLStreamConcurrency (= 7.0.277)
+
+SPEC REPOS:
+  https://firstlight.jfrog.io/artifactory/api/pods/fl-ios-sdk-local:
+    - Firstlight
+
+SPEC CHECKSUMS:
+  Firstlight: 4ee2e7d4a30be6006ddc27ca71e6e11d8d0ffd57
+
+PODFILE CHECKSUM: 071dd30714dc8fccfc85584ecb5b080e02efff90
+
+COCOAPODS: 1.16.2

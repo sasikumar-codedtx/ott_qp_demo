@@ -1,0 +1,909 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -target x86_64-apple-ios12.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name FLAnalytics
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -interface-compiler-version 6.1.2
+import AVFAudio
+import AVFoundation
+import CoreMedia
+@_exported import FLAnalytics
+import FLContentAuthorizer
+import FLFoundation
+import FLPlatformCore
+import FLPlayer
+import FLPlayerInterface
+import Foundation
+import ObjectiveC
+import Swift
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+import ObjectiveC.runtime
+public struct AnalyticsThrottlerConfiguration {
+  public init(platformAuthorizer: any FLPlatformCore.PlatformAuthorizer, platformClient: any FLPlatformCore.PlatformClient, analyticsThrottlerServiceUrl: Swift.String, customParameters: [Swift.String : Swift.String] = [:], analyticsThrottlerSyncInterval: Swift.Int, analyticsProviders: [FLAnalytics.AnalyticProvider] = [.conviva])
+}
+public struct CommonReportingData {
+  public init(application: FLAnalytics.Application, user: FLAnalytics.User? = nil, device: FLAnalytics.Device? = nil, abTesting: FLAnalytics.ABTesting? = nil)
+}
+public struct Device : Swift.Codable {
+  public init(platformType: FLAnalytics.PlatformType, platformName: FLAnalytics.PlatformName? = nil, customDeviceManufacturer: Swift.String? = nil, customDeviceName: Swift.String? = nil, deviceId: Swift.String? = nil, deviceCapability: FLFoundation.DeviceCapability? = nil)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct Application : Swift.Codable {
+  public enum CodingKeys : Swift.String, Swift.CodingKey {
+    case name
+    case version
+    case buildVersion
+    case product
+    case displayLanguage
+    case station
+    case property
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias RawValue = Swift.String
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(name: Swift.String, version: Swift.String, buildVersion: Swift.String, product: Swift.String? = nil, displayLanguage: Swift.String? = nil, station: Swift.String? = nil, property: Swift.String? = nil)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct ABTesting : Swift.Codable {
+  public enum CodingKeys : Swift.String, Swift.CodingKey {
+    case experimentID
+    case variantID
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias RawValue = Swift.String
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(experimentID: Swift.String? = nil, variantID: Swift.String? = nil)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct ApplicationMetrics : Swift.Codable {
+  public enum CodingKeys : Swift.String, Swift.CodingKey {
+    case startUpTime
+    case timeToSplash
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias RawValue = Swift.String
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(startUpTime: Swift.Double, timeToSplash: Swift.Double? = nil, customMetrics: [Swift.String : Swift.String]? = nil)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct ApplicationSharePlatform : Swift.Codable {
+  public enum CodingKeys : Swift.String, Swift.CodingKey {
+    case name
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias RawValue = Swift.String
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(name: Swift.String)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct ApplicationContainer : Swift.Codable {
+  public enum CodingKeys : Swift.String, Swift.CodingKey {
+    case id
+    case name
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias RawValue = Swift.String
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(id: Swift.String, name: Swift.String)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct PlaybackRequest {
+  public init(content: any FLAnalytics.Content, playbackSource: FLAnalytics.PlaybackSource, container: FLAnalytics.ApplicationContainer? = nil, userJourney: FLAnalytics.UserJourney? = nil)
+}
+public struct DownloadRequest {
+  public init(content: any FLAnalytics.Content, playbackSource: FLAnalytics.PlaybackSource, container: FLAnalytics.ApplicationContainer? = nil, userJourney: FLAnalytics.UserJourney? = nil)
+}
+public struct UserError : Swift.Codable {
+  public enum CodingKeys : Swift.String, Swift.CodingKey {
+    case code
+    case message
+    case description
+    case internalError
+    case errorType
+    case errorSeverity
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias RawValue = Swift.String
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(code: Swift.String, message: Swift.String, description: Swift.String? = nil, internalError: Swift.String? = nil, errorType: FLAnalytics.ErrorType? = nil, errorSeverity: FLAnalytics.ErrorSeverity? = nil)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct CustomEvent {
+  public var event: Swift.String
+  public var attributes: [Swift.String : Any]?
+  public init(event: Swift.String, attributes: [Swift.String : Any]? = nil)
+}
+public enum UserType : Swift.String, Swift.Codable {
+  case anonymous
+  case registered
+  case subscribed
+  case freeTrial
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum SubscriptionStatus : Swift.String, Swift.Codable {
+  case active
+  case free
+  case grace
+  case canceled
+  case expired
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum PlatformType : Swift.String, Swift.Codable {
+  case app
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum PlatformName : Swift.String, Swift.Codable {
+  case iOS
+  case tvOS
+  case carplay
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum ErrorSeverity : Swift.String, Swift.Codable {
+  case critical
+  case warning
+  case info
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public struct PlaybackSourceType : Swift.RawRepresentable, Swift.Hashable, Swift.Codable {
+  public let rawValue: Swift.String
+  public init(rawValue: Swift.String)
+  public init(from decoder: any Swift.Decoder) throws
+  public func encode(to encoder: any Swift.Encoder) throws
+  public typealias RawValue = Swift.String
+}
+extension FLAnalytics.PlaybackSourceType {
+  public static let carousel: FLAnalytics.PlaybackSourceType
+  public static let suggestedNext: FLAnalytics.PlaybackSourceType
+  public static let recommendation: FLAnalytics.PlaybackSourceType
+  public static let search: FLAnalytics.PlaybackSourceType
+  public static let channels: FLAnalytics.PlaybackSourceType
+  public static let continueWatching: FLAnalytics.PlaybackSourceType
+  public static let myList: FLAnalytics.PlaybackSourceType
+  public static let homeAutoplay: FLAnalytics.PlaybackSourceType
+  public static let detailsAutoplay: FLAnalytics.PlaybackSourceType
+  public static let contentDetails: FLAnalytics.PlaybackSourceType
+  public static let deeplink: FLAnalytics.PlaybackSourceType
+  public static let referral: FLAnalytics.PlaybackSourceType
+  public static let tabStorefront: FLAnalytics.PlaybackSourceType
+  public static let autoplayLinear: FLAnalytics.PlaybackSourceType
+  public static let epgLinear: FLAnalytics.PlaybackSourceType
+  public static let collection: FLAnalytics.PlaybackSourceType
+}
+public enum ErrorType : Swift.String, Swift.Codable {
+  case playbackError
+  case adError
+  case appError
+  case downloadError
+  case userError
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public struct UserJourney : Swift.Codable {
+  public init(pageId: Swift.String? = nil, storefrontId: Swift.String? = nil, storefrontName: Swift.String? = nil, tabId: Swift.String? = nil, tabName: Swift.String? = nil, collectionId: Swift.String? = nil, collectionName: Swift.String? = nil, currentScreen: Swift.String? = nil, searchItemPosition: Swift.Int? = nil, prefDownloadOnWifiOnly: Swift.Bool? = nil, containerPosition: Swift.String? = nil, cardPosition: Swift.String? = nil)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public protocol PlaybackSession {
+  func start(value: FLAnalytics.PlaybackRequest)
+  func attachPlayer(player: any FLPlayerInterface.Player, playerView: UIKit.UIView?)
+  func interruptStart(value: FLAnalytics.CustomEvent)
+  func interruptEnd(value: FLAnalytics.CustomEvent)
+  func updateMetadataRecord(metadata: [Swift.String : Any])
+  func stop(error: (any FLFoundation.FLError)?)
+}
+extension FLAnalytics.PlaybackSession {
+  public func attachPlayer(player: any FLPlayerInterface.Player, playerView: UIKit.UIView? = nil)
+}
+public enum PlaybackAttributes : Swift.String {
+  case programId
+  case programName
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum PlaybackType : Swift.String, Swift.Codable {
+  case VOD
+  case LIVE
+  case DVR
+  case CATCHUP
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public protocol Content : Swift.Decodable, Swift.Encodable {
+  var id: Swift.String { get }
+  var type: Swift.String { get }
+  var name: Swift.String { get }
+  var providerId: Swift.String? { get }
+  var genre: Swift.String? { get }
+  var licenseWindowStartDate: Swift.String? { get }
+  var channel: Swift.String? { get }
+  var streamType: FLContentAuthorizer.ContentType { get }
+  var brand: Swift.String? { get }
+  var affiliate: Swift.String? { get }
+  var assetProviderName: Swift.String? { get }
+  var cdnName: Swift.String? { get }
+  var externalContentId: Swift.String? { get }
+  var enrichmentContentId: Swift.String? { get }
+  var programId: Swift.String? { get }
+  var programName: Swift.String? { get }
+  var channelId: Swift.String? { get }
+  var channelName: Swift.String? { get }
+  var isFreePreview: Swift.Bool? { get }
+  var autoPreview: Swift.Bool? { get }
+  var playbackMode: Swift.String? { get }
+  var isDownloadable: Swift.Bool? { get }
+  var contentLanguage: Swift.String? { get }
+  var packageName: Swift.String? { get }
+  var contractedResolution: Swift.String? { get }
+  var saga: Swift.String? { get }
+  var subtitles: Swift.String? { get }
+  var codecSettings: [Swift.String : Swift.String]? { get }
+  var codecProfile: Swift.String? { get }
+  var playlistId: Swift.String? { get }
+  var playlistName: Swift.String? { get }
+  var playbackType: FLAnalytics.PlaybackType? { get }
+  func getConvivaDictionary() -> [Swift.String : Any]
+  func getNewRelicDictionary() -> [Swift.String : Any]
+}
+public struct MiscellaneousContent : FLAnalytics.Content {
+  public var id: Swift.String
+  public var type: Swift.String
+  public var name: Swift.String
+  public var providerId: Swift.String?
+  public var genre: Swift.String?
+  public var licenseWindowStartDate: Swift.String?
+  public var channel: Swift.String?
+  public var streamType: FLContentAuthorizer.ContentType
+  public var brand: Swift.String?
+  public var affiliate: Swift.String?
+  public var assetProviderName: Swift.String?
+  public var cdnName: Swift.String?
+  public var externalContentId: Swift.String?
+  public var enrichmentContentId: Swift.String?
+  public var programId: Swift.String?
+  public var programName: Swift.String?
+  public var channelId: Swift.String?
+  public var channelName: Swift.String?
+  public var isFreePreview: Swift.Bool?
+  public var autoPreview: Swift.Bool?
+  public var playbackMode: Swift.String?
+  public var isDownloadable: Swift.Bool?
+  public var contentLanguage: Swift.String?
+  public var packageName: Swift.String?
+  public var contractedResolution: Swift.String?
+  public var saga: Swift.String?
+  public var subtitles: Swift.String?
+  public var codecSettings: [Swift.String : Swift.String]?
+  public var codecProfile: Swift.String?
+  public var playlistId: Swift.String?
+  public var playlistName: Swift.String?
+  public var playbackType: FLAnalytics.PlaybackType?
+  public enum CodingKeys : Swift.String, Swift.CodingKey {
+    case id
+    case type
+    case name
+    case providerId
+    case genre
+    case licenseWindowStartDate
+    case channel
+    case streamType
+    case brand
+    case affiliate
+    case assetProviderName
+    case cdnName
+    case externalContentId
+    case enrichmentContentId
+    case programId
+    case programName
+    case channelId
+    case channelName
+    case isFreePreview
+    case autoPreview
+    case playbackMode
+    case isDownloadable
+    case contentLanguage
+    case packageName
+    case contractedResolution
+    case saga
+    case subtitles
+    case codecSettings
+    case codecProfile
+    case playlistId
+    case playlistName
+    case playbackType
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias RawValue = Swift.String
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(id: Swift.String, type: Swift.String, name: Swift.String, providerId: Swift.String? = nil, genre: Swift.String? = nil, licenseWindowStartDate: Swift.String? = nil, channel: Swift.String? = nil, streamType: FLContentAuthorizer.ContentType, brand: Swift.String? = nil, affiliate: Swift.String? = nil, assetProviderName: Swift.String? = nil, cdnName: Swift.String? = nil, externalContentId: Swift.String? = nil, enrichmentContentId: Swift.String? = nil, programId: Swift.String? = nil, programName: Swift.String? = nil, channelId: Swift.String? = nil, channelName: Swift.String? = nil, isFreePreview: Swift.Bool? = nil, autoPreview: Swift.Bool? = nil, playbackMode: Swift.String? = nil, isDownloadable: Swift.Bool? = nil, contentLanguage: Swift.String? = nil, packageName: Swift.String? = nil, contractedResolution: Swift.String? = nil, saga: Swift.String? = nil, subtitles: Swift.String? = nil, codecSettings: [Swift.String : Swift.String]? = nil, codecProfile: Swift.String? = nil, playlistId: Swift.String? = nil, playlistName: Swift.String? = nil, playbackType: FLAnalytics.PlaybackType? = nil)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct TVShow : FLAnalytics.Content {
+  public var id: Swift.String
+  public var type: Swift.String
+  public var name: Swift.String
+  public var providerId: Swift.String?
+  public var genre: Swift.String?
+  public var licenseWindowStartDate: Swift.String?
+  public var seriesId: Swift.String
+  public var seriesName: Swift.String
+  public var seasonNumber: Swift.String
+  public var episodeNumber: Swift.String
+  public var episodeName: Swift.String?
+  public var channel: Swift.String?
+  public var streamType: FLContentAuthorizer.ContentType
+  public var brand: Swift.String?
+  public var affiliate: Swift.String?
+  public var assetProviderName: Swift.String?
+  public var cdnName: Swift.String?
+  public var externalContentId: Swift.String?
+  public var enrichmentContentId: Swift.String?
+  public var programId: Swift.String?
+  public var programName: Swift.String?
+  public var channelId: Swift.String?
+  public var channelName: Swift.String?
+  public var isFreePreview: Swift.Bool?
+  public var autoPreview: Swift.Bool?
+  public var playbackMode: Swift.String?
+  public var isDownloadable: Swift.Bool?
+  public var contentLanguage: Swift.String?
+  public var packageName: Swift.String?
+  public var contractedResolution: Swift.String?
+  public var saga: Swift.String?
+  public var subtitles: Swift.String?
+  public var codecSettings: [Swift.String : Swift.String]?
+  public var codecProfile: Swift.String?
+  public var playlistId: Swift.String?
+  public var playlistName: Swift.String?
+  public var playbackType: FLAnalytics.PlaybackType?
+  public enum CodingKeys : Swift.String, Swift.CodingKey {
+    case id
+    case type
+    case name
+    case providerId
+    case genre
+    case licenseWindowStartDate
+    case seriesId
+    case seriesName
+    case seasonNumber
+    case episodeNumber
+    case episodeName
+    case channel
+    case streamType
+    case brand
+    case affiliate
+    case assetProviderName
+    case cdnName
+    case externalContentId
+    case enrichmentContentId
+    case programId
+    case programName
+    case channelId
+    case channelName
+    case isFreePreview
+    case autoPreview
+    case playbackMode
+    case isDownloadable
+    case contentLanguage
+    case packageName
+    case contractedResolution
+    case saga
+    case subtitles
+    case codecSettings
+    case codecProfile
+    case playlistId
+    case playlistName
+    case playbackType
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias RawValue = Swift.String
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(id: Swift.String, type: Swift.String, name: Swift.String, providerId: Swift.String? = nil, genre: Swift.String? = nil, licenseWindowStartDate: Swift.String? = nil, seriesId: Swift.String, seriesName: Swift.String, seasonNumber: Swift.String, episodeNumber: Swift.String, episodeName: Swift.String? = nil, channel: Swift.String? = nil, streamType: FLContentAuthorizer.ContentType, brand: Swift.String? = nil, affiliate: Swift.String? = nil, assetProviderName: Swift.String? = nil, cdnName: Swift.String? = nil, externalContentId: Swift.String? = nil, enrichmentContentId: Swift.String? = nil, programId: Swift.String? = nil, programName: Swift.String? = nil, channelId: Swift.String? = nil, channelName: Swift.String? = nil, isFreePreview: Swift.Bool? = nil, autoPreview: Swift.Bool? = nil, playbackMode: Swift.String? = nil, isDownloadable: Swift.Bool? = nil, contentLanguage: Swift.String? = nil, packageName: Swift.String? = nil, contractedResolution: Swift.String? = nil, saga: Swift.String? = nil, subtitles: Swift.String? = nil, codecSettings: [Swift.String : Swift.String]? = nil, codecProfile: Swift.String? = nil, playlistId: Swift.String? = nil, playlistName: Swift.String? = nil, playbackType: FLAnalytics.PlaybackType? = nil)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct Sport : FLAnalytics.Content {
+  public var id: Swift.String
+  public var type: Swift.String
+  public var name: Swift.String
+  public var providerId: Swift.String?
+  public var genre: Swift.String?
+  public var licenseWindowStartDate: Swift.String?
+  public var sportName: Swift.String
+  public var leagueId: Swift.String?
+  public var leagueExternalId: Swift.String?
+  public var leagueName: Swift.String
+  public var leagueShortName: Swift.String?
+  public var gameId: Swift.String?
+  public var gameExternalId: Swift.String?
+  public var venueName: Swift.String?
+  public var venueCity: Swift.String?
+  public var venueCountry: Swift.String?
+  public var team1Id: Swift.String?
+  public var team1ExternalId: Swift.String?
+  public var team1Name: Swift.String
+  public var team1ShortName: Swift.String?
+  public var team2Id: Swift.String?
+  public var team2ExternalId: Swift.String?
+  public var team2Name: Swift.String
+  public var team2ShortName: Swift.String?
+  public var channel: Swift.String?
+  public var streamType: FLContentAuthorizer.ContentType
+  public var brand: Swift.String?
+  public var affiliate: Swift.String?
+  public var assetProviderName: Swift.String?
+  public var cdnName: Swift.String?
+  public var externalContentId: Swift.String?
+  public var enrichmentContentId: Swift.String?
+  public var programId: Swift.String?
+  public var programName: Swift.String?
+  public var channelId: Swift.String?
+  public var channelName: Swift.String?
+  public var isFreePreview: Swift.Bool?
+  public var autoPreview: Swift.Bool?
+  public var playbackMode: Swift.String?
+  public var isDownloadable: Swift.Bool?
+  public var contentLanguage: Swift.String?
+  public var packageName: Swift.String?
+  public var contractedResolution: Swift.String?
+  public var saga: Swift.String?
+  public var subtitles: Swift.String?
+  public var codecSettings: [Swift.String : Swift.String]?
+  public var codecProfile: Swift.String?
+  public var playlistId: Swift.String?
+  public var playlistName: Swift.String?
+  public var playbackType: FLAnalytics.PlaybackType?
+  public enum CodingKeys : Swift.String, Swift.CodingKey {
+    case id
+    case type
+    case name
+    case providerId
+    case genre
+    case licenseWindowStartDate
+    case sportName
+    case leagueId
+    case leagueExternalId
+    case leagueName
+    case leagueShortName
+    case gameId
+    case gameExternalId
+    case venueName
+    case venueCity
+    case venueCountry
+    case team1Id
+    case team1ExternalId
+    case team1Name
+    case team1ShortName
+    case team2Id
+    case team2ExternalId
+    case team2Name
+    case team2ShortName
+    case channel
+    case streamType
+    case brand
+    case affiliate
+    case assetProviderName
+    case cdnName
+    case externalContentId
+    case enrichmentContentId
+    case programId
+    case programName
+    case channelId
+    case channelName
+    case isFreePreview
+    case autoPreview
+    case playbackMode
+    case isDownloadable
+    case contentLanguage
+    case packageName
+    case contractedResolution
+    case saga
+    case subtitles
+    case codecSettings
+    case codecProfile
+    case playlistId
+    case playlistName
+    case playbackType
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias RawValue = Swift.String
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(id: Swift.String, type: Swift.String, name: Swift.String, providerId: Swift.String? = nil, genre: Swift.String? = nil, licenseWindowStartDate: Swift.String? = nil, sportName: Swift.String, leagueId: Swift.String? = nil, leagueExternalId: Swift.String? = nil, leagueName: Swift.String, leagueShortName: Swift.String? = nil, gameId: Swift.String? = nil, gameExternalId: Swift.String? = nil, venueName: Swift.String? = nil, venueCity: Swift.String? = nil, venueCountry: Swift.String? = nil, team1Id: Swift.String? = nil, team1ExternalId: Swift.String? = nil, team1Name: Swift.String, team1ShortName: Swift.String? = nil, team2Id: Swift.String? = nil, team2ExternalId: Swift.String? = nil, team2Name: Swift.String, team2ShortName: Swift.String? = nil, channel: Swift.String? = nil, streamType: FLContentAuthorizer.ContentType, brand: Swift.String? = nil, affiliate: Swift.String? = nil, assetProviderName: Swift.String? = nil, cdnName: Swift.String? = nil, externalContentId: Swift.String? = nil, enrichmentContentId: Swift.String? = nil, programId: Swift.String? = nil, programName: Swift.String? = nil, channelId: Swift.String? = nil, channelName: Swift.String? = nil, isFreePreview: Swift.Bool? = nil, autoPreview: Swift.Bool? = nil, playbackMode: Swift.String? = nil, isDownloadable: Swift.Bool? = nil, contentLanguage: Swift.String? = nil, packageName: Swift.String? = nil, contractedResolution: Swift.String? = nil, saga: Swift.String? = nil, subtitles: Swift.String? = nil, codecSettings: [Swift.String : Swift.String]? = nil, codecProfile: Swift.String? = nil, playlistId: Swift.String? = nil, playlistName: Swift.String? = nil, playbackType: FLAnalytics.PlaybackType? = nil)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public struct User : Swift.Codable {
+  public enum CodingKeys : Swift.String, Swift.CodingKey {
+    case id
+    case type
+    case profileId
+    case profileType
+    case subscriptionId
+    case subscriptionStatus
+    case subscriptionPlan
+    case subscriptionPlanId
+    case baseSubscription
+    case silentLogin
+    case transactionCode
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias RawValue = Swift.String
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(id: Swift.String? = nil, type: FLAnalytics.UserType, subscription: FLAnalytics.Subscription? = .none, profileId: Swift.String? = nil, profileType: Swift.String? = nil, baseSubscription: Swift.String? = nil, silentLogin: Swift.Bool? = nil, transactionCode: Swift.String? = nil)
+  public init(from decoder: any Swift.Decoder) throws
+  public func encode(to encoder: any Swift.Encoder) throws
+}
+public struct Subscription : Swift.Codable {
+  public enum CodingKeys : Swift.String, Swift.CodingKey {
+    case id
+    case status
+    case plan
+    case planId
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias RawValue = Swift.String
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(id: Swift.String, status: FLAnalytics.SubscriptionStatus? = nil, plan: Swift.String? = nil, planId: Swift.String? = nil)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public protocol UserSession {
+  func login(user: FLAnalytics.User)
+  func signup(user: FLAnalytics.User)
+  func createProfile(user: FLAnalytics.User)
+  func updateProfile(user: FLAnalytics.User)
+  func deleteProfile(user: FLAnalytics.User)
+  func startSubscription(user: FLAnalytics.User)
+  func purchaseSubscription(user: FLAnalytics.User)
+  func purchaseSubscriptionCancel(user: FLAnalytics.User)
+  func purchaseSubscriptionFailure(user: FLAnalytics.User)
+  func changeSubscription(user: FLAnalytics.User)
+  func completePayment(user: FLAnalytics.User)
+  func forgotPassword(user: FLAnalytics.User)
+  func addErrorEvent(error: FLAnalytics.UserError, value: FLAnalytics.User)
+  func logout(user: FLAnalytics.User)
+  func updateMetadata(user: FLAnalytics.User)
+}
+public protocol DownloadSession : AnyObject {
+  func start(value: FLAnalytics.DownloadRequest)
+  func stop(error: (any FLFoundation.FLError)?)
+}
+public struct InitializationResponse {
+  public let analyticProvider: FLAnalytics.AnalyticProvider
+  public let result: Swift.Result<Swift.Bool, any Swift.Error>
+}
+public enum AnalyticProvider {
+  case datazoom
+  case conviva
+  case npaw
+  case newrelic
+  public static func == (a: FLAnalytics.AnalyticProvider, b: FLAnalytics.AnalyticProvider) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public protocol AnalyticsDelegate : AnyObject {
+  func didFail(with error: any FLFoundation.FLError)
+}
+public enum FLAnalyticsErrorCodes : Swift.Int, Swift.Error, Foundation.LocalizedError {
+  case ANALYTICS_INITIALIZATION_FAILURE
+  case ANALYTICS_PLAYBACK_INITIALIZATION_FAILURE
+  case ANALYTICS_EVENT_NAME_ALREADY_RESERVED
+  case ANALYTICS_NOT_INITIALIZED
+  case DATAZOOM_ANALYTICS_INITIALIZATION_FAILURE
+  case CONVIVA_ANALYTICS_INITIALIZATION_FAILURE
+  case NPAW_ANALYTICS_INITIALIZATION_FAILURE
+  case NEWRELIC_ANALYTICS_INITIALIZATION_FAILURE
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+extension FLAnalytics.Content where Self == FLAnalytics.TVShow {
+  public func getConvivaDictionary() -> [Swift.String : Any]
+}
+extension FLAnalytics.Content {
+  public func getConvivaDictionary() -> [Swift.String : Any]
+}
+public protocol ApplicationSession {
+  var configurations: [FLAnalytics.Configuration]? { get }
+  var delegate: (any FLAnalytics.AnalyticsDelegate)? { get set }
+  @available(*, deprecated, message: "This API has been deprecated. Please use `initialize(configurations: commonData: configEndPoint: delegate: completion:)` instead.")
+  func initialize(configuration: FLAnalytics.Configuration, commonData: FLAnalytics.CommonReportingData, configEndPoint: Swift.String?, delegate: any FLAnalytics.AnalyticsDelegate, completion: @escaping (Swift.Result<Swift.Bool, any Swift.Error>) -> Swift.Void)
+  func initialize(configurations: [FLAnalytics.Configuration], commonData: FLAnalytics.CommonReportingData, configEndPoint: Swift.String?, delegate: any FLAnalytics.AnalyticsDelegate, completion: @escaping ([FLAnalytics.InitializationResponse]) -> Swift.Void)
+  func start(value: FLAnalytics.ApplicationMetrics)
+  func createPlaybackSession() -> (any FLAnalytics.PlaybackSession)?
+  func initializeAnalyticsThrottling(httpClient: any FLFoundation.HTTPClient, analyticsThrottlerConfiguration: FLAnalytics.AnalyticsThrottlerConfiguration)
+  func createUserSession() -> any FLAnalytics.UserSession
+  func addErrorEvent(error: any FLFoundation.FLError)
+  func addEvent(value: FLAnalytics.CustomEvent)
+  func updateMetadataRecord(metadata: [Swift.String : Any])
+  func setCustomDimensions(content: [Swift.Int : Swift.String], ad: [Swift.Int : Swift.String]?, replicateContentToAd: Swift.Bool)
+  func stop(error: (any FLFoundation.FLError)?)
+}
+extension FLAnalytics.ApplicationSession {
+  public func stop(error: (any FLFoundation.FLError)? = nil)
+  public func initialize(configuration: FLAnalytics.Configuration, commonData: FLAnalytics.CommonReportingData, configEndPoint: Swift.String? = nil, delegate: any FLAnalytics.AnalyticsDelegate, completion: @escaping (Swift.Result<Swift.Bool, any Swift.Error>) -> Swift.Void)
+  public func initialize(configurations: [FLAnalytics.Configuration], commonData: FLAnalytics.CommonReportingData, configEndPoint: Swift.String? = nil, delegate: any FLAnalytics.AnalyticsDelegate, completion: @escaping ([FLAnalytics.InitializationResponse]) -> Swift.Void)
+  public func initializeAnalyticsThrottling(httpClient: any FLFoundation.HTTPClient = FLFoundationFactory.httpClient(), analyticsThrottlerConfiguration: FLAnalytics.AnalyticsThrottlerConfiguration)
+  public func setCustomDimensions(content: [Swift.Int : Swift.String], ad: [Swift.Int : Swift.String]? = nil, replicateContentToAd: Swift.Bool = false)
+}
+public struct AnalyticsKeyTransformer {
+}
+extension FLAnalytics.AnalyticsKeyTransformer {
+  public static func translateKeysAndSanitize(_ obj: [Swift.String : Any]) -> [Swift.String : Any]
+}
+extension FLAnalytics.Content where Self == FLAnalytics.TVShow {
+  public func getNewRelicDictionary() -> [Swift.String : Any]
+}
+extension FLAnalytics.Content {
+  public func getNewRelicDictionary() -> [Swift.String : Any]
+}
+public func version() -> Swift.String
+public enum FLAnalyticsFactory {
+  public static var applicationSession: any FLAnalytics.ApplicationSession
+}
+public struct PlaybackSource : Swift.Codable {
+  public var type: FLAnalytics.PlaybackSourceType
+  public enum CodingKeys : Swift.String, Swift.CodingKey {
+    case type
+    public init?(rawValue: Swift.String)
+    public init?(stringValue: Swift.String)
+    public init?(intValue: Swift.Int)
+    public typealias RawValue = Swift.String
+    public var intValue: Swift.Int? {
+      get
+    }
+    public var rawValue: Swift.String {
+      get
+    }
+    public var stringValue: Swift.String {
+      get
+    }
+  }
+  public init(type: FLAnalytics.PlaybackSourceType)
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+public enum AnalyticsLogLevel {
+  case DEBUG
+  case INFO
+  case WARNING
+  case ERROR
+  case NONE
+  case FUNC
+  case SILENT
+  case VERBOSE
+  public static func == (a: FLAnalytics.AnalyticsLogLevel, b: FLAnalytics.AnalyticsLogLevel) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum Configuration {
+  case datazoom(id: Swift.String, logLevel: FLAnalytics.AnalyticsLogLevel? = nil)
+  case conviva(customerKey: Swift.String, gatewayUrl: Swift.String?, logLevel: FLAnalytics.AnalyticsLogLevel?)
+  case npaw(accountCode: Swift.String, enableDiagnosticOptions: Swift.Bool = false, shouldUseProfileIdAsUserId: Swift.Bool? = nil, logLevel: FLAnalytics.AnalyticsLogLevel?)
+  case newrelic(appToken: Swift.String, primaryEventType: Swift.String, newRelicFeatureFlags: FLAnalytics.NewRelicFeatureFlags?, newRelicEventReportingConfigs: FLAnalytics.NewRelicEventReportingConfigs?)
+}
+public struct NewRelicFeatureFlags {
+  public init(interactionTracing: Swift.Bool? = true, swiftInteractionTracing: Swift.Bool? = false, crashReporting: Swift.Bool? = true, nsURLSessionInstrumentation: Swift.Bool? = true, httpResponseBodyCapture: Swift.Bool? = true, webViewInstrumentation: Swift.Bool? = true, requestErrorEvents: Swift.Bool? = true, networkRequestsEvents: Swift.Bool? = true, handledExceptionReporting: Swift.Bool? = true, defaultInteractions: Swift.Bool? = true, distributedTracing: Swift.Bool? = true, appStartMetrics: Swift.Bool? = true, fedRampEnabled: Swift.Bool? = false, swiftAsyncURLSessionSupport: Swift.Bool? = false, logReporting: Swift.Bool? = false, newEventSystem: Swift.Bool? = false, offlineStorage: Swift.Bool? = false, backgroundReporting: Swift.Bool? = false, autoCollectLogs: Swift.Bool? = false)
+}
+public struct NewRelicEventReportingConfigs {
+  public init(progressReportingIntervalMs: Swift.Int)
+}
+extension FLAnalytics.Application.CodingKeys : Swift.Equatable {}
+extension FLAnalytics.Application.CodingKeys : Swift.Hashable {}
+extension FLAnalytics.Application.CodingKeys : Swift.RawRepresentable {}
+extension FLAnalytics.ABTesting.CodingKeys : Swift.Equatable {}
+extension FLAnalytics.ABTesting.CodingKeys : Swift.Hashable {}
+extension FLAnalytics.ABTesting.CodingKeys : Swift.RawRepresentable {}
+extension FLAnalytics.ApplicationMetrics.CodingKeys : Swift.Equatable {}
+extension FLAnalytics.ApplicationMetrics.CodingKeys : Swift.Hashable {}
+extension FLAnalytics.ApplicationMetrics.CodingKeys : Swift.RawRepresentable {}
+extension FLAnalytics.ApplicationSharePlatform.CodingKeys : Swift.Equatable {}
+extension FLAnalytics.ApplicationSharePlatform.CodingKeys : Swift.Hashable {}
+extension FLAnalytics.ApplicationSharePlatform.CodingKeys : Swift.RawRepresentable {}
+extension FLAnalytics.ApplicationContainer.CodingKeys : Swift.Equatable {}
+extension FLAnalytics.ApplicationContainer.CodingKeys : Swift.Hashable {}
+extension FLAnalytics.ApplicationContainer.CodingKeys : Swift.RawRepresentable {}
+extension FLAnalytics.UserError.CodingKeys : Swift.Equatable {}
+extension FLAnalytics.UserError.CodingKeys : Swift.Hashable {}
+extension FLAnalytics.UserError.CodingKeys : Swift.RawRepresentable {}
+extension FLAnalytics.UserType : Swift.Equatable {}
+extension FLAnalytics.UserType : Swift.Hashable {}
+extension FLAnalytics.UserType : Swift.RawRepresentable {}
+extension FLAnalytics.SubscriptionStatus : Swift.Equatable {}
+extension FLAnalytics.SubscriptionStatus : Swift.Hashable {}
+extension FLAnalytics.SubscriptionStatus : Swift.RawRepresentable {}
+extension FLAnalytics.PlatformType : Swift.Equatable {}
+extension FLAnalytics.PlatformType : Swift.Hashable {}
+extension FLAnalytics.PlatformType : Swift.RawRepresentable {}
+extension FLAnalytics.PlatformName : Swift.Equatable {}
+extension FLAnalytics.PlatformName : Swift.Hashable {}
+extension FLAnalytics.PlatformName : Swift.RawRepresentable {}
+extension FLAnalytics.ErrorSeverity : Swift.Equatable {}
+extension FLAnalytics.ErrorSeverity : Swift.Hashable {}
+extension FLAnalytics.ErrorSeverity : Swift.RawRepresentable {}
+extension FLAnalytics.ErrorType : Swift.Equatable {}
+extension FLAnalytics.ErrorType : Swift.Hashable {}
+extension FLAnalytics.ErrorType : Swift.RawRepresentable {}
+extension FLAnalytics.PlaybackAttributes : Swift.Equatable {}
+extension FLAnalytics.PlaybackAttributes : Swift.Hashable {}
+extension FLAnalytics.PlaybackAttributes : Swift.RawRepresentable {}
+extension FLAnalytics.PlaybackType : Swift.Equatable {}
+extension FLAnalytics.PlaybackType : Swift.Hashable {}
+extension FLAnalytics.PlaybackType : Swift.RawRepresentable {}
+extension FLAnalytics.MiscellaneousContent.CodingKeys : Swift.Equatable {}
+extension FLAnalytics.MiscellaneousContent.CodingKeys : Swift.Hashable {}
+extension FLAnalytics.MiscellaneousContent.CodingKeys : Swift.RawRepresentable {}
+extension FLAnalytics.TVShow.CodingKeys : Swift.Equatable {}
+extension FLAnalytics.TVShow.CodingKeys : Swift.Hashable {}
+extension FLAnalytics.TVShow.CodingKeys : Swift.RawRepresentable {}
+extension FLAnalytics.Sport.CodingKeys : Swift.Equatable {}
+extension FLAnalytics.Sport.CodingKeys : Swift.Hashable {}
+extension FLAnalytics.Sport.CodingKeys : Swift.RawRepresentable {}
+extension FLAnalytics.User.CodingKeys : Swift.Equatable {}
+extension FLAnalytics.User.CodingKeys : Swift.Hashable {}
+extension FLAnalytics.User.CodingKeys : Swift.RawRepresentable {}
+extension FLAnalytics.Subscription.CodingKeys : Swift.Equatable {}
+extension FLAnalytics.Subscription.CodingKeys : Swift.Hashable {}
+extension FLAnalytics.Subscription.CodingKeys : Swift.RawRepresentable {}
+extension FLAnalytics.AnalyticProvider : Swift.Equatable {}
+extension FLAnalytics.AnalyticProvider : Swift.Hashable {}
+extension FLAnalytics.FLAnalyticsErrorCodes : Swift.Equatable {}
+extension FLAnalytics.FLAnalyticsErrorCodes : Swift.Hashable {}
+extension FLAnalytics.FLAnalyticsErrorCodes : Swift.RawRepresentable {}
+extension FLAnalytics.PlaybackSource.CodingKeys : Swift.Equatable {}
+extension FLAnalytics.PlaybackSource.CodingKeys : Swift.Hashable {}
+extension FLAnalytics.PlaybackSource.CodingKeys : Swift.RawRepresentable {}
+extension FLAnalytics.AnalyticsLogLevel : Swift.Equatable {}
+extension FLAnalytics.AnalyticsLogLevel : Swift.Hashable {}

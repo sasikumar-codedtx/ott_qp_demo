@@ -1,0 +1,11 @@
+framework module FLBookmarks {
+  umbrella header "FLBookmarks.h"
+  export *
+
+  module * { export * }
+}
+
+module FLBookmarks.Swift {
+  header "FLBookmarks-Swift.h"
+  requires objc
+}

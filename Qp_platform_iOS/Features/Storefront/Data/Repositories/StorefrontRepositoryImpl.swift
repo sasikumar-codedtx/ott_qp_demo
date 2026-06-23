@@ -19,13 +19,6 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
             return try await fetchCustomLanding(from: customSourceURL, config: config, cohort: requestedCohort, tabID: tabID)
         }
 
-        if requestedCohort == .entertainment, await DemoSessionStore.shared.prefersMicroDramaTab() {
-            guard let microDramaURL = URL(string: AppEnvironment.Endpoint.microDramaStorefrontListURL) else {
-                throw AppError.invalidURL
-            }
-            return try await fetchCustomLanding(from: microDramaURL, config: config, cohort: requestedCohort, tabID: tabID)
-        }
-
         let resolution = try await resolveStorefrontResponse(for: requestedCohort)
         let cohort = resolution.cohort
         let response = resolution.response
@@ -47,7 +40,7 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         }
 
         let hydratedSections = try await hydrateSections(containers: selectedDTO.c ?? [], config: config, cohort: cohort)
-        let sections = buildSections(from: hydratedSections)
+        let sections = await buildSections(from: hydratedSections)
 
         return StorefrontPage(
             storefrontID: storefront.id,
@@ -101,7 +94,7 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         }
 
         let hydratedSections = try await hydrateSections(containers: selectedDTO.c ?? [], config: config, cohort: cohort)
-        let sections = buildSections(from: hydratedSections)
+        let sections = await buildSections(from: hydratedSections)
 
         return StorefrontPage(
             storefrontID: customStorefrontIdentifier(for: sourceURL),
@@ -136,7 +129,8 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
             pageNumber: pageNumber,
             pageSize: pageSize
         )
-        let items = response.data.map { $0.toDomain() }
+        let config = await configStore.current()
+        let items = response.data.map { $0.toDomain(config: config) }
 
         return StorefrontSectionPage(
             items: deduplicatedItems(items),
@@ -183,31 +177,35 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
             switch source.type {
             case "collection":
                 let response = try await dataSource.fetchCollection(from: url)
-                items.append(contentsOf: response.data.map { $0.toDomain() })
+                items.append(contentsOf: response.data.map { $0.toDomain(config: config) })
             default:
                 let response = try await dataSource.fetchContent(from: url)
-                items.append(contentsOf: response.data.map { $0.toDomain() })
+                items.append(contentsOf: response.data.map { $0.toDomain(config: config) })
             }
         }
 
         return deduplicatedItems(items)
     }
 
-    private func buildSections(from hydratedSections: [HydratedSection]) -> [StorefrontSection] {
+    private func buildSections(from hydratedSections: [HydratedSection]) async -> [StorefrontSection] {
         let library = deduplicatedItems(
             hydratedSections
                 .filter { $0.sourceType == nil }
                 .flatMap { $0.items }
         )
+        let continueWatchingItems = await DemoSessionStore.shared.continueWatchingItems(limit: 10)
 
         return hydratedSections.compactMap { section -> StorefrontSection? in
             let resolvedItems: [StorefrontItem]
-            switch section.sourceType {
-            case "continue_watching":
-                resolvedItems = DemoRailComposer.continueWatching(from: library)
-            case "favorite":
+            let sectionKey = "\(section.sourceType ?? "") \(section.id) \(section.title)"
+                .lowercased()
+                .replacingOccurrences(of: " ", with: "_")
+
+            if sectionKey.contains("continue_watching") || sectionKey.contains("continuewatching") {
+                resolvedItems = DemoRailComposer.continueWatching(from: continueWatchingItems)
+            } else if section.sourceType == "favorite" {
                 resolvedItems = DemoRailComposer.favorites(from: library)
-            default:
+            } else {
                 resolvedItems = section.items
             }
 

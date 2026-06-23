@@ -15,6 +15,7 @@ enum ProfileEditorStep: Int, CaseIterable {
 final class ProfileEditorViewModel: ObservableObject {
     @Published var draft = ProfileDraft()
     @Published private(set) var avatarOptions: [AvatarOption] = []
+    @Published private(set) var profiles: [Profile] = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var mode: ProfileEditorMode = .createNew
@@ -36,6 +37,10 @@ final class ProfileEditorViewModel: ObservableObject {
 
     var displayAvatarOptions: [AvatarOption] {
         avatarOptions
+    }
+
+    var canDeleteProfile: Bool {
+        mode == .editExisting && draft.sourceID != nil
     }
 
     var callToActionTitle: String {
@@ -70,6 +75,7 @@ final class ProfileEditorViewModel: ObservableObject {
         mode = .editExisting
         step = .details
         draft = ProfileDraft(profile: profile)
+        await loadProfiles()
         await loadAvatarOptionsIfNeeded()
         applyFallbackAvatarIfNeeded()
     }
@@ -78,6 +84,7 @@ final class ProfileEditorViewModel: ObservableObject {
         mode = .createNew
         step = .details
         draft = ProfileDraft()
+        await loadProfiles()
         await loadAvatarOptionsIfNeeded()
         applyFallbackAvatarIfNeeded()
     }
@@ -96,6 +103,23 @@ final class ProfileEditorViewModel: ObservableObject {
             errorMessage = error.localizedDescription
             isLoading = false
             return nil
+        }
+    }
+
+    func deleteCurrentProfile() async -> Bool {
+        guard let sourceID = draft.sourceID else { return false }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            try await repository.deleteProfile(id: sourceID)
+            isLoading = false
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            isLoading = false
+            return false
         }
     }
 
@@ -198,6 +222,14 @@ final class ProfileEditorViewModel: ObservableObject {
         guard avatarOptions.isEmpty else { return }
         do {
             avatarOptions = try await repository.fetchAvatarOptions()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func loadProfiles() async {
+        do {
+            profiles = try await repository.fetchProfiles()
         } catch {
             errorMessage = error.localizedDescription
         }

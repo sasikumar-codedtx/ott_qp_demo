@@ -11,11 +11,12 @@ struct ContentPersonDTO: Decodable {
         lon?.preferredText ?? "Unknown"
     }
 
-    func toDomain() -> ContentPerson {
+    func toDomain(config: QuickplayRuntimeConfig) -> ContentPerson {
         ContentPerson(
             id: id ?? UUID().uuidString,
             name: localizedName,
-            imageRatios: ia ?? []
+            imageRatios: ia ?? [],
+            imageBaseURL: config.imageResizeURL
         )
     }
 }

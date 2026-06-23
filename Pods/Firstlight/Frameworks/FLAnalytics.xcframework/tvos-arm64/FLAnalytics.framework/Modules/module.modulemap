@@ -1,0 +1,11 @@
+framework module FLAnalytics {
+  umbrella header "FLAnalytics.h"
+  export *
+
+  module * { export * }
+}
+
+module FLAnalytics.Swift {
+  header "FLAnalytics-Swift.h"
+  requires objc
+}

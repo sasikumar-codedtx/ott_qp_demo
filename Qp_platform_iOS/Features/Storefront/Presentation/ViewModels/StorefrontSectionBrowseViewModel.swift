@@ -25,6 +25,35 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
         section?.title ?? ""
     }
 
+    var isRecommendedSection: Bool {
+        guard let section else { return false }
+        let source = "\(section.id) \(section.title)".lowercased()
+        return source.contains("recommended") ||
+            source.contains("recommendation") ||
+            source.contains("more like") ||
+            source.contains("because you watched")
+    }
+
+    var recommendationFilterTitles: [String] {
+        let dynamicTitles = items
+            .flatMap { item -> [String] in
+                var values = item.genres
+                if !item.contentType.isEmpty {
+                    values.append(item.contentType.capitalized)
+                }
+                return values
+            }
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .reduce(into: [String]()) { result, title in
+                if result.contains(where: { $0.caseInsensitiveCompare(title) == .orderedSame }) == false {
+                    result.append(title)
+                }
+            }
+
+        return ["All"] + Array(dynamicTitles.prefix(5))
+    }
+
     func present(section: StorefrontSection, cohort: QuickplayCohort) {
         self.section = section
         self.cohort = cohort

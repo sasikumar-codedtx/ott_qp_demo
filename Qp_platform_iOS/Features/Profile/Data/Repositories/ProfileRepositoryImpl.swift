@@ -18,4 +18,8 @@ final class ProfileRepositoryImpl: ProfileRepository {
     func saveProfile(draft: ProfileDraft) async throws -> Profile {
         try await dataSource.saveProfile(draft: draft).toDomain()
     }
+
+    func deleteProfile(id: UUID) async throws {
+        try await dataSource.deleteProfile(id: id)
+    }
 }
