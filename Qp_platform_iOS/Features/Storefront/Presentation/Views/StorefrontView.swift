@@ -23,7 +23,7 @@ struct StorefrontView: View {
                 }
 
                 bottomChrome
-                    .padding(.bottom, max(proxy.safeAreaInsets.bottom - 2, 0))
+                    .padding(.bottom, max(proxy.safeAreaInsets.bottom - 12, 0))
                     .ignoresSafeArea(.container, edges: .bottom)
             }
             .ignoresSafeArea(edges: [.top, .bottom])
@@ -46,7 +46,7 @@ struct StorefrontView: View {
     }
 
     private var bottomChrome: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 8) {
                 StorefrontTabDockView(
                     tabs: viewModel.tabs,
                     selectedTabID: viewModel.selectedTabID,
@@ -68,7 +68,6 @@ struct StorefrontView: View {
                     onProfileTap: onProfileTap
                 )
             }
-        .padding(.bottom, 8)
         .background(
             ZStack(alignment: .bottom) {
                 Color.black.opacity(0.22)
@@ -123,7 +122,7 @@ struct StorefrontView: View {
                             .padding(.vertical, UIConstants.Spacing.md)
                     }
                 }
-                .padding(.bottom, 210)
+                .padding(.bottom, 118)
             }
         }
     }

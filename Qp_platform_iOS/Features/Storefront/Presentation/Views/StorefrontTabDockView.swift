@@ -45,7 +45,16 @@ struct StorefrontTabDockView: View {
                 .background(moreCellBackground)
             }
         }
-        .padding(.horizontal, 16)
+        .frame(width: dockWidth, height: 36)
+        .frame(width: 380, height: 36)
+    }
+
+    private var dockWidth: CGFloat {
+        if showsMoreButton {
+            return 250
+        }
+
+        return min(CGFloat(visibleTabs.count) * 70, 280)
     }
 
     private func tabCellBackground(index: Int) -> some View {

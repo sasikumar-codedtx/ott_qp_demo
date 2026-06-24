@@ -15,15 +15,31 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
     func fetchLanding(storefrontID: String?, tabID: String?, pageNumber: Int) async throws -> StorefrontPage {
         let requestedCohort = await DemoSessionStore.shared.currentCohort()
         let config = await configStore.current()
+        StorefrontDebugLogger.logFetchStart(
+            requestedCohort: requestedCohort,
+            storefrontID: storefrontID,
+            tabID: tabID,
+            pageNumber: pageNumber
+        )
+
         if let customSourceURL = customSourceURL(from: storefrontID) {
+            StorefrontDebugLogger.log("Using custom storefront source: \(customSourceURL.absoluteString)")
             return try await fetchCustomLanding(from: customSourceURL, config: config, cohort: requestedCohort, tabID: tabID)
         }
 
         let resolution = try await resolveStorefrontResponse(for: requestedCohort)
         let cohort = resolution.cohort
         let response = resolution.response
+        StorefrontDebugLogger.logResponseIDs(response, cohort: cohort)
 
-        guard let storefront = response.data.first(where: { $0.id == cohort.storefrontID }) ?? response.data.first else {
+        let exactStorefront = response.data.first(where: { $0.id == cohort.storefrontID })
+        if exactStorefront == nil, !response.data.isEmpty {
+            StorefrontDebugLogger.log(
+                "Expected storefront ID not found. Falling back to first storefront. expected=\(cohort.storefrontID)"
+            )
+        }
+
+        guard let storefront = exactStorefront ?? response.data.first else {
             throw AppError.invalidResponse
         }
 
@@ -38,9 +54,18 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         guard let selectedDTO else {
             throw AppError.invalidResponse
         }
+        StorefrontDebugLogger.logSelectedStorefront(
+            storefrontID: storefront.id,
+            requestedTabID: tabID,
+            selectedTabID: selectedDTO.id,
+            selectedTabTitle: selectedDTO.lon?.preferredText,
+            tabs: tabs,
+            containerCount: selectedDTO.c?.count ?? 0
+        )
 
         let hydratedSections = try await hydrateSections(containers: selectedDTO.c ?? [], config: config, cohort: cohort)
         let sections = await buildSections(from: hydratedSections)
+        StorefrontDebugLogger.logBuiltSections(sections)
 
         return StorefrontPage(
             storefrontID: storefront.id,
@@ -55,14 +80,19 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
 
     private func resolveStorefrontResponse(for requestedCohort: QuickplayCohort) async throws -> (cohort: QuickplayCohort, response: QuickplayStorefrontResponseDTO) {
         do {
+            StorefrontDebugLogger.log(
+                "Fetching storefront list for cohort=\(requestedCohort.rawValue), title=\(requestedCohort.title), expectedID=\(requestedCohort.storefrontID), pf=\(requestedCohort.profileFlag)"
+            )
             let response = try await dataSource.fetchStorefront(cohort: requestedCohort)
             if response.data.isEmpty, requestedCohort == .kids {
+                StorefrontDebugLogger.log("Kids storefront response was empty. Falling back to Entertainment.")
                 let fallbackResponse = try await dataSource.fetchStorefront(cohort: .entertainment)
                 return (.entertainment, fallbackResponse)
             }
             return (requestedCohort, response)
         } catch {
             if requestedCohort == .kids {
+                StorefrontDebugLogger.log("Kids storefront fetch failed: \(error.localizedDescription). Falling back to Entertainment.")
                 let fallbackResponse = try await dataSource.fetchStorefront(cohort: .entertainment)
                 return (.entertainment, fallbackResponse)
             }
@@ -80,6 +110,7 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         guard let storefront = response.data.first else {
             throw AppError.invalidResponse
         }
+        StorefrontDebugLogger.logResponseIDs(response, cohort: cohort)
 
         let tabs = (storefront.t ?? []).map {
             StorefrontTab(id: $0.id, title: $0.lon?.preferredText ?? "Tab")
@@ -92,9 +123,18 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         guard let selectedDTO else {
             throw AppError.invalidResponse
         }
+        StorefrontDebugLogger.logSelectedStorefront(
+            storefrontID: storefront.id,
+            requestedTabID: tabID,
+            selectedTabID: selectedDTO.id,
+            selectedTabTitle: selectedDTO.lon?.preferredText,
+            tabs: tabs,
+            containerCount: selectedDTO.c?.count ?? 0
+        )
 
         let hydratedSections = try await hydrateSections(containers: selectedDTO.c ?? [], config: config, cohort: cohort)
         let sections = await buildSections(from: hydratedSections)
+        StorefrontDebugLogger.logBuiltSections(sections)
 
         return StorefrontPage(
             storefrontID: customStorefrontIdentifier(for: sourceURL),
@@ -112,6 +152,9 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         let deduplicatedIDs = Array(NSOrderedSet(array: ids)) as? [String] ?? ids
         let startIndex = max((pageNumber - 1) * pageSize, 0)
         let endIndex = min(startIndex + pageSize, deduplicatedIDs.count)
+        StorefrontDebugLogger.log(
+            "Fetch section page cohort=\(cohort.rawValue), page=\(pageNumber), pageSize=\(pageSize), requestedIDs=\(ids.count), dedupedIDs=\(deduplicatedIDs.count)"
+        )
 
         guard startIndex < endIndex else {
             return StorefrontSectionPage(
@@ -148,6 +191,9 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         var sections: [HydratedSection] = []
 
         for (index, container) in containers.enumerated() {
+            StorefrontDebugLogger.log(
+                "Hydrating container[\(index)] id=\(container.id), title=\(container.lon?.preferredText ?? "<empty>"), ratio=\(container.preferredRatio), layout=\(container.lo ?? "<nil>"), sourceType=\(container.srcType ?? "<nil>")"
+            )
             let items = try await loadItems(for: container, config: config, cohort: cohort)
             sections.append(
                 HydratedSection(
@@ -174,6 +220,9 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         var items: [StorefrontItem] = []
         for source in sources.sorted(by: { ($0.priority ?? 0) < ($1.priority ?? 0) }) {
             guard let url = source.normalizedURL(config: config, cohort: cohort) else { continue }
+            StorefrontDebugLogger.log(
+                "Loading source type=\(source.type ?? "<nil>"), priority=\(source.priority ?? 0), url=\(url.absoluteString)"
+            )
             switch source.type {
             case "collection":
                 let response = try await dataSource.fetchCollection(from: url)
@@ -243,4 +292,47 @@ private struct HydratedSection {
     let items: [StorefrontItem]
     let isHero: Bool
     let sourceType: String?
+}
+
+private enum StorefrontDebugLogger {
+    static func logFetchStart(
+        requestedCohort: QuickplayCohort,
+        storefrontID: String?,
+        tabID: String?,
+        pageNumber: Int
+    ) {
+        log(
+            "Fetch landing requestedCohort=\(requestedCohort.rawValue), title=\(requestedCohort.title), expectedStorefrontID=\(requestedCohort.storefrontID), pf=\(requestedCohort.profileFlag), incomingStorefrontID=\(storefrontID ?? "<nil>"), tabID=\(tabID ?? "<nil>"), page=\(pageNumber)"
+        )
+    }
+
+    static func logResponseIDs(_ response: QuickplayStorefrontResponseDTO, cohort: QuickplayCohort) {
+        let ids = response.data.map(\.id)
+        log(
+            "Storefront list response cohort=\(cohort.rawValue), expectedID=\(cohort.storefrontID), availableIDs=\(ids)"
+        )
+    }
+
+    static func logSelectedStorefront(
+        storefrontID: String,
+        requestedTabID: String?,
+        selectedTabID: String,
+        selectedTabTitle: String?,
+        tabs: [StorefrontTab],
+        containerCount: Int
+    ) {
+        let tabSummary = tabs.map { "\($0.title)(\($0.id))" }
+        log(
+            "Selected storefrontID=\(storefrontID), requestedTabID=\(requestedTabID ?? "<nil>"), selectedTab=\(selectedTabTitle ?? "Tab")(\(selectedTabID)), tabCount=\(tabs.count), tabs=\(tabSummary), selectedContainerCount=\(containerCount)"
+        )
+    }
+
+    static func logBuiltSections(_ sections: [StorefrontSection]) {
+        let sectionSummary = sections.map { "\($0.title)(items=\($0.items.count), ratio=\($0.ratio), hero=\($0.isHero))" }
+        log("Built sections count=\(sections.count), sections=\(sectionSummary)")
+    }
+
+    static func log(_ message: String) {
+        print("[Storefront] \(message)")
+    }
 }

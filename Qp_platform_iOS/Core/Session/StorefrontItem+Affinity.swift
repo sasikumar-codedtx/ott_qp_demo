@@ -18,12 +18,6 @@ extension StorefrontItem {
             return .realityShows
         }
 
-        if containsAny(in: searchableTerms, keywords: ["micro", "microdrama", "micro drama", "snackable", "short drama"]) ||
-            type.contains("micro")
-        {
-            return .microdramas
-        }
-
         return .entertainment
     }
 

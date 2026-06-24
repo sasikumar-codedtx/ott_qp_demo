@@ -11,7 +11,7 @@ struct ProfileEditorView: View {
     @State private var isDeleteAlertPresented = false
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack(alignment: .top) {
             Color(hex: "0A0A0A")
                 .ignoresSafeArea()
 
@@ -30,7 +30,7 @@ struct ProfileEditorView: View {
                     }
                 }
                 .padding(.horizontal, UIConstants.Spacing.lg)
-                .padding(.top, UIConstants.Spacing.lg)
+                .padding(.top, 104)
                 .padding(.bottom, 120)
             }
             .scrollDismissesKeyboard(.interactively)
@@ -44,31 +44,19 @@ struct ProfileEditorView: View {
             }
 
             bottomSheetOverlay
+
+            profileEditorTopBar
+
+            if viewModel.step == .cohortSelection {
+                CohortQuestionnaireView { result in
+                    viewModel.applyCohortQuestionnaireResult(result)
+                    onSave()
+                }
+                .transition(.opacity)
+                .zIndex(100)
+            }
         }
         .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                NavigationChromeButton(icon: AppIcons.Navigation.back, action: handleBackTap)
-            }
-            ToolbarItem(placement: .principal) {
-                NavigationChromeTitle(title: viewModel.title)
-            }
-            if viewModel.canDeleteProfile {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        dismissKeyboard()
-                        isDeleteAlertPresented = true
-                    } label: {
-                        Image(systemName: "trash")
-                            .font(.system(size: 21, weight: .regular))
-                            .foregroundStyle(.white.opacity(0.9))
-                            .frame(width: 46, height: 46)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
         .alert("Delete Profile?", isPresented: $isDeleteAlertPresented) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive, action: onDelete)
@@ -96,12 +84,49 @@ struct ProfileEditorView: View {
                 )
                 .ignoresSafeArea()
             )
-            .opacity(viewModel.isGenderPickerPresented || viewModel.isDatePickerPresented ? 0 : 1)
-            .allowsHitTesting(!(viewModel.isGenderPickerPresented || viewModel.isDatePickerPresented))
+            .opacity(viewModel.isGenderPickerPresented || viewModel.isDatePickerPresented || viewModel.step == .cohortSelection ? 0 : 1)
+            .allowsHitTesting(!(viewModel.isGenderPickerPresented || viewModel.isDatePickerPresented || viewModel.step == .cohortSelection))
         }
         .animation(.easeInOut(duration: 0.22), value: viewModel.step)
         .animation(.easeInOut(duration: 0.22), value: viewModel.isGenderPickerPresented)
         .animation(.easeInOut(duration: 0.22), value: viewModel.isDatePickerPresented)
+    }
+
+    private var profileEditorTopBar: some View {
+        VStack {
+            HStack {
+                NavigationChromeButton(icon: AppIcons.Navigation.back, action: handleBackTap)
+
+                Spacer()
+
+                NavigationChromeTitle(title: viewModel.title)
+
+                Spacer()
+
+                if viewModel.canDeleteProfile {
+                    Button {
+                        dismissKeyboard()
+                        isDeleteAlertPresented = true
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.system(size: 21, weight: .regular))
+                            .foregroundStyle(.white.opacity(0.9))
+                            .frame(width: 46, height: 46)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Color.clear
+                        .frame(width: 46, height: 46)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .allowsHitTesting(true)
     }
 
     private var detailsContent: some View {
@@ -179,34 +204,39 @@ struct ProfileEditorView: View {
     }
 
     private var avatarStrip: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 24) {
-                    ForEach(editorCarouselProfiles) { profile in
-                        editorProfileTile(profile)
-                            .id(profile.id)
+        GeometryReader { geometry in
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 24) {
+                        ForEach(editorCarouselProfiles) { profile in
+                            editorProfileTile(profile)
+                                .id(profile.id)
+                        }
                     }
+                    .padding(.horizontal, max(16, (geometry.size.width - 105.6) / 2))
+                    .padding(.top, 4)
+                    .padding(.bottom, 12)
                 }
-                .padding(.horizontal, max(16, (UIScreen.main.bounds.width - 105.6) / 2))
-                .padding(.top, 4)
-                .padding(.bottom, 12)
-            }
-            .onAppear {
-                centerSelectedAvatar(using: proxy)
-            }
-            .onChange(of: viewModel.draft.sourceID) { _, _ in
-                centerSelectedAvatar(using: proxy)
+                .onAppear {
+                    centerSelectedAvatar(using: proxy)
+                }
+                .onChange(of: viewModel.draft.sourceID) { _, _ in
+                    centerSelectedAvatar(using: proxy)
+                }
             }
         }
+        .frame(height: 130)
         .padding(.horizontal, -UIConstants.Spacing.lg)
         .overlay(alignment: .leading) {
             LinearGradient(colors: [Color.black.opacity(0.75), Color.clear], startPoint: .leading, endPoint: .trailing)
                 .frame(width: 40)
+                .frame(height: 124.328)
                 .allowsHitTesting(false)
         }
         .overlay(alignment: .trailing) {
             LinearGradient(colors: [Color.clear, Color.black.opacity(0.75)], startPoint: .leading, endPoint: .trailing)
                 .frame(width: 40)
+                .frame(height: 124.328)
                 .allowsHitTesting(false)
         }
     }
@@ -236,74 +266,62 @@ struct ProfileEditorView: View {
             showOnSelection: true
         )
 
-        let profiles: [Profile]
-        if viewModel.profiles.contains(where: { $0.id == viewModel.draft.sourceID }) {
-            profiles = viewModel.profiles
-        } else {
-            profiles = [temporaryProfile] + Array(viewModel.profiles.prefix(4))
+        if viewModel.mode == .editExisting {
+            return viewModel.profiles
         }
 
-        guard let selectedIndex = profiles.firstIndex(where: { profile in
-            profile.id == viewModel.draft.sourceID || (profile.imageName == viewModel.draft.imageName && viewModel.mode == .createNew)
-        }) else {
-            return profiles
-        }
-
-        let before = profiles[..<selectedIndex].suffix(2)
-        let selected = profiles[selectedIndex]
-        let after = profiles[profiles.index(after: selectedIndex)...].prefix(2)
-
-        var centered = Array(before) + [selected] + Array(after)
-        if centered.count < min(5, profiles.count) {
-            let usedIDs = Set(centered.map(\.id))
-            centered += profiles.filter { !usedIDs.contains($0.id) }.prefix(min(5, profiles.count) - centered.count)
-        }
-        return centered
+        return [temporaryProfile] + Array(viewModel.profiles.prefix(4))
     }
 
     private func editorProfileTile(_ profile: Profile) -> some View {
         let isSelected = profile.id == viewModel.draft.sourceID || profile.imageName == viewModel.draft.imageName && viewModel.mode == .createNew
 
-        return VStack(spacing: 8) {
-            ZStack {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .strokeBorder(Color.white, lineWidth: 3)
-                        .frame(width: 105.6, height: 105.6)
-                }
-
-                ProfileAvatarView(
-                    imageName: profile.imageName,
-                    fallbackGlyph: profile.fallbackGlyph,
-                    size: 89.636
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 19.208, style: .continuous))
-                .overlay {
+        return Button {
+            if isSelected {
+                handleChooseAvatar()
+            } else {
+                selectProfileForEditing(profile)
+            }
+        } label: {
+            VStack(spacing: 8) {
+                ZStack {
                     if isSelected {
-                        RoundedRectangle(cornerRadius: 19.208, style: .continuous)
-                            .fill(Color.black.opacity(0.5))
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .strokeBorder(Color.white, lineWidth: 3)
+                            .frame(width: 105.6, height: 105.6)
                     }
-                }
 
-                if isSelected {
-                    Button(action: handleChooseAvatar) {
+                    ProfileAvatarView(
+                        imageName: profile.imageName,
+                        fallbackGlyph: profile.fallbackGlyph,
+                        size: 89.636
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 19.208, style: .continuous))
+                    .overlay {
+                        if isSelected {
+                            RoundedRectangle(cornerRadius: 19.208, style: .continuous)
+                                .fill(Color.black.opacity(0.5))
+                        }
+                    }
+
+                    if isSelected {
                         Image(systemName: "pencil.line")
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundStyle(.white)
                             .frame(width: 28, height: 28)
                     }
-                    .buttonStyle(.plain)
                 }
-            }
-            .frame(width: 105.6, height: 105.6)
+                .frame(width: 105.6, height: 105.6)
 
-            Text(profile.name)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .frame(width: 104)
+                Text(profile.name)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .frame(width: 104)
+            }
+            .frame(width: 104)
         }
-        .frame(width: 104)
+        .buttonStyle(LiquidButtonPressStyle())
     }
 
     private var profileDisplayName: String {
@@ -433,60 +451,7 @@ struct ProfileEditorView: View {
     }
 
     private var cohortContent: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 12) {
-                ProfileAvatarView(
-                    imageName: viewModel.draft.imageName,
-                    fallbackGlyph: String(viewModel.draft.name.prefix(1)).uppercased(),
-                    size: 66
-                )
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(viewModel.draft.name.nilIfEmpty ?? "New Profile")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(.white)
-                    Text(AppStrings.Profile.chooseCohortSubtitle)
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(Color.white.opacity(0.56))
-                }
-            }
-            .padding(.bottom, 6)
-
-            VStack(spacing: 12) {
-                ForEach(ProfilePreference.allCases) { preference in
-                    CohortPreferenceCard(
-                        preference: preference,
-                        isSelected: preference == viewModel.draft.preference,
-                        languages: viewModel.preferredLanguages(for: preference)
-                    ) {
-                        selectPreference(preference)
-                    }
-                }
-            }
-
-            VStack(alignment: .leading, spacing: 12) {
-                Text(AppStrings.Profile.cohortChipsTitle)
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(.white)
-
-                Text(AppStrings.Profile.cohortChipsSubtitle)
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundStyle(Color.white.opacity(0.58))
-
-                FlexibleChipLayout(items: viewModel.draft.preferredLanguages) { language in
-                    Text(language.englishTitle)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        .background(
-                            Capsule(style: .continuous)
-                                .fill(Color.white.opacity(0.08))
-                        )
-                }
-            }
-            .padding(.top, 6)
-        }
+        EmptyView()
     }
 
     @ViewBuilder
@@ -619,6 +584,14 @@ struct ProfileEditorView: View {
     private func selectAvatar(_ option: AvatarOption) {
         dismissKeyboard()
         viewModel.selectAvatar(option)
+    }
+
+    private func selectProfileForEditing(_ profile: Profile) {
+        dismissKeyboard()
+        dismissPickers(animated: false)
+        withAnimation(.easeInOut(duration: 0.22)) {
+            viewModel.selectProfileForEditing(profile)
+        }
     }
 
     private func selectLanguage(_ language: ProfileLanguage) {
@@ -909,6 +882,186 @@ private struct CohortPreferenceCard: View {
             )
         }
         .buttonStyle(LiquidButtonPressStyle())
+    }
+}
+
+private struct ProfileCohortQuestionnaireStep: View {
+    let profileName: String
+    let imageName: String?
+    let fallbackGlyph: String
+    let onComplete: (CohortQuestionnaireResult) -> Void
+
+    @State private var currentIndex = 0
+    @State private var answers: [CohortQuestionnaireAnswer] = []
+    @State private var selectedAnswerID: String?
+    @State private var isFinishing = false
+    @State private var cohortToast: String?
+
+    private let questions = CohortQuestionnaireQuestion.defaultQuestions
+
+    private var currentQuestion: CohortQuestionnaireQuestion {
+        questions[currentIndex]
+    }
+
+    private var progress: CGFloat {
+        CGFloat(currentIndex + 1) / CGFloat(questions.count)
+    }
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                VStack(spacing: 8) {
+                    ProfileAvatarView(
+                        imageName: imageName,
+                        fallbackGlyph: fallbackGlyph,
+                        size: 89.635
+                    )
+
+                    Text(profileName)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                }
+                .padding(.top, 10)
+
+                Text("Let’s get the vibe right.")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(.top, 10)
+
+                progressBar
+                    .padding(.top, 30)
+
+                questionCard
+                    .padding(.top, 40)
+
+                answerStack
+                    .padding(.top, 50)
+
+                Button {
+                    moveNext(with: nil)
+                } label: {
+                    Text("I don’t know, Next")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                }
+                .buttonStyle(.plain)
+                .disabled(isFinishing)
+                .padding(.horizontal, 16)
+                .padding(.top, 18)
+            }
+
+            if let cohortToast {
+                CohortResultToast(message: cohortToast)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .padding(.bottom, 12)
+            }
+        }
+    }
+
+    private var progressBar: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(Color.white.opacity(0.28))
+
+                Capsule()
+                    .fill(Color.white)
+                    .frame(width: max(33, proxy.size.width * progress))
+            }
+        }
+        .frame(width: 283, height: 4)
+        .animation(.easeInOut(duration: 0.25), value: progress)
+    }
+
+    private var questionCard: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(Color.black.opacity(0.18))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                )
+
+            Text(currentQuestion.title)
+                .font(.system(size: 30, weight: .bold))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.white)
+                .lineSpacing(4)
+                .padding(.horizontal, 34)
+        }
+        .frame(width: 380, height: 199)
+    }
+
+    private var answerStack: some View {
+        VStack(spacing: 14) {
+            ForEach(currentQuestion.answers) { answer in
+                ProfileCohortAnswerButton(
+                    title: answer.title,
+                    isSelected: selectedAnswerID == answer.id,
+                    isDisabled: isFinishing
+                ) {
+                    selectedAnswerID = answer.id
+                    moveNext(with: answer)
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+    }
+
+    private func moveNext(with answer: CohortQuestionnaireAnswer?) {
+        guard !isFinishing else { return }
+
+        if let answer {
+            answers.append(answer)
+        }
+
+        if currentIndex < questions.count - 1 {
+            withAnimation(.easeInOut(duration: 0.24)) {
+                currentIndex += 1
+                selectedAnswerID = nil
+            }
+            return
+        }
+
+        isFinishing = true
+        let result = CohortQuestionnaireScorer.score(answers: answers)
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+            cohortToast = "\(result.primaryCategory.title) selected"
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+            onComplete(result)
+        }
+    }
+}
+
+private struct ProfileCohortAnswerButton: View {
+    let title: String
+    let isSelected: Bool
+    let isDisabled: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 17, weight: .bold))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.white)
+                .lineSpacing(3)
+                .frame(maxWidth: .infinity, minHeight: 84)
+                .padding(.horizontal, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(Color(hex: "171717").opacity(isSelected ? 0.94 : 0.82))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .stroke(isSelected ? Color.white.opacity(0.86) : Color.white.opacity(0.08), lineWidth: isSelected ? 1.5 : 1)
+                        )
+                )
+        }
+        .buttonStyle(LiquidButtonPressStyle())
+        .disabled(isDisabled)
     }
 }
 

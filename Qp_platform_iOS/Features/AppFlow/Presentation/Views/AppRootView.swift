@@ -10,6 +10,14 @@ struct AppRootView: View {
                     destination(for: route)
                 }
         }
+        .overlay(alignment: .bottom) {
+            if let cohortOverrideToast = viewModel.cohortOverrideToast {
+                CohortResultToast(message: cohortOverrideToast)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .padding(.bottom, 118)
+            }
+        }
+        .animation(.spring(response: 0.28, dampingFraction: 0.82), value: viewModel.cohortOverrideToast)
         .preferredColorScheme(.dark)
         .task {
             await viewModel.start()
@@ -52,7 +60,7 @@ struct AppRootView: View {
                     onAddProfile: {
                         viewModel.openProfileEditor(nil)
                     },
-                    onManageProfiles: {
+                    onEditProfiles: {
                         viewModel.openProfileEditor(viewModel.profileSelectionViewModel.defaultEditableProfile)
                     }
                 )
@@ -132,6 +140,9 @@ struct AppRootView: View {
                     onBack: {
                         viewModel.openStorefront()
                     },
+                    onOpenAISearch: {
+                        viewModel.openAISearch()
+                    },
                     onSelectItem: { item in
                         viewModel.openContent(item: item)
                     }
@@ -170,7 +181,7 @@ struct AppRootView: View {
                     await viewModel.finishVerifiedSignIn()
                 })
             }
-            .routeNavigationChrome()
+            .routeNavigationChrome(showsNavigationBar: false)
         case .search:
             surface(style: .search) {
                 SearchView(
@@ -180,20 +191,29 @@ struct AppRootView: View {
                     onBack: {
                         viewModel.popRoute()
                     },
+                    onOpenAISearch: {
+                        viewModel.openAISearch()
+                    },
                     onSelectItem: { item in
                         viewModel.openContent(item: item)
                     }
                 )
             }
-            .routeNavigationChrome()
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    NavigationChromeButton(icon: AppIcons.Navigation.back, action: viewModel.popRoute)
-                }
-                ToolbarItem(placement: .principal) {
-                    NavigationChromeTitle(title: AppStrings.Search.placeholder)
-                }
+            .routeNavigationChrome(showsNavigationBar: false)
+            .routeNavigationOverlay(title: AppStrings.Search.placeholder, onBack: viewModel.popRoute)
+        case .aiSearch:
+            surface(style: .search) {
+                AISearchVoiceRouteView(
+                    viewModel: viewModel.searchViewModel,
+                    onBack: {
+                        viewModel.popRoute()
+                    },
+                    onSubmit: { transcript in
+                        viewModel.completeAISearch(transcript: transcript)
+                    }
+                )
             }
+            .routeNavigationChrome(showsNavigationBar: false)
         case .profileEditor:
             surface(style: .profile) {
                 ProfileEditorView(
@@ -212,7 +232,7 @@ struct AppRootView: View {
                     }
                 )
             }
-            .routeNavigationChrome()
+            .routeNavigationChrome(showsNavigationBar: false)
         case .avatarPicker:
             surface(style: .profile) {
                 AvatarPickerView(
@@ -225,7 +245,7 @@ struct AppRootView: View {
                     }
                 )
             }
-            .routeNavigationChrome()
+            .routeNavigationChrome(showsNavigationBar: false)
         case .profileHome:
             surface(style: .storefront) {
                 ProfileHubView(
@@ -241,34 +261,18 @@ struct AppRootView: View {
                         viewModel.openProfileSelection()
                     },
                     onSelectProfile: { profile in
-                        viewModel.switchActiveProfile(profile)
+                        viewModel.switchActiveProfileAndOpenStorefront(profile)
                     },
                     onSelectItem: { item in
                         viewModel.openContent(item: item)
                     }
                 )
             }
-            .routeNavigationChrome()
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    NavigationChromeButton(icon: AppIcons.Navigation.back, action: viewModel.backFromProfileHome)
-                }
-                ToolbarItem(placement: .principal) {
-                    HStack(spacing: 8) {
-                        ProfileAvatarView(
-                            imageName: ProfileArtworkResolver.imageName(forName: viewModel.activeProfile?.name ?? "Default"),
-                            fallbackGlyph: String((viewModel.activeProfile?.name ?? "P").prefix(1)).uppercased(),
-                            size: 28
-                        )
-                        Text(viewModel.activeProfile?.name ?? "Profile")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
-                    }
-                }
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    NavigationChromeButton(icon: AppIcons.Action.download, action: {})
-                    NavigationChromeButton(icon: AppIcons.Action.gear, action: viewModel.openSettings)
+            .routeNavigationChrome(showsNavigationBar: false)
+            .routeNavigationOverlay(title: viewModel.activeProfile?.name ?? "Profile", onBack: viewModel.backFromProfileHome) {
+                HStack(spacing: 4) {
+                    RouteNavigationIconButton(icon: AppIcons.Action.download, action: {})
+                    RouteNavigationIconButton(icon: AppIcons.Action.gear, action: viewModel.openSettings)
                 }
             }
         case .settings:
@@ -294,7 +298,7 @@ struct AppRootView: View {
                     }
                 )
             }
-            .routeNavigationChrome()
+            .routeNavigationChrome(showsNavigationBar: false)
         case .detail:
             surface(style: .storefront) {
                 ContentDetailView(
@@ -310,14 +314,11 @@ struct AppRootView: View {
                     }
                 )
             }
-            .routeNavigationChrome()
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    NavigationChromeButton(icon: AppIcons.Navigation.back, action: viewModel.backFromDetail)
-                }
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    NavigationChromeButton(icon: AppIcons.Action.tv, action: {})
-                    NavigationChromeButton(icon: AppIcons.Action.share, action: {})
+            .routeNavigationChrome(showsNavigationBar: false)
+            .routeNavigationOverlay(onBack: viewModel.backFromDetail) {
+                HStack(spacing: 4) {
+                    RouteNavigationIconButton(icon: AppIcons.Action.tv, action: {})
+                    RouteNavigationIconButton(icon: AppIcons.Action.share, action: {})
                 }
             }
         case .sectionBrowse:
@@ -332,7 +333,7 @@ struct AppRootView: View {
                     }
                 )
             }
-            .routeNavigationChrome()
+            .routeNavigationChrome(showsNavigationBar: false)
         }
     }
 

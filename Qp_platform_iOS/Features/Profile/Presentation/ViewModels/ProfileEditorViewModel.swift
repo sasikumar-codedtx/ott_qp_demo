@@ -146,6 +146,16 @@ final class ProfileEditorViewModel: ObservableObject {
         errorMessage = nil
     }
 
+    func selectProfileForEditing(_ profile: Profile) {
+        mode = .editExisting
+        step = .details
+        draft = ProfileDraft(profile: profile)
+        isGenderPickerPresented = false
+        isDatePickerPresented = false
+        errorMessage = nil
+        applyFallbackAvatarIfNeeded()
+    }
+
     func selectGender(_ gender: ProfileGender) {
         draft.gender = gender
         isGenderPickerPresented = false
@@ -170,6 +180,12 @@ final class ProfileEditorViewModel: ObservableObject {
         errorMessage = nil
     }
 
+    func applyCohortQuestionnaireResult(_ result: CohortQuestionnaireResult) {
+        draft.preference = result.preference
+        draft.preferredLanguages = preferredLanguages(for: result.preference)
+        errorMessage = nil
+    }
+
     func formattedDateOfBirth() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MM/dd/yyyy"
@@ -184,8 +200,6 @@ final class ProfileEditorViewModel: ObservableObject {
             return [.english, .hindi, .tamil]
         case .realityShows:
             return [.hindi, .bengali, .english]
-        case .microdramas:
-            return [.english, .telugu, .tamil]
         }
     }
 

@@ -43,22 +43,30 @@ struct SearchFieldView: View {
         .frame(height: UIConstants.Size.textFieldHeight)
         .background(
             RoundedRectangle(cornerRadius: UIConstants.CornerRadius.capsule, style: .continuous)
-                .fill(Color.black.opacity(0.74))
+                .fill(Color(hex: "202020"))
                 .overlay(
                     RoundedRectangle(cornerRadius: UIConstants.CornerRadius.capsule, style: .continuous)
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    Color.white.opacity(0.28),
-                                    Color.white.opacity(0.08)
+                                    Color(hex: "FF6105"),
+                                    Color(hex: "D05AFF"),
+                                    Color(hex: "7B2CFF")
                                 ],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             ),
-                            lineWidth: 1
+                            lineWidth: 2
                         )
                 )
-                .shadow(color: Color.black.opacity(0.26), radius: 12, x: 0, y: 6)
+                .overlay(
+                    RoundedRectangle(cornerRadius: UIConstants.CornerRadius.capsule, style: .continuous)
+                        .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                        .blur(radius: 2)
+                        .padding(2)
+                )
+                .shadow(color: Color(hex: "FF6105").opacity(0.18), radius: 12, x: -4, y: 0)
+                .shadow(color: Color(hex: "7B2CFF").opacity(0.22), radius: 12, x: 4, y: 0)
         )
     }
 }

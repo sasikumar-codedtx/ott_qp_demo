@@ -53,6 +53,8 @@ struct OTPView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
+
+                authTopBar(topInset: geometry.safeAreaInsets.top)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
@@ -73,22 +75,31 @@ struct OTPView: View {
             .ignoresSafeArea(.keyboard, edges: .bottom)
         }
         .navigationBarBackButtonHidden(true)
-        .toolbar(.visible, for: .navigationBar)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                AuthNavigationBackButton(action: onBack)
-            }
+    }
 
-            ToolbarItem(placement: .principal) {
+    private func authTopBar(topInset: CGFloat) -> some View {
+        VStack {
+            HStack {
+                AuthNavigationBackButton(action: onBack)
+
+                Spacer()
+
                 Text(AppStrings.Auth.otpTitle)
                     .font(.system(size: 20, weight: .bold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
+
+                Spacer()
+
+                Color.clear
+                    .frame(width: 46, height: 46)
             }
+            .padding(.horizontal, 48)
+            .padding(.top, topInset + 8)
+
+            Spacer()
         }
+        .ignoresSafeArea(edges: .top)
     }
 
     private var recipientBlock: some View {

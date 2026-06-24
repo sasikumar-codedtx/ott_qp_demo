@@ -21,8 +21,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C45CA83D2FE6B4310032CAAA /* Qp_platform_iOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = Qp_platform_iOS;
 			sourceTree = "<group>";
 		};
@@ -55,7 +53,6 @@
 				DA2A5F81DBC9B7A642788F19 /* Pods-Qp_platform_iOS.debug.xcconfig */,
 				6F54D3CDA17492C4E122CA14 /* Pods-Qp_platform_iOS.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -161,9 +158,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Qp_platform_iOS/Pods-Qp_platform_iOS-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Qp_platform_iOS/Pods-Qp_platform_iOS-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

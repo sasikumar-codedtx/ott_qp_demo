@@ -5,10 +5,12 @@ struct SearchView: View {
     let profileName: String
     let prefersVoiceAISearch: Bool
     let onBack: () -> Void
+    let onOpenAISearch: (() -> Void)?
     let onSelectItem: (StorefrontItem) -> Void
     @FocusState private var isSearchFocused: Bool
     @State private var aiOverlayMode: AISearchOverlayMode?
     @State private var aiQuery = ""
+    @State private var aiSearchQuery = ""
     @State private var aiTextPrompt = ""
     @State private var voiceSubmitTask: Task<Void, Never>?
     @StateObject private var speechService = SpeechRecognitionService()
@@ -25,37 +27,43 @@ struct SearchView: View {
         "Underrated Sony LIV titles"
     ]
 
-    private let columns = [
-        GridItem(.flexible(), spacing: UIConstants.Spacing.xs),
-        GridItem(.flexible(), spacing: UIConstants.Spacing.xs),
-        GridItem(.flexible(), spacing: UIConstants.Spacing.xs)
-    ]
-
     private var recommendedClips: [StorefrontItem] {
-        Array(viewModel.popularItems.prefix(4))
-    }
-
-    private var popularSearchItems: [StorefrontItem] {
-        Array(viewModel.popularItems.dropFirst(4).prefix(12))
+        let items = viewModel.popularItems
+        guard items.count >= 3 else {
+            return Array(items.prefix(1))
+        }
+        return Array(items.prefix(4))
     }
 
     private var shouldShowResultFilters: Bool {
         !viewModel.normalizedQuery.isEmpty && viewModel.availableFilters.count > 1
     }
 
+    private var searchDockFilters: [SearchFilter] {
+        if !viewModel.normalizedQuery.isEmpty {
+            return Array(viewModel.availableFilters.prefix(4))
+        }
+
+        return []
+    }
+
+    private var showsSearchDockFilters: Bool {
+        searchDockFilters.count > 1
+    }
+
     var body: some View {
         GeometryReader { proxy in
-            ZStack(alignment: .bottom) {
-                VStack(spacing: 0) {
-                    content
-                }
-
+            ZStack {
+                content
+                    .padding(.top, proxy.safeAreaInsets.top + 28)
+            }
+            .background(searchBackground.ignoresSafeArea())
+            .safeAreaInset(edge: .bottom, spacing: 0) {
                 if aiOverlayMode == nil {
                     bottomSearchDock(bottomInset: proxy.safeAreaInsets.bottom)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .background(searchBackground.ignoresSafeArea())
 
             if let aiOverlayMode {
                 aiOverlay(mode: aiOverlayMode, topInset: proxy.safeAreaInsets.top)
@@ -63,7 +71,6 @@ struct SearchView: View {
                     .zIndex(10)
             }
         }
-        .ignoresSafeArea(.keyboard, edges: .bottom)
         .onDisappear {
             voiceSubmitTask?.cancel()
             speechService.stop()
@@ -78,14 +85,11 @@ struct SearchView: View {
         if viewModel.normalizedQuery.isEmpty {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    searchSectionHeader(title: "Recommended Clips", showsChevron: false)
-                        .padding(.horizontal, UIConstants.Spacing.lg)
-                        .padding(.top, 18)
-
-                    if recommendedClips.isEmpty {
-                        EmptyStateView(title: AppStrings.Search.popular, message: AppStrings.Search.emptyPopular, systemImage: "sparkles.tv")
+                    if !recommendedClips.isEmpty {
+                        searchSectionHeader(title: "Recommended Clips", showsChevron: false)
                             .padding(.horizontal, UIConstants.Spacing.lg)
-                    } else {
+                            .padding(.top, 8)
+
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 10) {
                                 ForEach(recommendedClips) { item in
@@ -100,28 +104,8 @@ struct SearchView: View {
                             .padding(.horizontal, UIConstants.Spacing.lg)
                         }
                     }
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        searchSectionHeader(title: "Popular Search", showsChevron: false)
-
-                        if popularSearchItems.isEmpty {
-                            EmptyStateView(title: AppStrings.Search.popular, message: AppStrings.Search.emptyPopular, systemImage: AppIcons.Navigation.search)
-                        } else {
-                            LazyVGrid(columns: columns, spacing: 10) {
-                                ForEach(popularSearchItems) { item in
-                                    SearchPosterCard(
-                                        item: item,
-                                        size: CGSize(width: 124, height: 186),
-                                        showsPlayIcon: false,
-                                        onSelect: onSelectItem
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    .padding(.horizontal, UIConstants.Spacing.lg)
                 }
-                .padding(.bottom, 148)
+                .padding(.bottom, showsSearchDockFilters ? 166 : 116)
             }
             .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
             .scrollDismissesKeyboard(.interactively)
@@ -161,24 +145,17 @@ struct SearchView: View {
                                 .padding(.horizontal, UIConstants.Spacing.lg)
                             }
 
-                            SearchResultRail(
-                                title: "Movies",
-                                items: items(forFilterID: "movies", fallback: viewModel.displayedResults),
-                                onSelect: onSelectItem
-                            )
-
-                            SearchResultRail(
-                                title: "Shows",
-                                items: items(
-                                    forFilterID: "shows",
-                                    fallback: Array(viewModel.displayedResults.dropFirst(min(4, viewModel.displayedResults.count)))
-                                ),
-                                onSelect: onSelectItem
-                            )
+                            ForEach(dynamicResultRails) { rail in
+                                SearchResultRail(
+                                    title: rail.title,
+                                    items: rail.items,
+                                    onSelect: onSelectItem
+                                )
+                            }
                         }
                     }
                 }
-                .padding(.bottom, shouldShowResultFilters ? 184 : 134)
+                .padding(.bottom, showsSearchDockFilters ? 184 : 134)
             }
             .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
             .scrollDismissesKeyboard(.interactively)
@@ -204,10 +181,10 @@ struct SearchView: View {
     }
 
     private func bottomSearchDock(bottomInset: CGFloat) -> some View {
-        VStack(spacing: 12) {
-            if shouldShowResultFilters {
+        VStack(spacing: 14) {
+            if showsSearchDockFilters {
                 SearchFilterDock(
-                    filters: Array(viewModel.availableFilters.prefix(4)),
+                    filters: searchDockFilters,
                     selectedFilterID: viewModel.selectedFilterID,
                     onSelect: { filter in
                         viewModel.selectedFilterID = filter.id
@@ -228,37 +205,42 @@ struct SearchView: View {
                 )
                 .frame(height: 54)
 
-                Button(action: beginAISearch) {
+                Button(action: openAISearch) {
                     ZStack {
                         Circle()
-                            .fill(Color.white.opacity(0.08))
-                            .overlay(Circle().stroke(Color.white.opacity(0.16), lineWidth: 1))
+                            .fill(Color.black)
+                            .overlay(Circle().stroke(Color.white.opacity(0.92), lineWidth: 1.2))
 
                         Circle()
-                            .stroke(
-                                LinearGradient(
-                                    colors: [Color(hex: "FFB347"), Color(hex: "FF5E00"), Color(hex: "7B2CFF")],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1.4
-                            )
-                            .frame(width: 30, height: 30)
+                            .fill(Color(hex: "FF5E00"))
+                            .frame(width: 46, height: 46)
+                            .blur(radius: 24)
+                            .offset(x: 12, y: -12)
 
-                        Image(systemName: AppIcons.Action.mic)
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(.white)
+                        Circle()
+                            .fill(Color(hex: "7818B4"))
+                            .frame(width: 44, height: 44)
+                            .blur(radius: 24)
+                            .offset(x: -14, y: 14)
+
+                        Image("mic")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
+                            .shadow(color: Color.white.opacity(0.18), radius: 8, x: 0, y: 0)
                     }
                     .frame(width: 54, height: 54)
-                    .background(LiquidGlassCircleBackground(tone: .dark, isHighlighted: true))
+                    .clipShape(Circle())
+                    .shadow(color: Color(hex: "FF5E00").opacity(0.34), radius: 18, x: 10, y: -8)
+                    .shadow(color: Color(hex: "7818B4").opacity(0.4), radius: 18, x: -8, y: 8)
                 }
                 .buttonStyle(LiquidButtonPressStyle())
             }
             .padding(.horizontal, UIConstants.Spacing.lg)
         }
-        .padding(.top, 10)
+        .padding(.top, 8)
         .padding(.bottom, max(bottomInset, 12))
-        .background(searchDockBackdrop(height: shouldShowResultFilters ? 166 : 118))
+        .background(searchDockBackdrop(height: showsSearchDockFilters ? 166 : 118))
     }
 
     private func searchSectionHeader(title: String, showsChevron: Bool) -> some View {
@@ -294,6 +276,36 @@ struct SearchView: View {
         return Array((filtered.isEmpty ? fallback : filtered).prefix(8))
     }
 
+    private var dynamicResultRails: [SearchResultRailData] {
+        let filters = viewModel.availableFilters.filter { $0.id != SearchViewModel.allFilter.id }
+        let rails = filters.compactMap { filter -> SearchResultRailData? in
+            let items = viewModel.results.filter { $0.derivedSearchFilter.id == filter.id }
+            guard !items.isEmpty else { return nil }
+            return SearchResultRailData(id: filter.id, title: filter.title, items: Array(items.prefix(8)))
+        }
+
+        if rails.isEmpty, !viewModel.displayedResults.isEmpty {
+            return [
+                SearchResultRailData(
+                    id: "results",
+                    title: "Results",
+                    items: Array(viewModel.displayedResults.prefix(8))
+                )
+            ]
+        }
+
+        return rails
+    }
+
+    private func openAISearch() {
+        isSearchFocused = false
+        if let onOpenAISearch {
+            onOpenAISearch()
+        } else {
+            beginVoiceSearch()
+        }
+    }
+
     @ViewBuilder
     private func aiOverlay(mode: AISearchOverlayMode, topInset: CGFloat) -> some View {
         switch mode {
@@ -310,6 +322,7 @@ struct SearchView: View {
             VoiceSearchResultsView(
                 topInset: topInset,
                 transcript: aiQuery,
+                searchQuery: aiSearchQuery,
                 viewModel: viewModel,
                 onBack: closeAISearch,
                 onSelectItem: onSelectItem
@@ -343,6 +356,7 @@ struct SearchView: View {
     private func beginTextAISearch() {
         isSearchFocused = false
         aiQuery = ""
+        aiSearchQuery = ""
         aiTextPrompt = ""
 
         withAnimation(.easeInOut(duration: 0.24)) {
@@ -354,6 +368,7 @@ struct SearchView: View {
         voiceSubmitTask?.cancel()
         isSearchFocused = false
         aiQuery = ""
+        aiSearchQuery = ""
         speechService.reset()
 
         withAnimation(.easeInOut(duration: 0.24)) {
@@ -394,12 +409,19 @@ struct SearchView: View {
         let trimmed = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
+        let normalizedQuery = AISearchQueryNormalizer.normalizedEnglishQuery(from: trimmed)
         aiQuery = trimmed
-        viewModel.query = trimmed
+        aiSearchQuery = normalizedQuery
         speechService.stop()
 
         withAnimation(.easeInOut(duration: 0.24)) {
             aiOverlayMode = .voiceResults
+        }
+
+        Task {
+            try? await Task.sleep(for: .milliseconds(420))
+            guard aiOverlayMode == .voiceResults else { return }
+            viewModel.query = normalizedQuery
         }
     }
 
@@ -409,7 +431,9 @@ struct SearchView: View {
 
         aiQuery = trimmed
         aiTextPrompt = trimmed
-        viewModel.query = trimmed
+        let normalizedQuery = AISearchQueryNormalizer.normalizedEnglishQuery(from: trimmed)
+        aiSearchQuery = normalizedQuery
+        viewModel.query = normalizedQuery
 
         withAnimation(.easeInOut(duration: 0.24)) {
             aiOverlayMode = .textResults
@@ -431,6 +455,89 @@ private enum AISearchOverlayMode: Equatable {
     case voiceResults
     case textPrompt
     case textResults
+}
+
+struct AISearchVoiceRouteView: View {
+    @ObservedObject var viewModel: SearchViewModel
+    let onBack: () -> Void
+    let onSubmit: (String) -> Void
+    @StateObject private var speechService = SpeechRecognitionService()
+    @State private var voiceSubmitTask: Task<Void, Never>?
+
+    private var displayTranscript: String {
+        AISearchQueryNormalizer.localizedDisplayText(from: speechService.transcript)
+    }
+
+    var body: some View {
+        GeometryReader { proxy in
+            VoiceSearchListeningView(
+                topInset: proxy.safeAreaInsets.top,
+                transcript: displayTranscript,
+                statusText: speechService.statusText,
+                isRecording: speechService.isRecording,
+                onBack: close,
+                onToggleRecording: toggleRecording
+            )
+        }
+        .onAppear {
+            Task {
+                await speechService.start()
+            }
+        }
+        .onDisappear {
+            voiceSubmitTask?.cancel()
+            speechService.stop()
+        }
+        .onChange(of: speechService.transcript) { _, transcript in
+            scheduleSubmit(for: transcript)
+        }
+    }
+
+    private func close() {
+        voiceSubmitTask?.cancel()
+        speechService.reset()
+        onBack()
+    }
+
+    private func toggleRecording() {
+        if speechService.isRecording {
+            speechService.stop()
+            submitIfPossible(speechService.transcript)
+        } else {
+            Task {
+                await speechService.start()
+            }
+        }
+    }
+
+    private func scheduleSubmit(for transcript: String) {
+        let trimmed = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        voiceSubmitTask?.cancel()
+        voiceSubmitTask = Task {
+            try? await Task.sleep(for: .milliseconds(1500))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                submitIfPossible(trimmed)
+            }
+        }
+    }
+
+    private func submitIfPossible(_ transcript: String) {
+        let trimmed = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        voiceSubmitTask?.cancel()
+        speechService.stop()
+        onSubmit(trimmed)
+    }
+}
+
+private struct SearchResultRailData: Identifiable {
+    let id: String
+    let title: String
+    let items: [StorefrontItem]
 }
 
 private struct SearchPosterCard: View {
@@ -530,21 +637,45 @@ private struct SearchFilterDock: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(filters) { filter in
+            ForEach(Array(filters.enumerated()), id: \.element.id) { index, filter in
                 Button {
                     onSelect(filter)
                 } label: {
                     Text(filter.title)
-                        .font(.system(size: 13, weight: selectedFilterID == filter.id ? .bold : .medium))
-                        .foregroundStyle(selectedFilterID == filter.id ? .white : Color.white.opacity(0.52))
+                        .font(.system(size: 12, weight: selectedFilterID == filter.id ? .semibold : .regular))
+                        .foregroundStyle(selectedFilterID == filter.id ? .white : Color(hex: "F0F0F0").opacity(0.8))
                         .lineLimit(1)
                         .frame(width: 70, height: 36)
+                        .background(segmentBackground(index: index))
                 }
                 .buttonStyle(LiquidButtonPressStyle())
             }
         }
-        .padding(2)
-        .background(LiquidGlassBackground(cornerRadius: 22, tone: .dark))
+        .clipShape(Capsule())
+        .overlay(Capsule().stroke(Color.white.opacity(0.1), lineWidth: 1))
+        .shadow(color: Color.black.opacity(0.35), radius: 12, x: 0, y: 4)
+    }
+
+    private func segmentBackground(index: Int) -> some View {
+        Rectangle()
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(0.05),
+                        Color(hex: "FF8100").opacity(0.05)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .background(Color.black.opacity(0.9))
+            .overlay(alignment: .leading) {
+                if index > 0 {
+                    Rectangle()
+                        .fill(Color.white.opacity(0.1))
+                        .frame(width: 1)
+                }
+            }
     }
 }
 
@@ -587,21 +718,6 @@ private struct VoiceSearchListeningView: View {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                HStack {
-                    Button(action: onBack) {
-                        Image(systemName: AppIcons.Navigation.back)
-                            .font(.headline.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 46, height: 46)
-                            .background(LiquidGlassBackground(cornerRadius: 16, tone: .dark))
-                    }
-                    .buttonStyle(LiquidButtonPressStyle())
-
-                    Spacer()
-                }
-                .padding(.horizontal, UIConstants.Spacing.lg)
-                .padding(.top, topInset + 2)
-
                 Spacer()
 
                 VStack(spacing: 16) {
@@ -696,6 +812,7 @@ private struct VoiceSearchListeningView: View {
 private struct VoiceSearchResultsView: View {
     let topInset: CGFloat
     let transcript: String
+    let searchQuery: String
     @ObservedObject var viewModel: SearchViewModel
     let onBack: () -> Void
     let onSelectItem: (StorefrontItem) -> Void
@@ -711,15 +828,20 @@ private struct VoiceSearchResultsView: View {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                topBar
-
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 20) {
                         Text("Results for \"\(transcript)\"")
                             .font(.system(size: 22, weight: .bold))
                             .foregroundStyle(.white)
-                            .padding(.top, 10)
+                            .padding(.top, topInset + 76)
                             .padding(.horizontal, UIConstants.Spacing.lg)
+
+                        if searchQuery.caseInsensitiveCompare(transcript) != .orderedSame {
+                            Text("Searching in English: \(searchQuery)")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color.white.opacity(0.62))
+                                .padding(.horizontal, UIConstants.Spacing.lg)
+                        }
 
                         resultContent
                     }
@@ -745,30 +867,6 @@ private struct VoiceSearchResultsView: View {
             .padding(.bottom, 14)
             .background(searchDockBackdrop(height: viewModel.availableFilters.count > 1 ? 166 : 112))
         }
-    }
-
-    private var topBar: some View {
-        HStack {
-            Button(action: onBack) {
-                Image(systemName: AppIcons.Navigation.back)
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 46, height: 46)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(Color.white.opacity(0.08))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                            )
-                    )
-            }
-            .buttonStyle(LiquidButtonPressStyle())
-
-            Spacer()
-        }
-        .padding(.horizontal, UIConstants.Spacing.lg)
-        .padding(.top, topInset + 2)
     }
 
     @ViewBuilder

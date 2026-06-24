@@ -4,7 +4,6 @@ enum ProfilePreference: String, CaseIterable, Identifiable, Hashable, Codable {
     case entertainment
     case sports
     case realityShows
-    case microdramas
 
     var id: String { rawValue }
 
@@ -16,8 +15,6 @@ enum ProfilePreference: String, CaseIterable, Identifiable, Hashable, Codable {
             return "Sports"
         case .realityShows:
             return "Reality Shows"
-        case .microdramas:
-            return "Microdramas"
         }
     }
 
@@ -29,8 +26,6 @@ enum ProfilePreference: String, CaseIterable, Identifiable, Hashable, Codable {
             return "Live matches, highlights and analysis"
         case .realityShows:
             return "Talent hunts, game shows and unscripted"
-        case .microdramas:
-            return "Snackable stories and quick episodes"
         }
     }
 
@@ -42,8 +37,6 @@ enum ProfilePreference: String, CaseIterable, Identifiable, Hashable, Codable {
             return "sportscourt"
         case .realityShows:
             return "music.mic"
-        case .microdramas:
-            return "bolt.heart"
         }
     }
 
@@ -55,14 +48,12 @@ enum ProfilePreference: String, CaseIterable, Identifiable, Hashable, Codable {
             return .sports
         case .realityShows:
             return .realityShows
-        case .microdramas:
-            return .entertainment
         }
     }
 }
 
 extension QuickplayCohort {
-    var defaultPreference: ProfilePreference {
+    nonisolated var defaultPreference: ProfilePreference {
         switch self {
         case .sports:
             return .sports
@@ -172,6 +163,12 @@ struct Profile: Identifiable, Equatable, Codable, Hashable {
 
     var quickplayCohort: QuickplayCohort {
         isKidsProfile ? .kids : preference.quickplayCohort
+    }
+
+    func withPreference(_ preference: ProfilePreference) -> Profile {
+        var copy = self
+        copy.preference = preference
+        return copy
     }
 }
 

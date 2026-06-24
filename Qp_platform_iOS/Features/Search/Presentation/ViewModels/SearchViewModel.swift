@@ -67,6 +67,13 @@ final class SearchViewModel: ObservableObject {
         errorMessage = nil
     }
 
+    func submitAIQuery(displayQuery: String, normalizedQuery: String) {
+        let queryToSearch = normalizedQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !queryToSearch.isEmpty else { return }
+        query = queryToSearch
+        selectedFilterID = Self.allFilter.id
+    }
+
     private func handleQueryChange(_ term: String) async {
         guard !term.isEmpty else {
             results = []

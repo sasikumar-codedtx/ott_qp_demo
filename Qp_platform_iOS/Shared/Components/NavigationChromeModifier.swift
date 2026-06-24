@@ -4,11 +4,13 @@ import UIKit
 private var navigationPopDelegateKey: UInt8 = 0
 
 private struct NavigationChromeModifier: ViewModifier {
+    let showsNavigationBar: Bool
+
     func body(content: Content) -> some View {
         content
             .navigationBarBackButtonHidden(true)
             .toolbarRole(.editor)
-            .toolbar(.visible, for: .navigationBar)
+            .toolbar(showsNavigationBar ? .visible : .hidden, for: .navigationBar)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationBarTitleDisplayMode(.inline)
@@ -17,8 +19,8 @@ private struct NavigationChromeModifier: ViewModifier {
 }
 
 extension View {
-    func routeNavigationChrome() -> some View {
-        modifier(NavigationChromeModifier())
+    func routeNavigationChrome(showsNavigationBar: Bool = true) -> some View {
+        modifier(NavigationChromeModifier(showsNavigationBar: showsNavigationBar))
     }
 }
 

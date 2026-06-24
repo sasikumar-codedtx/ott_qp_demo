@@ -4,7 +4,7 @@ struct ProfileSelectionView: View {
     @ObservedObject var viewModel: ProfileSelectionViewModel
     let onSelect: (Profile) -> Void
     let onAddProfile: () -> Void
-    let onManageProfiles: () -> Void
+    let onEditProfiles: () -> Void
 
     @State private var selectedProfileID: UUID?
     @State private var isExitingToStorefront = false
@@ -30,10 +30,9 @@ struct ProfileSelectionView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let screenSize = UIScreen.main.bounds.size
-            let fullWidth = max(proxy.size.width, screenSize.width)
-            let fullHeight = max(proxy.size.height, screenSize.height)
-            let scale = min((fullWidth - 12) / designWidth, fullHeight / designHeight, 1)
+            let fullWidth = proxy.size.width
+            let fullHeight = proxy.size.height
+            let scale = min(fullWidth / designWidth, fullHeight / designHeight, 1)
             let canvasWidth = min(designWidth * scale, fullWidth)
             let canvasHeight = min(designHeight * scale, fullHeight)
 
@@ -45,15 +44,15 @@ struct ProfileSelectionView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 93.753 * scale, height: 93.471 * scale)
-                        .position(x: canvasWidth / 2, y: 150 * scale)
+                        .position(x: fullWidth / 2, y: 150 * scale)
 
                     profileBlock(scale: scale, canvasWidth: canvasWidth)
-                        .position(x: canvasWidth / 2, y: 640 * scale)
+                        .position(x: fullWidth / 2, y: 640 * scale)
 
                     editProfilesButton(scale: scale)
-                        .position(x: canvasWidth / 2, y: 861 * scale)
+                        .position(x: fullWidth / 2, y: 861 * scale)
                 }
-                .frame(width: canvasWidth, height: canvasHeight)
+                .frame(width: fullWidth, height: canvasHeight)
                 .opacity(isExitingToStorefront ? 0.28 : 1)
                 .scaleEffect(isExitingToStorefront ? 1.025 : 1)
                 .animation(.easeInOut(duration: 0.26), value: isExitingToStorefront)
@@ -204,7 +203,7 @@ struct ProfileSelectionView: View {
     }
 
     private func editProfilesButton(scale: CGFloat) -> some View {
-        Button(action: onManageProfiles) {
+        Button(action: onEditProfiles) {
             HStack(spacing: 6 * scale) {
                 Text(AppStrings.Profile.editProfilesCTA)
                     .font(.system(size: 14 * scale, weight: .semibold))

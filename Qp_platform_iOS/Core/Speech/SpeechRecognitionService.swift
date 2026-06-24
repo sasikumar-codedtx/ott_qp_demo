@@ -13,6 +13,7 @@ final class SpeechRecognitionService: ObservableObject {
     private let audioEngine = AVAudioEngine()
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
+    private var isInputTapInstalled = false
 
     func start() async {
         guard !isRecording else { return }
@@ -28,11 +29,15 @@ final class SpeechRecognitionService: ObservableObject {
 
     func stop() {
         audioEngine.stop()
-        audioEngine.inputNode.removeTap(onBus: 0)
+        if isInputTapInstalled {
+            audioEngine.inputNode.removeTap(onBus: 0)
+            isInputTapInstalled = false
+        }
         recognitionRequest?.endAudio()
         recognitionTask?.cancel()
         recognitionRequest = nil
         recognitionTask = nil
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         isRecording = false
         if transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             statusText = "No speech detected"
@@ -67,6 +72,11 @@ final class SpeechRecognitionService: ObservableObject {
         recognitionTask = nil
         transcript = ""
 
+        guard recognizer?.isAvailable == true else {
+            statusText = "Speech unavailable. Type your query instead."
+            throw AppError.invalidResponse
+        }
+
         let audioSession = AVAudioSession.sharedInstance()
         try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
         try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
@@ -77,10 +87,22 @@ final class SpeechRecognitionService: ObservableObject {
 
         let inputNode = audioEngine.inputNode
         let recordingFormat = inputNode.outputFormat(forBus: 0)
-        inputNode.removeTap(onBus: 0)
+        guard recordingFormat.sampleRate.isFinite,
+              recordingFormat.sampleRate > 0,
+              recordingFormat.channelCount > 0 else {
+            statusText = "Microphone unavailable. Type your query instead."
+            throw AppError.invalidResponse
+        }
+
+        if isInputTapInstalled {
+            inputNode.removeTap(onBus: 0)
+            isInputTapInstalled = false
+        }
+
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak request] buffer, _ in
             request?.append(buffer)
         }
+        isInputTapInstalled = true
 
         audioEngine.prepare()
         try audioEngine.start()

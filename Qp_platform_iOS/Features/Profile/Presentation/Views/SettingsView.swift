@@ -58,6 +58,11 @@ struct SettingsView: View {
 
                 overlayLayer
             }
+            .routeNavigationOverlay(title: currentScreen.title, onBack: handleBack) {
+                if currentScreen == .root {
+                    RouteNavigationIconButton(icon: AppIcons.Action.headphones, action: {})
+                }
+            }
             .animation(.easeInOut(duration: 0.22), value: currentScreen)
             .animation(.easeInOut(duration: 0.22), value: showsProfileSwitch)
             .animation(.easeInOut(duration: 0.22), value: activeAudioSheet)
@@ -74,22 +79,6 @@ struct SettingsView: View {
             .padding(.bottom, 40)
         }
         .background(Color.clear)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                NavigationChromeButton(icon: AppIcons.Navigation.back, action: handleBack)
-            }
-            ToolbarItem(placement: .principal) {
-                NavigationChromeTitle(title: screen.title)
-            }
-            if screen == .root {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Image(systemName: AppIcons.Action.headphones)
-                        .font(.system(size: 23, weight: .regular))
-                        .foregroundStyle(.white.opacity(0.86))
-                        .frame(width: 44, height: 44)
-                }
-            }
-        }
     }
 
     @ViewBuilder

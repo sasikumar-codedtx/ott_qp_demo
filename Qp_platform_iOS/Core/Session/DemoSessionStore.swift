@@ -62,6 +62,9 @@ actor DemoSessionStore {
         activeProfileID = profileID?.uuidString
         activeCohort = cohort
         activePreference = preference
+        print(
+            "[DemoSessionStore] setActiveProfileContext profileID=\(activeProfileID ?? "<nil>"), selectedCohort=\(cohort.rawValue), selectedPreference=\(preference.rawValue), expectedStorefrontID=\(cohort.storefrontID)"
+        )
         UserDefaults.standard.set(activeProfileID, forKey: StorageKey.activeProfileID)
         UserDefaults.standard.set(cohort.rawValue, forKey: StorageKey.activeCohort)
         UserDefaults.standard.set(preference.rawValue, forKey: StorageKey.activePreference)
@@ -95,7 +98,8 @@ actor DemoSessionStore {
         UserDefaults.standard.set(preference.rawValue, forKey: StorageKey.activePreference)
     }
 
-    func recordContentSelection(_ item: StorefrontItem) {
+    func recordContentSelection(_ item: StorefrontItem) -> QuickplayCohort? {
+        let previousCohort = currentCohort()
         let key = historyKey
         var history = preferenceHistoryByProfile[key] ?? []
         history.append(item.inferredPreference.rawValue)
@@ -115,6 +119,13 @@ actor DemoSessionStore {
         }
         continueWatchingByProfile[key] = continueItems
         persistContinueWatching()
+
+        let updatedCohort = currentCohort()
+        print(
+            "[DemoSessionStore] recordContentSelection profileKey=\(key), item=\(item.title), inferredPreference=\(item.inferredPreference.rawValue), history=\(history), previousCohort=\(previousCohort.rawValue), updatedCohort=\(updatedCohort.rawValue)"
+        )
+        guard updatedCohort != previousCohort else { return nil }
+        return updatedCohort
     }
 
     func continueWatchingItems(limit: Int = 20) -> [StorefrontItem] {
@@ -131,8 +142,6 @@ actor DemoSessionStore {
             return .realityShows
         case .entertainment:
             return .entertainment
-        case .microdramas:
-            return .entertainment
         case nil:
             return activeCohort
         }
@@ -148,18 +157,6 @@ actor DemoSessionStore {
 
     func currentDominantPreference() -> ProfilePreference? {
         dominantPreference
-    }
-
-    func prefersMicroDramaTab() -> Bool {
-        if activeCohort == .kids {
-            return false
-        }
-
-        if let dominantPreference {
-            return dominantPreference == .microdramas
-        }
-
-        return activePreference == .microdramas
     }
 
     func setPrefersVoiceAISearch(_ prefersVoice: Bool) {

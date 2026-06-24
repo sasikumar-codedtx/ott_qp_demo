@@ -81,19 +81,14 @@ struct StorefrontSectionBrowseView: View {
                         }
                     }
                 }
+                .padding(.top, proxy.safeAreaInsets.top + 62)
             }
         }
         .task {
             await viewModel.loadIfNeeded()
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                NavigationChromeButton(icon: AppIcons.Navigation.back, action: onBack)
-            }
-            ToolbarItem(placement: .principal) {
-                NavigationChromeTitle(title: viewModel.title)
-            }
-        }
+        .navigationBarBackButtonHidden(true)
+        .routeNavigationOverlay(title: viewModel.title, onBack: onBack)
     }
 
     private var recommendedBrowsePage: some View {

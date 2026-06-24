@@ -32,18 +32,12 @@ struct AvatarPickerView: View {
                     }
                     .padding(.horizontal, metrics.horizontalPadding)
                     .padding(.bottom, 112)
-                    .padding(.top, 20)
+                    .padding(.top, 92)
                 }
             }
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                NavigationChromeButton(icon: AppIcons.Navigation.back, action: onBack)
-            }
-            ToolbarItem(placement: .principal) {
-                NavigationChromeTitle(title: AppStrings.Profile.selectAvatar)
-            }
-        }
+        .navigationBarBackButtonHidden(true)
+        .routeNavigationOverlay(title: AppStrings.Profile.selectAvatar, onBack: onBack)
         .safeAreaInset(edge: .bottom) {
             Button(action: onContinue) {
                 Text(AppStrings.Profile.saveProfile)

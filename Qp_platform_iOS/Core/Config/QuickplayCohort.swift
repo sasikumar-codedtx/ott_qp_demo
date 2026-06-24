@@ -6,7 +6,7 @@ enum QuickplayCohort: String, Codable, CaseIterable, Hashable {
     case kids
     case realityShows
 
-    var title: String {
+    nonisolated var title: String {
         switch self {
         case .entertainment:
             return "Entertainment"
@@ -19,7 +19,7 @@ enum QuickplayCohort: String, Codable, CaseIterable, Hashable {
         }
     }
 
-    var profileFlag: String {
+    nonisolated var profileFlag: String {
         switch self {
         case .entertainment, .realityShows:
             return "regular"
@@ -30,7 +30,7 @@ enum QuickplayCohort: String, Codable, CaseIterable, Hashable {
         }
     }
 
-    var storefrontID: String {
+    nonisolated var storefrontID: String {
         switch self {
         case .entertainment:
             return "EBFB096C-CA11-4E32-A231-8A7FA15B5E13"
