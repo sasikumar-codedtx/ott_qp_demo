@@ -208,8 +208,8 @@ struct AppRootView: View {
                     onBack: {
                         viewModel.popRoute()
                     },
-                    onSubmit: { transcript in
-                        viewModel.completeAISearch(transcript: transcript)
+                    onSubmit: { transcript, language in
+                        viewModel.completeAISearch(transcript: transcript, language: language)
                     }
                 )
             }

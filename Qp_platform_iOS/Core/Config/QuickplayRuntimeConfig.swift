@@ -8,15 +8,41 @@ nonisolated struct QuickplayRuntimeConfig: Equatable, Sendable {
     let recommendURL: String
     let imageResizeURL: String
     let personalisationURL: String
+    let oauthURL: String
+    let clientRegistrationURL: String
+    let contentAuthURL: String
+    let bookmarkURL: String
+    let streamConcurrencyURL: String
+    let favoriteURL: String
+    let guestFlatURL: String
+    let heartBeatURL: String
+    let clientID: String
+    let clientSecret: String
+    let xClientID: String
+    let defaultQpat: String
+    let values: [String: String]
 
     static let fallback = QuickplayRuntimeConfig(
-        catalogURL: AppEnvironment.Endpoint.fallbackCatalogBaseURL,
-        storefrontURL: AppEnvironment.Endpoint.fallbackStorefrontBaseURL,
-        vodMetaDataURL: AppEnvironment.Endpoint.fallbackDetailBaseURL,
-        searchURL: AppEnvironment.Endpoint.fallbackSearchBaseURL,
-        recommendURL: AppEnvironment.Endpoint.fallbackRecommendationBaseURL,
-        imageResizeURL: AppEnvironment.Endpoint.fallbackImageBaseURL,
-        personalisationURL: AppEnvironment.Endpoint.fallbackPersonalisationBaseURL
+        catalogURL: "",
+        storefrontURL: "",
+        vodMetaDataURL: "",
+        searchURL: "",
+        recommendURL: "",
+        imageResizeURL: "",
+        personalisationURL: "",
+        oauthURL: "",
+        clientRegistrationURL: "",
+        contentAuthURL: "",
+        bookmarkURL: "",
+        streamConcurrencyURL: "",
+        favoriteURL: "",
+        guestFlatURL: "",
+        heartBeatURL: "",
+        clientID: "",
+        clientSecret: "",
+        xClientID: "",
+        defaultQpat: "",
+        values: [:]
     )
 }
 
@@ -76,7 +102,25 @@ extension QuickplayRuntimeConfig {
             searchURL: resolvedValue(for: "searchURL", fallback: fallback.searchURL),
             recommendURL: resolvedValue(for: "recommendURL", fallback: fallback.recommendURL),
             imageResizeURL: resolvedValue(for: "imageResizeURL", fallback: fallback.imageResizeURL),
-            personalisationURL: resolvedValue(for: "personalisationURL", fallback: fallback.personalisationURL)
+            personalisationURL: resolvedValue(for: "personalisationURL", fallback: fallback.personalisationURL),
+            oauthURL: resolvedValue(for: "oAuthURL", fallback: fallback.oauthURL),
+            clientRegistrationURL: resolvedValue(for: "clientRegURL", fallback: fallback.clientRegistrationURL),
+            contentAuthURL: resolvedValue(for: "contentAuthURL", fallback: fallback.contentAuthURL),
+            bookmarkURL: resolvedValue(for: "bookmarkURL", fallback: fallback.bookmarkURL),
+            streamConcurrencyURL: resolvedValue(for: "strConcurrencyURL", fallback: fallback.streamConcurrencyURL),
+            favoriteURL: resolvedValue(for: "favoriteURL", fallback: fallback.favoriteURL),
+            guestFlatURL: resolvedValue(for: "guestFlatURL", fallback: fallback.guestFlatURL),
+            heartBeatURL: resolvedValue(for: "heartBeatURL", fallback: fallback.heartBeatURL),
+            clientID: resolvedValue(for: "clientID", fallback: fallback.clientID),
+            clientSecret: resolvedValue(for: "clientSecret", fallback: fallback.clientSecret),
+            xClientID: resolvedValue(for: "xClientId", fallback: fallback.xClientID),
+            defaultQpat: resolvedValue(for: "defaultQpat", fallback: fallback.defaultQpat),
+            values: values
         )
+    }
+
+    nonisolated func value(for key: String) -> String? {
+        let trimmed = values[key]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed?.isEmpty == false ? trimmed : nil
     }
 }

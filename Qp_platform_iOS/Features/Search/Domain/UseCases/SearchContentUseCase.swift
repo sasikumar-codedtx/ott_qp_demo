@@ -7,7 +7,7 @@ struct SearchContentUseCase {
         self.repository = repository
     }
 
-    func execute(term: String) async throws -> [StorefrontItem] {
-        try await repository.search(term: term)
+    func execute(term: String, facetTerm: String? = nil) async throws -> SearchResultPage {
+        try await repository.search(term: term, facetTerm: facetTerm)
     }
 }

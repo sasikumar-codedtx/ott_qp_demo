@@ -248,11 +248,7 @@ final class AppFlowViewModel: ObservableObject {
 
     func openSearch() {
         Task {
-            let sourceViewModel = mainTab == .hot ? hotStorefrontViewModel : storefrontViewModel
-            if sourceViewModel.searchSeedItems.isEmpty {
-                await sourceViewModel.reloadInitial()
-            }
-            searchViewModel.present(popularItems: sourceViewModel.searchSeedItems)
+            searchViewModel.present()
             push(.search)
         }
     }
@@ -261,8 +257,8 @@ final class AppFlowViewModel: ObservableObject {
         push(.aiSearch)
     }
 
-    func completeAISearch(transcript: String) {
-        let displayQuery = AISearchQueryNormalizer.localizedDisplayText(from: transcript)
+    func completeAISearch(transcript: String, language: SupportedSpeechLanguage = .english) {
+        let displayQuery = AISearchQueryNormalizer.localizedDisplayText(from: transcript, language: language)
         let normalizedQuery = AISearchQueryNormalizer.normalizedEnglishQuery(from: transcript)
         searchViewModel.submitAIQuery(displayQuery: displayQuery, normalizedQuery: normalizedQuery)
         popRoute()

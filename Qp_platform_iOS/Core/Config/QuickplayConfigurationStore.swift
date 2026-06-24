@@ -5,11 +5,32 @@ actor QuickplayConfigurationStore {
 
     private var config = QuickplayRuntimeConfig.fallback
     private var hasLoaded = false
+    private var loadTask: Task<QuickplayRuntimeConfig, Error>?
 
     func current(using networkClient: NetworkClient) async -> QuickplayRuntimeConfig {
-        if !hasLoaded {
-            try? await refresh(using: networkClient)
+        if hasLoaded {
+            return config
         }
+
+        if let loadTask {
+            return (try? await loadTask.value) ?? config
+        }
+
+        let task = Task {
+            try await Self.fetch(using: networkClient)
+        }
+        loadTask = task
+
+        do {
+            let loadedConfig = try await task.value
+            config = loadedConfig
+            hasLoaded = true
+            loadTask = nil
+        } catch {
+            print("[QuickplayConfig] Failed to load config: \(error.localizedDescription)")
+            loadTask = nil
+        }
+
         return config
     }
 
@@ -18,7 +39,14 @@ actor QuickplayConfigurationStore {
     }
 
     func refresh(using networkClient: NetworkClient) async throws {
-        guard var components = URLComponents(string: AppEnvironment.Endpoint.launchConfigURL) else {
+        let loadedConfig = try await Self.fetch(using: networkClient)
+        config = loadedConfig
+        hasLoaded = true
+        loadTask = nil
+    }
+
+    private static func fetch(using networkClient: NetworkClient) async throws -> QuickplayRuntimeConfig {
+        guard var components = URLComponents(string: AppEnvironment.launchConfigURL) else {
             throw AppError.invalidURL
         }
 
@@ -36,8 +64,7 @@ actor QuickplayConfigurationStore {
 
         let data = try await networkClient.data(for: request)
         let decoded = try JSONDecoder().decode(QuickplayLaunchConfigResponseDTO.self, from: data)
-        config = QuickplayRuntimeConfig(entries: decoded.config)
-        hasLoaded = true
+        return QuickplayRuntimeConfig(entries: decoded.config)
     }
 
     func refresh() async throws {

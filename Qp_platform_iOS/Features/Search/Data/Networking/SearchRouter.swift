@@ -1,23 +1,25 @@
 import Foundation
 
 enum SearchRouter {
-    static func makeRequest(term: String, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
+    static func makeRequest(term: String, facetTerm: String?, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
         guard var components = URLComponents(string: "\(config.searchURL)/content/search") else {
             return nil
         }
 
-        components.queryItems = [
-            URLQueryItem(name: "mode", value: "detail"),
-            URLQueryItem(name: "st", value: "published"),
-            URLQueryItem(name: "term", value: term),
-            URLQueryItem(name: "pageNumber", value: "1"),
-            URLQueryItem(name: "pageSize", value: AppEnvironment.Quickplay.searchPageSize),
-            URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region),
-            URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
+        var queryItems = [
             URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
-            URLQueryItem(name: "pf", value: cohort.profileFlag),
-            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
+            URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
+            URLQueryItem(name: "term", value: term),
+            URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region.lowercased()),
+            URLQueryItem(name: "info", value: "detail"),
+            URLQueryItem(name: "moment", value: "true")
         ]
+
+        if let facetTerm, facetTerm.isEmpty == false {
+            queryItems.append(URLQueryItem(name: "cust_sc", value: facetTerm))
+        }
+
+        components.queryItems = queryItems
 
         guard let url = components.url else {
             return nil
@@ -27,4 +29,5 @@ enum SearchRouter {
         request.applyQuickplayHeaders()
         return request
     }
+
 }

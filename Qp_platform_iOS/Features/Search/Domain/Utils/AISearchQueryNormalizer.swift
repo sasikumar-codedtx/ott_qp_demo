@@ -3,19 +3,47 @@ import NaturalLanguage
 
 enum AISearchQueryNormalizer {
     static func localizedDisplayText(from rawQuery: String) -> String {
+        localizedDisplayText(from: rawQuery, language: nil)
+    }
+
+    static func localizedDisplayText(from rawQuery: String, language: SupportedSpeechLanguage?) -> String {
         let trimmed = rawQuery.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return "" }
 
-        let replacements: [String: String] = [
+        let allReplacements: [String: String] = [
             "thiraipadam": "திரைப்படம்",
+            "thirai padam": "திரைப்படம்",
             "thiraipadangal": "திரைப்படங்கள்",
             "thirapadngal": "திரைப்படம்",
             "thirapadangal": "திரைப்படங்கள்",
+            "thira padangal": "திரைப்படங்கள்",
             "padam": "படம்",
             "padangal": "படங்கள்",
+            "tamil movie": "தமிழ் திரைப்படம்",
+            "tamil movies": "தமிழ் திரைப்படங்கள்",
+            "chalchitra": "चलचित्र",
+            "chalachitra": "चलचित्र",
+            "chitra": "चित्र",
+            "hindi movie": "हिंदी चलचित्र",
+            "hindi movies": "हिंदी चलचित्र",
             "hindi film": "हिंदी फिल्म",
             "film": "फिल्म"
         ]
+
+        let tamilReplacements = allReplacements.filter { containsTamil($0.value) }
+        let hindiReplacements = allReplacements.filter { containsDevanagari($0.value) }
+
+        let replacements: [String: String]
+        switch language {
+        case .tamil:
+            replacements = tamilReplacements
+        case .hindi:
+            replacements = hindiReplacements
+        case .english:
+            replacements = [:]
+        case nil:
+            replacements = allReplacements
+        }
 
         return replacements.reduce(trimmed) { partial, pair in
             partial.replacingOccurrences(
@@ -52,11 +80,28 @@ enum AISearchQueryNormalizer {
             .applyingTransform(.stripCombiningMarks, reverse: false) ?? text
     }
 
+    private static func containsTamil(_ text: String) -> Bool {
+        text.unicodeScalars.contains { scalar in
+            (0x0B80...0x0BFF).contains(Int(scalar.value))
+        }
+    }
+
+    private static func containsDevanagari(_ text: String) -> Bool {
+        text.unicodeScalars.contains { scalar in
+            (0x0900...0x097F).contains(Int(scalar.value))
+        }
+    }
+
     private static func dictionaryTranslated(_ text: String) -> String {
         let replacements: [String: String] = [
             "फिल्म": "movie",
+            "चलचित्र": "movie",
+            "चित्र": "movie",
             "पिक्चर": "movie",
             "चित्रपट": "movie",
+            "chalchitra": "movie",
+            "chalachitra": "movie",
+            "chitra": "movie",
             "cinema": "movie",
             "sinima": "movie",
             "padam": "movie",
@@ -64,9 +109,11 @@ enum AISearchQueryNormalizer {
             "padamgal": "movies",
             "padangal": "movies",
             "thiraipadam": "movie",
+            "thirai padam": "movie",
             "thiraipadangal": "movies",
             "thirapadngal": "movie",
             "thirapadangal": "movies",
+            "thira padangal": "movies",
             "படம்": "movie",
             "திரைப்படம்": "movie",
             "திரைப்படங்கள்": "movies",

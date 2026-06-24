@@ -12,10 +12,10 @@ struct SearchAPIClient {
         self.configStore = configStore
     }
 
-    func search(term: String) async throws -> SearchResponseDTO {
+    func search(term: String, facetTerm: String?) async throws -> SearchResponseDTO {
         let config = await configStore.current(using: networkClient)
         let cohort = await DemoSessionStore.shared.currentCohort()
-        guard let request = SearchRouter.makeRequest(term: term, config: config, cohort: cohort) else {
+        guard let request = SearchRouter.makeRequest(term: term, facetTerm: facetTerm, config: config, cohort: cohort) else {
             throw AppError.invalidURL
         }
 
@@ -26,4 +26,5 @@ struct SearchAPIClient {
             throw AppError.decodingFailed
         }
     }
+
 }

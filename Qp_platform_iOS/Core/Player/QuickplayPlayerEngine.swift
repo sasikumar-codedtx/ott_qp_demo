@@ -29,14 +29,16 @@ final class QuickplayPlayerEngine: ObservableObject {
     private var fairplayLicenseFetcher: (any FLPlayerInterface.FairplayLicenseFetcher)?
     #endif
     private var progressTimer: Timer?
-    private let config: QuickplayPlayerConfig
+    private let injectedConfig: QuickplayPlayerConfig?
 
     init(config: QuickplayPlayerConfig? = nil) {
-        self.config = config ?? .current
+        self.injectedConfig = config
     }
 
     func load(content: QuickplayPlaybackContent) async {
         do {
+            let runtimeConfig = await QuickplayConfigurationStore.shared.current()
+            let config = injectedConfig ?? QuickplayPlayerConfig(config: runtimeConfig)
             try await QuickplayAuthRegistry.shared.enroll(config: config)
             let asset = try await QuickplayAuthRegistry.shared.authorizeContent(content: content)
 
@@ -45,11 +47,16 @@ final class QuickplayPlayerEngine: ObservableObject {
             if asset.drm == .fairplay,
                let certificateURLString = asset.fpCertificateUrl,
                let certificateURL = URL(string: certificateURLString) {
-                fairplayCertificateData = try? await URLSession.shared.data(from: certificateURL).0
+                let request = URLRequest(url: certificateURL)
+                NetworkLogger.logRequest(request)
+                if let (data, response) = try? await URLSession.shared.data(for: request) {
+                    NetworkLogger.logResponse(request: request, data: data, response: response)
+                    fairplayCertificateData = data
+                }
             }
             #endif
 
-            buildPlayer(asset: asset, content: content, fairplayCertificateData: fairplayCertificateData)
+            buildPlayer(asset: asset, content: content, config: config, fairplayCertificateData: fairplayCertificateData)
         } catch let quickplayError as QuickplayPlayerError {
             error = quickplayError
             isBuffering = false
@@ -62,6 +69,7 @@ final class QuickplayPlayerEngine: ObservableObject {
     private func buildPlayer(
         asset: any FLContentAuthorizer.PlaybackAsset,
         content: QuickplayPlaybackContent,
+        config: QuickplayPlayerConfig,
         fairplayCertificateData: Data?
     ) {
         guard let url = URL(string: asset.contentUrl) else {
@@ -139,11 +147,11 @@ final class QuickplayPlayerEngine: ObservableObject {
         flPlayer = player
         player.play()
         isPlaying = true
-        startHeartbeat(asset: asset, content: content)
-        startBookmarks(content: content)
+        startHeartbeat(asset: asset, content: content, config: config)
+        startBookmarks(content: content, config: config)
     }
 
-    private func startHeartbeat(asset: any FLContentAuthorizer.PlaybackAsset, content: QuickplayPlaybackContent) {
+    private func startHeartbeat(asset: any FLContentAuthorizer.PlaybackAsset, content: QuickplayPlaybackContent, config: QuickplayPlayerConfig) {
         guard let heartbeatToken = asset.heartbeatToken,
               asset.heartbeatFlag == true,
               let authorizer = QuickplayAuthRegistry.shared.platformAuthorizer,
@@ -172,7 +180,7 @@ final class QuickplayPlayerEngine: ObservableObject {
         heartbeatManager = wrapper
     }
 
-    private func startBookmarks(content: QuickplayPlaybackContent) {
+    private func startBookmarks(content: QuickplayPlaybackContent, config: QuickplayPlayerConfig) {
         guard let authorizer = QuickplayAuthRegistry.shared.platformAuthorizer,
               let player = flPlayer else { return }
 

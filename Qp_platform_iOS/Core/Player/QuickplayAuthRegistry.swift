@@ -113,7 +113,9 @@ final class QuickplayAuthRegistry {
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.httpBody = "grant_type=client_credentials&client_id=\(config.clientId)&client_secret=\(config.clientSecret)".data(using: .utf8)
 
+        NetworkLogger.logRequest(request)
         let (data, response) = try await URLSession.shared.data(for: request)
+        NetworkLogger.logResponse(request: request, data: data, response: response)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             throw QuickplayPlayerError.authFailed("OAuth token request failed")
         }
@@ -140,7 +142,9 @@ final class QuickplayAuthRegistry {
         let deviceName = await UIDevice.current.name
         request.httpBody = try JSONSerialization.data(withJSONObject: ["deviceName": deviceName, "deviceId": deviceId])
 
+        NetworkLogger.logRequest(request)
         let (data, response) = try await URLSession.shared.data(for: request)
+        NetworkLogger.logResponse(request: request, data: data, response: response)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             throw QuickplayPlayerError.authFailed("OVAT request failed")
         }

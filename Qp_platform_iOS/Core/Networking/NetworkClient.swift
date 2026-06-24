@@ -24,8 +24,7 @@ struct NetworkClient: Sendable {
     }
 }
 
-private enum NetworkLogger {
-    nonisolated private static let maxBodyPreviewLength = 4_000
+enum NetworkLogger {
     nonisolated private static let redactedHeaderNames = Set([
         "authorization",
         "x-authorization",
@@ -110,11 +109,6 @@ private enum NetworkLogger {
             string = String(data: data, encoding: .utf8) ?? "<\(data.count) bytes>"
         }
 
-        if string.count <= maxBodyPreviewLength {
-            return string
-        }
-
-        let prefix = string.prefix(maxBodyPreviewLength)
-        return "\(prefix)\n<truncated \(string.count - maxBodyPreviewLength) chars>"
+        return string
     }
 }
