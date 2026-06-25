@@ -35,6 +35,7 @@ final class AppFlowViewModel: ObservableObject {
         case avatarPicker(AvatarPickerRoute)
         case profileHome
         case settings
+        case storefrontTab(StorefrontTab)
         case detail(StorefrontItem)
         case sectionBrowse(StorefrontSection, QuickplayCohort)
     }
@@ -90,9 +91,7 @@ final class AppFlowViewModel: ObservableObject {
 
         hotStorefrontViewModel = StorefrontViewModel(
             initialUseCase: GetInitialStorefrontUseCase(repository: container.storefrontRepository),
-            pageUseCase: GetStorefrontPageUseCase(repository: container.storefrontRepository),
-            preferredInitialTabTitle: "Micro Drama",
-            fixedCohort: .entertainment
+            pageUseCase: GetStorefrontPageUseCase(repository: container.storefrontRepository)
         )
 
         storefrontSectionBrowseViewModel = StorefrontSectionBrowseViewModel(
@@ -109,7 +108,9 @@ final class AppFlowViewModel: ObservableObject {
 
         detailViewModel = ContentDetailViewModel(
             detailUseCase: GetContentDetailUseCase(repository: container.contentDetailRepository),
-            recommendationsUseCase: GetRecommendationsUseCase(repository: container.contentDetailRepository)
+            recommendationsUseCase: GetRecommendationsUseCase(repository: container.contentDetailRepository),
+            momentsUseCase: GetContentMomentsUseCase(repository: container.contentDetailRepository),
+            episodesUseCase: GetContentEpisodesUseCase(repository: container.contentDetailRepository)
         )
     }
 
@@ -151,25 +152,31 @@ final class AppFlowViewModel: ObservableObject {
 
     func selectProfile(_ profile: Profile) {
         activeProfile = profile
-        navigationPath.removeAll()
-        mainTab = .storefront
-        rootScreen = .main
+        let immediateStorefrontProfile = profile.withPreference(profile.preference)
+        storefrontViewModel.applyProfile(immediateStorefrontProfile, forceReset: true)
+        hotStorefrontViewModel.applyProfile(immediateStorefrontProfile, forceReset: true)
 
         Task {
             let resolvedContext = await resolvedProfileContext(for: profile)
             let selectedCohort = resolvedContext.cohort
             let selectedPreference = resolvedContext.preference
             let storefrontProfile = profile.withPreference(selectedPreference)
+            activeProfile = storefrontProfile
             print(
-                "[ProfileContext] selectProfile name=\(profile.name), profileID=\(profile.id.uuidString), isKids=\(profile.isKidsProfile), storedPreference=\(profile.preference.rawValue), resolvedPreference=\(selectedPreference.rawValue), resolvedCohort=\(selectedCohort.rawValue), expectedStorefrontID=\(selectedCohort.storefrontID)"
+                "[ProfileContext] selectProfile name=\(profile.name), profileID=\(profile.id.uuidString), isKids=\(profile.isKidsProfile), storedPreference=\(profile.preference.rawValue), resolvedPreference=\(selectedPreference.rawValue), resolvedCohort=\(selectedCohort.rawValue), pf=\(selectedCohort.profileFlag)"
             )
             await DemoSessionStore.shared.setActiveProfileContext(
                 profileID: profile.id,
                 cohort: selectedCohort,
                 preference: selectedPreference
             )
-            storefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
-            hotStorefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
+            navigationPath.removeAll()
+            mainTab = .storefront
+            rootScreen = .main
+            if selectedPreference != profile.preference {
+                storefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
+                hotStorefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
+            }
             await storefrontViewModel.reloadInitial(force: true)
             await hotStorefrontViewModel.reloadInitial(force: true)
         }
@@ -195,12 +202,24 @@ final class AppFlowViewModel: ObservableObject {
     func saveProfile() {
         Task {
             let isCreatingProfile = profileEditorViewModel.mode == .createNew
+            let sourceProfileID = profileEditorViewModel.draft.sourceID
+            let previousProfile = profileSelectionViewModel.profiles.first { $0.id == sourceProfileID }
             let saved = await profileEditorViewModel.save()
             guard let saved else { return }
+            let didChangeCohort = previousProfile?.preference != saved.preference || previousProfile?.isKidsProfile != saved.isKidsProfile
+            if isCreatingProfile || didChangeCohort {
+                await DemoSessionStore.shared.resetPreferenceHistory(for: saved.id)
+            }
             await profileSelectionViewModel.load()
             await MainActor.run {
                 if isCreatingProfile {
                     selectProfile(saved)
+                    return
+                }
+
+                if activeProfile?.id == saved.id {
+                    activeProfile = saved
+                    switchActiveProfileAndOpenStorefront(saved)
                     return
                 }
 
@@ -258,9 +277,8 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func completeAISearch(transcript: String, language: SupportedSpeechLanguage = .english) {
-        let displayQuery = AISearchQueryNormalizer.localizedDisplayText(from: transcript, language: language)
-        let normalizedQuery = AISearchQueryNormalizer.normalizedEnglishQuery(from: transcript)
-        searchViewModel.submitAIQuery(displayQuery: displayQuery, normalizedQuery: normalizedQuery)
+        let query = AISearchQueryNormalizer.localizedDisplayText(from: transcript, language: language)
+        searchViewModel.submitAIQuery(query)
         popRoute()
     }
 
@@ -327,8 +345,9 @@ final class AppFlowViewModel: ObservableObject {
         Task {
             let resolvedContext = await resolvedProfileContext(for: profile)
             let storefrontProfile = profile.withPreference(resolvedContext.preference)
+            activeProfile = storefrontProfile
             print(
-                "[ProfileContext] switchActiveProfile name=\(profile.name), profileID=\(profile.id.uuidString), isKids=\(profile.isKidsProfile), storedPreference=\(profile.preference.rawValue), resolvedPreference=\(resolvedContext.preference.rawValue), resolvedCohort=\(resolvedContext.cohort.rawValue), expectedStorefrontID=\(resolvedContext.cohort.storefrontID)"
+                "[ProfileContext] switchActiveProfile name=\(profile.name), profileID=\(profile.id.uuidString), isKids=\(profile.isKidsProfile), storedPreference=\(profile.preference.rawValue), resolvedPreference=\(resolvedContext.preference.rawValue), resolvedCohort=\(resolvedContext.cohort.rawValue), pf=\(resolvedContext.cohort.profileFlag)"
             )
             await DemoSessionStore.shared.setActiveProfileContext(
                 profileID: profile.id,
@@ -339,38 +358,49 @@ final class AppFlowViewModel: ObservableObject {
             hotStorefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
             await storefrontViewModel.reloadInitial(force: true)
             await hotStorefrontViewModel.reloadInitial(force: true)
-            profileHubViewModel.present(profile: profile, seedItems: storefrontViewModel.searchSeedItems)
+            profileHubViewModel.present(profile: storefrontProfile, seedItems: storefrontViewModel.searchSeedItems)
         }
     }
 
     func switchActiveProfileAndOpenStorefront(_ profile: Profile) {
         activeProfile = profile
-        navigationPath.removeAll()
-        mainTab = .storefront
-        rootScreen = .main
+        let immediateStorefrontProfile = profile.withPreference(profile.preference)
+        storefrontViewModel.applyProfile(immediateStorefrontProfile, forceReset: true)
+        hotStorefrontViewModel.applyProfile(immediateStorefrontProfile, forceReset: true)
 
         Task {
             let resolvedContext = await resolvedProfileContext(for: profile)
             let storefrontProfile = profile.withPreference(resolvedContext.preference)
+            activeProfile = storefrontProfile
             print(
-                "[ProfileContext] switchActiveProfileAndOpenStorefront name=\(profile.name), profileID=\(profile.id.uuidString), isKids=\(profile.isKidsProfile), storedPreference=\(profile.preference.rawValue), resolvedPreference=\(resolvedContext.preference.rawValue), resolvedCohort=\(resolvedContext.cohort.rawValue), expectedStorefrontID=\(resolvedContext.cohort.storefrontID)"
+                "[ProfileContext] switchActiveProfileAndOpenStorefront name=\(profile.name), profileID=\(profile.id.uuidString), isKids=\(profile.isKidsProfile), storedPreference=\(profile.preference.rawValue), resolvedPreference=\(resolvedContext.preference.rawValue), resolvedCohort=\(resolvedContext.cohort.rawValue), pf=\(resolvedContext.cohort.profileFlag)"
             )
             await DemoSessionStore.shared.setActiveProfileContext(
                 profileID: profile.id,
                 cohort: resolvedContext.cohort,
                 preference: resolvedContext.preference
             )
-            storefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
-            hotStorefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
+            navigationPath.removeAll()
+            mainTab = .storefront
+            rootScreen = .main
+            if resolvedContext.preference != profile.preference {
+                storefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
+                hotStorefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
+            }
             await storefrontViewModel.reloadInitial(force: true)
             await hotStorefrontViewModel.reloadInitial(force: true)
-            profileHubViewModel.present(profile: profile, seedItems: storefrontViewModel.searchSeedItems)
+            profileHubViewModel.present(profile: storefrontProfile, seedItems: storefrontViewModel.searchSeedItems)
         }
     }
 
     func openHotTab() {
         navigationPath.removeAll()
         mainTab = .hot
+    }
+
+    func openStorefrontTab(_ tab: StorefrontTab) {
+        mainTab = .storefront
+        push(.storefrontTab(tab))
     }
 
     func openContent(item: StorefrontItem) {

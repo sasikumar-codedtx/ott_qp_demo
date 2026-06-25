@@ -1,171 +1,291 @@
 import SwiftUI
+import Kingfisher
 
 struct StorefrontSportsHeroView: View {
     let items: [StorefrontItem]
     let onSelectItem: (StorefrontItem) -> Void
-    @State private var currentItemID: String?
 
-    private var featuredItems: [StorefrontItem] {
-        Array(items.prefix(6))
-    }
+    @State private var currentIndex: Int = 0
+    @State private var dragX: CGFloat = 0
+    @State private var frontOpacity: CGFloat = 1.0
+    @State private var isAnimating: Bool = false
 
-    private var currentIndex: Int {
-        guard
-            let currentItemID,
-            let index = featuredItems.firstIndex(where: { $0.id == currentItemID })
-        else {
-            return 0
-        }
-        return index
-    }
+    // Leading-edge ratios — step 5% apart so all three cards are visible:
+    //   card1: 10%→85%,  card2: 15%→90%,  card3: 20%→95%
+    @State private var card2LeadingRatio: CGFloat = 0.10
+    @State private var card3LeadingRatio: CGFloat = 0.15
+
+    @State private var card2Brightness: CGFloat = -0.12
+    @State private var card3Brightness: CGFloat = -0.22
+
+    private let cardWidthRatio: CGFloat = 0.80
+    private let frontLeading:   CGFloat = 0.05
+    private let restLeading2:   CGFloat = 0.10
+    private let restLeading3:   CGFloat = 0.15
+    private let restBright2:    CGFloat = -0.12
+    private let restBright3:    CGFloat = -0.22
+    private var featuredItems: [StorefrontItem] { Array(items.prefix(8)) }
+    private var count: Int { max(1, featuredItems.count) }
+    private func wrap(_ i: Int) -> Int { ((i % count) + count) % count }
 
     var body: some View {
-        VStack(spacing: 18) {
-            GeometryReader { proxy in
-                ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: -18) {
-                        ForEach(Array(featuredItems.enumerated()), id: \.element.id) { index, item in
-                            Button {
-                                currentItemID = item.id
-                                onSelectItem(item)
-                            } label: {
-                                sportsCard(item: item, index: index, containerWidth: proxy.size.width)
-                            }
-                            .buttonStyle(LiquidButtonPressStyle())
-                            .id(item.id)
-                        }
-                    }
-                    .scrollTargetLayout()
-                    .padding(.horizontal, 22)
-                }
-                .scrollTargetBehavior(.viewAligned)
-                .scrollPosition(id: $currentItemID, anchor: .center)
-            }
-            .frame(height: 486)
-            .onAppear {
-                if currentItemID == nil {
-                    currentItemID = featuredItems.first?.id
-                }
-            }
+        VStack(spacing: 15) {
+            GeometryReader { geo in
+                let W         = geo.size.width
+                let H         = geo.size.height
+                let cardWidth = W * cardWidthRatio
+                let midY      = H / 2
 
-            HStack(spacing: 4) {
-                ForEach(featuredItems.indices, id: \.self) { index in
-                    Capsule(style: .continuous)
-                        .fill(index == currentIndex ? Color(hex: "FBBF1B") : Color.white.opacity(0.2))
-                        .frame(width: index == currentIndex ? 24 : 6, height: 6)
+                // .position() is a real layout placement (not just visual like .offset),
+                // so card2 and card3 peeking areas are never clipped by the ZStack.
+                ZStack {
+                    // Card 3 — furthest back
+                    sportsCard(item: featuredItems[wrap(currentIndex + 2)], width: cardWidth)
+                        .brightness(card3Brightness)
+                        .position(x: W * card3LeadingRatio + cardWidth / 2, y: midY)
+                        .zIndex(8)
+
+                    // Card 2 — middle
+                    sportsCard(item: featuredItems[wrap(currentIndex + 1)], width: cardWidth)
+                        .brightness(card2Brightness)
+                        .position(x: W * card2LeadingRatio + cardWidth / 2, y: midY)
+                        .zIndex(9)
+
+                    // Card 1 — front, follows drag
+                    sportsCard(item: featuredItems[currentIndex], width: cardWidth)
+                        .opacity(frontOpacity)
+                        .position(x: W * frontLeading + cardWidth / 2 + dragX, y: midY)
+                        .zIndex(10)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .gesture(swipeGesture(screenWidth: W))
+            }
+            .frame(height: StorefrontHeroMetrics.mediaHeight)
+
+            pageIndicator
+        }
+        .task(id: currentIndex) {
+            let urls: [URL] = (1..<6).compactMap { offset in
+                featuredItems[wrap(currentIndex + offset)].imageURL(for: "0-2x3", width: 980)
+            }
+            ImagePrefetcher(urls: urls).start()
+        }
+    }
+
+    // MARK: - Gestures
+
+    private func swipeGesture(screenWidth: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 12)
+            .onChanged { value in
+                guard !isAnimating else { return }
+                dragX = value.translation.width
+                let p = max(0.0, min(1.0, -dragX / 180.0))
+                card2LeadingRatio = restLeading2 - (restLeading2 - frontLeading) * p
+                card3LeadingRatio = restLeading3 - (restLeading3 - restLeading2) * p
+                frontOpacity      = 1.0 - p * 0.4
+                card2Brightness   = restBright2 * (1.0 - p)
+                card3Brightness   = restBright3 + (restBright2 - restBright3) * p
+            }
+            .onEnded { value in
+                guard !isAnimating else { return }
+                let velocity = value.predictedEndTranslation.width
+                if dragX < -10 || velocity < -80 {
+                    // Any leftward drag commits — card exits in the direction it was moved
+                    throwCardLeft(screenWidth: screenWidth)
+                } else if dragX > 60 || velocity > 200 {
+                    pullCardBack(screenWidth: screenWidth)
+                } else {
+                    snapBack()
+                }
+            }
+    }
+
+    /// Card 1 exits fully off-screen first; then cards 2 and 3 cascade left into position.
+    private func throwCardLeft(screenWidth: CGFloat) {
+        isAnimating = true
+
+        // Step 1 — card exits fully off-screen (easeIn = accelerates like a throw, no deceleration)
+        withAnimation(.easeIn(duration: 0.18)) {
+            dragX        = -(screenWidth + screenWidth * cardWidthRatio)
+            frontOpacity = 0.0
+        }
+
+        // Step 2 — once card is gone, cascade remaining cards into their new positions
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            withAnimation(.easeOut(duration: 0.22)) {
+                card2LeadingRatio = frontLeading
+                card3LeadingRatio = restLeading2
+                card2Brightness   = 0.0
+                card3Brightness   = restBright2
+            }
+        }
+
+        // Step 3 — swap content + reset positions (card 1 is fully invisible/off-screen)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.40) {
+            var t = Transaction()
+            t.disablesAnimations = true
+            withTransaction(t) {
+                currentIndex      = wrap(currentIndex + 1)
+                dragX             = 0
+                frontOpacity      = 1.0
+                card2LeadingRatio = restLeading2
+                card3LeadingRatio = restLeading3
+                card2Brightness   = restBright2
+                card3Brightness   = restBright3
+            }
+            isAnimating = false
+        }
+    }
+
+    /// Previous card slides in from the left.
+    private func pullCardBack(screenWidth: CGFloat) {
+        guard count > 1 else { snapBack(); return }
+        isAnimating = true
+
+        var t = Transaction()
+        t.disablesAnimations = true
+        withTransaction(t) {
+            currentIndex      = wrap(currentIndex - 1)
+            dragX             = -(screenWidth + 180)
+            frontOpacity      = 1.0
+            card2LeadingRatio = restLeading2
+            card3LeadingRatio = restLeading3
+            card2Brightness   = restBright2
+            card3Brightness   = restBright3
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            withAnimation(.easeOut(duration: 0.28)) {
+                dragX = 0
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+                isAnimating = false
             }
         }
     }
 
-    private func sportsCard(item: StorefrontItem, index: Int, containerWidth: CGFloat) -> some View {
-        let cardWidth = min(274, containerWidth * 0.68)
-        let cardHeight: CGFloat = 448
-        let isActive = index == currentIndex
+    private func snapBack() {
+        withAnimation(.easeOut(duration: 0.22)) {
+            dragX             = 0
+            frontOpacity      = 1.0
+            card2LeadingRatio = restLeading2
+            card3LeadingRatio = restLeading3
+            card2Brightness   = restBright2
+            card3Brightness   = restBright3
+        }
+    }
 
-        return ZStack(alignment: .bottomLeading) {
-            heroMedia(item: item, size: CGSize(width: cardWidth, height: cardHeight), width: 980, cornerRadius: 18)
+    // MARK: - Card UI
 
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Color.clear, Color.black.opacity(0.16), Color.black.opacity(0.84)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+    private func sportsCard(item: StorefrontItem, width: CGFloat) -> some View {
+        let height = StorefrontHeroMetrics.mediaHeight
 
-            VStack(alignment: .leading, spacing: 10) {
-                VStack(alignment: .leading, spacing: 6) {
-                    liveBadge
+        return ZStack(alignment: .bottom) {
+            PosterImageView(
+                url: item.imageURL(for: "0-2x3", width: 980),
+                size: CGSize(width: width, height: height),
+                cornerRadius: 20
+            )
 
-                    Text(item.title.replacingOccurrences(of: " vs ", with: " vs "))
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(2)
+            LinearGradient(
+                colors: [Color.clear, Color.black.opacity(0.10), Color.black.opacity(0.88)],
+                startPoint: .center,
+                endPoint: .bottom
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 
-                    Text(item.description.nilIfEmpty ?? item.primaryMetaText.nilIfEmpty ?? item.watchLabel)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-
-                    HStack(spacing: 3) {
-                        Image(systemName: "soccerball")
-                            .font(.system(size: 11, weight: .regular))
-                        Text(item.contentType.capitalized == "Tvchannel" ? "Football" : item.contentType.capitalized)
-                            .font(.system(size: 12, weight: .regular))
-                    }
-                    .foregroundStyle(.white.opacity(0.92))
+            VStack(alignment: .leading, spacing: 8) {
+                if let rank = item.trendingRankText {
+                    trendingBadge(rank)
                 }
 
-                floatingControls
+                Text(item.title)
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+
+                if let meta = item.primaryMetaText.nilIfEmpty {
+                    Text(meta)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.white.opacity(0.70))
+                        .lineLimit(1)
+                }
+
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(.ultraThinMaterial)
+                            .overlay(Circle().fill(Color.black.opacity(0.26)))
+                            .overlay(Circle().stroke(Color.white.opacity(0.16), lineWidth: 1))
+                        Image(systemName: AppIcons.Action.plus)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                    .frame(width: 42, height: 42)
+
+                    ZStack {
+                        Circle()
+                            .fill(.white)
+                            .shadow(color: Color.white.opacity(0.20), radius: 14, x: 0, y: 4)
+                        Image(systemName: AppIcons.Action.play)
+                            .font(.system(size: 16, weight: .black))
+                            .foregroundStyle(.black)
+                            .offset(x: 1)
+                    }
+                    .frame(width: 50, height: 50)
+
+                    Spacer()
+                }
+                .padding(.top, 2)
             }
             .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(width: cardWidth, height: cardHeight)
-        .background(Color.black.opacity(0.001))
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .frame(width: width, height: height)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(isActive ? Color(hex: "2E95D3").opacity(0.95) : Color.white.opacity(0.12), lineWidth: isActive ? 1.4 : 1)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(Color.white.opacity(0.10), lineWidth: 0.8)
         )
-        .scaleEffect(isActive ? 1 : 0.94)
-        .offset(y: isActive ? 0 : 26)
-        .shadow(color: Color(hex: "0A65A8").opacity(isActive ? 0.34 : 0.12), radius: isActive ? 24 : 10, x: 0, y: 10)
-        .animation(.spring(response: 0.34, dampingFraction: 0.84), value: currentIndex)
+        .shadow(color: Color.black.opacity(0.45), radius: 24, x: 0, y: 14)
     }
 
-    private func heroMedia(item: StorefrontItem, size: CGSize, width: Int, cornerRadius: CGFloat) -> some View {
-        Group {
-            PosterImageView(
-                url: item.imageURL(for: "0-2x3", width: width),
-                size: size,
-                cornerRadius: cornerRadius
-            )
+    private func trendingBadge(_ text: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: "chart.line.uptrend.xyaxis")
+                .font(.system(size: 9, weight: .bold))
+            Text(text)
+                .font(.system(size: 11, weight: .semibold))
         }
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-    }
-
-    private var liveBadge: some View {
-        HStack(spacing: 3) {
-            Circle()
-                .fill(Color(hex: "E42121"))
-                .frame(width: 4, height: 4)
-            Text("Live")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.white)
-        }
-        .padding(.horizontal, 4)
-        .padding(.vertical, 2)
+        .foregroundStyle(Color(hex: "FBBF1B"))
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
         .background(
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .fill(Color.white.opacity(0.18))
+            Capsule(style: .continuous)
+                .fill(Color(hex: "FBBF1B").opacity(0.15))
+                .overlay(Capsule().stroke(Color(hex: "FBBF1B").opacity(0.30), lineWidth: 0.8))
         )
     }
 
-    private var floatingControls: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(.ultraThinMaterial)
-                    .overlay(Circle().fill(Color.black.opacity(0.28)))
-                    .overlay(Circle().stroke(Color.white.opacity(0.16), lineWidth: 1))
-                Image(systemName: AppIcons.Action.plus)
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.white)
-            }
-            .frame(width: 46, height: 46)
+    // MARK: - Page indicator
 
-            ZStack {
-                Circle()
-                    .fill(Color.white)
-                    .shadow(color: Color.white.opacity(0.2), radius: 18, x: 0, y: 4)
-                Image(systemName: AppIcons.Action.play)
-                    .font(.system(size: 18, weight: .black))
-                    .foregroundStyle(.black)
-                    .offset(x: 1)
+    private var pageIndicator: some View {
+        HStack(spacing: 4) {
+            ForEach(featuredItems.indices, id: \.self) { i in
+                Capsule(style: .continuous)
+                    .fill(i == currentIndex % count ? Color.white : Color.white.opacity(0.22))
+                    .frame(width: i == currentIndex % count ? 24 : 6, height: 6)
+                    .animation(.spring(response: 0.28, dampingFraction: 0.72), value: currentIndex)
             }
-            .frame(width: 54, height: 54)
         }
+    }
+}
+
+private extension StorefrontItem {
+    var trendingRankText: String? {
+        let src = title + " " + (genres.first ?? "")
+        guard let r = src.range(of: #"#\d+ in \w+"#, options: .regularExpression) else { return nil }
+        return String(src[r])
     }
 }

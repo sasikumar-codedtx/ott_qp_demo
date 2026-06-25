@@ -95,6 +95,7 @@ enum AppStrings {
         static let watchNow = "Watch Now"
         static let moreLikeThis = "More Like This"
         static let moments = "Moments"
+        static let episodes = "Episodes"
         static let castAndMore = "Cast & More"
         static let searchMoments = "Search Moments"
         static let noRecommendations = "No similar titles available yet."

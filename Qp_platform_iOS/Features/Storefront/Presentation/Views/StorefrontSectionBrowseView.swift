@@ -70,7 +70,7 @@ struct StorefrontSectionBrowseView: View {
                                 }
                             }
                             .padding(.horizontal, 16)
-                            .padding(.top, 16)
+                            .padding(.top, 6)
                             .padding(.bottom, 32)
 
                             if viewModel.isLoadingMore {
@@ -81,7 +81,7 @@ struct StorefrontSectionBrowseView: View {
                         }
                     }
                 }
-                .padding(.top, proxy.safeAreaInsets.top + 62)
+                .padding(.top, proxy.safeAreaInsets.top + 16)
             }
         }
         .task {
@@ -151,7 +151,7 @@ struct StorefrontSectionBrowseView: View {
                             .padding(.vertical, 18)
                     }
                 }
-                .padding(.top, 18)
+                .padding(.top, 8)
                 .padding(.bottom, 38)
             }
         }

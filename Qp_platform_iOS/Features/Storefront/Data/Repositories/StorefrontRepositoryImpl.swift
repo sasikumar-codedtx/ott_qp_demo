@@ -3,6 +3,10 @@ import Foundation
 final class StorefrontRepositoryImpl: StorefrontRepository {
     private let dataSource: StorefrontDataSourceProtocol
     private let configStore: QuickplayConfigurationStore
+    private let landingPageSize = 5
+
+    // landingscreen is called once per cohort. Tab switches call landingscreen again with sfid + tid.
+    private var manifestByCohort: [QuickplayCohort: StorefrontManifest] = [:]
 
     init(
         dataSource: StorefrontDataSourceProtocol,
@@ -13,33 +17,71 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
     }
 
     func fetchLanding(storefrontID: String?, tabID: String?, pageNumber: Int) async throws -> StorefrontPage {
-        let requestedCohort = await DemoSessionStore.shared.currentCohort()
+        let cohort = await DemoSessionStore.shared.currentCohort()
         let config = await configStore.current()
-        StorefrontDebugLogger.logFetchStart(
-            requestedCohort: requestedCohort,
-            storefrontID: storefrontID,
-            tabID: tabID,
-            pageNumber: pageNumber
-        )
+        StorefrontDebugLogger.logFetchStart(requestedCohort: cohort, storefrontID: storefrontID, tabID: tabID, pageNumber: pageNumber)
 
         if let customSourceURL = customSourceURL(from: storefrontID) {
             StorefrontDebugLogger.log("Using custom storefront source: \(customSourceURL.absoluteString)")
-            return try await fetchCustomLanding(from: customSourceURL, config: config, cohort: requestedCohort, tabID: tabID)
+            return try await fetchCustomLanding(from: customSourceURL, config: config, cohort: cohort, tabID: tabID)
         }
 
-        let resolution = try await resolveStorefrontResponse(for: requestedCohort)
-        let cohort = resolution.cohort
-        let response = resolution.response
-        StorefrontDebugLogger.logResponseIDs(response, cohort: cohort)
+        let manifest = try await resolveManifest(for: cohort)
+        let selectedTab = manifest.tabs.first(where: { $0.id == tabID })
+            ?? manifest.tabs.first(where: { $0.title.caseInsensitiveCompare(AppStrings.Common.home) == .orderedSame })
+            ?? manifest.tabs.first
 
-        let exactStorefront = response.data.first(where: { $0.id == cohort.storefrontID })
-        if exactStorefront == nil, !response.data.isEmpty {
-            StorefrontDebugLogger.log(
-                "Expected storefront ID not found. Falling back to first storefront. expected=\(cohort.storefrontID)"
+        guard let selectedTab else {
+            throw AppError.invalidResponse
+        }
+
+        StorefrontDebugLogger.log(
+            "cohort=\(cohort.rawValue) storefrontID=\(manifest.storefrontID) selectedTab=\(selectedTab.title)(\(selectedTab.id))"
+        )
+
+        let containers: [QuickplayContainerDTO]
+        if tabID == nil, let initialContainers = manifest.initialContainers {
+            containers = initialContainers
+            StorefrontDebugLogger.log("Using initial landingscreen containers \(containers.count) for tab=\(selectedTab.title)")
+        } else {
+            let containersResponse = try await dataSource.fetchContainers(
+                cohort: cohort,
+                storefrontID: manifest.storefrontID,
+                tabID: selectedTab.id,
+                pageNumber: pageNumber,
+                pageSize: landingPageSize
             )
+            containers = containersResponse.data
+            StorefrontDebugLogger.log("Landingscreen tab returned \(containers.count) containers for tab=\(selectedTab.title)")
         }
 
-        guard let storefront = exactStorefront ?? response.data.first else {
+        let hydratedSections = try await hydrateSections(containers: containers, config: config, cohort: cohort)
+        let sections = await buildSections(from: hydratedSections)
+        StorefrontDebugLogger.logBuiltSections(sections)
+
+        return StorefrontPage(
+            storefrontID: manifest.storefrontID,
+            tabs: manifest.tabs,
+            selectedTabID: selectedTab.id,
+            sections: sections,
+            nextPage: pageNumber + 1,
+            loadedCount: sections.count,
+            totalCount: sections.count,
+            hasMore: !sections.isEmpty
+        )
+    }
+
+    // Calls landingscreen for the cohort if we haven't done so yet, then caches storefront id, tabs, and first tab containers.
+    private func resolveManifest(for cohort: QuickplayCohort) async throws -> StorefrontManifest {
+        if let cached = manifestByCohort[cohort] {
+            StorefrontDebugLogger.log("Manifest cache hit cohort=\(cohort.rawValue) storefrontID=\(cached.storefrontID)")
+            return cached
+        }
+
+        StorefrontDebugLogger.log("Fetching landingscreen cohort=\(cohort.rawValue) pf=\(cohort.profileFlag)")
+        let response = try await fetchLandingScreenWithFallback(for: cohort)
+
+        guard let storefront = response.data.first else {
             throw AppError.invalidResponse
         }
 
@@ -47,57 +89,28 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
             StorefrontTab(id: $0.id, title: $0.lon?.preferredText ?? "Tab")
         }
 
-        let selectedDTO = (storefront.t ?? []).first(where: { $0.id == tabID }) ??
-            (storefront.t ?? []).first(where: { $0.lon?.preferredText.caseInsensitiveCompare(AppStrings.Common.home) == .orderedSame }) ??
-            storefront.t?.first
+        let initialContainers = storefront.t?.first(where: { ($0.c ?? []).isEmpty == false })?.c
+        let manifest = StorefrontManifest(storefrontID: storefront.id, tabs: tabs, initialContainers: initialContainers)
+        manifestByCohort[cohort] = manifest
 
-        guard let selectedDTO else {
-            throw AppError.invalidResponse
-        }
-        StorefrontDebugLogger.logSelectedStorefront(
-            storefrontID: storefront.id,
-            requestedTabID: tabID,
-            selectedTabID: selectedDTO.id,
-            selectedTabTitle: selectedDTO.lon?.preferredText,
-            tabs: tabs,
-            containerCount: selectedDTO.c?.count ?? 0
+        StorefrontDebugLogger.log(
+            "Stored manifest cohort=\(cohort.rawValue) storefrontID=\(storefront.id) tabs=\(tabs.map { "\($0.title)(\($0.id))" })"
         )
-
-        let hydratedSections = try await hydrateSections(containers: selectedDTO.c ?? [], config: config, cohort: cohort)
-        let sections = await buildSections(from: hydratedSections)
-        StorefrontDebugLogger.logBuiltSections(sections)
-
-        return StorefrontPage(
-            storefrontID: storefront.id,
-            tabs: tabs,
-            selectedTabID: selectedDTO.id,
-            sections: sections,
-            nextPage: 1,
-            loadedCount: sections.count,
-            totalCount: sections.count
-        )
+        return manifest
     }
 
-    private func resolveStorefrontResponse(for requestedCohort: QuickplayCohort) async throws -> (cohort: QuickplayCohort, response: QuickplayStorefrontResponseDTO) {
+    private func fetchLandingScreenWithFallback(for requestedCohort: QuickplayCohort) async throws -> QuickplayStorefrontResponseDTO {
         do {
-            StorefrontDebugLogger.log(
-                "Fetching storefront list for cohort=\(requestedCohort.rawValue), title=\(requestedCohort.title), expectedID=\(requestedCohort.storefrontID), pf=\(requestedCohort.profileFlag)"
-            )
             let response = try await dataSource.fetchStorefront(cohort: requestedCohort)
-            if response.data.isEmpty, requestedCohort == .kids {
-                StorefrontDebugLogger.log("Kids storefront response was empty. Falling back to Entertainment.")
-                let fallbackResponse = try await dataSource.fetchStorefront(cohort: .entertainment)
-                return (.entertainment, fallbackResponse)
+            if !response.data.isEmpty {
+                return response
             }
-            return (requestedCohort, response)
+            StorefrontDebugLogger.log("\(requestedCohort.title) landingscreen empty, falling back to entertainment")
         } catch {
-            if requestedCohort == .kids {
-                StorefrontDebugLogger.log("Kids storefront fetch failed: \(error.localizedDescription). Falling back to Entertainment.")
-                let fallbackResponse = try await dataSource.fetchStorefront(cohort: .entertainment)
-                return (.entertainment, fallbackResponse)
-            }
-            throw error
+            guard requestedCohort != .entertainment else { throw error }
+            StorefrontDebugLogger.log("\(requestedCohort.title) landingscreen failed: \(error.localizedDescription), falling back to entertainment")
         }
+        return try await dataSource.fetchStorefront(cohort: .entertainment)
     }
 
     private func fetchCustomLanding(
@@ -110,40 +123,39 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         guard let storefront = response.data.first else {
             throw AppError.invalidResponse
         }
-        StorefrontDebugLogger.logResponseIDs(response, cohort: cohort)
 
         let tabs = (storefront.t ?? []).map {
             StorefrontTab(id: $0.id, title: $0.lon?.preferredText ?? "Tab")
         }
 
-        let selectedDTO = (storefront.t ?? []).first(where: { $0.id == tabID }) ??
-            (storefront.t ?? []).first(where: { $0.lon?.preferredText.caseInsensitiveCompare(AppStrings.Common.home) == .orderedSame }) ??
-            storefront.t?.first
+        let selectedTab = tabs.first(where: { $0.id == tabID })
+            ?? tabs.first(where: { $0.title.caseInsensitiveCompare(AppStrings.Common.home) == .orderedSame })
+            ?? tabs.first
 
-        guard let selectedDTO else {
+        guard let selectedTab else {
             throw AppError.invalidResponse
         }
-        StorefrontDebugLogger.logSelectedStorefront(
+
+        let containersResponse = try await dataSource.fetchContainers(
+            cohort: cohort,
             storefrontID: storefront.id,
-            requestedTabID: tabID,
-            selectedTabID: selectedDTO.id,
-            selectedTabTitle: selectedDTO.lon?.preferredText,
-            tabs: tabs,
-            containerCount: selectedDTO.c?.count ?? 0
+            tabID: selectedTab.id,
+            pageNumber: 1,
+            pageSize: 100
         )
 
-        let hydratedSections = try await hydrateSections(containers: selectedDTO.c ?? [], config: config, cohort: cohort)
+        let hydratedSections = try await hydrateSections(containers: containersResponse.data, config: config, cohort: cohort)
         let sections = await buildSections(from: hydratedSections)
-        StorefrontDebugLogger.logBuiltSections(sections)
 
         return StorefrontPage(
             storefrontID: customStorefrontIdentifier(for: sourceURL),
             tabs: tabs,
-            selectedTabID: selectedDTO.id,
+            selectedTabID: selectedTab.id,
             sections: sections,
-            nextPage: 1,
+            nextPage: 2,
             loadedCount: sections.count,
-            totalCount: sections.count
+            totalCount: sections.count,
+            hasMore: false
         )
     }
 
@@ -189,6 +201,7 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         cohort: QuickplayCohort
     ) async throws -> [HydratedSection] {
         var sections: [HydratedSection] = []
+        let firstBannerContainerID = containers.first(where: { $0.lo == "banner" })?.id
 
         for (index, container) in containers.enumerated() {
             StorefrontDebugLogger.log(
@@ -201,8 +214,9 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
                     title: (container.lon?.preferredText ?? "").nilIfEmpty ?? (index == 0 ? "Featured" : "Section"),
                     ratio: container.preferredRatio,
                     items: items,
-                    isHero: container.lo == "banner" || index == 0,
-                    sourceType: container.srcType
+                    isHero: container.id == firstBannerContainerID,
+                    sourceType: container.srcType,
+                    backgroundImageURL: container.backgroundImageURL(config: config)
                 )
             )
         }
@@ -215,21 +229,28 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         config: QuickplayRuntimeConfig,
         cohort: QuickplayCohort
     ) async throws -> [StorefrontItem] {
+        if let embeddedItems = container.cd, !embeddedItems.isEmpty {
+            StorefrontDebugLogger.log("Using embedded cd[] id=\(container.id), count=\(embeddedItems.count)")
+            return deduplicatedItems(embeddedItems.map { $0.toDomain(config: config) })
+        }
+
         guard let sources = container.i, !sources.isEmpty else { return [] }
 
         var items: [StorefrontItem] = []
         for source in sources.sorted(by: { ($0.priority ?? 0) < ($1.priority ?? 0) }) {
             guard let url = source.normalizedURL(config: config, cohort: cohort) else { continue }
-            StorefrontDebugLogger.log(
-                "Loading source type=\(source.type ?? "<nil>"), priority=\(source.priority ?? 0), url=\(url.absoluteString)"
-            )
-            switch source.type {
-            case "collection":
-                let response = try await dataSource.fetchCollection(from: url)
-                items.append(contentsOf: response.data.map { $0.toDomain(config: config) })
-            default:
-                let response = try await dataSource.fetchContent(from: url)
-                items.append(contentsOf: response.data.map { $0.toDomain(config: config) })
+            StorefrontDebugLogger.log("Loading source type=\(source.type ?? "<nil>"), url=\(url.absoluteString)")
+            do {
+                switch source.type {
+                case "collection":
+                    let response = try await dataSource.fetchCollection(from: url)
+                    items.append(contentsOf: response.data.map { $0.toDomain(config: config) })
+                default:
+                    let response = try await dataSource.fetchContent(from: url)
+                    items.append(contentsOf: response.data.map { $0.toDomain(config: config) })
+                }
+            } catch {
+                StorefrontDebugLogger.log("Skipping source container=\(container.id), error=\(error.localizedDescription)")
             }
         }
 
@@ -238,17 +259,14 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
 
     private func buildSections(from hydratedSections: [HydratedSection]) async -> [StorefrontSection] {
         let library = deduplicatedItems(
-            hydratedSections
-                .filter { $0.sourceType == nil }
-                .flatMap { $0.items }
+            hydratedSections.filter { $0.sourceType == nil }.flatMap { $0.items }
         )
         let continueWatchingItems = await DemoSessionStore.shared.continueWatchingItems(limit: 10)
 
         return hydratedSections.compactMap { section -> StorefrontSection? in
             let resolvedItems: [StorefrontItem]
             let sectionKey = "\(section.sourceType ?? "") \(section.id) \(section.title)"
-                .lowercased()
-                .replacingOccurrences(of: " ", with: "_")
+                .lowercased().replacingOccurrences(of: " ", with: "_")
 
             if sectionKey.contains("continue_watching") || sectionKey.contains("continuewatching") {
                 resolvedItems = DemoRailComposer.continueWatching(from: continueWatchingItems)
@@ -264,7 +282,8 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
                 title: section.title,
                 ratio: section.ratio,
                 items: resolvedItems,
-                isHero: section.isHero
+                isHero: section.isHero,
+                backgroundImageURL: section.backgroundImageURL
             )
         }
     }
@@ -285,6 +304,12 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
     }
 }
 
+private struct StorefrontManifest {
+    let storefrontID: String
+    let tabs: [StorefrontTab]
+    let initialContainers: [QuickplayContainerDTO]?
+}
+
 private struct HydratedSection {
     let id: String
     let title: String
@@ -292,6 +317,7 @@ private struct HydratedSection {
     let items: [StorefrontItem]
     let isHero: Bool
     let sourceType: String?
+    let backgroundImageURL: URL?
 }
 
 private enum StorefrontDebugLogger {
@@ -302,29 +328,13 @@ private enum StorefrontDebugLogger {
         pageNumber: Int
     ) {
         log(
-            "Fetch landing requestedCohort=\(requestedCohort.rawValue), title=\(requestedCohort.title), expectedStorefrontID=\(requestedCohort.storefrontID), pf=\(requestedCohort.profileFlag), incomingStorefrontID=\(storefrontID ?? "<nil>"), tabID=\(tabID ?? "<nil>"), page=\(pageNumber)"
+            "Fetch landing requestedCohort=\(requestedCohort.rawValue), title=\(requestedCohort.title), pf=\(requestedCohort.profileFlag), incomingStorefrontID=\(storefrontID ?? "<nil>"), tabID=\(tabID ?? "<nil>"), page=\(pageNumber)"
         )
     }
 
     static func logResponseIDs(_ response: QuickplayStorefrontResponseDTO, cohort: QuickplayCohort) {
         let ids = response.data.map(\.id)
-        log(
-            "Storefront list response cohort=\(cohort.rawValue), expectedID=\(cohort.storefrontID), availableIDs=\(ids)"
-        )
-    }
-
-    static func logSelectedStorefront(
-        storefrontID: String,
-        requestedTabID: String?,
-        selectedTabID: String,
-        selectedTabTitle: String?,
-        tabs: [StorefrontTab],
-        containerCount: Int
-    ) {
-        let tabSummary = tabs.map { "\($0.title)(\($0.id))" }
-        log(
-            "Selected storefrontID=\(storefrontID), requestedTabID=\(requestedTabID ?? "<nil>"), selectedTab=\(selectedTabTitle ?? "Tab")(\(selectedTabID)), tabCount=\(tabs.count), tabs=\(tabSummary), selectedContainerCount=\(containerCount)"
-        )
+        log("Landingscreen response cohort=\(cohort.rawValue), pf=\(cohort.profileFlag), returnedIDs=\(ids)")
     }
 
     static func logBuiltSections(_ sections: [StorefrontSection]) {

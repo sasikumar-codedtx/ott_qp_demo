@@ -1,6 +1,7 @@
 import SwiftUI
+import UIKit
 
-struct CohortQuestionnaireResult: Equatable {
+struct CohortQuestionnaireResult: Equatable, Sendable {
     let entertainmentScore: Int
     let sportsScore: Int
     let realityScore: Int
@@ -10,23 +11,51 @@ struct CohortQuestionnaireResult: Equatable {
 }
 
 struct CohortQuestionnaireView: View {
-    let onComplete: (CohortQuestionnaireResult) async -> Void
+    let profileName: String
+    let profileImageName: String?
+    let fallbackGlyph: String
+    let onComplete: @MainActor (CohortQuestionnaireResult) -> Void
 
     @State private var currentIndex = 0
-    @State private var answers: [CohortQuestionnaireAnswer] = []
-    @State private var selectedAnswerID: String?
+    @State private var scoredAnswers: [CohortSwipeAnswer] = []
     @State private var backgroundName = CohortQuestionnaireBackground.randomName()
+    @State private var dragOffset: CGSize = .zero
+    @State private var isAnimatingOut = false
+    @State private var isPromotingNextCard = false
     @State private var isFinishing = false
-    @State private var cohortToast: String?
+    @State private var selectedResult: CohortQuestionnaireResult?
 
-    private let questions = CohortQuestionnaireQuestion.defaultQuestions
+    private let questions = CohortSwipeQuestion.defaultQuestions
 
-    private var currentQuestion: CohortQuestionnaireQuestion {
-        questions[currentIndex]
+    init(
+        profileName: String = "New Profile",
+        profileImageName: String? = nil,
+        fallbackGlyph: String = "P",
+        onComplete: @escaping @MainActor (CohortQuestionnaireResult) -> Void
+    ) {
+        self.profileName = profileName
+        self.profileImageName = profileImageName
+        self.fallbackGlyph = fallbackGlyph
+        self.onComplete = onComplete
+    }
+
+    private var currentQuestion: CohortSwipeQuestion {
+        questions[min(currentIndex, questions.count - 1)]
+    }
+
+    private var nextQuestion: CohortSwipeQuestion? {
+        guard currentIndex + 1 < questions.count else { return nil }
+        return questions[currentIndex + 1]
+    }
+
+    private var thirdQuestion: CohortSwipeQuestion? {
+        guard currentIndex + 2 < questions.count else { return nil }
+        return questions[currentIndex + 2]
     }
 
     private var progress: CGFloat {
-        CGFloat(currentIndex + 1) / CGFloat(questions.count)
+        guard !questions.isEmpty else { return 0 }
+        return CGFloat(currentIndex + 1) / CGFloat(questions.count)
     }
 
     var body: some View {
@@ -35,44 +64,24 @@ struct CohortQuestionnaireView: View {
                 background
 
                 VStack(spacing: 0) {
-                    LogoGlowView(size: 94, glowScale: 1.04)
-                        .padding(.top, proxy.safeAreaInsets.top + 18)
-
-                    Text("Let’s get the vibe right.")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.top, 8)
+                    header(topInset: proxy.safeAreaInsets.top)
 
                     progressBar
-                        .padding(.top, 30)
+                        .padding(.top, 18)
 
-                    questionCard
-                        .padding(.top, 40)
+                    swipeStack(maxWidth: proxy.size.width)
+                        .padding(.top, 26)
 
-                    answerStack
-                        .padding(.top, 50)
+                    Spacer(minLength: 20)
 
-                    Spacer(minLength: 16)
-
-                    Button {
-                        moveNext(with: nil)
-                    } label: {
-                        Text("I don’t know, Next")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity, minHeight: 48)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(isFinishing)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, proxy.safeAreaInsets.bottom + 24)
+                    swipeControls
+                        .padding(.bottom, proxy.safeAreaInsets.bottom + 18)
                 }
 
-                if let cohortToast {
-                    CohortResultToast(message: cohortToast)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, proxy.safeAreaInsets.bottom + 34)
-                        .frame(maxHeight: .infinity, alignment: .bottom)
+                if isFinishing, let selectedResult {
+                    CohortCompletionOverlay(result: selectedResult)
+                        .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                        .zIndex(30)
                 }
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
@@ -85,7 +94,31 @@ struct CohortQuestionnaireView: View {
             .resizable()
             .scaledToFill()
             .ignoresSafeArea()
-            .overlay(Color.black.opacity(0.06).ignoresSafeArea())
+            .overlay(Color.black.opacity(0.08).ignoresSafeArea())
+    }
+
+    private func header(topInset: CGFloat) -> some View {
+        VStack(spacing: 8) {
+            ProfileAvatarView(
+                imageName: profileImageName,
+                fallbackGlyph: fallbackGlyph,
+                size: 89.635
+            )
+            .shadow(color: Color.black.opacity(0.24), radius: 12, x: 0, y: 8)
+
+            Text(profileName)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.78)
+                .frame(width: 120)
+
+            Text("Let’s get the vibe right.")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundStyle(.white)
+                .padding(.top, 3)
+        }
+        .padding(.top, topInset + 8)
     }
 
     private var progressBar: some View {
@@ -103,66 +136,192 @@ struct CohortQuestionnaireView: View {
         .animation(.easeInOut(duration: 0.25), value: progress)
     }
 
-    private var questionCard: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(Color.black.opacity(0.18))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                )
+    private func swipeStack(maxWidth: CGFloat) -> some View {
+        let topWidth = min(380, maxWidth - 32)
+        let topHeight = topWidth * (396 / 380)
+        let secondWidth = topWidth * (343.535 / 380)
+        let secondHeight = secondWidth * (358 / 343.535)
+        let thirdWidth = topWidth * (315.707 / 380)
+        let thirdHeight = thirdWidth * (329 / 315.707)
 
-            Text(currentQuestion.title)
-                .font(.system(size: 30, weight: .bold))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.white)
-                .lineSpacing(4)
-                .padding(.horizontal, 34)
+        return ZStack(alignment: .top) {
+            if let thirdQuestion {
+                CohortSwipeCard(
+                    question: thirdQuestion,
+                    backgroundName: backgroundName,
+                    width: isPromotingNextCard ? secondWidth : thirdWidth,
+                    height: isPromotingNextCard ? secondHeight : thirdHeight,
+                    borderColor: isPromotingNextCard ? Color(hex: "703737") : Color(hex: "623030"),
+                    borderWidth: isPromotingNextCard ? 3.616 : 3.323,
+                    cornerRadius: isPromotingNextCard ? 27.121 : 24.924,
+                    textSize: isPromotingNextCard ? 19.889 : 18.278,
+                    isDimmed: !isPromotingNextCard
+                )
+                .offset(y: isPromotingNextCard ? 53 : 96)
+                .animation(.spring(response: 0.42, dampingFraction: 0.78), value: isPromotingNextCard)
+            }
+
+            if let nextQuestion {
+                CohortSwipeCard(
+                    question: nextQuestion,
+                    backgroundName: backgroundName,
+                    width: isPromotingNextCard ? topWidth : secondWidth,
+                    height: isPromotingNextCard ? topHeight : secondHeight,
+                    borderColor: isPromotingNextCard ? Color(hex: "FF7B7B") : Color(hex: "703737"),
+                    borderWidth: isPromotingNextCard ? 4 : 3.616,
+                    cornerRadius: isPromotingNextCard ? 30 : 27.121,
+                    textSize: 19.889,
+                    isDimmed: false
+                )
+                .offset(y: isPromotingNextCard ? 0 : 53)
+                .animation(.spring(response: 0.42, dampingFraction: 0.78), value: isPromotingNextCard)
+                .zIndex(isPromotingNextCard ? 2 : 1)
+            }
+
+            CohortSwipeCard(
+                question: currentQuestion,
+                backgroundName: backgroundName,
+                width: topWidth,
+                height: topHeight,
+                borderColor: dragOffset.width < -24 ? Color(hex: "74B7FF") : Color(hex: "FF7B7B"),
+                borderWidth: 4,
+                cornerRadius: 30,
+                textSize: 19.889,
+                isDimmed: false,
+                verdict: verdictText
+            )
+            .offset(dragOffset)
+            .rotationEffect(.degrees(Double(dragOffset.width / 18)))
+            .gesture(cardDragGesture)
+            .animation(.spring(response: 0.32, dampingFraction: 0.78), value: dragOffset)
+            .zIndex(3)
         }
-        .frame(width: 380, height: 199)
-        .transition(.opacity.combined(with: .scale(scale: 0.98)))
+        .frame(height: topHeight + 42)
     }
 
-    private var answerStack: some View {
-        VStack(spacing: 14) {
-            ForEach(currentQuestion.answers) { answer in
-                CohortAnswerButton(
-                    title: answer.title,
-                    isSelected: selectedAnswerID == answer.id,
-                    isDisabled: isFinishing
-                ) {
-                    selectedAnswerID = answer.id
-                    moveNext(with: answer)
+    private var cardDragGesture: some Gesture {
+        DragGesture(minimumDistance: 8)
+            .onChanged { value in
+                guard !isAnimatingOut, !isFinishing else { return }
+                dragOffset = value.translation
+            }
+            .onEnded { value in
+                guard !isAnimatingOut, !isFinishing else { return }
+                if value.translation.width > 105 {
+                    choose(.right)
+                } else if value.translation.width < -105 {
+                    choose(.left)
+                } else {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.72)) {
+                        dragOffset = .zero
+                    }
                 }
             }
-        }
-        .padding(.horizontal, 16)
     }
 
-    private func moveNext(with answer: CohortQuestionnaireAnswer?) {
-        guard !isFinishing else { return }
+    private var verdictText: String? {
+        if dragOffset.width > 34 {
+            return "YES"
+        }
+        if dragOffset.width < -34 {
+            return "NO"
+        }
+        return nil
+    }
 
-        if let answer {
-            answers.append(answer)
+    private var swipeControls: some View {
+        HStack(spacing: 103) {
+            swipeControlButton(
+                assetNames: ["tinderdislike"],
+                fallbackSystemName: "hand.thumbsdown.fill",
+                direction: .left
+            )
+            swipeControlButton(
+                assetNames: ["tinderlike"],
+                fallbackSystemName: "hand.thumbsup.fill",
+                direction: .right
+            )
+        }
+        .frame(height: 50)
+    }
+
+    private func swipeControlButton(assetNames: [String], fallbackSystemName: String, direction: CohortSwipeDirection) -> some View {
+        Button {
+            choose(direction)
+        } label: {
+            if let assetName = assetNames.first(where: { UIImage(named: $0) != nil }) {
+                Image(assetName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 50, height: 50)
+            } else {
+                Image(systemName: fallbackSystemName)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 50, height: 50)
+                    .background(
+                        Circle()
+                            .fill(Color.white.opacity(0.1))
+                            .overlay(Circle().stroke(Color.white.opacity(0.12), lineWidth: 1))
+                    )
+            }
+        }
+        .buttonStyle(LiquidButtonPressStyle())
+        .disabled(isFinishing || isAnimatingOut)
+    }
+
+    private func choose(_ direction: CohortSwipeDirection) {
+        guard !isAnimatingOut, !isFinishing else { return }
+
+        let answer = CohortSwipeAnswer(questionID: currentQuestion.id, direction: direction, categories: currentQuestion.categories(for: direction))
+        print(
+            "[CohortQuestionnaire] answer question=\"\(currentQuestion.title)\", direction=\(direction.logValue), signals=\(answer.categories.map(\.logValue).joined(separator: ","))"
+        )
+        scoredAnswers.append(answer)
+        isAnimatingOut = true
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+
+        withAnimation(.easeIn(duration: 0.22)) {
+            dragOffset = CGSize(width: direction == .right ? 720 : -720, height: 40)
         }
 
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+            withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
+                isPromotingNextCard = true
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.44) {
+            moveNext()
+        }
+    }
+
+    private func moveNext() {
         if currentIndex < questions.count - 1 {
-            withAnimation(.easeInOut(duration: 0.24)) {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
                 currentIndex += 1
-                selectedAnswerID = nil
-                backgroundName = CohortQuestionnaireBackground.randomName(excluding: backgroundName)
+                dragOffset = .zero
+                isPromotingNextCard = false
+                isAnimatingOut = false
             }
             return
         }
 
+        finish()
+    }
+
+    private func finish() {
         isFinishing = true
-        let result = CohortQuestionnaireScorer.score(answers: answers)
-        withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-            cohortToast = "\(result.primaryCategory.title) selected"
+        let result = CohortQuestionnaireScorer.score(answers: scoredAnswers)
+        selectedResult = result
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
+            isPromotingNextCard = false
         }
-        Task {
-            try? await Task.sleep(for: .milliseconds(900))
-            await onComplete(result)
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(1250))
+            onComplete(result)
         }
     }
 }
@@ -191,32 +350,157 @@ struct CohortResultToast: View {
     }
 }
 
-private struct CohortAnswerButton: View {
-    let title: String
-    let isSelected: Bool
-    let isDisabled: Bool
-    let action: () -> Void
+private struct CohortCompletionOverlay: View {
+    let result: CohortQuestionnaireResult
+    @State private var pulse = false
 
     var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 17, weight: .bold))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.white)
-                .lineSpacing(3)
-                .frame(maxWidth: .infinity, minHeight: 84)
-                .padding(.horizontal, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(Color(hex: "171717").opacity(isSelected ? 0.94 : 0.82))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                .stroke(isSelected ? Color.white.opacity(0.86) : Color.white.opacity(0.08), lineWidth: isSelected ? 1.5 : 1)
-                        )
+        ZStack {
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    LinearGradient(
+                        colors: [Color.black.opacity(0.56), Color.black.opacity(0.82)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
                 )
+                .ignoresSafeArea()
+
+            VStack(spacing: 18) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 34, weight: .bold))
+                    .foregroundStyle(Color(hex: "F6C759"))
+                    .scaleEffect(pulse ? 1.18 : 0.92)
+                    .opacity(pulse ? 1 : 0.55)
+                    .animation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true), value: pulse)
+
+                VStack(spacing: 8) {
+                    Text("Finding your vibe")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(.white)
+
+                    Text("\(result.primaryCategory.title) selected")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.72))
+                }
+
+                ProgressView()
+                    .tint(.white)
+            }
+            .padding(.horizontal, 28)
+            .padding(.vertical, 26)
+            .background(
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(Color.black.opacity(0.54))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                    )
+            )
+            .shadow(color: Color.black.opacity(0.34), radius: 24, x: 0, y: 14)
         }
-        .buttonStyle(LiquidButtonPressStyle())
-        .disabled(isDisabled)
+        .onAppear {
+            pulse = true
+        }
+    }
+}
+
+private struct CohortSwipeCard: View {
+    let question: CohortSwipeQuestion
+    let backgroundName: String
+    let width: CGFloat
+    let height: CGFloat
+    let borderColor: Color
+    let borderWidth: CGFloat
+    let cornerRadius: CGFloat
+    let textSize: CGFloat
+    let isDimmed: Bool
+    var verdict: String?
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: "4E4E4E"), Color(hex: "181818")],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+
+            Image(backgroundName)
+                .resizable()
+                .scaledToFill()
+                .opacity(isDimmed ? 0.62 : 0.88)
+                .frame(width: width, height: height)
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+
+            LinearGradient(
+                colors: [Color.black.opacity(0.08), Color.black.opacity(0.5)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            Text(question.title)
+                .font(.system(size: textSize, weight: .bold))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+                .textCase(.uppercase)
+                .lineSpacing(6)
+                .padding(.horizontal, 30)
+
+            tag
+
+            if let verdict {
+                Text(verdict)
+                    .font(.system(size: 34, weight: .black))
+                    .foregroundStyle(verdict == "YES" ? Color(hex: "7AFFB8") : Color(hex: "74B7FF"))
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(verdict == "YES" ? Color(hex: "7AFFB8") : Color(hex: "74B7FF"), lineWidth: 3)
+                    )
+                    .rotationEffect(.degrees(verdict == "YES" ? 12 : -12))
+                    .offset(x: verdict == "YES" ? 66 : -66, y: -92)
+                    .transition(.scale.combined(with: .opacity))
+                    .zIndex(4)
+            }
+        }
+        .frame(width: width, height: height)
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .stroke(borderColor, lineWidth: borderWidth)
+        )
+        .shadow(color: Color.black.opacity(0.3), radius: 28, x: 0, y: 0)
+        .opacity(isDimmed ? 0.5 : 1)
+    }
+
+    private var tag: some View {
+        VStack {
+            HStack {
+                Text(question.tag)
+                    .font(.system(size: 13.297, weight: .bold))
+                    .foregroundStyle(.white)
+                    .textCase(.uppercase)
+                    .padding(.horizontal, 16)
+                    .frame(height: 32)
+                    .background(
+                        UnevenRoundedRectangle(
+                            topLeadingRadius: 25,
+                            bottomLeadingRadius: 0,
+                            bottomTrailingRadius: 11,
+                            topTrailingRadius: 18,
+                            style: .continuous
+                        )
+                        .fill(borderColor)
+                    )
+                Spacer()
+            }
+            Spacer()
+        }
     }
 }
 
@@ -229,65 +513,104 @@ private enum CohortQuestionnaireBackground {
     }
 }
 
-struct CohortQuestionnaireQuestion: Identifiable {
-    let id = UUID()
-    let title: String
-    let answers: [CohortQuestionnaireAnswer]
+private enum CohortSwipeDirection: Sendable {
+    case left
+    case right
 
-    static let defaultQuestions: [CohortQuestionnaireQuestion] = [
-        CohortQuestionnaireQuestion(
-            title: "It’s Friday night. Which sounds more appealing",
-            answers: [
-                CohortQuestionnaireAnswer(title: "Watching something completely unpredictable unfold", category: .entertainment),
-                CohortQuestionnaireAnswer(title: "Watching a high-stakes showdown where every moment matters", category: .sports),
-                CohortQuestionnaireAnswer(title: "Watching real people compete, react, and surprise everyone", category: .reality)
-            ]
+    var logValue: String {
+        switch self {
+        case .left:
+            return "left-no"
+        case .right:
+            return "right-yes"
+        }
+    }
+}
+
+private struct CohortSwipeQuestion: Identifiable, Sendable {
+    let id = UUID().uuidString
+    let title: String
+    let tag: String
+    let rightCategories: [CohortQuestionnaireCategory]
+    let leftCategories: [CohortQuestionnaireCategory]
+
+    func categories(for direction: CohortSwipeDirection) -> [CohortQuestionnaireCategory] {
+        direction == .right ? rightCategories : leftCategories
+    }
+
+    static let defaultQuestions: [CohortSwipeQuestion] = [
+        CohortSwipeQuestion(
+            title: "Are people and personalities more interesting than competition?",
+            tag: "People",
+            rightCategories: [.reality],
+            leftCategories: [.sports]
         ),
-        CohortQuestionnaireQuestion(
-            title: "What pulls you into a show fastest?",
-            answers: [
-                CohortQuestionnaireAnswer(title: "Great storytelling with twists, emotion, and scale", category: .entertainment),
-                CohortQuestionnaireAnswer(title: "Competitive action where every second changes the result", category: .sports),
-                CohortQuestionnaireAnswer(title: "Real people, real pressure, and dramatic reactions", category: .reality)
-            ]
+        CohortSwipeQuestion(
+            title: "Do you love binge-watching stories?",
+            tag: "Binge",
+            rightCategories: [.entertainment],
+            leftCategories: [.sports]
         ),
-        CohortQuestionnaireQuestion(
-            title: "Pick the energy you want from your feed",
-            answers: [
-                CohortQuestionnaireAnswer(title: "Cinematic worlds, characters, music, and mystery", category: .entertainment),
-                CohortQuestionnaireAnswer(title: "Big match tension, rivalries, and last-minute wins", category: .sports),
-                CohortQuestionnaireAnswer(title: "Competition, eliminations, judges, and surprises", category: .reality)
-            ]
+        CohortSwipeQuestion(
+            title: "Do you enjoy seeing what happens next more than who wins?",
+            tag: "Twist Ending",
+            rightCategories: [.entertainment, .reality],
+            leftCategories: [.sports]
         ),
-        CohortQuestionnaireQuestion(
-            title: "Which moment would you replay?",
-            answers: [
-                CohortQuestionnaireAnswer(title: "A hero reveal or a finale twist nobody saw coming", category: .entertainment),
-                CohortQuestionnaireAnswer(title: "A clutch play that changes the entire game", category: .sports),
-                CohortQuestionnaireAnswer(title: "A confession, argument, or win that feels personal", category: .reality)
-            ]
+        CohortSwipeQuestion(
+            title: "Would you rather follow people than scores?",
+            tag: "Follow",
+            rightCategories: [.reality],
+            leftCategories: [.sports]
         ),
-        CohortQuestionnaireQuestion(
-            title: "What should we recommend first?",
-            answers: [
-                CohortQuestionnaireAnswer(title: "Movies, originals, thrillers, and binge-worthy shows", category: .entertainment),
-                CohortQuestionnaireAnswer(title: "Matches, highlights, analysis, and sports stories", category: .sports),
-                CohortQuestionnaireAnswer(title: "Reality contests, celebrity moments, and unscripted drama", category: .reality)
-            ]
+        CohortSwipeQuestion(
+            title: "Do cliffhangers keep you hooked?",
+            tag: "Cliffhanger",
+            rightCategories: [.entertainment],
+            leftCategories: [.sports]
+        ),
+        CohortSwipeQuestion(
+            title: "Do you enjoy watching real-life drama unfold?",
+            tag: "Drama",
+            rightCategories: [.reality],
+            leftCategories: [.sports, .entertainment]
+        ),
+        CohortSwipeQuestion(
+            title: "Do you like cheering for winners?",
+            tag: "Winners",
+            rightCategories: [.sports],
+            leftCategories: [.entertainment, .reality]
+        ),
+        CohortSwipeQuestion(
+            title: "Would you open a Starting Live Now notification immediately?",
+            tag: "Live Now",
+            rightCategories: [.sports],
+            leftCategories: [.entertainment]
         )
     ]
 }
 
-struct CohortQuestionnaireAnswer: Identifiable, Equatable {
-    let id = UUID().uuidString
-    let title: String
-    let category: CohortQuestionnaireCategory
+private struct CohortSwipeAnswer: Equatable, Sendable {
+    let questionID: String
+    let direction: CohortSwipeDirection
+    let categories: [CohortQuestionnaireCategory]
 }
 
-enum CohortQuestionnaireCategory: CaseIterable, Equatable {
+enum CohortQuestionnaireCategory: CaseIterable, Equatable, Sendable {
     case entertainment
     case sports
     case reality
+
+    var logValue: String {
+        switch self {
+        case .entertainment:
+            return "entertainment"
+        case .sports:
+            return "sports"
+        case .reality:
+            return "reality"
+        }
+    }
 
     var cohort: QuickplayCohort {
         switch self {
@@ -312,8 +635,8 @@ enum CohortQuestionnaireCategory: CaseIterable, Equatable {
     }
 }
 
-enum CohortQuestionnaireScorer {
-    static func score(answers: [CohortQuestionnaireAnswer]) -> CohortQuestionnaireResult {
+private enum CohortQuestionnaireScorer {
+    static func score(answers: [CohortSwipeAnswer]) -> CohortQuestionnaireResult {
         guard !answers.isEmpty else {
             return CohortQuestionnaireResult(
                 entertainmentScore: 0,
@@ -325,20 +648,32 @@ enum CohortQuestionnaireScorer {
             )
         }
 
-        let entertainmentScore = answers.filter { $0.category == .entertainment }.count
-        let sportsScore = answers.filter { $0.category == .sports }.count
-        let realityScore = answers.filter { $0.category == .reality }.count
-        let counts: [CohortQuestionnaireCategory: Int] = [
-            .entertainment: entertainmentScore,
-            .sports: sportsScore,
-            .reality: realityScore
+        var scores: [CohortQuestionnaireCategory: Int] = [
+            .entertainment: 0,
+            .sports: 0,
+            .reality: 0
         ]
-        let highestScore = counts.values.max() ?? 0
-        let tiedCategories = counts.filter { $0.value == highestScore }.map(\.key)
-        let latestTieAnswer = answers.reversed().first { tiedCategories.contains($0.category) }?.category
-        let winner = latestTieAnswer ?? [.sports, .entertainment, .reality].first { tiedCategories.contains($0) } ?? .entertainment
-        let totalAnswers = max(answers.count, 1)
-        let confidence = Int(round((Double(highestScore) / Double(totalAnswers)) * 100))
+
+        for answer in answers {
+            for category in answer.categories {
+                scores[category, default: 0] += 1
+            }
+        }
+
+        let entertainmentScore = scores[.entertainment, default: 0]
+        let sportsScore = scores[.sports, default: 0]
+        let realityScore = scores[.reality, default: 0]
+        let rankedCategories: [CohortQuestionnaireCategory] = [.entertainment, .sports, .reality]
+        let winner = rankedCategories.max { left, right in
+            scores[left, default: 0] < scores[right, default: 0]
+        } ?? .entertainment
+        let highestScore = scores[winner, default: 0]
+        let totalSignals = max(scores.values.reduce(0, +), 1)
+        let confidence = Int(round((Double(highestScore) / Double(totalSignals)) * 100))
+
+        print(
+            "[CohortQuestionnaire] final scores entertainment=\(entertainmentScore), sports=\(sportsScore), reality=\(realityScore), winner=\(winner.logValue), cohort=\(winner.cohort.rawValue), pf=\(winner.cohort.profileFlag)"
+        )
 
         return CohortQuestionnaireResult(
             entertainmentScore: entertainmentScore,

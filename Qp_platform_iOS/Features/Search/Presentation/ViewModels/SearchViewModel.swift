@@ -16,10 +16,10 @@ final class SearchViewModel: ObservableObject {
     @Published private(set) var errorMessage: String?
 
     private let useCase: SearchContentUseCase
-    private var cache: [String: SearchResultPage] = [:]
     private var cancellables = Set<AnyCancellable>()
 
     static let allFilter = SearchFilter(id: "all", title: "All")
+    private static let defaultSearchQuery = "Trending Search"
 
     init(useCase: SearchContentUseCase) {
         self.useCase = useCase
@@ -35,15 +35,6 @@ final class SearchViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        $selectedFilterID
-            .removeDuplicates()
-            .dropFirst()
-            .sink { [weak self] _ in
-                Task { @MainActor in
-                    await self?.reloadForSelectedFacet()
-                }
-            }
-            .store(in: &cancellables)
     }
 
     var normalizedQuery: String {
@@ -59,24 +50,35 @@ final class SearchViewModel: ObservableObject {
     }
 
     func present() {
-        query = ""
         results = []
         facetFilters = []
         selectedFilterID = Self.allFilter.id
         errorMessage = nil
+        if query == Self.defaultSearchQuery {
+            Task { @MainActor in
+                await handleQueryChange(Self.defaultSearchQuery)
+            }
+        } else {
+            query = Self.defaultSearchQuery
+        }
     }
 
-    func submitAIQuery(displayQuery: String, normalizedQuery: String) {
-        let queryToSearch = normalizedQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+    func submitAIQuery(_ query: String) {
+        let queryToSearch = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !queryToSearch.isEmpty else { return }
-        query = queryToSearch
+        self.query = queryToSearch
         selectedFilterID = Self.allFilter.id
+    }
+
+    func selectFilter(_ filter: SearchFilter) {
+        selectedFilterID = filter.id
+        Task { @MainActor in
+            await reloadForSelectedFacet()
+        }
     }
 
     private func handleQueryChange(_ term: String) async {
         guard !term.isEmpty else {
-            results = []
-            facetFilters = []
             errorMessage = nil
             isLoading = false
             selectedFilterID = Self.allFilter.id
@@ -96,24 +98,12 @@ final class SearchViewModel: ObservableObject {
     }
 
     private func performSearch(term: String, facetTerm: String?, shouldUpdateFilters: Bool) async {
-        let cacheKey = cacheKey(term: term, facetTerm: facetTerm)
-
-        if let cached = cache[cacheKey] {
-            results = cached.items
-            if shouldUpdateFilters {
-                facetFilters = cached.filters
-            }
-            errorMessage = nil
-            isLoading = false
-            return
-        }
-
         isLoading = true
         errorMessage = nil
+        results = []
 
         do {
             let page = try await useCase.execute(term: term, facetTerm: facetTerm)
-            cache[cacheKey] = page
             if normalizedQuery.caseInsensitiveCompare(term) == .orderedSame {
                 results = page.items
                 if shouldUpdateFilters {
@@ -123,14 +113,15 @@ final class SearchViewModel: ObservableObject {
             }
         } catch {
             if normalizedQuery.caseInsensitiveCompare(term) == .orderedSame {
-                errorMessage = error.localizedDescription
+                if error.localizedDescription.localizedCaseInsensitiveContains("no data match") {
+                    results = []
+                    errorMessage = nil
+                } else {
+                    errorMessage = error.localizedDescription
+                }
                 isLoading = false
             }
         }
-    }
-
-    private func cacheKey(term: String, facetTerm: String?) -> String {
-        "\(term.lowercased())|\(facetTerm?.lowercased() ?? "all")"
     }
 
     private func deduplicatedFilters(_ filters: [SearchFilter]) -> [SearchFilter] {

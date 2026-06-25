@@ -18,9 +18,17 @@ struct StorefrontAPIClient {
             throw AppError.invalidURL
         }
 
+        print("🔥🔥🔥🔥🔥 STOREFRONT REQUEST 🔥🔥🔥🔥🔥")
+        print(request.url?.absoluteString ?? "invalid-url")
         let data = try await networkClient.data(for: request)
         do {
-            return try JSONDecoder().decode(QuickplayStorefrontResponseDTO.self, from: data)
+            let response = try JSONDecoder().decode(QuickplayStorefrontResponseDTO.self, from: data)
+            print("🔥🔥🔥🔥🔥 STOREFRONT RESPONSE 🔥🔥🔥🔥🔥")
+            print("cohort -> \(cohort.rawValue), pf -> \(cohort.profileFlag)")
+            print("data count -> \(response.data.count)")
+            print("ids -> \(response.data.map(\.id))")
+            print("🔥🔥🔥🔥🔥 END STOREFRONT 🔥🔥🔥🔥🔥")
+            return response
         } catch {
             throw AppError.decodingFailed
         }
@@ -34,7 +42,6 @@ struct StorefrontAPIClient {
             throw AppError.decodingFailed
         }
     }
-
     func fetchContent(from url: URL) async throws -> QuickplayContentResponseDTO {
         let data = try await networkClient.data(for: StorefrontRouter.sourceRequest(url: url))
         do {
@@ -59,6 +66,40 @@ struct StorefrontAPIClient {
         let data = try await networkClient.data(for: request)
         do {
             return try JSONDecoder().decode(QuickplayContentResponseDTO.self, from: data)
+        } catch {
+            throw AppError.decodingFailed
+        }
+    }
+
+    func fetchContainers(
+        cohort: QuickplayCohort,
+        storefrontID: String,
+        tabID: String,
+        pageNumber: Int,
+        pageSize: Int
+    ) async throws -> QuickplayContainersResponseDTO {
+        let config = await configStore.current(using: networkClient)
+        guard let request = StorefrontRouter.containersRequest(
+            config: config,
+            cohort: cohort,
+            storefrontID: storefrontID,
+            tabID: tabID,
+            pageNumber: pageNumber,
+            pageSize: pageSize
+        ) else {
+            throw AppError.invalidURL
+        }
+        print("[StorefrontAPIClient] landingscreen tab \(request.url?.absoluteString ?? "invalid")")
+        let data = try await networkClient.data(for: request)
+        do {
+            let response = try JSONDecoder().decode(QuickplayStorefrontResponseDTO.self, from: data)
+            let storefront = response.data.first
+            let selectedTab = storefront?.t?.first(where: { $0.id == tabID }) ??
+                storefront?.t?.first(where: { ($0.c ?? []).isEmpty == false })
+            return QuickplayContainersResponseDTO(
+                header: response.header,
+                data: selectedTab?.c ?? []
+            )
         } catch {
             throw AppError.decodingFailed
         }

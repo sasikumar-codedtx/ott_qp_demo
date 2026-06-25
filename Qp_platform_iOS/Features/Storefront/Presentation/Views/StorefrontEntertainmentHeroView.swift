@@ -3,6 +3,8 @@ import SwiftUI
 struct StorefrontEntertainmentHeroView: View {
     let items: [StorefrontItem]
     let cohort: QuickplayCohort
+    let favoriteIDs: Set<String>
+    let onToggleFavorite: (StorefrontItem) -> Void
     let onSelectItem: (StorefrontItem) -> Void
 
     @State private var currentItemID: String?
@@ -23,23 +25,22 @@ struct StorefrontEntertainmentHeroView: View {
     }
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 15) {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 10) {
                     ForEach(featuredItems) { item in
-                    Button {
-                        onSelectItem(item)
-                    } label: {
                         heroCard(item: item)
+                            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .onTapGesture {
+                                onSelectItem(item)
+                            }
+                            .id(item.id)
                     }
-                    .buttonStyle(LiquidButtonPressStyle())
-                    .id(item.id)
                 }
-            }
                 .scrollTargetLayout()
                 .padding(.horizontal, 27)
             }
-            .frame(height: 578)
+            .frame(height: StorefrontHeroMetrics.mediaHeight)
             .scrollTargetBehavior(.viewAligned)
             .scrollPosition(id: $currentItemID, anchor: .center)
             .onAppear {
@@ -163,33 +164,62 @@ struct StorefrontEntertainmentHeroView: View {
     }
 
     private func ctaRow(for item: StorefrontItem) -> some View {
-        HStack(spacing: 10) {
-            SonyGlassPrimaryButton(
-                title: cohort == .entertainment ? item.watchLabel : "More Info",
-                systemImage: cohort == .entertainment ? AppIcons.Action.play : "info.circle.fill",
-                minWidth: cohort == .entertainment ? 208 : 196,
-                height: 56
-            ) {
+        HStack(spacing: 8) {
+            Button {
                 if item.canOpenDetail {
                     onSelectItem(item)
                 }
-            }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: cohort == .entertainment ? AppIcons.Action.play : "info.circle.fill")
+                        .font(.system(size: 15, weight: .bold))
+                        .frame(width: 24, height: 24)
 
-            SonyGlassIconButton(
-                systemImage: AppIcons.Action.plus,
-                size: 56,
-                iconSize: 24,
-                cornerStyle: .circle,
-                action: {}
-            )
+                    Text(cohort == .entertainment ? item.watchLabel : "More Info")
+                        .font(.system(size: 16, weight: .semibold))
+                        .lineLimit(1)
+                }
+                .foregroundStyle(.white)
+                .frame(minWidth: 129)
+                .padding(.horizontal, 12)
+                .frame(height: 48)
+                .background(heroControlBackground)
+                .clipShape(Capsule(style: .continuous))
+            }
+            .buttonStyle(LiquidButtonPressStyle())
+
+            Button {
+                onToggleFavorite(item)
+            } label: {
+                Image(systemName: favoriteIDs.contains(item.id) ? "checkmark" : AppIcons.Action.plus)
+                    .font(.system(size: 20, weight: .regular))
+                    .foregroundStyle(.white)
+                    .frame(width: 24, height: 24)
+                    .padding(10)
+                    .background(heroControlBackground)
+                    .clipShape(Circle())
+                    .shadow(color: Color(hex: "CACACA").opacity(0.13), radius: 3, x: -1, y: 1)
+            }
+            .buttonStyle(LiquidButtonPressStyle())
         }
+    }
+
+    private var heroControlBackground: some View {
+        LinearGradient(
+            colors: [
+                Color.white.opacity(0.2),
+                Color(hex: "CECECE").opacity(0.2)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
     }
 
     private var pageIndicator: some View {
         HStack(spacing: 6) {
             ForEach(featuredItems.indices, id: \.self) { index in
                 Capsule(style: .continuous)
-                    .fill(index == currentIndex ? Color(hex: "FBBF1B") : Color.white.opacity(0.22))
+                    .fill(index == currentIndex ? Color(hex: "FBBF1B") : Color.white.opacity(0.2))
                     .frame(width: index == currentIndex ? 24 : 6, height: 6)
             }
         }

@@ -8,6 +8,7 @@ struct SettingsView: View {
     let onSignOut: () -> Void
     let onSelectProfile: (Profile) -> Void
     let onVoiceAISearchChange: (Bool) -> Void
+    let onAddProfile: () -> Void
     let onEditProfiles: () -> Void
 
     @State private var navigationPath: [SettingsScreen] = []
@@ -30,6 +31,7 @@ struct SettingsView: View {
         onSignOut: @escaping () -> Void,
         onSelectProfile: @escaping (Profile) -> Void,
         onVoiceAISearchChange: @escaping (Bool) -> Void,
+        onAddProfile: @escaping () -> Void,
         onEditProfiles: @escaping () -> Void
     ) {
         self.activeProfile = activeProfile
@@ -39,6 +41,7 @@ struct SettingsView: View {
         self.onSignOut = onSignOut
         self.onSelectProfile = onSelectProfile
         self.onVoiceAISearchChange = onVoiceAISearchChange
+        self.onAddProfile = onAddProfile
         self.onEditProfiles = onEditProfiles
         _hasActiveSubscription = State(initialValue: AppEnvironment.Demo.hasActiveSubscription)
     }
@@ -410,10 +413,17 @@ struct SettingsView: View {
     }
 
     private var overlayLayer: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             if showsProfileSwitch || activeAudioSheet != nil {
-                Color.black.opacity(0.82)
+                ZStack {
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.28)
+
+                    Color.black.opacity(0.62)
+                }
                     .ignoresSafeArea()
+                    .transition(.opacity)
                     .onTapGesture {
                         showsProfileSwitch = false
                         activeAudioSheet = nil
@@ -428,12 +438,19 @@ struct SettingsView: View {
                         onSelectProfile(profile)
                         showsProfileSwitch = false
                     },
+                    onAddProfile: {
+                        showsProfileSwitch = false
+                        onAddProfile()
+                    },
                     onEditProfiles: {
                         showsProfileSwitch = false
                         onEditProfiles()
                     },
-                    onClose: nil
+                    onClose: {
+                        showsProfileSwitch = false
+                    }
                 )
+                .transition(.move(edge: .bottom))
             }
 
             if let sheet = activeAudioSheet {

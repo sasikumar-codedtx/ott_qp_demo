@@ -13,10 +13,7 @@ struct StorefrontPage: Equatable {
     let nextPage: Int
     let loadedCount: Int
     let totalCount: Int
-
-    var hasMore: Bool {
-        loadedCount < totalCount
-    }
+    let hasMore: Bool
 }
 
 struct StorefrontSectionPage: Equatable {

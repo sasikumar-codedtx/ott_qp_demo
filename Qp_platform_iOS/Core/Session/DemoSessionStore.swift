@@ -10,6 +10,7 @@ actor DemoSessionStore {
         static let preferenceHistoryByProfile = "sony.quickplay.demo.preference-history-by-profile"
         static let prefersVoiceAISearch = "sony.quickplay.demo.prefers-voice-ai"
         static let continueWatchingByProfile = "sony.quickplay.demo.continue-watching-by-profile"
+        static let favoritesByProfile = "sony.quickplay.demo.favorites-by-profile"
         static let hasCompletedLogin = "sony.quickplay.demo.has-completed-login"
     }
 
@@ -22,6 +23,7 @@ actor DemoSessionStore {
     private var preferenceHistoryByProfile: [String: [String]]
     private var prefersVoiceAISearch: Bool
     private var continueWatchingByProfile: [String: [StorefrontItem]]
+    private var favoritesByProfile: [String: [StorefrontItem]]
 
     init() {
         if
@@ -50,6 +52,12 @@ actor DemoSessionStore {
         } else {
             continueWatchingByProfile = [:]
         }
+        if let data = UserDefaults.standard.data(forKey: StorageKey.favoritesByProfile),
+           let stored = try? JSONDecoder().decode([String: [StorefrontItem]].self, from: data) {
+            favoritesByProfile = stored
+        } else {
+            favoritesByProfile = [:]
+        }
 
         if UserDefaults.standard.object(forKey: StorageKey.prefersVoiceAISearch) != nil {
             prefersVoiceAISearch = UserDefaults.standard.bool(forKey: StorageKey.prefersVoiceAISearch)
@@ -63,11 +71,18 @@ actor DemoSessionStore {
         activeCohort = cohort
         activePreference = preference
         print(
-            "[DemoSessionStore] setActiveProfileContext profileID=\(activeProfileID ?? "<nil>"), selectedCohort=\(cohort.rawValue), selectedPreference=\(preference.rawValue), expectedStorefrontID=\(cohort.storefrontID)"
+            "[DemoSessionStore] setActiveProfileContext profileID=\(activeProfileID ?? "<nil>"), selectedCohort=\(cohort.rawValue), selectedPreference=\(preference.rawValue), pf=\(cohort.profileFlag)"
         )
         UserDefaults.standard.set(activeProfileID, forKey: StorageKey.activeProfileID)
         UserDefaults.standard.set(cohort.rawValue, forKey: StorageKey.activeCohort)
         UserDefaults.standard.set(preference.rawValue, forKey: StorageKey.activePreference)
+    }
+
+    func resetPreferenceHistory(for profileID: UUID?) {
+        guard let profileID else { return }
+        preferenceHistoryByProfile[profileID.uuidString] = []
+        UserDefaults.standard.set(preferenceHistoryByProfile, forKey: StorageKey.preferenceHistoryByProfile)
+        print("[DemoSessionStore] resetPreferenceHistory profileID=\(profileID.uuidString)")
     }
 
     func clearActiveProfileContext() {
@@ -132,6 +147,32 @@ actor DemoSessionStore {
         Array((continueWatchingByProfile[historyKey] ?? []).prefix(limit))
     }
 
+    func favoriteItems(limit: Int = 20) -> [StorefrontItem] {
+        Array((favoritesByProfile[historyKey] ?? []).prefix(limit))
+    }
+
+    func favoriteIDs() -> Set<String> {
+        Set((favoritesByProfile[historyKey] ?? []).map(\.id))
+    }
+
+    func toggleFavorite(_ item: StorefrontItem) -> Bool {
+        var items = favoritesByProfile[historyKey] ?? []
+        if let existingIndex = items.firstIndex(where: { $0.id == item.id }) {
+            items.remove(at: existingIndex)
+            favoritesByProfile[historyKey] = items
+            persistFavorites()
+            return false
+        }
+
+        items.insert(item, at: 0)
+        if items.count > maxHistoryCount {
+            items.removeLast(items.count - maxHistoryCount)
+        }
+        favoritesByProfile[historyKey] = items
+        persistFavorites()
+        return true
+    }
+
     func currentCohort() -> QuickplayCohort {
         guard activeCohort != .kids else { return .kids }
 
@@ -190,5 +231,10 @@ actor DemoSessionStore {
     private func persistContinueWatching() {
         guard let data = try? JSONEncoder().encode(continueWatchingByProfile) else { return }
         UserDefaults.standard.set(data, forKey: StorageKey.continueWatchingByProfile)
+    }
+
+    private func persistFavorites() {
+        guard let data = try? JSONEncoder().encode(favoritesByProfile) else { return }
+        UserDefaults.standard.set(data, forKey: StorageKey.favoritesByProfile)
     }
 }

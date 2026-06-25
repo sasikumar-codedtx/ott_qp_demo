@@ -7,6 +7,23 @@ struct StorefrontSection: Identifiable, Equatable, Hashable {
     let ratio: String
     let items: [StorefrontItem]
     let isHero: Bool
+    let backgroundImageURL: URL?
+
+    init(
+        id: String,
+        title: String,
+        ratio: String,
+        items: [StorefrontItem],
+        isHero: Bool,
+        backgroundImageURL: URL? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.ratio = ratio
+        self.items = items
+        self.isHero = isHero
+        self.backgroundImageURL = backgroundImageURL
+    }
 
     func cardStyle(isHomeTab: Bool, cohort: QuickplayCohort) -> StorefrontCardStyle {
         if isHero {
@@ -84,7 +101,7 @@ enum StorefrontCardStyle {
             return StorefrontCardLayout(size: CGSize(width: 349, height: 420), overlayHeight: 0, visibleCount: 1)
         case .landscape:
             let visibleCount = 2
-            let width = max((containerWidth - UIConstants.Spacing.md) / CGFloat(visibleCount), 172)
+            let width = max((containerWidth - StorefrontRailMetrics.cardGap) / CGFloat(visibleCount), 172)
             return StorefrontCardLayout(
                 size: CGSize(width: width, height: width / max(ratio, 1.0)),
                 overlayHeight: max(42, width * 0.3),
@@ -92,7 +109,7 @@ enum StorefrontCardStyle {
             )
         case .poster:
             let visibleCount = 3
-            let totalSpacing = UIConstants.Spacing.md * CGFloat(visibleCount - 1)
+            let totalSpacing = StorefrontRailMetrics.cardGap * CGFloat(visibleCount - 1)
             let width = max((containerWidth - totalSpacing) / CGFloat(visibleCount), 108)
             return StorefrontCardLayout(
                 size: CGSize(width: width, height: width / max(ratio, 0.01)),
@@ -100,13 +117,19 @@ enum StorefrontCardStyle {
                 visibleCount: visibleCount
             )
         case .square:
-            let width = max((containerWidth - (UIConstants.Spacing.md * 2)) / 3, 108)
+            let width = max((containerWidth - (StorefrontRailMetrics.cardGap * 2)) / 3, 108)
             return StorefrontCardLayout(size: CGSize(width: width, height: width), overlayHeight: 0, visibleCount: 3)
         case .short:
-            let width = max((containerWidth - UIConstants.Spacing.md) / 2, 168)
+            let width = max((containerWidth - StorefrontRailMetrics.cardGap) / 2, 168)
             return StorefrontCardLayout(size: CGSize(width: width, height: width / max(ratio, 0.01)), overlayHeight: 0, visibleCount: 2)
         }
     }
+}
+
+enum StorefrontRailMetrics {
+    static let headerToCardsGap: CGFloat = 8
+    static let cardGap: CGFloat = 4
+    static let cardCornerRadius: CGFloat = 8
 }
 
 struct StorefrontCardLayout {

@@ -22,7 +22,7 @@ final class ProfileHubViewModel: ObservableObject {
     }
 
     var displayedProfileImageName: String? {
-        ProfileArtworkResolver.randomizedImageName(forName: displayedProfileName)
+        selectedProfile?.imageName ?? ProfileArtworkResolver.randomizedImageName(forName: displayedProfileName)
     }
 
     var leadingSection: StorefrontSection? {
@@ -40,6 +40,9 @@ final class ProfileHubViewModel: ObservableObject {
         sections = []
         errorMessage = nil
         hasLoaded = false
+        print(
+            "[ProfileHub] present profile=\(profile?.name ?? "<nil>"), profileID=\(profile?.id.uuidString ?? "<nil>"), preference=\(profile?.preference.rawValue ?? "<nil>"), cohort=\(profile?.quickplayCohort.rawValue ?? "<nil>"), seedCount=\(seedItems.count)"
+        )
     }
 
     func loadIfNeeded() async {

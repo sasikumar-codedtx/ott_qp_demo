@@ -11,7 +11,7 @@ struct BottomNavigationBar: View {
     private enum Metrics {
         static let idealWidth: CGFloat = 380
         static let horizontalInset: CGFloat = 16
-        static let height: CGFloat = 58
+        static let height: CGFloat = 61
         static let rowHeight: CGFloat = 42
         static let itemWidth: CGFloat = 48
         static let iconSize: CGFloat = 24
@@ -42,7 +42,7 @@ struct BottomNavigationBar: View {
             barContent(rowWidth: rowWidth)
                 .frame(width: rowWidth, height: Metrics.rowHeight)
                 .padding(.horizontal, Metrics.horizontalInset)
-                .padding(.top, 8)
+                .padding(.top, 10)
                 .frame(width: chromeWidth, height: Metrics.height, alignment: .top)
                 .background(barBackground)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -78,22 +78,22 @@ struct BottomNavigationBar: View {
     private func navItem(assetName: String, label: String, isSelected: Bool) -> some View {
         ZStack(alignment: .top) {
             selectedIndicator(isSelected: isSelected)
-                .offset(y: 32)
+                .offset(y: 36)
 
             VStack(spacing: 6) {
                 Image(assetName)
-                    .renderingMode(.template)
+                    .renderingMode(.original)
                     .resizable()
                     .scaledToFit()
-                    .foregroundStyle(isSelected ? selectedColor : inactiveColor)
                     .frame(width: Metrics.iconSize, height: Metrics.iconSize)
+                    .opacity(isSelected ? 1.0 : 0.55)
 
                 Text(label)
-                    .font(.system(size: 12, weight: isSelected ? .semibold : .medium))
+                    .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
+                    .tracking(0.48)
                     .foregroundStyle(isSelected ? selectedColor : inactiveColor)
                     .lineLimit(1)
                     .minimumScaleFactor(0.58)
-                    .frame(width: labelWidth(for: label), height: 12)
             }
         }
         .frame(width: Metrics.itemWidth, height: Metrics.rowHeight, alignment: .top)
@@ -106,6 +106,7 @@ struct BottomNavigationBar: View {
                     if let profileImageName {
                         ProfileAvatarView(imageName: profileImageName, fallbackGlyph: "P", size: Metrics.iconSize)
                             .frame(width: Metrics.iconSize, height: Metrics.iconSize)
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                     } else {
                         Image(systemName: AppIcons.Navigation.profile)
                             .font(.system(size: 23, weight: .medium))
@@ -114,11 +115,11 @@ struct BottomNavigationBar: View {
                     }
 
                     Text(AppStrings.Common.mySpace)
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 12, weight: .regular))
+                        .tracking(0.48)
                         .foregroundStyle(inactiveColor)
                         .lineLimit(1)
                         .minimumScaleFactor(0.58)
-                        .frame(width: labelWidth(for: AppStrings.Common.mySpace), height: 12)
                 }
             }
             .frame(width: Metrics.itemWidth, height: Metrics.rowHeight, alignment: .top)
@@ -129,69 +130,43 @@ struct BottomNavigationBar: View {
     }
 
     private func selectedIndicator(isSelected: Bool) -> some View {
-        ZStack {
-            Capsule(style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color(hex: "F7C638").opacity(0.95),
-                            Color(hex: "FF7A00").opacity(0.42),
-                            Color.clear
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .frame(width: Metrics.selectedGlowWidth, height: Metrics.selectedGlowHeight)
-                .blur(radius: 4)
-
-            Capsule(style: .continuous)
-                .fill(Color(hex: "F6D45A"))
-                .frame(width: 18, height: 2)
-                .offset(y: 5)
-        }
-        .opacity(isSelected ? 1 : 0)
-        .accessibilityHidden(true)
-    }
-
-    private func labelWidth(for label: String) -> CGFloat {
-        switch label {
-        case AppStrings.Common.hot:
-            return 62
-        case AppStrings.Common.mySpace:
-            return 58
-        default:
-            return 48
-        }
+        RoundedRectangle(cornerRadius: 8)
+            .fill(Color(hex: "DAB316"))
+            .frame(width: Metrics.selectedGlowWidth, height: Metrics.selectedGlowHeight)
+            .blur(radius: 6)
+            .opacity(isSelected ? 0.5 : 0)
+            .accessibilityHidden(true)
     }
 
     private var selectedColor: Color {
-        Color(hex: "F3D53F")
+        Color(hex: "DAB316")
     }
 
     private var inactiveColor: Color {
-        Color(hex: "B7B7B7")
+        Color(hex: "B4B4B4")
     }
 }
 
 private struct BottomNavigationSurface: View {
     var body: some View {
         Capsule(style: .continuous)
-            .fill(Color(hex: "3A3A3A").opacity(0.78))
+            .fill(.ultraThinMaterial)
+            .overlay(
+                Capsule(style: .continuous)
+                    .fill(Color.black.opacity(0.6))
+            )
             .overlay(
                 LinearGradient(
-                    colors: [
-                        Color.white.opacity(0.18),
-                        Color.white.opacity(0.06),
-                        Color.black.opacity(0.28)
+                    stops: [
+                        .init(color: Color.white.opacity(0.05), location: 0),
+                        .init(color: Color(hex: "FF8100").opacity(0.05), location: 1)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
                 )
                 .clipShape(Capsule(style: .continuous))
             )
-            .overlay(Capsule(style: .continuous).stroke(Color.white.opacity(0.22), lineWidth: 1))
-            .shadow(color: Color.black.opacity(0.34), radius: 12, x: 0, y: 5)
+            .overlay(Capsule(style: .continuous).stroke(Color.white.opacity(0.1), lineWidth: 1))
     }
 }
 

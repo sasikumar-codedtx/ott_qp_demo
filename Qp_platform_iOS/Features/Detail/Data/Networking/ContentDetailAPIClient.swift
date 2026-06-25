@@ -56,4 +56,49 @@ struct ContentDetailAPIClient {
             throw AppError.decodingFailed
         }
     }
+
+    func searchMoments(contentID: String, term: String) async throws -> SearchResponseDTO {
+        let config = await configStore.current(using: networkClient)
+        guard let request = ContentDetailRouter.momentSearchRequest(contentID: contentID, term: term, config: config) else {
+            throw AppError.invalidURL
+        }
+
+        print("🔥🔥🔥🔥🔥 MOMENTS SEARCH REQUEST 🔥🔥🔥🔥🔥")
+        print(request.url?.absoluteString ?? "invalid-url")
+
+        let data = try await networkClient.data(for: request)
+        do {
+            let response = try JSONDecoder().decode(SearchResponseDTO.self, from: data)
+            print("🔥🔥🔥🔥🔥 MOMENTS SEARCH RESPONSE 🔥🔥🔥🔥🔥")
+            print("response -> \(response.header.code) \(response.header.message)")
+            print("data count -> \(response.data.count)")
+            print("🔥🔥🔥🔥🔥 END MOMENTS SEARCH 🔥🔥🔥🔥🔥")
+            return response
+        } catch {
+            throw AppError.decodingFailed
+        }
+    }
+
+    func fetchEpisodes(seriesID: String) async throws -> ContentDetailResponseDTO {
+        let config = await configStore.current(using: networkClient)
+        let cohort = await DemoSessionStore.shared.currentCohort()
+        guard let request = ContentDetailRouter.episodesRequest(seriesID: seriesID, config: config, cohort: cohort) else {
+            throw AppError.invalidURL
+        }
+
+        print("🔥🔥🔥🔥🔥 EPISODES REQUEST 🔥🔥🔥🔥🔥")
+        print(request.url?.absoluteString ?? "invalid-url")
+
+        let data = try await networkClient.data(for: request)
+        do {
+            let response = try JSONDecoder().decode(ContentDetailResponseDTO.self, from: data)
+            print("🔥🔥🔥🔥🔥 EPISODES RESPONSE 🔥🔥🔥🔥🔥")
+            print("response -> \(response.header.code) \(response.header.message)")
+            print("data count -> \(response.data.count)")
+            print("🔥🔥🔥🔥🔥 END EPISODES 🔥🔥🔥🔥🔥")
+            return response
+        } catch {
+            throw AppError.decodingFailed
+        }
+    }
 }

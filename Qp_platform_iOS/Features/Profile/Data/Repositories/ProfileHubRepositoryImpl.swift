@@ -3,6 +3,7 @@ import Foundation
 final class ProfileHubRepositoryImpl: ProfileHubRepository {
     func fetchHome(profile: Profile?, seedItems: [StorefrontItem]) async throws -> ProfileHomeData {
         let continueWatchingItems = await DemoSessionStore.shared.continueWatchingItems(limit: 10)
+        let persistedFavorites = await DemoSessionStore.shared.favoriteItems(limit: 10)
         let sourceItems: [StorefrontItem]
         if profile?.isKidsProfile == true {
             sourceItems = seedItems.filter { $0.availableRatios.contains("0-1x1") || $0.availableRatios.contains("0-2x3") }
@@ -12,7 +13,7 @@ final class ProfileHubRepositoryImpl: ProfileHubRepository {
 
         return ProfileHomeData(
             continueWatching: DemoRailComposer.continueWatching(from: continueWatchingItems),
-            favorites: buildFavoritesMock(from: sourceItems),
+            favorites: persistedFavorites.isEmpty ? buildFavoritesMock(from: sourceItems) : persistedFavorites,
             recommendations: DemoRailComposer.recommendations(from: sourceItems)
         )
     }

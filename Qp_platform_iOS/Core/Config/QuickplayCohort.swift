@@ -21,23 +21,14 @@ enum QuickplayCohort: String, Codable, CaseIterable, Hashable {
 
     nonisolated var profileFlag: String {
         switch self {
-        case .entertainment, .realityShows:
+        case .entertainment:
             return "regular"
         case .sports:
-            return "preschool"
+            return "kids"
+        case .realityShows:
+            return "Preschool"
         case .kids:
             return "kids"
-        }
-    }
-
-    nonisolated var storefrontID: String {
-        switch self {
-        case .entertainment:
-            return "EBFB096C-CA11-4E32-A231-8A7FA15B5E13"
-        case .sports:
-            return "DCBF412C-437B-404F-BE31-F18D7F4BEB87"
-        case .realityShows, .kids:
-            return "383C7B3E-0BC0-4629-B80C-BC074EA96753"
         }
     }
 }

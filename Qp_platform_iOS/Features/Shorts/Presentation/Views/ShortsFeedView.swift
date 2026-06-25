@@ -5,6 +5,7 @@ import UIKit
 struct ShortsTabView: View {
     @ObservedObject var viewModel: ShortsFeedViewModel
     let profileName: String
+    let profileImageName: String?
     let onOpenHome: () -> Void
     let onOpenSearch: () -> Void
     let onOpenHot: () -> Void
@@ -13,28 +14,33 @@ struct ShortsTabView: View {
     private let bottomBarClearance: CGFloat = 108
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Color.black.ignoresSafeArea()
+        GeometryReader { proxy in
+            ZStack(alignment: .bottom) {
+                Color.black.ignoresSafeArea()
 
-            if viewModel.isLoadingInitial && viewModel.visiblePosts.isEmpty {
-                LoadingView()
-            } else if let errorMessage = viewModel.errorMessage, viewModel.visiblePosts.isEmpty {
-                ErrorView(title: "Shorts unavailable", message: errorMessage, onRetry: {
-                    Task { await viewModel.reload() }
-                })
-            } else {
-                ShortsFeedView(viewModel: viewModel, bottomBarClearance: bottomBarClearance)
+                if viewModel.isLoadingInitial && viewModel.visiblePosts.isEmpty {
+                    LoadingView()
+                } else if let errorMessage = viewModel.errorMessage, viewModel.visiblePosts.isEmpty {
+                    ErrorView(title: "Shorts unavailable", message: errorMessage, onRetry: {
+                        Task { await viewModel.reload() }
+                    })
+                } else {
+                    ShortsFeedView(viewModel: viewModel, bottomBarClearance: bottomBarClearance)
+                }
+
+                BottomNavigationBar(
+                    selection: .shorts,
+                    profileImageName: profileImageName,
+                    onHomeTap: onOpenHome,
+                    onSearchTap: onOpenSearch,
+                    onShortsTap: {},
+                    onHotTap: onOpenHot,
+                    onProfileTap: onProfileTap
+                )
+                .padding(.bottom, max(proxy.safeAreaInsets.bottom - 12, 0))
+                .ignoresSafeArea(.container, edges: .bottom)
             }
-
-            BottomNavigationBar(
-                selection: .shorts,
-                profileImageName: ProfileArtworkResolver.imageName(forName: profileName),
-                onHomeTap: onOpenHome,
-                onSearchTap: onOpenSearch,
-                onShortsTap: {},
-                onHotTap: onOpenHot,
-                onProfileTap: onProfileTap
-            )
+            .ignoresSafeArea(edges: .bottom)
         }
     }
 }

@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import UIKit
 
 @MainActor
 final class StorefrontViewModel: ObservableObject {
@@ -11,6 +12,8 @@ final class StorefrontViewModel: ObservableObject {
     @Published private(set) var isLoadingMore = false
     @Published private(set) var isRefreshing = false
     @Published private(set) var errorMessage: String?
+    @Published private(set) var scrollToTopToken = UUID()
+    @Published private(set) var favoriteIDs: Set<String> = []
 
     private let initialUseCase: GetInitialStorefrontUseCase
     private let pageUseCase: GetStorefrontPageUseCase
@@ -42,18 +45,29 @@ final class StorefrontViewModel: ObservableObject {
     var demoHeroVariant: StorefrontHeroVariant {
         let normalizedTitle = selectedTabTitle.lowercased()
 
-        if activeCohort == .sports || normalizedTitle.contains("sport") {
+        if normalizedTitle.contains("sport") {
             return .stackedSports
         }
 
-        if activeCohort == .realityShows ||
-            normalizedTitle.contains("reality") ||
-            normalizedTitle.contains("show")
-        {
+        if normalizedTitle.contains("enter") {
             return .immersive
         }
 
         return .carousel
+    }
+
+    var heroPresentationCohort: QuickplayCohort {
+        let normalizedTitle = selectedTabTitle.lowercased()
+
+        if normalizedTitle.contains("sport") {
+            return .sports
+        }
+
+        if normalizedTitle.contains("enter") {
+            return .entertainment
+        }
+
+        return activeCohort
     }
 
     var searchSeedItems: [StorefrontItem] {
@@ -64,12 +78,12 @@ final class StorefrontViewModel: ObservableObject {
 
     func loadInitialIfNeeded() async {
         guard tabs.isEmpty, !isInitialLoading else { return }
-        await load(storefrontID: initialStorefrontID, tabID: nil, pageNumber: 1, append: false, preserveVisibleContent: false)
+        await load(storefrontID: storefrontID ?? initialStorefrontID, tabID: nil, pageNumber: 1, append: false, preserveVisibleContent: false)
     }
 
     func reloadInitial(force: Bool = false) async {
         guard force || !isInitialLoading else { return }
-        await load(storefrontID: initialStorefrontID, tabID: nil, pageNumber: 1, append: false, preserveVisibleContent: false)
+        await load(storefrontID: storefrontID ?? initialStorefrontID, tabID: nil, pageNumber: 1, append: false, preserveVisibleContent: false)
     }
 
     func applyProfile(_ profile: Profile?, forceReset: Bool = false) {
@@ -78,24 +92,46 @@ final class StorefrontViewModel: ObservableObject {
         activeProfileID = nextProfileID
         activeCohort = fixedCohort ?? profile?.quickplayCohort ?? .entertainment
         print(
-            "[StorefrontViewModel] applyProfile profile=\(profile?.name ?? "<nil>"), profileID=\(nextProfileID?.uuidString ?? "<nil>"), fixedCohort=\(fixedCohort?.rawValue ?? "<nil>"), activeCohort=\(activeCohort.rawValue), expectedStorefrontID=\(activeCohort.storefrontID), forceReset=\(forceReset)"
+            "[StorefrontViewModel] applyProfile profile=\(profile?.name ?? "<nil>"), profileID=\(nextProfileID?.uuidString ?? "<nil>"), fixedCohort=\(fixedCohort?.rawValue ?? "<nil>"), activeCohort=\(activeCohort.rawValue), pf=\(activeCohort.profileFlag), forceReset=\(forceReset)"
         )
         tabs = []
         selectedTabID = nil
         sections = []
+        scrollToTopToken = UUID()
+        isInitialLoading = true
+        isRefreshing = false
+        isLoadingMore = false
         storefrontID = initialStorefrontID
         tabCache = [:]
         errorMessage = nil
+        Task {
+            await refreshFavorites()
+        }
+    }
+
+    func refreshFavorites() async {
+        favoriteIDs = await DemoSessionStore.shared.favoriteIDs()
+    }
+
+    func toggleFavorite(_ item: StorefrontItem) async {
+        let isFavorite = await DemoSessionStore.shared.toggleFavorite(item)
+        if isFavorite {
+            favoriteIDs.insert(item.id)
+        } else {
+            favoriteIDs.remove(item.id)
+        }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
     func selectTab(_ tab: StorefrontTab) async {
         guard selectedTabID != tab.id || sections.isEmpty else { return }
+        scrollToTopToken = UUID()
 
         if let cached = tabCache[tab.id] {
             selectedTabID = cached.selectedTabID
             sections = cached.sections
             errorMessage = nil
-            await load(storefrontID: storefrontID, tabID: tab.id, pageNumber: 1, append: false, preserveVisibleContent: true)
+            await load(storefrontID: storefrontID, tabID: tab.id, pageNumber: 1, append: false, preserveVisibleContent: false)
             return
         }
 
@@ -138,7 +174,7 @@ final class StorefrontViewModel: ObservableObject {
             activeCohort = await DemoSessionStore.shared.currentCohort()
         }
         print(
-            "[StorefrontViewModel] load activeCohort=\(activeCohort.rawValue), expectedStorefrontID=\(activeCohort.storefrontID), storefrontID=\(storefrontID ?? "<nil>"), tabID=\(tabID ?? "<nil>"), page=\(pageNumber), append=\(append), preserveVisibleContent=\(preserveVisibleContent)"
+            "[StorefrontViewModel] load activeCohort=\(activeCohort.rawValue), pf=\(activeCohort.profileFlag), storefrontID=\(storefrontID ?? "<nil>"), tabID=\(tabID ?? "<nil>"), page=\(pageNumber), append=\(append), preserveVisibleContent=\(preserveVisibleContent)"
         )
 
         if append {
@@ -168,6 +204,21 @@ final class StorefrontViewModel: ObservableObject {
             self.storefrontID = page.storefrontID
             tabs = page.tabs
 
+            if
+                !append,
+                tabID == nil,
+                let preferredInitialTabTitle,
+                let preferredTab = tabs.first(where: { $0.title.caseInsensitiveCompare(preferredInitialTabTitle) == .orderedSame }),
+                preferredTab.id != page.selectedTabID
+            {
+                tabCache[page.selectedTabID] = page
+                selectedTabID = preferredTab.id
+                sections = []
+                errorMessage = nil
+                await load(storefrontID: page.storefrontID, tabID: preferredTab.id, pageNumber: 1, append: false, preserveVisibleContent: false)
+                return
+            }
+
             let combinedSections: [StorefrontSection]
             if append, let cached = tabCache[page.selectedTabID] {
                 combinedSections = deduplicatedSections(cached.sections + page.sections)
@@ -182,7 +233,8 @@ final class StorefrontViewModel: ObservableObject {
                 sections: combinedSections,
                 nextPage: page.nextPage,
                 loadedCount: page.loadedCount,
-                totalCount: page.totalCount
+                totalCount: page.totalCount,
+                hasMore: page.hasMore
             )
 
             tabCache[page.selectedTabID] = mergedPage
@@ -193,15 +245,6 @@ final class StorefrontViewModel: ObservableObject {
                 "[StorefrontViewModel] loaded page storefrontID=\(page.storefrontID), selectedTabID=\(page.selectedTabID), tabs=\(tabs.map(\.title)), sections=\(combinedSections.map { "\($0.title)(\($0.items.count))" })"
             )
 
-            if
-                !append,
-                tabID == nil,
-                let preferredInitialTabTitle,
-                let preferredTab = tabs.first(where: { $0.title.caseInsensitiveCompare(preferredInitialTabTitle) == .orderedSame }),
-                preferredTab.id != page.selectedTabID
-            {
-                await selectTab(preferredTab)
-            }
         } catch {
             errorMessage = error.localizedDescription
         }

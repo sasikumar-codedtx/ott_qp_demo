@@ -79,6 +79,7 @@ struct AppRootView: View {
                     viewModel: viewModel.storefrontViewModel,
                     bottomSelection: .home,
                     profileName: viewModel.activeProfile?.name ?? "Default",
+                    profileImageName: ProfileArtworkResolver.imageName(for: viewModel.activeProfile),
                     onSelectItem: { item in
                         viewModel.openContent(item: item)
                     },
@@ -99,6 +100,10 @@ struct AppRootView: View {
                     },
                     onViewAllSection: { section in
                         viewModel.openSectionBrowse(section: section, cohort: viewModel.storefrontViewModel.activeCohort)
+                    },
+                    hidesFirstStorefrontTabInDock: true,
+                    onOpenStorefrontTab: { tab in
+                        viewModel.openStorefrontTab(tab)
                     }
                 )
             }
@@ -108,6 +113,7 @@ struct AppRootView: View {
                     viewModel: viewModel.hotStorefrontViewModel,
                     bottomSelection: .hot,
                     profileName: viewModel.activeProfile?.name ?? "Default",
+                    profileImageName: ProfileArtworkResolver.imageName(for: viewModel.activeProfile),
                     onSelectItem: { item in
                         viewModel.openContent(item: item)
                     },
@@ -152,6 +158,7 @@ struct AppRootView: View {
             ShortsTabView(
                 viewModel: viewModel.shortsViewModel,
                 profileName: viewModel.activeProfile?.name ?? "Default",
+                profileImageName: ProfileArtworkResolver.imageName(for: viewModel.activeProfile),
                 onOpenHome: {
                     viewModel.openStorefront()
                 },
@@ -260,6 +267,12 @@ struct AppRootView: View {
                     onSwitchProfile: {
                         viewModel.openProfileSelection()
                     },
+                    onAddProfile: {
+                        viewModel.openProfileEditor(nil)
+                    },
+                    onEditProfiles: {
+                        viewModel.openProfileEditor(viewModel.activeProfile ?? viewModel.profileSelectionViewModel.defaultEditableProfile)
+                    },
                     onSelectProfile: { profile in
                         viewModel.switchActiveProfileAndOpenStorefront(profile)
                     },
@@ -288,10 +301,13 @@ struct AppRootView: View {
                         viewModel.signOut()
                     },
                     onSelectProfile: { profile in
-                        viewModel.switchActiveProfile(profile)
+                        viewModel.switchActiveProfileAndOpenStorefront(profile)
                     },
                     onVoiceAISearchChange: { isEnabled in
                         viewModel.setPrefersVoiceAISearch(isEnabled)
+                    },
+                    onAddProfile: {
+                        viewModel.openProfileEditor(nil)
                     },
                     onEditProfiles: {
                         viewModel.openProfileEditor(viewModel.profileSelectionViewModel.defaultEditableProfile)
@@ -299,6 +315,39 @@ struct AppRootView: View {
                 )
             }
             .routeNavigationChrome(showsNavigationBar: false)
+        case .storefrontTab(let tab):
+            surface(style: .storefront) {
+                StorefrontTabRouteView(
+                    tab: tab,
+                    activeProfile: viewModel.activeProfile,
+                    onSelectItem: { item in
+                        viewModel.openContent(item: item)
+                    },
+                    onOpenHome: {
+                        viewModel.openStorefront()
+                    },
+                    onOpenSearch: {
+                        viewModel.openSearch()
+                    },
+                    onOpenShorts: {
+                        viewModel.openShorts()
+                    },
+                    onOpenHot: {
+                        viewModel.openHotTab()
+                    },
+                    onProfileTap: {
+                        viewModel.openProfileHome()
+                    },
+                    onViewAllSection: { section in
+                        viewModel.openSectionBrowse(section: section, cohort: viewModel.storefrontViewModel.activeCohort)
+                    },
+                    onOpenStorefrontTab: { nextTab in
+                        viewModel.openStorefrontTab(nextTab)
+                    }
+                )
+            }
+            .routeNavigationChrome(showsNavigationBar: false)
+            .routeNavigationOverlay(title: tab.title, onBack: viewModel.popRoute)
         case .detail:
             surface(style: .storefront) {
                 ContentDetailView(
@@ -341,6 +390,78 @@ struct AppRootView: View {
         ZStack {
             AppBackgroundView(style: style)
             content()
+        }
+    }
+}
+
+private struct StorefrontTabRouteView: View {
+    let tab: StorefrontTab
+    let activeProfile: Profile?
+    let onSelectItem: (StorefrontItem) -> Void
+    let onOpenHome: () -> Void
+    let onOpenSearch: () -> Void
+    let onOpenShorts: () -> Void
+    let onOpenHot: () -> Void
+    let onProfileTap: () -> Void
+    let onViewAllSection: (StorefrontSection) -> Void
+    let onOpenStorefrontTab: (StorefrontTab) -> Void
+    @StateObject private var tabViewModel: StorefrontViewModel
+
+    init(
+        tab: StorefrontTab,
+        activeProfile: Profile?,
+        onSelectItem: @escaping (StorefrontItem) -> Void,
+        onOpenHome: @escaping () -> Void,
+        onOpenSearch: @escaping () -> Void,
+        onOpenShorts: @escaping () -> Void,
+        onOpenHot: @escaping () -> Void,
+        onProfileTap: @escaping () -> Void,
+        onViewAllSection: @escaping (StorefrontSection) -> Void,
+        onOpenStorefrontTab: @escaping (StorefrontTab) -> Void
+    ) {
+        self.tab = tab
+        self.activeProfile = activeProfile
+        self.onSelectItem = onSelectItem
+        self.onOpenHome = onOpenHome
+        self.onOpenSearch = onOpenSearch
+        self.onOpenShorts = onOpenShorts
+        self.onOpenHot = onOpenHot
+        self.onProfileTap = onProfileTap
+        self.onViewAllSection = onViewAllSection
+        self.onOpenStorefrontTab = onOpenStorefrontTab
+        let container = AppContainer.shared
+        _tabViewModel = StateObject(
+            wrappedValue: StorefrontViewModel(
+                initialUseCase: GetInitialStorefrontUseCase(repository: container.storefrontRepository),
+                pageUseCase: GetStorefrontPageUseCase(repository: container.storefrontRepository),
+                preferredInitialTabTitle: tab.title
+            )
+        )
+    }
+
+    var body: some View {
+        StorefrontView(
+            viewModel: tabViewModel,
+            bottomSelection: .home,
+            profileName: activeProfile?.name ?? "Default",
+            profileImageName: ProfileArtworkResolver.imageName(for: activeProfile),
+            onSelectItem: onSelectItem,
+            onOpenHome: onOpenHome,
+            onOpenSearch: onOpenSearch,
+            onOpenShorts: onOpenShorts,
+            onOpenHot: onOpenHot,
+            onProfileTap: onProfileTap,
+            onViewAllSection: onViewAllSection,
+            hidesFirstStorefrontTabInDock: true,
+            showsStorefrontHeader: false,
+            showsBottomChrome: false,
+            loadsInitialOnAppear: false,
+            additionalTopChromeHeight: 58,
+            onOpenStorefrontTab: onOpenStorefrontTab
+        )
+        .task(id: activeProfile?.id) {
+            tabViewModel.applyProfile(activeProfile, forceReset: true)
+            await tabViewModel.reloadInitial(force: true)
         }
     }
 }

@@ -1,9 +1,7 @@
 import Foundation
 
 nonisolated enum AppEnvironment {
-    static let webOrigin = "https://www.sonyliv.com"
-    static let webReferer = "https://www.sonyliv.com/"
-    static let userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+
     static let launchConfigURL = "https://config-service-cdn.cms-qp.opt.quickplay.com/launch/config"
 
     enum Quickplay {

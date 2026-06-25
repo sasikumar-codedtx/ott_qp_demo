@@ -6,22 +6,41 @@ struct ContentDetailView: View {
     let onPlay: (ContentDetail, StorefrontItem?) -> Void
     let onSelectRecommendation: (StorefrontItem) -> Void
     @State private var isDescriptionExpanded = false
+    @State private var isMomentSearchOverlayPresented = false
+    @State private var momentSearchDraft = ""
+    @State private var keyboardHeight: CGFloat = 0
+    @State private var momentAutoScrollToken = 0
+    @FocusState private var isMomentSearchFocused: Bool
 
     private let recommendationColumns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
-    private let detailTabs = [
-        AppStrings.Detail.moreLikeThis,
-        AppStrings.Detail.moments,
-        AppStrings.Detail.castAndMore
-    ]
-
+    private let momentColumns = [GridItem(.flexible(), spacing: 10)]
+    private let detailTabsAnchorID = "detail-tabs-anchor"
     var body: some View {
         GeometryReader { proxy in
-            content(width: proxy.size.width)
-                .ignoresSafeArea(edges: .top)
-                .task(id: viewModel.requestKey) {
-                    isDescriptionExpanded = false
-                    await viewModel.loadIfNeeded()
+            ZStack(alignment: .bottom) {
+                content(width: proxy.size.width)
+                    .ignoresSafeArea(edges: .top)
+
+                if let detail = viewModel.detail, isMomentSearchOverlayPresented {
+                    momentSearchOverlay(detail: detail, bottomInset: proxy.safeAreaInsets.bottom)
+                        .zIndex(20)
                 }
+            }
+            .ignoresSafeArea(.keyboard, edges: .bottom)
+            .animation(.easeInOut(duration: 0.22), value: isMomentSearchOverlayPresented)
+            .task(id: viewModel.requestKey) {
+                isDescriptionExpanded = false
+                dismissMomentSearchOverlay()
+                await viewModel.loadIfNeeded()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { notification in
+                updateKeyboardHeight(from: notification, containerHeight: proxy.size.height)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+                withAnimation(.easeOut(duration: 0.2)) {
+                    keyboardHeight = 0
+                }
+            }
         }
     }
 
@@ -31,19 +50,39 @@ struct ContentDetailView: View {
             ZStack(alignment: .top) {
                 Color(hex: "0A0A0A").ignoresSafeArea()
 
-                hero(detail, width: width)
-                    .frame(height: heroHeight(for: width))
-                    .frame(maxHeight: .infinity, alignment: .top)
+                ScrollViewReader { scrollProxy in
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            hero(detail, width: width)
+                                .frame(height: heroHeight(for: width))
 
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Spacer()
-                            .frame(height: max(heroHeight(for: width) - 64, 300))
-
-                        detailContent(detail, width: width)
+                            detailContent(detail, width: width)
+                                .padding(.horizontal, 16)
+                                .padding(.top, -64)
+                        }
+                        .padding(.bottom, 42)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 42)
+                    .ignoresSafeArea(edges: .top)
+                    .onChange(of: momentAutoScrollToken) { _, _ in
+                        guard viewModel.selectedTab == AppStrings.Detail.moments else { return }
+
+                        Task { @MainActor in
+                            try? await Task.sleep(for: .milliseconds(180))
+                            withAnimation(.easeInOut(duration: 0.72)) {
+                                scrollProxy.scrollTo(detailTabsAnchorID, anchor: .top)
+                            }
+                        }
+                    }
+                    .onChange(of: viewModel.momentResults.count) { _, count in
+                        guard count > 0, viewModel.selectedTab == AppStrings.Detail.moments else { return }
+
+                        Task { @MainActor in
+                            try? await Task.sleep(for: .milliseconds(240))
+                            withAnimation(.easeInOut(duration: 0.82)) {
+                                scrollProxy.scrollTo(detailTabsAnchorID, anchor: .top)
+                            }
+                        }
+                    }
                 }
             }
         } else if viewModel.isLoading {
@@ -94,9 +133,10 @@ struct ContentDetailView: View {
             watchButton(detail)
             descriptionBlock(detail)
             previewLabel(detail)
-            actionButtonRow
+            actionButtonRow(detail)
             sponsorRow(detail)
-            tabRow
+            tabRow(detail)
+                .id(detailTabsAnchorID)
             tabContent(detail, width: width)
         }
     }
@@ -179,14 +219,16 @@ struct ContentDetailView: View {
         }
     }
 
-    private var actionButtonRow: some View {
+    private func actionButtonRow(_ detail: ContentDetail) -> some View {
         HStack(spacing: 8) {
-            DetailActionButton(systemImage: "movieclapper", cornerStyle: .leading, action: {})
-            DetailActionButton(systemImage: AppIcons.Action.download, action: {})
-            DetailActionButton(systemImage: "bookmark.badge.plus", action: {})
-            DetailActionButton(systemImage: "hand.thumbsup", action: {})
-            DetailActionButton(systemImage: AppIcons.Action.share, iconSize: 22, action: {})
-            DetailActionButton(systemImage: AppIcons.Action.sparkles, cornerStyle: .trailing, isHighlighted: true, action: {})
+            DetailActionButton(assetImage: "clapperboard", cornerStyle: .leading, action: {})
+            DetailActionButton(assetImage: "download", action: {})
+            DetailActionButton(assetImage: "bookmark-plus", action: {})
+            DetailActionButton(assetImage: "thumbs-up-down", action: {})
+            DetailActionButton(assetImage: "share", iconSize: 22, action: {})
+            DetailActionButton(systemImage: AppIcons.Action.sparkles, cornerStyle: .trailing, isHighlighted: true) {
+                presentMomentSearchOverlay(for: detail)
+            }
         }
         .overlay(alignment: .bottomTrailing) {
             if viewModel.detail?.momentSearchEnabled == true {
@@ -211,6 +253,7 @@ struct ContentDetailView: View {
                 .fill(Color.white)
                 .shadow(color: Color.black.opacity(0.5), radius: 4, x: 0, y: 4)
         )
+        .allowsHitTesting(false)
     }
 
     private func sponsorRow(_ detail: ContentDetail) -> some View {
@@ -226,26 +269,44 @@ struct ContentDetailView: View {
         .frame(height: 30)
     }
 
-    private var tabRow: some View {
-        HStack(spacing: 0) {
-            ForEach(detailTabs, id: \.self) { tab in
-                Button {
-                    viewModel.selectedTab = tab
-                } label: {
-                    VStack(spacing: 13) {
-                        Text(tab)
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
+    private func detailTabs(for detail: ContentDetail) -> [String] {
+        var tabs = [
+            AppStrings.Detail.moreLikeThis,
+            AppStrings.Detail.moments
+        ]
 
-                        Rectangle()
-                            .fill(viewModel.selectedTab == tab ? Color.white : Color.clear)
-                            .frame(height: 1)
+        if detail.supportsEpisodes {
+            tabs.append(AppStrings.Detail.episodes)
+        }
+
+        tabs.append(AppStrings.Detail.castAndMore)
+        return tabs
+    }
+
+    private func tabRow(_ detail: ContentDetail) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 0) {
+                ForEach(detailTabs(for: detail), id: \.self) { tab in
+                    Button {
+                        selectTab(tab, detail: detail)
+                    } label: {
+                        VStack(spacing: 13) {
+                            Text(tab)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: false)
+
+                            Rectangle()
+                                .fill(viewModel.selectedTab == tab ? Color.white : Color.clear)
+                                .frame(height: 1)
+                        }
+                        .frame(minWidth: tab == AppStrings.Detail.moreLikeThis ? 118 : 92)
+                        .padding(.horizontal, 6)
+                        .padding(.top, 14)
                     }
-                    .padding(.horizontal, 13)
-                    .padding(.top, 14)
+                    .buttonStyle(LiquidButtonPressStyle())
                 }
-                .buttonStyle(LiquidButtonPressStyle())
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -258,6 +319,8 @@ struct ContentDetailView: View {
             recommendationSection(width: width)
         case AppStrings.Detail.moments:
             momentsSection(detail)
+        case AppStrings.Detail.episodes:
+            episodesSection(width: width)
         default:
             castSection(detail)
         }
@@ -298,18 +361,255 @@ struct ContentDetailView: View {
 
     private func momentsSection(_ detail: ContentDetail) -> some View {
         VStack(alignment: .leading, spacing: UIConstants.Spacing.md) {
-            Text("Search exact scenes, songs, and standout moments from \(detail.title).")
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.76))
+            if detail.momentSearchEnabled {
+                Text("Explore related moments")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.top, 4)
 
-            Text(detail.momentSearchEnabled ? AppStrings.Detail.notReady : AppStrings.Detail.notAvailable)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
-                .padding(UIConstants.Spacing.lg)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(LiquidGlassBackground(cornerRadius: UIConstants.CornerRadius.lg, tone: .dark))
+                momentResultsContent
+            } else {
+                Text(AppStrings.Detail.notAvailable)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(UIConstants.Spacing.lg)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(LiquidGlassBackground(cornerRadius: UIConstants.CornerRadius.lg, tone: .dark))
+            }
         }
         .padding(.top, 8)
+    }
+
+    private func selectTab(_ tab: String, detail: ContentDetail) {
+        viewModel.selectTab(tab)
+        guard tab == AppStrings.Detail.moments,
+              detail.momentSearchEnabled,
+              viewModel.momentResults.isEmpty,
+              viewModel.momentQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return
+        }
+
+        presentMomentSearchOverlay(for: detail)
+    }
+
+    private func presentMomentSearchOverlay(for detail: ContentDetail) {
+        guard detail.momentSearchEnabled else { return }
+        viewModel.selectTab(AppStrings.Detail.moments)
+        momentSearchDraft = viewModel.momentQuery
+
+        withAnimation(.easeInOut(duration: 0.26)) {
+            isMomentSearchOverlayPresented = true
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+            isMomentSearchFocused = true
+        }
+    }
+
+    private func dismissMomentSearchOverlay() {
+        isMomentSearchFocused = false
+        withAnimation(.easeInOut(duration: 0.24)) {
+            isMomentSearchOverlayPresented = false
+        }
+    }
+
+    private func submitMomentSearchOverlay() {
+        let query = momentSearchDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard query.isEmpty == false else { return }
+
+        dismissMomentSearchOverlay()
+        viewModel.submitMomentSearch(query)
+        momentAutoScrollToken += 1
+    }
+
+    private func updateKeyboardHeight(from notification: Notification, containerHeight: CGFloat) {
+        guard
+            let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+            let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        else { return }
+
+        let height = max(0, containerHeight - frame.minY)
+
+        withAnimation(.easeInOut(duration: duration)) {
+            keyboardHeight = height
+        }
+    }
+
+    private func momentSearchOverlay(detail: ContentDetail, bottomInset: CGFloat) -> some View {
+        ZStack(alignment: .bottom) {
+            KeyboardOverlayBackdropView()
+                .ignoresSafeArea()
+
+            Color.clear
+                .contentShape(Rectangle())
+                .ignoresSafeArea()
+                .onTapGesture {
+                    dismissMomentSearchOverlay()
+                }
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Explore related moments")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+
+                SuggestionChipFlow(
+                    suggestions: viewModel.momentSuggestions(for: detail),
+                    maxRows: 2,
+                    maxItemsPerRow: 2,
+                    horizontalPadding: 16,
+                    onSelect: { suggestion in
+                        momentSearchDraft = suggestion
+                        isMomentSearchFocused = true
+                    }
+                )
+
+                HStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.52))
+
+                    TextField("Search for moments for the movie", text: $momentSearchDraft)
+                        .focused($isMomentSearchFocused)
+                        .keyboardType(.default)
+                        .submitLabel(.search)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white)
+                        .tint(Color(hex: "F5A623"))
+                        .onSubmit {
+                            if momentSearchDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                dismissMomentSearchOverlay()
+                            } else {
+                                submitMomentSearchOverlay()
+                            }
+                        }
+
+                    if momentSearchDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+                        Button {
+                            submitMomentSearchOverlay()
+                        } label: {
+                            Text("Search")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                        .buttonStyle(LiquidButtonPressStyle())
+                    }
+                }
+                .padding(.horizontal, 14)
+                .frame(height: 46)
+                .background(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(Color(hex: "111111").opacity(0.94))
+                        .shadow(color: Color.black.opacity(0.58), radius: 18, x: 0, y: 10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [Color(hex: "F5A623"), Color(hex: "E64AFF"), Color(hex: "3B82F6")],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    ),
+                                    lineWidth: 1.4
+                                )
+                        )
+                )
+                .padding(.horizontal, 16)
+            }
+            .padding(.top, 14)
+            .padding(.bottom, overlayBottomPadding(bottomInset: bottomInset))
+            .background(
+                LinearGradient(
+                    stops: [
+                        .init(color: Color.black.opacity(0.04), location: 0),
+                        .init(color: Color.black.opacity(0.48), location: 0.42),
+                        .init(color: Color.black.opacity(0.86), location: 1)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .blur(radius: 0.8)
+                .ignoresSafeArea(edges: .bottom)
+            )
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+    }
+
+    private func overlayBottomPadding(bottomInset: CGFloat) -> CGFloat {
+        keyboardHeight > 0 ? keyboardHeight + 8 : max(bottomInset, 10) + 8
+    }
+
+    @ViewBuilder
+    private var momentResultsContent: some View {
+        if viewModel.isLoadingMoments {
+            HStack(spacing: 10) {
+                ProgressView()
+                    .tint(.white)
+                Text("Finding moments...")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.76))
+            }
+            .frame(maxWidth: .infinity, minHeight: 96)
+            .background(LiquidGlassBackground(cornerRadius: UIConstants.CornerRadius.lg, tone: .dark))
+        } else if let message = viewModel.momentsErrorMessage {
+            EmptyStateView(title: AppStrings.Detail.moments, message: message, systemImage: "sparkles")
+                .padding(.top, 6)
+        } else if viewModel.momentResults.isEmpty {
+            Button {
+                if let detail = viewModel.detail {
+                    presentMomentSearchOverlay(for: detail)
+                }
+            } label: {
+                EmptyStateView(title: AppStrings.Detail.moments, message: "Search a scene, dialogue, song, or topic from this title.", systemImage: "sparkles")
+                    .padding(.top, 6)
+            }
+            .buttonStyle(LiquidButtonPressStyle())
+        } else {
+            LazyVGrid(columns: momentColumns, spacing: 10) {
+                ForEach(viewModel.momentResults) { item in
+                    Button {
+                        onSelectRecommendation(item)
+                    } label: {
+                        MomentResultCard(item: item)
+                    }
+                    .buttonStyle(LiquidButtonPressStyle())
+                }
+            }
+            .padding(.top, 2)
+        }
+    }
+
+    @ViewBuilder
+    private func episodesSection(width: CGFloat) -> some View {
+        if viewModel.isLoadingEpisodes {
+            HStack(spacing: 10) {
+                ProgressView()
+                    .tint(.white)
+                Text("Loading episodes...")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.76))
+            }
+            .frame(maxWidth: .infinity, minHeight: 96)
+            .background(LiquidGlassBackground(cornerRadius: UIConstants.CornerRadius.lg, tone: .dark))
+            .padding(.top, 8)
+        } else if let message = viewModel.episodesErrorMessage {
+            EmptyStateView(title: AppStrings.Detail.episodes, message: message, systemImage: "play.rectangle.on.rectangle")
+                .padding(.top, 8)
+        } else if viewModel.episodes.isEmpty {
+            EmptyStateView(title: AppStrings.Detail.episodes, message: "Episodes are not available for this title yet.", systemImage: "play.rectangle.on.rectangle")
+                .padding(.top, 8)
+        } else {
+            LazyVStack(spacing: 12) {
+                ForEach(viewModel.episodes) { episode in
+                    Button {
+                        onSelectRecommendation(episode)
+                    } label: {
+                        EpisodeCard(item: episode, width: width - 32)
+                    }
+                    .buttonStyle(LiquidButtonPressStyle())
+                }
+            }
+            .padding(.top, 8)
+        }
     }
 
     private func castSection(_ detail: ContentDetail) -> some View {
@@ -353,7 +653,8 @@ private struct DetailActionButton: View {
         case trailing
     }
 
-    let systemImage: String
+    var systemImage: String? = nil
+    var assetImage: String? = nil
     var iconSize: CGFloat = 24
     var cornerStyle: CornerStyle = .middle
     var isHighlighted = false
@@ -361,14 +662,28 @@ private struct DetailActionButton: View {
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.system(size: iconSize, weight: .semibold))
-                .foregroundStyle(.white)
+            icon
                 .frame(width: 56, height: 56)
                 .background(backgroundShape)
                 .contentShape(shape)
         }
         .buttonStyle(LiquidButtonPressStyle())
+    }
+
+    @ViewBuilder
+    private var icon: some View {
+        if let assetImage {
+            Image(assetImage)
+                .resizable()
+                .renderingMode(.template)
+                .scaledToFit()
+                .foregroundStyle(.white)
+                .frame(width: iconSize, height: iconSize)
+        } else if let systemImage {
+            Image(systemName: systemImage)
+                .font(.system(size: iconSize, weight: .semibold))
+                .foregroundStyle(.white)
+        }
     }
 
     private var shape: some Shape {
@@ -499,6 +814,102 @@ private struct DetailFeaturedRecommendationCard: View {
         }
         .frame(width: width, height: width * 1.78)
         .clipped()
+    }
+}
+
+private struct MomentResultCard: View {
+    let item: StorefrontItem
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            GeometryReader { proxy in
+                PosterImageView(
+                    url: item.imageURL(for: "0-16x9", width: Int(proxy.size.width * 3)),
+                    size: proxy.size,
+                    cornerRadius: 10
+                )
+            }
+
+            LinearGradient(
+                colors: [
+                    Color.black.opacity(0.02),
+                    Color.black.opacity(0.28),
+                    Color.black.opacity(0.88)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            Image(systemName: "play.fill")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(Color.black.opacity(0.8))
+                .frame(width: 44, height: 44)
+                .background(Circle().fill(Color.white.opacity(0.88)))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.title)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+
+                Text(item.description.nilIfEmpty ?? item.primaryMetaText.nilIfEmpty ?? item.contentType)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.76))
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 12)
+            .padding(.bottom, 12)
+        }
+        .aspectRatio(16 / 9, contentMode: .fit)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+    }
+}
+
+private struct EpisodeCard: View {
+    let item: StorefrontItem
+    let width: CGFloat
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ZStack(alignment: .center) {
+                PosterImageView(
+                    url: item.imageURL(for: "0-16x9", width: Int(width * 3)),
+                    size: CGSize(width: width, height: width * 9 / 16),
+                    cornerRadius: 10
+                )
+
+                LinearGradient(
+                    colors: [Color.clear, Color.black.opacity(0.18), Color.black.opacity(0.68)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+                Image(systemName: "play.fill")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Color.black.opacity(0.84))
+                    .frame(width: 44, height: 44)
+                    .background(Circle().fill(Color.white.opacity(0.9)))
+            }
+            .frame(width: width, height: width * 9 / 16)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.title)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+
+                Text(item.description.nilIfEmpty ?? item.primaryMetaText.nilIfEmpty ?? item.watchLabel)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.68))
+                    .lineLimit(2)
+            }
+        }
     }
 }
 

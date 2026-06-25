@@ -6,6 +6,8 @@ struct ProfileHubView: View {
     let onBack: () -> Void
     let onOpenSettings: () -> Void
     let onSwitchProfile: () -> Void
+    let onAddProfile: () -> Void
+    let onEditProfiles: () -> Void
     let onSelectProfile: (Profile) -> Void
     let onSelectItem: (StorefrontItem) -> Void
     @State private var showsProfileSwitch = false
@@ -17,12 +19,20 @@ struct ProfileHubView: View {
         }
         .overlay {
             if showsProfileSwitch {
-                ZStack {
-                    Color.black.opacity(0.78)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            showsProfileSwitch = false
-                        }
+                ZStack(alignment: .bottom) {
+                    ZStack {
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                            .opacity(0.28)
+
+                        Color.black.opacity(0.62)
+                    }
+                    .contentShape(Rectangle())
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .onTapGesture {
+                        showsProfileSwitch = false
+                    }
 
                     ProfileSwitchSheetView(
                         profiles: profiles,
@@ -31,16 +41,23 @@ struct ProfileHubView: View {
                             showsProfileSwitch = false
                             onSelectProfile(profile)
                         },
+                        onAddProfile: {
+                            showsProfileSwitch = false
+                            onAddProfile()
+                        },
                         onEditProfiles: {
                             showsProfileSwitch = false
-                            onSwitchProfile()
+                            onEditProfiles()
                         },
                         onClose: {
                             showsProfileSwitch = false
                         }
                     )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .ignoresSafeArea(edges: .bottom)
+                    .transition(.move(edge: .bottom))
                 }
-                .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                .ignoresSafeArea()
             }
         }
         .animation(.easeInOut(duration: 0.22), value: showsProfileSwitch)
@@ -52,14 +69,21 @@ struct ProfileHubView: View {
     private func header(topInset: CGFloat) -> some View {
         GeometryReader { proxy in
             let screenWidth = max(proxy.size.width, 320)
-            let headerHeight = 248 + topInset
+            let baseHeaderHeight = 248 + topInset
+            let scrollMinY = proxy.frame(in: .named("profileHubScroll")).minY
+            let pullDistance = max(scrollMinY, 0)
+            let scrollDistance = max(-scrollMinY, 0)
+            let imageHeight = baseHeaderHeight + pullDistance
+            let imageOffset = scrollMinY > 0 ? -pullDistance : -scrollDistance * 0.34
 
             VStack(spacing: 0) {
                 ZStack(alignment: .top) {
                     Image("proBg")
                         .resizable()
                         .scaledToFill()
-                        .frame(width: screenWidth, height: headerHeight)
+                        .frame(width: screenWidth, height: imageHeight)
+                        .scaleEffect(1 + min(pullDistance / 900, 0.08), anchor: .top)
+                        .offset(y: imageOffset)
                         .clipped()
 
                     LinearGradient(
@@ -67,7 +91,8 @@ struct ProfileHubView: View {
                         startPoint: .top,
                         endPoint: .bottom
                     )
-                    .frame(height: headerHeight)
+                    .frame(width: screenWidth, height: imageHeight)
+                    .offset(y: scrollMinY > 0 ? -pullDistance : imageOffset)
 
                     VStack {
                         Spacer()
@@ -76,36 +101,26 @@ struct ProfileHubView: View {
                             ProfileAvatarView(
                                 imageName: viewModel.displayedProfileImageName,
                                 fallbackGlyph: String(viewModel.displayedProfileName.prefix(1)).uppercased(),
-                                size: 58
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                size: 89.636
                             )
 
                             Button(action: {
                                 showsProfileSwitch = true
                             }) {
-                                HStack(spacing: 10) {
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text(viewModel.displayedProfileName)
-                                            .font(.system(size: 18, weight: .bold))
-                                            .foregroundStyle(.white)
-
-                                        Text("Switch Profile")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundStyle(Color.white.opacity(0.72))
-                                    }
-
-                                    Spacer()
+                                HStack(spacing: 6) {
+                                    Text(viewModel.displayedProfileName)
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                        .lineLimit(1)
 
                                     Image(systemName: "chevron.down")
-                                        .font(.system(size: 12, weight: .bold))
+                                        .font(.system(size: 9, weight: .bold))
                                         .foregroundStyle(.white)
+
+                                    Spacer(minLength: 0)
                                 }
-                                .padding(.horizontal, 16)
-                                .frame(height: 58)
-                                .background(LiquidGlassBackground(cornerRadius: 18, tone: .dark))
+                                .frame(maxWidth: .infinity, minHeight: 20, alignment: .leading)
+                                .contentShape(Rectangle())
                             }
                             .buttonStyle(LiquidButtonPressStyle())
                         }
@@ -113,7 +128,8 @@ struct ProfileHubView: View {
                         .padding(.bottom, 14)
                     }
                 }
-                .frame(height: headerHeight)
+                .frame(height: baseHeaderHeight)
+                .clipped()
             }
         }
         .frame(height: 248 + topInset)
@@ -149,8 +165,11 @@ struct ProfileHubView: View {
                             isHomeTab: false,
                             cohort: viewModel.selectedProfile?.quickplayCohort ?? .entertainment,
                             heroVariant: .carousel,
+                            topChromeHeight: 0,
+                            favoriteIDs: [],
                             onViewAll: nil,
-                            onSelectItem: onSelectItem
+                            onSelectItem: onSelectItem,
+                            onToggleFavorite: { _ in }
                         )
                     }
 
@@ -163,108 +182,60 @@ struct ProfileHubView: View {
                 }
                 .padding(.bottom, UIConstants.Spacing.xxl)
             }
+            .coordinateSpace(name: "profileHubScroll")
+            .background(Color.black.ignoresSafeArea())
         }
     }
 
     private var downloadsCard: some View {
         Button(action: {}) {
-            HStack(spacing: UIConstants.Spacing.md) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: UIConstants.CornerRadius.sm, style: .continuous)
-                        .fill(Color.white.opacity(0.08))
-                    Image(systemName: AppIcons.Action.download)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white)
-                }
-                .frame(width: 28, height: 28)
+            HStack(spacing: 14) {
+                Image(systemName: AppIcons.Action.download)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.72))
+                    .frame(width: 24, height: 24)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(AppStrings.Profile.downloads)
-                        .font(.body.weight(.semibold))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
                     Text(AppStrings.Profile.downloadsSubtitle)
-                        .font(.caption)
-                        .foregroundStyle(Color.white.opacity(0.5))
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(Color.white.opacity(0.42))
+                        .lineLimit(2)
                         .multilineTextAlignment(.leading)
                 }
 
                 Spacer()
 
                 Image(systemName: AppIcons.Navigation.next)
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(Color.white.opacity(0.76))
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.62))
             }
-            .padding(UIConstants.Spacing.lg)
+            .padding(.horizontal, 16)
+            .frame(height: 89, alignment: .center)
             .background(
-                LiquidGlassBackground(cornerRadius: 14, tone: .dark)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color(hex: "171717"))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    )
             )
         }
         .buttonStyle(LiquidButtonPressStyle())
     }
 
     private var upgradeCard: some View {
-        VStack(alignment: .leading, spacing: UIConstants.Spacing.lg) {
-            HStack(alignment: .top) {
-                Text(AppStrings.Profile.upgradePlan)
-                    .font(.system(size: 22, weight: .black))
-                    .foregroundStyle(.white)
-                Spacer()
-                RoundedRectangle(cornerRadius: UIConstants.CornerRadius.md, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(hex: "B87044"), Color(hex: "5D2D1B")],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 72, height: 72)
-                    .rotationEffect(.degrees(45))
-                    .offset(x: 18, y: -12)
-            }
-
-            VStack(alignment: .leading, spacing: UIConstants.Spacing.sm) {
-                featurePill("Upto 5 devices")
-                featurePill("High Audio & Video Quality")
-                featurePill("Regional daily shows")
-                featurePill("Ads Free Movies and shows")
-            }
-
-            Button(action: {}) {
-                HStack {
-                    Spacer()
-                    Text(AppStrings.Profile.premiumCTA)
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(.white)
-                    Spacer()
-                    Image(systemName: AppIcons.Navigation.next)
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.white)
-                }
-                .frame(height: 46)
-                .background(LiquidGlassBackground(cornerRadius: UIConstants.CornerRadius.lg, tone: .accent, isHighlighted: true))
-            }
-            .buttonStyle(LiquidButtonPressStyle())
-
-            Text(AppStrings.Profile.subscribeLater)
-                .font(.caption)
-                .foregroundStyle(Color.white.opacity(0.38))
-                .frame(maxWidth: .infinity, alignment: .center)
+        Button(action: {}) {
+            Image("upgradebg")
+                .resizable()
+                .scaledToFit()
+                .aspectRatio(1, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
-        .padding(UIConstants.Spacing.lg)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(hex: "131022"), Color(hex: "2B120F")],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(Color(hex: "7B4F2D"), lineWidth: 1)
-                )
-        )
+        .buttonStyle(LiquidButtonPressStyle())
     }
 
     private var footer: some View {

@@ -126,7 +126,7 @@ struct StorefrontCardView: View {
                     width: requestedImageWidth(for: size, minimum: style == .short ? 360 : 240)
                 ),
                 size: size,
-                cornerRadius: UIConstants.CornerRadius.md + 4
+                cornerRadius: StorefrontRailMetrics.cardCornerRadius
             )
 
             if overlayHeight > 0 {
@@ -137,7 +137,7 @@ struct StorefrontCardView: View {
                 )
                 .frame(height: overlayHeight)
                 .frame(maxHeight: .infinity, alignment: .bottom)
-                .clipShape(RoundedRectangle(cornerRadius: UIConstants.CornerRadius.md + 4, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: StorefrontRailMetrics.cardCornerRadius, style: .continuous))
             }
 
             ZStack(alignment: .bottomLeading) {
@@ -185,10 +185,12 @@ struct StorefrontCardView: View {
                 if let rank {
                     HStack {
                         if rank <= 10 {
+                            let rankHeight = min(size.height * 0.46, 94)
                             Image("trendingNumber\(rank)")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: min(size.width * 0.48, 74), height: min(size.height * 0.46, 94))
+                                .frame(height: rankHeight)
+                                .frame(width: rank == 10 ? min(size.width * 0.74, 108) : min(size.width * 0.48, 74), alignment: .bottomLeading)
                                 .shadow(color: Color.black.opacity(0.5), radius: 8, x: 0, y: 4)
                                 .offset(x: -8, y: 14)
                         } else {

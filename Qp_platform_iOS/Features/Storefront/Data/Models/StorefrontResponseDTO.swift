@@ -8,6 +8,26 @@ struct APIHeaderDTO: Decodable {
 struct QuickplayStorefrontResponseDTO: Decodable {
     let header: APIHeaderDTO
     let data: [QuickplayStorefrontDTO]
+
+    enum CodingKeys: String, CodingKey {
+        case header
+        case data
+    }
+
+    init(header: APIHeaderDTO, data: [QuickplayStorefrontDTO]) {
+        self.header = header
+        self.data = data
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        header = try container.decode(APIHeaderDTO.self, forKey: .header)
+        if let list = try? container.decode([QuickplayStorefrontDTO].self, forKey: .data) {
+            data = list
+        } else {
+            data = [try container.decode(QuickplayStorefrontDTO.self, forKey: .data)]
+        }
+    }
 }
 
 struct QuickplayStorefrontDTO: Decodable {
@@ -31,7 +51,9 @@ struct QuickplayContainerDTO: Decodable {
     let lon: [LocalizedTextDTO]?
     let srcType: String?
     let i: [QuickplayContentSourceDTO]?
+    let cd: [QuickplayContentItemDTO]?
     let diar: [QuickplayImageAspectDTO]?
+    let backgroundStyle: QuickplaySectionBackgroundStyleDTO?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -39,8 +61,10 @@ struct QuickplayContainerDTO: Decodable {
         case lo
         case lon
         case i
+        case cd
         case diar
         case srcType = "src_ty"
+        case backgroundStyle = "bg_style"
     }
 
     var preferredRatio: String {
@@ -48,6 +72,93 @@ struct QuickplayContainerDTO: Decodable {
         diar?.first?.ratio ??
         iar ??
         "0-2x3"
+    }
+
+    func backgroundImageURL(config: QuickplayRuntimeConfig) -> URL? {
+        guard let imageID = backgroundStyle?.imageIDs.first?.nilIfEmpty else {
+            return nil
+        }
+
+        if let directURL = URL(string: imageID), directURL.scheme != nil {
+            return directURL
+        }
+
+        let ratio = backgroundStyle?.ratio?.nilIfEmpty ?? "0-1x1"
+        return ImageURLBuilder(baseURL: config.imageResizeURL).imageURL(
+            id: imageID,
+            ratio: ratio,
+            availableRatios: [ratio, "0-1x1", "0-16x9"],
+            width: 1236,
+            preferredFallbacks: [ratio, "0-1x1", "0-16x9"]
+        )
+    }
+}
+
+struct QuickplaySectionBackgroundStyleDTO: Decodable {
+    let imageIDs: [String]
+    let ratio: String?
+
+    enum CodingKeys: String, CodingKey {
+        case imageIDs = "ia"
+        case ratio = "iar"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        ratio = try container.decodeIfPresent(String.self, forKey: .ratio)
+
+        if let strings = try? container.decode([String].self, forKey: .imageIDs) {
+            imageIDs = strings
+            return
+        }
+
+        if let references = try? container.decode([QuickplayImageReferenceDTO].self, forKey: .imageIDs) {
+            imageIDs = references.compactMap(\.value)
+            return
+        }
+
+        imageIDs = []
+    }
+}
+
+struct QuickplayImageReferenceDTO: Decodable {
+    let value: String?
+
+    init(from decoder: Decoder) throws {
+        if let string = try? decoder.singleValueContainer().decode(String.self) {
+            value = string
+            return
+        }
+
+        guard let container = try? decoder.container(keyedBy: DynamicCodingKey.self) else {
+            value = nil
+            return
+        }
+
+        for key in ["id", "image", "image_id", "imageName", "image_name", "url", "n"] {
+            guard let codingKey = DynamicCodingKey(stringValue: key) else { continue }
+            if let decoded = try? container.decode(String.self, forKey: codingKey) {
+                value = decoded
+                return
+            }
+        }
+
+        value = nil
+    }
+}
+
+private struct DynamicCodingKey: CodingKey {
+    let stringValue: String
+    let intValue: Int?
+
+    init?(stringValue: String) {
+        self.stringValue = stringValue
+        intValue = nil
+    }
+
+    init?(intValue: Int) {
+        stringValue = String(intValue)
+        self.intValue = intValue
     }
 }
 
@@ -81,7 +192,8 @@ struct QuickplayContentSourceDTO: Decodable {
         upsert(&queryItems, name: "reg", value: AppEnvironment.Quickplay.region)
         upsert(&queryItems, name: "dt", value: AppEnvironment.Quickplay.deviceType)
         upsert(&queryItems, name: "client", value: AppEnvironment.Quickplay.client)
-        upsert(&queryItems, name: "pf", value: cohort.profileFlag)
+        let resolvedProfileFlag = cu.contains("/content") ? QuickplayCohort.entertainment.profileFlag : cohort.profileFlag
+        upsert(&queryItems, name: "pf", value: resolvedProfileFlag)
         upsert(&queryItems, name: "chrt", value: AppEnvironment.Quickplay.cohort)
         if queryItems.contains(where: { $0.name == "mode" }) == false {
             queryItems.append(URLQueryItem(name: "mode", value: "detail"))
@@ -140,6 +252,7 @@ struct QuickplayContentItemDTO: Decodable {
     let lodr: [ContentPersonDTO]?
     let vsm: [ContentMomentsDTO]?
     let yearDate: String?
+    let stlId: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -162,6 +275,7 @@ struct QuickplayContentItemDTO: Decodable {
         case lodr
         case vsm = "v_sm"
         case yearDate = "rdt"
+        case stlId = "stl_id"
     }
 
     func toDomain(config: QuickplayRuntimeConfig, progress: Double? = nil) -> StorefrontItem {
@@ -170,6 +284,7 @@ struct QuickplayContentItemDTO: Decodable {
             title: lon?.preferredText ?? "Untitled",
             description: lod?.preferredText ?? "",
             contentType: cty ?? "content",
+            seriesId: stlId?.nilIfEmpty,
             slug: nu,
             resourceURN: urn,
             year: yearDate.flatMap { String($0.prefix(4)) },
@@ -204,9 +319,16 @@ struct QuickplayContentItemDTO: Decodable {
             cast: (locs ?? []).map { $0.toDomain(config: config) },
             directorNames: (lodr ?? []).map(\.localizedName),
             momentSearchEnabled: (vsm ?? []).contains(where: { $0.ff?.value == true }),
+            seriesId: seriesID,
             previewURL: apURL.flatMap(URL.init(string:)),
             imageBaseURL: config.imageResizeURL
         )
+    }
+
+    private var seriesID: String? {
+        [stlId, id]
+            .compactMap { $0?.nilIfEmpty }
+            .first
     }
 }
 
@@ -221,6 +343,7 @@ struct QuickplayCollectionItemDTO: Decodable {
             title: lon?.preferredText ?? "Untitled",
             description: "",
             contentType: "collection",
+            seriesId: nil,
             slug: nil,
             resourceURN: nil,
             year: nil,
@@ -241,6 +364,16 @@ struct QuickplayCollectionItemDTO: Decodable {
 struct LocalizedTextDTO: Decodable {
     let lang: String?
     let n: String
+}
+
+struct QuickplayContainersResponseDTO: Decodable {
+    let header: APIHeaderDTO
+    let data: [QuickplayContainerDTO]
+
+    init(header: APIHeaderDTO, data: [QuickplayContainerDTO]) {
+        self.header = header
+        self.data = data
+    }
 }
 
 struct LocalizedTextListDTO: Decodable {

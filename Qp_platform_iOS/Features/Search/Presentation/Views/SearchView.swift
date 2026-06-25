@@ -29,14 +29,10 @@ struct SearchView: View {
     ]
 
     private let keyboardSearchSuggestions = [
-        "Movies",
-        "Shows",
-        "Sports",
-        "Crime thrillers",
-        "Comedy",
-        "Live matches",
-        "Reality shows",
-        "Kids"
+        "Vaibhav Suriyavanshi Celebration",
+        "Jheta Lal Funny Moments",
+        "Sixes in Sri Lanka vs Afghanistan",
+        "Kids Movies with Fox"
     ]
 
     private var shouldShowResultFilters: Bool {
@@ -68,6 +64,20 @@ struct SearchView: View {
             ZStack {
                 content
                     .padding(.top, proxy.safeAreaInsets.top + 28)
+
+                if isSearchFocused && aiOverlayMode == nil {
+                    ZStack {
+                        KeyboardOverlayBackdropView()
+
+                        Color.clear
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                isSearchFocused = false
+                            }
+                    }
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                }
             }
             .background(searchBackground.ignoresSafeArea())
             .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -88,14 +98,10 @@ struct SearchView: View {
             speechService.stop()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-            withAnimation(.easeOut(duration: 0.2)) {
-                isKeyboardVisible = true
-            }
+            isKeyboardVisible = true
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-            withAnimation(.easeOut(duration: 0.2)) {
-                isKeyboardVisible = false
-            }
+            isKeyboardVisible = false
         }
         .onChange(of: speechService.transcript) { _, transcript in
             scheduleVoiceSearch(for: transcript)
@@ -104,7 +110,9 @@ struct SearchView: View {
 
     @ViewBuilder
     private var content: some View {
-        if viewModel.normalizedQuery.isEmpty {
+        if viewModel.isLoading && viewModel.results.isEmpty {
+            SearchLoadingStateView()
+        } else if viewModel.normalizedQuery.isEmpty && viewModel.results.isEmpty {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     SearchPlaceholderView()
@@ -119,10 +127,7 @@ struct SearchView: View {
         } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    if viewModel.isLoading && viewModel.results.isEmpty {
-                        LoadingView()
-                            .padding(.top, 80)
-                    } else if let errorMessage = viewModel.errorMessage, viewModel.results.isEmpty {
+                    if let errorMessage = viewModel.errorMessage, viewModel.results.isEmpty {
                         ErrorView(title: AppStrings.Search.unavailableTitle, message: errorMessage, onRetry: nil)
                             .padding(.horizontal, UIConstants.Spacing.lg)
                             .padding(.top, 60)
@@ -132,9 +137,9 @@ struct SearchView: View {
                             .padding(.top, 60)
                     } else {
                         VStack(alignment: .leading, spacing: 22) {
-                            searchSectionHeader(title: viewModel.normalizedQuery.capitalized, showsChevron: false)
+                            searchSectionHeader(title: searchContentTitle, showsChevron: false)
                                 .padding(.horizontal, UIConstants.Spacing.lg)
-                                .padding(.top, 14)
+                                .padding(.top, 8)
 
                             SearchRecommendedClipGrid(
                                 items: viewModel.displayedResults,
@@ -149,6 +154,11 @@ struct SearchView: View {
             .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
             .scrollDismissesKeyboard(.interactively)
         }
+    }
+
+    private var searchContentTitle: String {
+        let query = viewModel.normalizedQuery
+        return query.isEmpty ? "Popular Searches" : query.capitalized
     }
 
     private var searchBackground: some View {
@@ -172,14 +182,24 @@ struct SearchView: View {
     private func bottomSearchDock(bottomInset: CGFloat) -> some View {
         VStack(spacing: 14) {
             if shouldShowKeyboardSuggestions {
-                SearchSuggestionChips(
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Recent Searches")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, UIConstants.Spacing.lg)
+
+                SuggestionChipFlow(
                     suggestions: searchSuggestions,
-                    onSelect: { suggestion in
-                        viewModel.query = suggestion
-                        isSearchFocused = false
-                    }
-                )
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                    maxRows: 2,
+                        maxItemsPerRow: 2,
+                        horizontalPadding: UIConstants.Spacing.lg,
+                        onSelect: { suggestion in
+                            viewModel.query = suggestion
+                            isSearchFocused = false
+                        }
+                    )
+                }
+                .transition(.opacity)
             }
 
             if showsSearchDockFilters {
@@ -187,10 +207,11 @@ struct SearchView: View {
                     filters: searchDockFilters,
                     selectedFilterID: viewModel.selectedFilterID,
                     onSelect: { filter in
-                        viewModel.selectedFilterID = filter.id
+                        viewModel.selectFilter(filter)
                         isSearchFocused = false
                     }
                 )
+                .padding(.horizontal, UIConstants.Spacing.lg)
             }
 
             HStack(spacing: 12) {
@@ -206,33 +227,10 @@ struct SearchView: View {
                 .frame(height: 54)
 
                 Button(action: openAISearch) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.black)
-                            .overlay(Circle().stroke(Color.white.opacity(0.92), lineWidth: 1.2))
-
-                        Circle()
-                            .fill(Color(hex: "FF5E00"))
-                            .frame(width: 46, height: 46)
-                            .blur(radius: 24)
-                            .offset(x: 12, y: -12)
-
-                        Circle()
-                            .fill(Color(hex: "7818B4"))
-                            .frame(width: 44, height: 44)
-                            .blur(radius: 24)
-                            .offset(x: -14, y: 14)
-
-                        Image("mic")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 28, height: 28)
-                            .shadow(color: Color.white.opacity(0.18), radius: 8, x: 0, y: 0)
-                    }
-                    .frame(width: 54, height: 54)
-                    .clipShape(Circle())
-                    .shadow(color: Color(hex: "FF5E00").opacity(0.34), radius: 18, x: 10, y: -8)
-                    .shadow(color: Color(hex: "7818B4").opacity(0.4), radius: 18, x: -8, y: 8)
+                    Image("mic")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 54, height: 54)
                 }
                 .buttonStyle(LiquidButtonPressStyle())
             }
@@ -240,7 +238,8 @@ struct SearchView: View {
         }
         .padding(.top, 8)
         .padding(.bottom, searchDockBottomPadding(bottomInset: bottomInset))
-        .background(searchDockBackdrop(height: searchDockBackdropHeight))
+        .background(searchDockBackdrop(height: searchDockBackdropHeight, isKeyboardVisible: isKeyboardVisible))
+        .animation(.easeOut(duration: 0.18), value: shouldShowKeyboardSuggestions)
     }
 
     private var searchDockReservedHeight: CGFloat {
@@ -253,10 +252,14 @@ struct SearchView: View {
 
     private var searchDockBackdropHeight: CGFloat {
         if shouldShowKeyboardSuggestions {
-            return 182
+            return isKeyboardVisible ? 260 : 182
         }
 
-        return showsSearchDockFilters ? 166 : 118
+        if showsSearchDockFilters {
+            return isKeyboardVisible ? 226 : 166
+        }
+
+        return isKeyboardVisible ? 190 : 118
     }
 
     private func searchDockBottomPadding(bottomInset: CGFloat) -> CGFloat {
@@ -292,6 +295,7 @@ struct SearchView: View {
     }
 
     private func openAISearch() {
+        SearchHaptics.micTap()
         isSearchFocused = false
         if let onOpenAISearch {
             onOpenAISearch()
@@ -304,19 +308,21 @@ struct SearchView: View {
     private func aiOverlay(mode: AISearchOverlayMode, topInset: CGFloat) -> some View {
         switch mode {
         case .voiceListening:
-            VoiceSearchListeningView(
-                topInset: topInset,
-                transcript: AISearchQueryNormalizer.localizedDisplayText(
-                    from: speechService.transcript,
-                    language: speechService.selectedLanguage
-                ),
-                selectedLanguage: speechService.selectedLanguage,
-                statusText: speechService.statusText,
-                isRecording: speechService.isRecording,
-                onBack: closeAISearch,
-                onLanguageChange: changeVoiceLanguage,
-                onToggleRecording: toggleVoiceRecording
-            )
+            ZStack(alignment: .top) {
+                VoiceSearchListeningView(
+                    transcript: AISearchQueryNormalizer.localizedDisplayText(
+                        from: speechService.transcript,
+                        language: speechService.selectedLanguage
+                    ),
+                    statusText: speechService.statusText,
+                    isRecording: speechService.isRecording,
+                    onToggleRecording: toggleVoiceRecording
+                )
+
+                AISearchTopBar(title: "AI Search", topInset: topInset, onBack: closeAISearch) {
+                    voiceOverlayLanguageMenu
+                }
+            }
         case .voiceResults:
             VoiceSearchResultsView(
                 topInset: topInset,
@@ -348,6 +354,44 @@ struct SearchView: View {
         }
     }
 
+    private var voiceOverlayLanguageMenu: some View {
+        Menu {
+            ForEach(SupportedSpeechLanguage.allCases) { language in
+                Button {
+                    changeVoiceLanguage(language)
+                } label: {
+                    HStack {
+                        Text(language.isAvailableForSpeechRecognition ? language.menuTitle : "\(language.menuTitle) unavailable")
+                        if speechService.selectedLanguage == language {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+                .disabled(!language.isAvailableForSpeechRecognition)
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Text(speechService.selectedLanguage.menuTitle)
+                    .font(.system(size: 14, weight: .semibold))
+                    .lineLimit(1)
+
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 11, weight: .bold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .frame(height: 40)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(Color.white.opacity(0.13))
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .stroke(Color.white.opacity(0.22), lineWidth: 1)
+                    )
+            )
+        }
+    }
+
     private func beginAISearch() {
         prefersVoiceAISearch ? beginVoiceSearch() : beginTextAISearch()
     }
@@ -364,6 +408,7 @@ struct SearchView: View {
     }
 
     private func beginVoiceSearch() {
+        SearchHaptics.micTap()
         voiceSubmitTask?.cancel()
         isSearchFocused = false
         aiQuery = ""
@@ -379,6 +424,7 @@ struct SearchView: View {
             guard isReady else { return }
             try? await Task.sleep(for: .milliseconds(450))
             await speechService.start()
+            SearchHaptics.recordingStarted()
         }
     }
 
@@ -389,19 +435,23 @@ struct SearchView: View {
             guard isReady else { return }
             try? await Task.sleep(for: .milliseconds(220))
             await speechService.start()
+            SearchHaptics.recordingStarted()
         }
     }
 
     private func toggleVoiceRecording() {
         if speechService.isRecording {
             speechService.stop()
+            SearchHaptics.recordingFinished()
             submitVoiceSearchIfPossible(speechService.transcript)
         } else {
+            SearchHaptics.micTap()
             Task {
                 let isReady = await speechService.prepareSession()
                 guard isReady else { return }
                 try? await Task.sleep(for: .milliseconds(220))
                 await speechService.start()
+                SearchHaptics.recordingStarted()
             }
         }
     }
@@ -430,7 +480,11 @@ struct SearchView: View {
             language: speechService.selectedLanguage
         )
         aiSearchQuery = normalizedQuery
+        let wasRecording = speechService.isRecording
         speechService.stop()
+        if wasRecording {
+            SearchHaptics.recordingFinished()
+        }
 
         withAnimation(.easeInOut(duration: 0.24)) {
             aiOverlayMode = .voiceResults
@@ -475,12 +529,27 @@ private enum AISearchOverlayMode: Equatable {
     case textResults
 }
 
+private enum SearchHaptics {
+    static func micTap() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    }
+
+    static func recordingStarted() {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+    }
+
+    static func recordingFinished() {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+}
+
 struct AISearchVoiceRouteView: View {
     @ObservedObject var viewModel: SearchViewModel
     let onBack: () -> Void
     let onSubmit: (String, SupportedSpeechLanguage) -> Void
     @StateObject private var speechService = SpeechRecognitionService()
     @State private var voiceSubmitTask: Task<Void, Never>?
+    @State private var startupRecoveryTask: Task<Void, Never>?
     @State private var hasStartedListening = false
 
     private var displayTranscript: String {
@@ -491,34 +560,76 @@ struct AISearchVoiceRouteView: View {
     }
 
     var body: some View {
-        GeometryReader { proxy in
+        ZStack(alignment: .top) {
             VoiceSearchListeningView(
-                topInset: proxy.safeAreaInsets.top,
                 transcript: displayTranscript,
-                selectedLanguage: speechService.selectedLanguage,
                 statusText: speechService.statusText,
                 isRecording: speechService.isRecording,
-                onBack: close,
-                onLanguageChange: changeLanguage,
                 onToggleRecording: toggleRecording
             )
+
+            GeometryReader { proxy in
+                RouteNavigationBar(title: "AI Search", onBack: close) {
+                    languageMenu
+                }
+                .padding(.top, proxy.safeAreaInsets.top)
+                .frame(maxWidth: .infinity)
+                .frame(height: proxy.safeAreaInsets.top + 58, alignment: .top)
+                .ignoresSafeArea(edges: .top)
+            }
+            .allowsHitTesting(true)
+            .frame(height: 120, alignment: .top)
         }
         .onAppear {
             guard !hasStartedListening else { return }
             hasStartedListening = true
-            Task {
-                let isReady = await speechService.prepareSession()
-                guard isReady else { return }
-                try? await Task.sleep(for: .milliseconds(450))
-                await speechService.start()
-            }
+            startListening(delay: .milliseconds(650), shouldRecoverIfSilent: true)
         }
         .onDisappear {
             voiceSubmitTask?.cancel()
+            startupRecoveryTask?.cancel()
             speechService.stop()
         }
         .onChange(of: speechService.transcript) { _, transcript in
             scheduleSubmit(for: transcript)
+        }
+    }
+
+    private var languageMenu: some View {
+        Menu {
+            ForEach(SupportedSpeechLanguage.allCases) { language in
+                Button {
+                    changeLanguage(language)
+                } label: {
+                    HStack {
+                        Text(language.isAvailableForSpeechRecognition ? language.menuTitle : "\(language.menuTitle) unavailable")
+                        if speechService.selectedLanguage == language {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+                .disabled(!language.isAvailableForSpeechRecognition)
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Text(speechService.selectedLanguage.menuTitle)
+                    .font(.system(size: 14, weight: .semibold))
+                    .lineLimit(1)
+
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 11, weight: .bold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .frame(height: 46)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(Color.white.opacity(0.13))
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .stroke(Color.white.opacity(0.22), lineWidth: 1)
+                    )
+            )
         }
     }
 
@@ -530,26 +641,49 @@ struct AISearchVoiceRouteView: View {
 
     private func toggleRecording() {
         if speechService.isRecording {
+            startupRecoveryTask?.cancel()
             speechService.stop()
+            SearchHaptics.recordingFinished()
             submitIfPossible(speechService.transcript)
         } else {
-            Task {
-                let isReady = await speechService.prepareSession()
-                guard isReady else { return }
-                try? await Task.sleep(for: .milliseconds(220))
-                await speechService.start()
-            }
+            SearchHaptics.micTap()
+            startListening(delay: .milliseconds(220), shouldRecoverIfSilent: true)
         }
     }
 
     private func changeLanguage(_ language: SupportedSpeechLanguage) {
         voiceSubmitTask?.cancel()
+        startupRecoveryTask?.cancel()
         speechService.setLanguage(language)
-        Task {
+        startListening(delay: .milliseconds(260), shouldRecoverIfSilent: true)
+    }
+
+    private func startListening(delay: Duration, shouldRecoverIfSilent: Bool) {
+        startupRecoveryTask?.cancel()
+        Task { @MainActor in
             let isReady = await speechService.prepareSession()
             guard isReady else { return }
-            try? await Task.sleep(for: .milliseconds(220))
+            try? await Task.sleep(for: delay)
             await speechService.start()
+            SearchHaptics.recordingStarted()
+            guard shouldRecoverIfSilent else { return }
+
+            startupRecoveryTask = Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(2400))
+                guard !Task.isCancelled,
+                      speechService.isRecording,
+                      speechService.transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    return
+                }
+
+                print("[SpeechRecognition] No transcript after startup; restarting recognizer once.")
+                speechService.stop()
+                let isReady = await speechService.prepareSession()
+                guard isReady else { return }
+                try? await Task.sleep(for: .milliseconds(260))
+                await speechService.start()
+                SearchHaptics.recordingStarted()
+            }
         }
     }
 
@@ -572,7 +706,11 @@ struct AISearchVoiceRouteView: View {
         guard !trimmed.isEmpty else { return }
 
         voiceSubmitTask?.cancel()
+        let wasRecording = speechService.isRecording
         speechService.stop()
+        if wasRecording {
+            SearchHaptics.recordingFinished()
+        }
         onSubmit(trimmed, speechService.selectedLanguage)
     }
 }
@@ -581,23 +719,24 @@ private struct SearchRecommendedClipGrid: View {
     let items: [StorefrontItem]
     let onSelect: (StorefrontItem) -> Void
 
-    private let cardSize = CGSize(width: 104, height: 184)
     private let columns = [
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10)
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8)
     ]
 
     var body: some View {
-        LazyVGrid(columns: columns, alignment: .leading, spacing: 14) {
+        LazyVGrid(columns: columns, alignment: .center, spacing: 10) {
             ForEach(items) { item in
-                SearchPosterCard(
-                    item: item,
-                    size: cardSize,
-                    showsPlayIcon: true,
-                    onSelect: onSelect
-                )
-                .frame(maxWidth: .infinity)
+                GeometryReader { proxy in
+                    SearchPosterCard(
+                        item: item,
+                        size: CGSize(width: proxy.size.width, height: proxy.size.width * 1.5),
+                        showsPlayIcon: true,
+                        onSelect: onSelect
+                    )
+                }
+                .aspectRatio(2.0 / 3.0, contentMode: .fit)
             }
         }
     }
@@ -624,37 +763,31 @@ private struct SearchPlaceholderView: View {
     }
 }
 
-private struct SearchSuggestionChips: View {
-    let suggestions: [String]
-    let onSelect: (String) -> Void
-
+private struct SearchLoadingStateView: View {
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(suggestions, id: \.self) { suggestion in
-                    Button {
-                        onSelect(suggestion)
-                    } label: {
-                        Text(suggestion)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(Color.white.opacity(0.88))
-                            .lineLimit(1)
-                            .padding(.horizontal, 16)
-                            .frame(height: 38)
-                            .background(
-                                Capsule(style: .continuous)
-                                    .fill(Color(hex: "242428").opacity(0.94))
-                                    .overlay(
-                                        Capsule(style: .continuous)
-                                            .stroke(Color.white.opacity(0.14), lineWidth: 1)
-                                    )
-                            )
-                    }
-                    .buttonStyle(LiquidButtonPressStyle())
-                }
+        VStack(spacing: 20) {
+            Spacer()
+
+            Image(systemName: AppIcons.Action.sparkles)
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundStyle(Color.white.opacity(0.46))
+
+            HStack(spacing: 4) {
+                Text("Searching Content")
+                    .font(.system(size: 18, weight: .regular))
+                    .italic()
+                    .foregroundStyle(.white)
+
+                Text("for you")
+                    .font(.system(size: 18, weight: .regular))
+                    .italic()
+                    .foregroundStyle(Color.white.opacity(0.72))
             }
-            .padding(.horizontal, UIConstants.Spacing.lg)
+
+            Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.bottom, 116)
     }
 }
 
@@ -761,12 +894,17 @@ private struct SearchFilterDock: View {
                 } label: {
                     Text(filter.title)
                         .font(.system(size: 12, weight: selectedFilterID == filter.id ? .semibold : .regular))
+                        .tracking(0.48)
                         .foregroundStyle(selectedFilterID == filter.id ? .white : Color(hex: "F0F0F0").opacity(0.8))
                         .lineLimit(1)
-                        .frame(width: 70, height: 36)
+                        .truncationMode(.tail)
+                        .padding(.horizontal, 16)
+                        .frame(maxWidth: .infinity, minHeight: 36)
                         .background(segmentBackground(index: index))
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(LiquidButtonPressStyle())
+                .frame(maxWidth: .infinity)
             }
         }
         .clipShape(Capsule())
@@ -823,32 +961,15 @@ private struct FlexibleMomentChipLayout<Item: Hashable, Content: View>: View {
 }
 
 private struct VoiceSearchListeningView: View {
-    let topInset: CGFloat
     let transcript: String
-    let selectedLanguage: SupportedSpeechLanguage
     let statusText: String
     let isRecording: Bool
-    let onBack: () -> Void
-    let onLanguageChange: (SupportedSpeechLanguage) -> Void
     let onToggleRecording: () -> Void
-    @State private var isWaveAnimating = false
+    @State private var wavePhase: CGFloat = 0
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-
-            VStack {
-                HStack {
-                    AiSearchBackButton(onTap: onBack)
-                    Spacer()
-                    languageMenu
-                }
-                .padding(.horizontal, UIConstants.Spacing.lg)
-                .padding(.top, topInset + 2)
-
-                Spacer()
-            }
-            .zIndex(2)
 
             VStack(spacing: 0) {
                 Spacer()
@@ -863,7 +984,7 @@ private struct VoiceSearchListeningView: View {
                             .padding(.horizontal, UIConstants.Spacing.lg)
                     }
 
-                    ZStack {
+                    ZStack(alignment: .bottom) {
                         voiceWaveBackground
 
                         VStack(spacing: 14) {
@@ -888,92 +1009,137 @@ private struct VoiceSearchListeningView: View {
                         }
                         .padding(.bottom, 54)
                     }
-                    .frame(height: 270)
+                    .frame(height: 330)
+                    .ignoresSafeArea(edges: .bottom)
                 }
             }
+            .ignoresSafeArea(edges: .bottom)
         }
         .onAppear {
-            withAnimation(.easeInOut(duration: 2.1).repeatForever(autoreverses: true)) {
-                isWaveAnimating = true
+            withAnimation(.linear(duration: 5.4).repeatForever(autoreverses: false)) {
+                wavePhase = .pi * 2
             }
-        }
-    }
-
-    private var languageMenu: some View {
-        Menu {
-            ForEach(SupportedSpeechLanguage.allCases) { language in
-                Button {
-                    onLanguageChange(language)
-                } label: {
-                    HStack {
-                        Text(language.menuTitle)
-                        if selectedLanguage == language {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                }
-            }
-        } label: {
-            HStack(spacing: 8) {
-                Text(selectedLanguage.menuTitle)
-                    .font(.system(size: 15, weight: .semibold))
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 11, weight: .bold))
-            }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 14)
-            .frame(height: 44)
-            .background(
-                Capsule(style: .continuous)
-                    .fill(Color.white.opacity(0.13))
-                    .overlay(
-                        Capsule(style: .continuous)
-                            .stroke(Color.white.opacity(0.22), lineWidth: 1)
-                    )
-            )
         }
     }
 
     private var voiceWaveBackground: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             LinearGradient(
-                colors: [Color.clear, Color(hex: "18010C"), Color(hex: "06010B")],
+                colors: [
+                    Color.clear,
+                    Color(hex: "13020B").opacity(0.68),
+                    Color(hex: "08030B").opacity(0.96),
+                    Color.black
+                ],
                 startPoint: .top,
                 endPoint: .bottom
             )
 
-            Circle()
-                .fill(Color(hex: "FF5E00"))
-                .blur(radius: 32)
-                .frame(width: isWaveAnimating ? 285 : 238, height: isWaveAnimating ? 268 : 232)
-                .offset(x: isWaveAnimating ? -44 : -98, y: isWaveAnimating ? 26 : 58)
+            AIWaveShape(phase: wavePhase, amplitude: 16, baseline: 0.48)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(hex: "FF7A18").opacity(0.0),
+                            Color(hex: "FF7A18").opacity(0.58),
+                            Color(hex: "E248FF").opacity(0.48),
+                            Color(hex: "4F7BFF").opacity(0.34)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .blur(radius: 18)
+                .opacity(0.9)
 
-            Circle()
-                .fill(Color(hex: "F20E68"))
-                .blur(radius: 38)
-                .frame(width: isWaveAnimating ? 245 : 306, height: isWaveAnimating ? 238 : 268)
-                .offset(x: isWaveAnimating ? 88 : 46, y: isWaveAnimating ? 34 : 60)
+            AIWaveShape(phase: wavePhase + .pi, amplitude: 12, baseline: 0.62)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(hex: "3B82F6").opacity(0.0),
+                            Color(hex: "3B82F6").opacity(0.34),
+                            Color(hex: "A855F7").opacity(0.5),
+                            Color(hex: "FF5E00").opacity(0.28)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .blur(radius: 22)
+                .opacity(0.74)
 
-            Circle()
-                .fill(Color(hex: "4A1BC7"))
-                .blur(radius: 44)
-                .frame(width: isWaveAnimating ? 306 : 250, height: isWaveAnimating ? 282 : 250)
-                .offset(x: isWaveAnimating ? -12 : -40, y: isWaveAnimating ? 78 : 106)
-
-            RoundedRectangle(cornerRadius: 160, style: .continuous)
+            Capsule(style: .continuous)
                 .stroke(
                     LinearGradient(
-                        colors: [Color(hex: "FFB347"), Color(hex: "FF5E00"), Color(hex: "8424FF")],
+                        colors: [
+                            Color(hex: "FFB347"),
+                            Color(hex: "FF5E00"),
+                            Color(hex: "E64AFF"),
+                            Color(hex: "3B82F6")
+                        ],
                         startPoint: .leading,
                         endPoint: .trailing
                     ),
-                    lineWidth: 8
+                    lineWidth: 3
                 )
-                .frame(width: 420, height: 180)
-                .offset(x: isWaveAnimating ? 22 : -18, y: isWaveAnimating ? 66 : 86)
-                .blur(radius: 3)
+                .blur(radius: 7)
+                .opacity(0.58)
+                .frame(height: 108)
+                .padding(.horizontal, -44)
+                .offset(y: 82)
+
+            RadialGradient(
+                colors: [
+                    Color(hex: "FF9F1C").opacity(0.24),
+                    Color(hex: "B026FF").opacity(0.14),
+                    Color.clear
+                ],
+                center: .bottomTrailing,
+                startRadius: 8,
+                endRadius: 240
+            )
         }
-        .clipped()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .mask(
+            LinearGradient(
+                colors: [Color.clear, Color.black.opacity(0.45), Color.black],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        .compositingGroup()
+        .clipped(antialiased: false)
+    }
+}
+
+private struct AIWaveShape: Shape {
+    var phase: CGFloat
+    let amplitude: CGFloat
+    let baseline: CGFloat
+
+    var animatableData: CGFloat {
+        get { phase }
+        set { phase = newValue }
+    }
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let baseY = rect.height * baseline
+        path.move(to: CGPoint(x: 0, y: rect.height))
+        path.addLine(to: CGPoint(x: 0, y: baseY))
+
+        let step: CGFloat = 6
+        var x: CGFloat = 0
+        while x <= rect.width + step {
+            let progress = x / max(rect.width, 1)
+            let primary = sin(progress * .pi * 2 + phase) * amplitude
+            let secondary = sin(progress * .pi * 4 + phase * 0.62) * amplitude * 0.34
+            path.addLine(to: CGPoint(x: x, y: baseY + primary + secondary))
+            x += step
+        }
+
+        path.addLine(to: CGPoint(x: rect.width, y: rect.height))
+        path.closeSubpath()
+        return path
     }
 }
 
@@ -996,12 +1162,14 @@ private struct VoiceSearchResultsView: View {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
+                AISearchTopBar(title: "AI Search", topInset: topInset, onBack: onBack)
+
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 20) {
                         Text("Results for \"\(transcript)\"")
                             .font(.system(size: 22, weight: .bold))
                             .foregroundStyle(.white)
-                            .padding(.top, topInset + 76)
+                            .padding(.top, 18)
                             .padding(.horizontal, UIConstants.Spacing.lg)
 
                         if searchQuery.caseInsensitiveCompare(transcript) != .orderedSame {
@@ -1024,9 +1192,10 @@ private struct VoiceSearchResultsView: View {
                         filters: Array(viewModel.availableFilters.prefix(4)),
                         selectedFilterID: viewModel.selectedFilterID,
                         onSelect: { filter in
-                            viewModel.selectedFilterID = filter.id
+                            viewModel.selectFilter(filter)
                         }
                     )
+                    .padding(.horizontal, UIConstants.Spacing.lg)
                 }
 
                 voiceQueryBar
@@ -1128,17 +1297,7 @@ private struct AISearchPromptView: View {
                 .ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    AiSearchBackButton(onTap: onBack)
-                    Spacer()
-                    Text("Ai Search")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(.white)
-                    Spacer()
-                    Color.clear.frame(width: 46, height: 46)
-                }
-                .padding(.horizontal, UIConstants.Spacing.lg)
-                .padding(.top, topInset + 2)
+                AISearchTopBar(title: "AI Search", topInset: topInset, onBack: onBack)
 
                 VStack(alignment: .leading, spacing: 13) {
                     Text("Discover with AI")
@@ -1271,12 +1430,7 @@ private struct AISearchTextResultsView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                HStack {
-                    AiSearchBackButton(onTap: onBack)
-                    Spacer()
-                }
-                .padding(.horizontal, UIConstants.Spacing.lg)
-                .padding(.top, topInset + 2)
+                AISearchTopBar(title: "AI Search", topInset: topInset, onBack: onBack)
 
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 20) {
@@ -1320,7 +1474,7 @@ private struct AISearchTextResultsView: View {
                         filters: Array(viewModel.availableFilters.prefix(4)),
                         selectedFilterID: viewModel.selectedFilterID,
                         onSelect: { filter in
-                            viewModel.selectedFilterID = filter.id
+                            viewModel.selectFilter(filter)
                         }
                     )
                 }
@@ -1379,25 +1533,52 @@ private struct AISearchGradientBackdrop: View {
     }
 }
 
+private struct AISearchTopBar<Trailing: View>: View {
+    let title: String?
+    let topInset: CGFloat
+    let onBack: () -> Void
+    @ViewBuilder let trailing: Trailing
+
+    init(
+        title: String? = nil,
+        topInset: CGFloat,
+        onBack: @escaping () -> Void,
+        @ViewBuilder trailing: () -> Trailing = { EmptyView() }
+    ) {
+        self.title = title
+        self.topInset = topInset
+        self.onBack = onBack
+        self.trailing = trailing()
+    }
+
+    var body: some View {
+        ZStack {
+            if let title {
+                NavigationChromeTitle(title: title)
+                    .frame(maxWidth: 220)
+                    .multilineTextAlignment(.center)
+            }
+
+            HStack(spacing: 12) {
+                AiSearchBackButton(onTap: onBack)
+
+                Spacer()
+
+                trailing
+                    .frame(minWidth: 45.5, alignment: .trailing)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, topInset)
+        .frame(height: topInset + 58, alignment: .bottom)
+    }
+}
+
 private struct AiSearchBackButton: View {
     let onTap: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
-            Image(systemName: AppIcons.Navigation.back)
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(.white)
-                .frame(width: 46, height: 46)
-                .background(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color.white.opacity(0.08))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                        )
-                )
-        }
-        .buttonStyle(LiquidButtonPressStyle())
+        NavigationChromeButton(icon: AppIcons.Navigation.back, action: onTap)
     }
 }
 
@@ -1469,15 +1650,19 @@ private struct FlexibleChipFlow: View {
     }
 }
 
-private func searchDockBackdrop(height: CGFloat) -> some View {
+private func searchDockBackdrop(height: CGFloat, isKeyboardVisible: Bool = false) -> some View {
     ZStack(alignment: .bottom) {
         Rectangle()
-            .fill(Color.black.opacity(0.34))
+            .fill(Color.black.opacity(isKeyboardVisible ? 0.3 : 0.34))
             .frame(height: max(height - 22, 80))
-            .blur(radius: 12)
+            .blur(radius: isKeyboardVisible ? 26 : 12)
 
         LinearGradient(
-            colors: [Color.black.opacity(0), Color.black.opacity(0.88), Color.black],
+            colors: [
+                Color.black.opacity(0),
+                Color.black.opacity(isKeyboardVisible ? 0.5 : 0.82),
+                Color.black.opacity(isKeyboardVisible ? 0.82 : 1)
+            ],
             startPoint: .top,
             endPoint: .bottom
         )

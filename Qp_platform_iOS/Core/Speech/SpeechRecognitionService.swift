@@ -128,6 +128,7 @@ final class SpeechRecognitionService: ObservableObject {
         guard let recognizer = SFSpeechRecognizer(locale: selectedLanguage.locale), recognizer.isAvailable else {
             statusText = "\(selectedLanguage.displayName) speech is unavailable. Try English or type your query."
             print("[SpeechRecognition] Recognizer unavailable for \(selectedLanguage.locale.identifier)")
+            print("[SpeechRecognition] Supported locales: \(SupportedSpeechLanguage.supportedLocaleIdentifiers.joined(separator: ", "))")
             throw AppError.invalidResponse
         }
 
@@ -262,6 +263,21 @@ enum SupportedSpeechLanguage: String, CaseIterable, Identifiable {
         case .hindi:
             return "Hindi"
         }
+    }
+
+    var isAvailableForSpeechRecognition: Bool {
+        Self.supportedLocaleIdentifiers.contains(locale.identifier)
+    }
+
+    static var supportedLocaleIdentifiers: Set<String> {
+        Set(
+            SFSpeechRecognizer.supportedLocales().flatMap { locale in
+                [
+                    locale.identifier,
+                    locale.identifier.replacingOccurrences(of: "-", with: "_")
+                ]
+            }
+        )
     }
 }
 

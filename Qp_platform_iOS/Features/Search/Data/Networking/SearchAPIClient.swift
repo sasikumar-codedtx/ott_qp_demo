@@ -21,10 +21,34 @@ struct SearchAPIClient {
 
         let data = try await networkClient.data(for: request)
         do {
-            return try JSONDecoder().decode(SearchResponseDTO.self, from: data)
+            let response = try JSONDecoder().decode(SearchResponseDTO.self, from: data)
+            SearchAPILogger.log(request: request, response: response)
+            return response
         } catch {
             throw AppError.decodingFailed
         }
     }
 
+}
+
+private enum SearchAPILogger {
+    static func log(request: URLRequest, response: SearchResponseDTO) {
+        let method = request.httpMethod ?? "GET"
+        let url = request.url?.absoluteString ?? "<missing-url>"
+        let facetCount = response.facet?.terms?.count ?? 0
+
+        print("""
+
+        🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 SEARCH API 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+        request:
+        \(method) \(url)
+
+        response:
+        statusCode/message: \(response.header.code) / \(response.header.message)
+        data count -> \(response.data.count)
+        facet terms count -> \(facetCount)
+        🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 SEARCH API END 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+
+        """)
+    }
 }

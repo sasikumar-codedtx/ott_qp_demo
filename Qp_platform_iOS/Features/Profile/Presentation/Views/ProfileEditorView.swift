@@ -48,7 +48,11 @@ struct ProfileEditorView: View {
             profileEditorTopBar
 
             if viewModel.step == .cohortSelection {
-                CohortQuestionnaireView { result in
+                CohortQuestionnaireView(
+                    profileName: profileDisplayName,
+                    profileImageName: viewModel.draft.imageName,
+                    fallbackGlyph: String(profileDisplayName.prefix(1)).uppercased()
+                ) { result in
                     viewModel.applyCohortQuestionnaireResult(result)
                     onSave()
                 }
@@ -108,9 +112,12 @@ struct ProfileEditorView: View {
                         dismissKeyboard()
                         isDeleteAlertPresented = true
                     } label: {
-                        Image(systemName: "trash")
-                            .font(.system(size: 21, weight: .regular))
+                        Image("delete")
+                            .resizable()
+                            .renderingMode(.template)
+                            .scaledToFit()
                             .foregroundStyle(.white.opacity(0.9))
+                            .frame(width: 25, height: 25)
                             .frame(width: 46, height: 46)
                             .contentShape(Rectangle())
                     }
@@ -137,6 +144,9 @@ struct ProfileEditorView: View {
             dateOfBirthField
             genderField
             preferredContentField
+            if viewModel.mode == .editExisting {
+                cohortPreferenceField
+            }
             kidsToggleField
         }
     }
@@ -448,6 +458,36 @@ struct ProfileEditorView: View {
         .background(
             ProfilePanelBackground(cornerRadius: 20)
         )
+    }
+
+    private var cohortPreferenceField: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Storefront Cohort")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(.white)
+
+                Text("Changing this updates the feed after you save.")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color.white.opacity(0.5))
+            }
+            .padding(.horizontal, 4)
+
+            VStack(spacing: 10) {
+                ForEach(ProfilePreference.allCases) { preference in
+                    CohortPreferenceCard(
+                        preference: preference,
+                        isSelected: viewModel.draft.preference == preference,
+                        languages: viewModel.preferredLanguages(for: preference)
+                    ) {
+                        selectPreference(preference)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, UIConstants.Spacing.lg)
+        .padding(.vertical, 16)
+        .background(ProfilePanelBackground(cornerRadius: 20))
     }
 
     private var cohortContent: some View {
@@ -882,186 +922,6 @@ private struct CohortPreferenceCard: View {
             )
         }
         .buttonStyle(LiquidButtonPressStyle())
-    }
-}
-
-private struct ProfileCohortQuestionnaireStep: View {
-    let profileName: String
-    let imageName: String?
-    let fallbackGlyph: String
-    let onComplete: (CohortQuestionnaireResult) -> Void
-
-    @State private var currentIndex = 0
-    @State private var answers: [CohortQuestionnaireAnswer] = []
-    @State private var selectedAnswerID: String?
-    @State private var isFinishing = false
-    @State private var cohortToast: String?
-
-    private let questions = CohortQuestionnaireQuestion.defaultQuestions
-
-    private var currentQuestion: CohortQuestionnaireQuestion {
-        questions[currentIndex]
-    }
-
-    private var progress: CGFloat {
-        CGFloat(currentIndex + 1) / CGFloat(questions.count)
-    }
-
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            VStack(spacing: 0) {
-                VStack(spacing: 8) {
-                    ProfileAvatarView(
-                        imageName: imageName,
-                        fallbackGlyph: fallbackGlyph,
-                        size: 89.635
-                    )
-
-                    Text(profileName)
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                }
-                .padding(.top, 10)
-
-                Text("Let’s get the vibe right.")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(.white)
-                    .padding(.top, 10)
-
-                progressBar
-                    .padding(.top, 30)
-
-                questionCard
-                    .padding(.top, 40)
-
-                answerStack
-                    .padding(.top, 50)
-
-                Button {
-                    moveNext(with: nil)
-                } label: {
-                    Text("I don’t know, Next")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, minHeight: 48)
-                }
-                .buttonStyle(.plain)
-                .disabled(isFinishing)
-                .padding(.horizontal, 16)
-                .padding(.top, 18)
-            }
-
-            if let cohortToast {
-                CohortResultToast(message: cohortToast)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .padding(.bottom, 12)
-            }
-        }
-    }
-
-    private var progressBar: some View {
-        GeometryReader { proxy in
-            ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(Color.white.opacity(0.28))
-
-                Capsule()
-                    .fill(Color.white)
-                    .frame(width: max(33, proxy.size.width * progress))
-            }
-        }
-        .frame(width: 283, height: 4)
-        .animation(.easeInOut(duration: 0.25), value: progress)
-    }
-
-    private var questionCard: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(Color.black.opacity(0.18))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                )
-
-            Text(currentQuestion.title)
-                .font(.system(size: 30, weight: .bold))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.white)
-                .lineSpacing(4)
-                .padding(.horizontal, 34)
-        }
-        .frame(width: 380, height: 199)
-    }
-
-    private var answerStack: some View {
-        VStack(spacing: 14) {
-            ForEach(currentQuestion.answers) { answer in
-                ProfileCohortAnswerButton(
-                    title: answer.title,
-                    isSelected: selectedAnswerID == answer.id,
-                    isDisabled: isFinishing
-                ) {
-                    selectedAnswerID = answer.id
-                    moveNext(with: answer)
-                }
-            }
-        }
-        .padding(.horizontal, 16)
-    }
-
-    private func moveNext(with answer: CohortQuestionnaireAnswer?) {
-        guard !isFinishing else { return }
-
-        if let answer {
-            answers.append(answer)
-        }
-
-        if currentIndex < questions.count - 1 {
-            withAnimation(.easeInOut(duration: 0.24)) {
-                currentIndex += 1
-                selectedAnswerID = nil
-            }
-            return
-        }
-
-        isFinishing = true
-        let result = CohortQuestionnaireScorer.score(answers: answers)
-        withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-            cohortToast = "\(result.primaryCategory.title) selected"
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
-            onComplete(result)
-        }
-    }
-}
-
-private struct ProfileCohortAnswerButton: View {
-    let title: String
-    let isSelected: Bool
-    let isDisabled: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 17, weight: .bold))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.white)
-                .lineSpacing(3)
-                .frame(maxWidth: .infinity, minHeight: 84)
-                .padding(.horizontal, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(Color(hex: "171717").opacity(isSelected ? 0.94 : 0.82))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                .stroke(isSelected ? Color.white.opacity(0.86) : Color.white.opacity(0.08), lineWidth: isSelected ? 1.5 : 1)
-                        )
-                )
-        }
-        .buttonStyle(LiquidButtonPressStyle())
-        .disabled(isDisabled)
     }
 }
 

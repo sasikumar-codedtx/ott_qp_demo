@@ -38,4 +38,23 @@ final class ContentDetailRepositoryImpl: ContentDetailRepository {
 
         return Array(fallbackItems.prefix(18))
     }
+
+    func searchMoments(contentID: String, term: String) async throws -> [StorefrontItem] {
+        let normalizedTerm = term.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard normalizedTerm.isEmpty == false else { return [] }
+
+        let config = await configStore.current()
+        return try await dataSource.searchMoments(contentID: contentID, term: normalizedTerm).data
+            .map { $0.toDomain(config: config) }
+            .filter { $0.id != contentID }
+    }
+
+    func fetchEpisodes(seriesID: String) async throws -> [StorefrontItem] {
+        let normalizedSeriesID = seriesID.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard normalizedSeriesID.isEmpty == false else { return [] }
+
+        let config = await configStore.current()
+        return try await dataSource.fetchEpisodes(seriesID: normalizedSeriesID).data
+            .map { $0.toDomain(config: config) }
+    }
 }

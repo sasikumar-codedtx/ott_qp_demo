@@ -134,7 +134,8 @@ private struct StorefrontTrendingRankedCard: View {
             Image("trendingNumber\(rank)")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 70, height: 94, alignment: .bottomLeading)
+                .frame(height: 94)
+                .frame(width: rank == 10 ? 104 : 70, alignment: .bottomLeading)
                 .opacity(0.72)
                 .shadow(color: Color.black.opacity(0.42), radius: 5, x: 5, y: 0)
         } else {

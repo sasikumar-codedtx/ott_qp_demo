@@ -5,8 +5,11 @@ struct StorefrontSectionView: View {
     let isHomeTab: Bool
     let cohort: QuickplayCohort
     let heroVariant: StorefrontHeroVariant
+    let topChromeHeight: CGFloat
+    let favoriteIDs: Set<String>
     let onViewAll: ((StorefrontSection) -> Void)?
     let onSelectItem: (StorefrontItem) -> Void
+    let onToggleFavorite: (StorefrontItem) -> Void
     @State private var measuredWidth: CGFloat = 390
 
     var body: some View {
@@ -14,8 +17,8 @@ struct StorefrontSectionView: View {
         let containerWidth = measuredWidth - (UIConstants.Spacing.lg * 2)
         let layout = section.cardLayout(isHomeTab: isHomeTab, cohort: cohort, containerWidth: containerWidth)
 
-        VStack(alignment: .leading, spacing: UIConstants.Spacing.md) {
-            if !section.isHero && !section.usesRankedArtwork {
+        VStack(alignment: .leading, spacing: StorefrontRailMetrics.headerToCardsGap) {
+            if !section.isHero && !section.usesRankedArtwork && section.backgroundImageURL == nil {
                 SectionHeaderView(title: section.title, onTap: {
                     onViewAll?(section)
                 })
@@ -23,16 +26,29 @@ struct StorefrontSectionView: View {
             }
 
             if section.isHero {
-                heroContent
+                heroContainer
+                    .frame(height: StorefrontHeroMetrics.reservedHeight(topChromeHeight: topChromeHeight))
+                    .frame(maxWidth: .infinity)
+                    .clipped(antialiased: false)
+                    .transition(.opacity.animation(.easeInOut(duration: 0.24)))
             } else if section.usesRankedArtwork {
                 StorefrontTrendingRankedSectionView(
                     section: section,
                     onViewAll: onViewAll,
                     onSelectItem: onSelectItem
                 )
+            } else if let backgroundImageURL = section.backgroundImageURL {
+                StorefrontBackgroundImageSectionView(
+                    section: section,
+                    backgroundImageURL: backgroundImageURL,
+                    style: style,
+                    layout: layout,
+                    onViewAll: onViewAll,
+                    onSelectItem: onSelectItem
+                )
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: UIConstants.Spacing.md) {
+                    HStack(alignment: .top, spacing: StorefrontRailMetrics.cardGap) {
                         ForEach(Array(section.items.enumerated()), id: \.element.id) { index, item in
                             StorefrontCardView(
                                 item: item,
@@ -63,19 +79,189 @@ struct StorefrontSectionView: View {
     }
 
     @ViewBuilder
-    private var heroContent: some View {
+    private var heroContainer: some View {
         switch heroVariant {
         case .carousel:
-            StorefrontEntertainmentHeroView(
+            VStack(spacing: 0) {
+                Spacer(minLength: topChromeHeight)
+                    .frame(height: topChromeHeight)
+                StorefrontEntertainmentHeroView(
+                    items: section.items,
+                    cohort: cohort,
+                    favoriteIDs: favoriteIDs,
+                    onToggleFavorite: onToggleFavorite,
+                    onSelectItem: onSelectItem
+                )
+                .frame(height: StorefrontHeroMetrics.slotHeight)
+            }
+        case .stackedSports:
+            VStack(spacing: 0) {
+                Spacer(minLength: topChromeHeight)
+                    .frame(height: topChromeHeight)
+                StorefrontSportsHeroView(items: section.items, onSelectItem: onSelectItem)
+                    .frame(height: StorefrontHeroMetrics.slotHeight)
+            }
+        case .immersive:
+            StorefrontImmersiveHeroView(
                 items: section.items,
-                cohort: cohort,
+                topChromeHeight: topChromeHeight,
                 onSelectItem: onSelectItem
             )
-        case .stackedSports:
-            StorefrontSportsHeroView(items: section.items, onSelectItem: onSelectItem)
-        case .immersive:
-            StorefrontImmersiveHeroView(items: section.items, onSelectItem: onSelectItem)
         }
+    }
+}
+
+private struct StorefrontBackgroundImageSectionView: View {
+    let section: StorefrontSection
+    let backgroundImageURL: URL
+    let style: StorefrontCardStyle
+    let layout: StorefrontCardLayout
+    let onViewAll: ((StorefrontSection) -> Void)?
+    let onSelectItem: (StorefrontItem) -> Void
+
+    private let backgroundHeight: CGFloat = 188
+    private let cardTopPadding: CGFloat = 134
+    private let headingHeight: CGFloat = 46
+
+    private var sectionHeight: CGFloat {
+        cardTopPadding + layout.size.height + 34 + 12 + headingHeight
+    }
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            GeometryReader { proxy in
+                PosterImageView(
+                    url: backgroundImageURL,
+                    size: CGSize(width: proxy.size.width, height: backgroundHeight),
+                    cornerRadius: 0
+                )
+                .frame(maxWidth: .infinity, alignment: .top)
+
+                LinearGradient(
+                    stops: [
+                        .init(color: Color(hex: "462510").opacity(0), location: 0.28),
+                        .init(color: Color(hex: "462510").opacity(0.92), location: 0.58),
+                        .init(color: Color(hex: "1F0C00"), location: 1)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .allowsHitTesting(false)
+
+            VStack(spacing: 16) {
+                Spacer(minLength: cardTopPadding)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: StorefrontRailMetrics.cardGap) {
+                        ForEach(section.items, id: \.id) { item in
+                            StorefrontBackgroundSectionCard(
+                                item: item,
+                                style: style,
+                                layout: layout,
+                                onSelect: onSelectItem
+                            )
+                        }
+                    }
+                    .padding(.horizontal, UIConstants.Spacing.lg)
+                }
+
+                bottomHeading
+            }
+        }
+        .frame(height: sectionHeight)
+        .clipped()
+    }
+
+    private var bottomHeading: some View {
+        Button {
+            onViewAll?(section)
+        } label: {
+            HStack(spacing: UIConstants.Spacing.sm) {
+                Text(section.title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+
+                Spacer()
+
+                Image(systemName: AppIcons.Navigation.next)
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 30, height: 30)
+            }
+            .frame(height: headingHeight)
+            .padding(.horizontal, UIConstants.Spacing.lg)
+            .background(Color(hex: "1F0C00"))
+        }
+        .buttonStyle(LiquidButtonPressStyle())
+    }
+}
+
+private struct StorefrontBackgroundSectionCard: View {
+    let item: StorefrontItem
+    let style: StorefrontCardStyle
+    let layout: StorefrontCardLayout
+    let onSelect: (StorefrontItem) -> Void
+    @Environment(\.displayScale) private var displayScale
+
+    var body: some View {
+        Button(action: handleTap) {
+            VStack(alignment: .leading, spacing: StorefrontRailMetrics.cardGap) {
+                ZStack(alignment: .bottomLeading) {
+                    PosterImageView(
+                        url: item.imageURL(
+                            for: style.imageRatio,
+                            width: max(Int(ceil(layout.size.width * displayScale)), 360)
+                        ),
+                        size: layout.size,
+                        cornerRadius: StorefrontRailMetrics.cardCornerRadius
+                    )
+
+                    LinearGradient(
+                        colors: [Color.clear, Color.black.opacity(0.8)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: StorefrontRailMetrics.cardCornerRadius, style: .continuous))
+
+                    if item.showsInlinePlayCTA {
+                        Image(systemName: AppIcons.Action.play)
+                            .font(.system(size: 10, weight: .black))
+                            .foregroundStyle(.white)
+                            .frame(width: 18, height: 18)
+                            .background(Color.black.opacity(0.5), in: Circle())
+                            .padding(6)
+                    }
+                }
+                .frame(width: layout.size.width, height: layout.size.height)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.title)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+
+                    Text(item.primaryMetaText.nilIfEmpty ?? item.contentType.capitalized)
+                        .font(.system(size: 10, weight: .regular))
+                        .foregroundStyle(.white.opacity(0.74))
+                        .lineLimit(1)
+                }
+                .frame(width: layout.size.width, alignment: .leading)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(LiquidButtonPressStyle())
+        .disabled(!item.canOpenDetail)
+    }
+
+    private func handleTap() {
+        guard item.canOpenDetail else { return }
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.prepare()
+        generator.impactOccurred(intensity: 0.82)
+        onSelect(item)
     }
 }
 
@@ -83,6 +269,19 @@ enum StorefrontHeroVariant {
     case carousel
     case stackedSports
     case immersive
+}
+
+enum StorefrontHeroMetrics {
+    static let mediaHeight: CGFloat = 537
+    static let slotHeight: CGFloat = 558
+
+    static func topChromeHeight(topInset: CGFloat) -> CGFloat {
+        topInset + 48
+    }
+
+    static func reservedHeight(topChromeHeight: CGFloat) -> CGFloat {
+        slotHeight + topChromeHeight
+    }
 }
 
 private extension StorefrontSection {
