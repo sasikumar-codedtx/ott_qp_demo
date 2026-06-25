@@ -145,10 +145,6 @@ actor DemoSessionStore {
 
         cohortTapCountsByProfile[key] = [:]
         UserDefaults.standard.set(cohortTapCountsByProfile, forKey: StorageKey.cohortTapCountsByProfile)
-        activeCohort = updatedCohort
-        activePreference = updatedCohort.defaultPreference
-        UserDefaults.standard.set(activeCohort.rawValue, forKey: StorageKey.activeCohort)
-        UserDefaults.standard.set(activePreference.rawValue, forKey: StorageKey.activePreference)
 
         guard updatedCohort != previousCohort else { return nil }
         return updatedCohort

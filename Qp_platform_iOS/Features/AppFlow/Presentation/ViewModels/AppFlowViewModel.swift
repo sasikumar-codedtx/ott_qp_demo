@@ -394,22 +394,12 @@ final class AppFlowViewModel: ObservableObject {
     func openContent(item: StorefrontItem) {
         Task {
             if let updatedCohort = await DemoSessionStore.shared.recordContentSelection(item) {
-                let updatedProfile = try? await persistCohortOverride(updatedCohort)
+                let didPersistOverride = (try? await persistCohortOverride(updatedCohort)) != nil
                 await MainActor.run {
                     cohortOverrideToast = "\(updatedCohort.title) feed selected"
-                    if let updatedProfile {
-                        activeProfile = updatedProfile
-                        storefrontViewModel.applyProfile(updatedProfile, forceReset: true)
-                        hotStorefrontViewModel.applyProfile(updatedProfile, forceReset: true)
-                    }
                 }
-                if updatedProfile != nil {
+                if didPersistOverride {
                     await profileSelectionViewModel.load()
-                    await storefrontViewModel.reloadInitial(force: true)
-                    await hotStorefrontViewModel.reloadInitial(force: true)
-                    if let activeProfile {
-                        profileHubViewModel.present(profile: activeProfile, seedItems: storefrontViewModel.searchSeedItems)
-                    }
                 }
                 try? await Task.sleep(for: .seconds(1.8))
                 await MainActor.run {
@@ -440,13 +430,8 @@ final class AppFlowViewModel: ObservableObject {
     private func persistCohortOverride(_ cohort: QuickplayCohort) async throws -> Profile? {
         guard let activeProfile else { return nil }
         let updatedProfile = try await profileRepository.updateProfileCohort(id: activeProfile.id, cohort: cohort)
-        await DemoSessionStore.shared.setActiveProfileContext(
-            profileID: updatedProfile.id,
-            cohort: updatedProfile.cohort,
-            preference: updatedProfile.cohort.defaultPreference
-        )
         print(
-            "[ProfileContext] dynamicOverride profile=\(updatedProfile.name), profileID=\(updatedProfile.id.uuidString), cohort=\(updatedProfile.cohort.rawValue), pf=\(updatedProfile.cohort.profileFlag)"
+            "[ProfileContext] dynamicOverrideSavedForNextLaunch profile=\(updatedProfile.name), profileID=\(updatedProfile.id.uuidString), cohort=\(updatedProfile.cohort.rawValue), pf=\(updatedProfile.cohort.profileFlag)"
         )
         return updatedProfile
     }

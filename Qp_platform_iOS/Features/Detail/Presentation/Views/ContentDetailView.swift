@@ -1,5 +1,45 @@
 import SwiftUI
 
+// MARK: - Sports hardcoded data
+
+private struct SportsLiveChatMessage: Identifiable {
+    let id: String
+    let username: String
+    let text: String
+    let avatarLetter: String
+    let colorHex: String
+}
+
+private let sportsLiveChatMessages: [SportsLiveChatMessage] = [
+    .init(id: "1", username: "cricket_fan99", text: "Bumrah on fire 🔥 hat-trick incoming??", avatarLetter: "C", colorHex: "E53935"),
+    .init(id: "2", username: "sports_live", text: "SL top order struggling badly 😬", avatarLetter: "S", colorHex: "1E88E5"),
+    .init(id: "3", username: "IND_supporter", text: "IND 210/5 in 20 overs, great target 💯 what a knock from Rohit!", avatarLetter: "I", colorHex: "43A047"),
+    .init(id: "4", username: "maxwellfan_", text: "Maxwell batting like a god rn!", avatarLetter: "M", colorHex: "FB8C00"),
+    .init(id: "5", username: "rohit_official", text: "Rohit anchored brilliantly today 🏏 captain's knock 💙", avatarLetter: "R", colorHex: "8E24AA"),
+    .init(id: "6", username: "cricket_world", text: "Close match! SL can still chase this 🤞", avatarLetter: "W", colorHex: "00897B"),
+]
+
+private struct ScorecardBatter: Identifiable {
+    let id: String
+    let name: String
+    let dismissal: String
+    let r: String
+    let b: String
+    let fours: String
+    let sixes: String
+    let sr: String
+    let isAtCrease: Bool
+}
+
+private let scorecardInnningsData: [ScorecardBatter] = [
+    .init(id: "1", name: "R Sharma (c)", dismissal: "b Wellalage", r: "53", b: "48", fours: "7", sixes: "2", sr: "110.4", isAtCrease: false),
+    .init(id: "2", name: "S Gill", dismissal: "b Wellalage", r: "19", b: "25", fours: "2", sixes: "0", sr: "76.0", isAtCrease: false),
+    .init(id: "3", name: "V Kohli", dismissal: "c Shanaka b Wellalage", r: "3", b: "12", fours: "0", sixes: "0", sr: "25.0", isAtCrease: false),
+    .init(id: "4", name: "I Kishan", dismissal: "c Wellalage b Asalanka", r: "44", b: "29", fours: "3", sixes: "2", sr: "151.7", isAtCrease: false),
+    .init(id: "5", name: "D Warner", dismissal: "not out", r: "0", b: "1", fours: "0", sixes: "0", sr: "0.0", isAtCrease: true),
+    .init(id: "6", name: "G Maxwell", dismissal: "not out", r: "52", b: "38", fours: "4", sixes: "3", sr: "136.8", isAtCrease: true),
+]
+
 private enum DetailPresentationKind: Equatable {
     case regular
     case showInteractive
@@ -56,6 +96,11 @@ struct ContentDetailView: View {
     @State private var keyboardHeight: CGFloat = 0
     @State private var momentAutoScrollToken = 0
     @FocusState private var isMomentSearchFocused: Bool
+    // Sports interactive
+    @State private var selectedSportsTab = "Live Feed"
+    @State private var liveChatInput = ""
+    @State private var sportsPollAnswer: String? = nil
+    @FocusState private var isChatInputFocused: Bool
 
     private let recommendationColumns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
     private let momentColumns = [GridItem(.flexible(), spacing: 10)]
@@ -260,174 +305,503 @@ struct ContentDetailView: View {
         }
     }
 
+    // MARK: - Sports Detail (tab-based, Figma-accurate)
+
     private func sportsDetailContent(_ detail: ContentDetail, width: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("LIVE SPORTS")
-                        .font(.system(size: 12, weight: .black))
-                        .foregroundStyle(Color(hex: "72F6A2"))
-                        .tracking(1.2)
-
-                    Text(detail.title.uppercased())
-                        .font(.system(size: 36, weight: .black, design: .rounded))
-                        .tracking(-1.2)
-                        .foregroundStyle(.white)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.7)
-
-                    Text(detail.metaLine.nilIfEmpty ?? "LIVE • SPORTS")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(Color.white.opacity(0.68))
-                        .lineLimit(1)
-                }
-
-                Spacer()
-
-                Text("LIVE")
-                    .font(.system(size: 12, weight: .black))
+        VStack(alignment: .leading, spacing: 0) {
+            // Series description
+            VStack(alignment: .leading, spacing: 6) {
+                Text(detail.title)
+                    .font(.system(size: 20, weight: .bold))
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 12)
-                    .frame(height: 30)
-                    .background(Capsule().fill(Color(hex: "E50914")))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+
+                Text(detail.description.nilIfEmpty ?? "India vs Sri Lanka • ICC T20 World Cup • Live")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.68))
+                    .lineLimit(2)
             }
 
-            watchButton(detail, kind: .sportsInteractive)
+            // 3 action buttons (notification, schedule, AI search)
+            HStack(spacing: 8) {
+                DetailActionButton(systemImage: "bell.fill", cornerStyle: .leading, action: {})
+                DetailActionButton(systemImage: "list.bullet.rectangle", action: {})
+                DetailActionButton(systemImage: AppIcons.Action.sparkles, cornerStyle: .trailing, isHighlighted: true) {
+                    presentMomentSearchOverlay(for: detail)
+                }
+            }
+            .padding(.top, 14)
 
-            sportsLiveCard(detail)
-            sportsPredictionCard
-            sportsMomentList
+            // Tab bar
+            sportsTabRow
+                .padding(.top, 20)
+
+            Rectangle()
+                .fill(Color.white.opacity(0.12))
+                .frame(height: 1)
+
+            // Tab content
+            sportsTabContent(detail, width: width)
+                .padding(.top, 4)
         }
     }
 
-    private func sportsLiveCard(_ detail: ContentDetail) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Live Match Centre")
-                    .font(.system(size: 18, weight: .black))
+    private var sportsTabRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 0) {
+                ForEach(["Live Feed", "Scorecard", "Key Moments", "You May also Like"], id: \.self) { tab in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.18)) {
+                            selectedSportsTab = tab
+                        }
+                    } label: {
+                        VStack(spacing: 12) {
+                            Text(tab)
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(selectedSportsTab == tab ? .white : .white.opacity(0.44))
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: false)
+
+                            Rectangle()
+                                .fill(selectedSportsTab == tab ? Color.white : Color.clear)
+                                .frame(height: 2)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.top, 14)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(LiquidButtonPressStyle())
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private func sportsTabContent(_ detail: ContentDetail, width: CGFloat) -> some View {
+        switch selectedSportsTab {
+        case "Live Feed":
+            sportsLiveFeedTab
+        case "Scorecard":
+            sportsScorecardTab
+        case "Key Moments":
+            momentsSection(detail)
+        default:
+            recommendationSection(width: width)
+        }
+    }
+
+    // MARK: Live Feed tab
+
+    private var sportsLiveFeedTab: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Chat messages
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(sportsLiveChatMessages) { msg in
+                    liveChatRow(msg)
+                }
+
+                // Embedded poll card
+                sportsPollInChat
+                    .padding(.top, 8)
+                    .padding(.bottom, 4)
+            }
+            .padding(.top, 10)
+
+            // Emoji reaction bar
+            HStack(spacing: 0) {
+                ForEach(["😜", "😍", "😏", "💀", "👏", "🤨", "❤️", "😂"], id: \.self) { emoji in
+                    Button {
+                        // reaction tap
+                    } label: {
+                        Text(emoji)
+                            .font(.system(size: 22))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 40)
+                    }
+                    .buttonStyle(LiquidButtonPressStyle())
+                }
+            }
+            .padding(.top, 14)
+
+            // Chat text input
+            HStack(spacing: 0) {
+                TextField("", text: $liveChatInput, prompt: Text("Add a comment…").foregroundStyle(.white.opacity(0.36)))
+                    .focused($isChatInputFocused)
+                    .submitLabel(.send)
+                    .font(.system(size: 14, weight: .regular))
                     .foregroundStyle(.white)
+                    .padding(.leading, 16)
+                    .padding(.vertical, 16)
 
-                Spacer()
+                Button(action: {}) {
+                    Image(systemName: "face.smiling")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.58))
+                        .frame(width: 36, height: 36)
+                }
+                .buttonStyle(LiquidButtonPressStyle())
 
-                Text("2nd Innings")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.62))
+                Button(action: {}) {
+                    Text("GIF")
+                        .font(.system(size: 11, weight: .black))
+                        .foregroundStyle(.white.opacity(0.58))
+                        .frame(width: 36, height: 36)
+                }
+                .buttonStyle(LiquidButtonPressStyle())
+                .padding(.trailing, 4)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 27, style: .continuous)
+                    .fill(Color.white.opacity(0.07))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 27, style: .continuous)
+                            .stroke(Color.white.opacity(0.14), lineWidth: 1)
+                    )
+            )
+            .padding(.top, 8)
+            .padding(.bottom, 16)
+        }
+    }
+
+    private func liveChatRow(_ msg: SportsLiveChatMessage) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Circle()
+                .fill(Color(hex: msg.colorHex))
+                .frame(width: 34, height: 34)
+                .overlay(
+                    Text(msg.avatarLetter)
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.white)
+                )
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(msg.username)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.46))
+
+                Text(msg.text)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.88))
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
+            Spacer(minLength: 0)
+        }
+        .padding(.vertical, 7)
+    }
+
+    private var sportsPollInChat: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 5) {
+                Image(systemName: "chart.bar.fill")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color(hex: "FFD166"))
+                Text("Quick Poll")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color(hex: "FFD166"))
+            }
+
+            Text("Will SL cross 150 in this innings?")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.white)
+
             HStack(spacing: 8) {
-                sportsScoreCard(title: "Home", score: "126/4")
-                sportsScoreCard(title: "Target", score: "182")
-                sportsScoreCard(title: "Win chance", score: "58%")
+                sportsPollButton("Yes", fillColor: Color(hex: "22C55E"), percent: "68%")
+                sportsPollButton("No", fillColor: Color(hex: "EF4444"), percent: "32%")
             }
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.white.opacity(0.06))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color(hex: "FFD166").opacity(0.32), lineWidth: 1)
+                )
+        )
+    }
+
+    private func sportsPollButton(_ title: String, fillColor: Color, percent: String) -> some View {
+        let isSelected = sportsPollAnswer == title
+        let isLocked = sportsPollAnswer != nil
+
+        return Button {
+            guard !isLocked else { return }
+            withAnimation(.easeInOut(duration: 0.2)) { sportsPollAnswer = title }
+        } label: {
+            HStack(spacing: 6) {
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(fillColor)
+                }
+                Text(title)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(.white)
+
+                Spacer(minLength: 0)
+
+                if isLocked {
+                    Text(percent)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.68))
+                }
+            }
+            .padding(.horizontal, 14)
+            .frame(maxWidth: .infinity)
+            .frame(height: 40)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(isSelected ? fillColor.opacity(0.22) : Color.white.opacity(0.06))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .stroke(isSelected ? fillColor.opacity(0.72) : Color.white.opacity(0.18), lineWidth: 1)
+                    )
+            )
+        }
+        .disabled(isLocked)
+        .buttonStyle(LiquidButtonPressStyle())
+    }
+
+    // MARK: Scorecard tab
+
+    private var sportsScorecardTab: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            // Live score header
+            sportsLiveScoreHeader
+                .padding(.top, 12)
+
+            // Current over
+            sportsCurrentOverCard
+
+            // Batting scorecard table
+            sportsBattingTable
+
+            // Win probability
+            sportsWinProbabilityCard
+        }
+    }
+
+    private var sportsLiveScoreHeader: some View {
+        HStack(spacing: 0) {
+            VStack(alignment: .center, spacing: 4) {
+                Text("IND")
+                    .font(.system(size: 16, weight: .black))
+                    .foregroundStyle(.white)
+                Text("210-5")
+                    .font(.system(size: 32, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                Text("Over 20")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.52))
+            }
+            .frame(maxWidth: .infinity)
+
+            VStack(spacing: 6) {
+                Text("LIVE")
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .frame(height: 18)
+                    .background(Capsule().fill(Color(hex: "E50914")))
+
+                Text("vs")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.48))
+            }
+            .frame(width: 52)
+
+            VStack(alignment: .center, spacing: 4) {
+                Text("SL")
+                    .font(.system(size: 16, weight: .black))
+                    .foregroundStyle(.white)
+                Text("48-2")
+                    .font(.system(size: 32, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                Text("Over 5.4")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.52))
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .padding(.vertical, 18)
+        .padding(.horizontal, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(
                     LinearGradient(
-                        colors: [Color(hex: "08111F"), Color(hex: "103A2C"), Color(hex: "2E160A")],
+                        colors: [Color(hex: "08111F"), Color(hex: "1A2940")],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(Color(hex: "72F6A2").opacity(0.2), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color(hex: "72F6A2").opacity(0.28), lineWidth: 1)
                 )
         )
     }
 
-    private var sportsPredictionCard: some View {
+    private var sportsCurrentOverCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("Prediction is live")
-                    .font(.system(size: 15, weight: .black))
-                    .foregroundStyle(.white)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("J Bumrah")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                    Text("3.5 – 8 – 1")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.56))
+                }
 
                 Spacer()
 
-                Text("04:59")
-                    .font(.system(size: 13, weight: .black))
-                    .foregroundStyle(Color(hex: "FFD166"))
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("CRR 10.2")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Color(hex: "72F6A2"))
+                    Text("Need 163 off 85 balls")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.52))
+                }
             }
 
-            Text("Who takes the next wicket?")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.72))
-
             HStack(spacing: 8) {
-                interactivePill("Pacers", color: Color(hex: "22C55E"))
-                interactivePill("Spin", color: Color(hex: "3B82F6"))
-                interactivePill("Run out", color: Color(hex: "F59E0B"))
+                Text("This over:")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.44))
+
+                HStack(spacing: 5) {
+                    ForEach(["0", "4", "W", "0", "4", "1lb"], id: \.self) { ball in
+                        Text(ball)
+                            .font(.system(size: 11, weight: .black))
+                            .foregroundStyle(
+                                ball == "W" ? Color.white :
+                                ball == "4" || ball == "6" ? Color.black :
+                                Color.white
+                            )
+                            .frame(width: 28, height: 28)
+                            .background(
+                                Circle().fill(
+                                    ball == "W" ? Color(hex: "E50914") :
+                                    ball == "4" ? Color(hex: "22C55E") :
+                                    ball == "6" ? Color(hex: "F59E0B") :
+                                    Color.white.opacity(0.14)
+                                )
+                            )
+                    }
+                }
             }
         }
         .padding(14)
-        .background(LiquidGlassBackground(cornerRadius: 18, tone: .dark))
+        .background(LiquidGlassBackground(cornerRadius: 14, tone: .dark))
     }
 
-    private var sportsMomentList: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Match Moments")
-                .font(.system(size: 18, weight: .black))
-                .foregroundStyle(.white)
+    private var sportsBattingTable: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            HStack(spacing: 0) {
+                Text("Batter")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("R").frame(width: 34, alignment: .trailing)
+                Text("B").frame(width: 30, alignment: .trailing)
+                Text("4s").frame(width: 28, alignment: .trailing)
+                Text("6s").frame(width: 28, alignment: .trailing)
+                Text("SR").frame(width: 46, alignment: .trailing)
+            }
+            .font(.system(size: 10, weight: .bold))
+            .foregroundStyle(.white.opacity(0.44))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
 
-            ForEach(["Powerplay highlights", "Big wicket moments", "Last over drama"], id: \.self) { title in
-                HStack(spacing: 12) {
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(Color(hex: "72F6A2"))
-                        .frame(width: 34, height: 34)
-                        .background(Circle().fill(Color.white.opacity(0.08)))
+            Rectangle().fill(Color.white.opacity(0.1)).frame(height: 1)
 
-                    Text(title)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white)
-
-                    Spacer()
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.46))
+            ForEach(scorecardInnningsData) { batter in
+                sportsBatterRow(batter)
+                if batter.id != scorecardInnningsData.last?.id {
+                    Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1)
                 }
-                .padding(12)
-                .background(LiquidGlassBackground(cornerRadius: 16, tone: .dark))
             }
         }
-        .padding(.top, 8)
+        .background(LiquidGlassBackground(cornerRadius: 14, tone: .dark))
     }
 
-    private func interactivePill(_ title: String, color: Color) -> some View {
-        Text(title)
-            .font(.system(size: 12, weight: .bold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 12)
-            .frame(height: 30)
-            .background(Capsule(style: .continuous).fill(color.opacity(0.28)))
-            .overlay(Capsule(style: .continuous).stroke(color.opacity(0.55), lineWidth: 1))
-    }
+    private func sportsBatterRow(_ batter: ScorecardBatter) -> some View {
+        HStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 4) {
+                    Text(batter.name)
+                        .font(.system(size: 13, weight: batter.isAtCrease ? .bold : .regular))
+                        .foregroundStyle(batter.isAtCrease ? .white : .white.opacity(0.82))
+                        .lineLimit(1)
 
-    private func sportsScoreCard(title: String, score: String) -> some View {
-        VStack(spacing: 3) {
-            Text(score)
-                .font(.system(size: 14, weight: .black))
-                .foregroundStyle(.white)
-                .lineLimit(1)
+                    if batter.isAtCrease {
+                        Circle()
+                            .fill(Color(hex: "22C55E"))
+                            .frame(width: 6, height: 6)
+                    }
+                }
 
-            Text(title)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.58))
-                .lineLimit(1)
+                Text(batter.dismissal)
+                    .font(.system(size: 10, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.36))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text(batter.r).frame(width: 34, alignment: .trailing)
+                .font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
+            Text(batter.b).frame(width: 30, alignment: .trailing)
+                .font(.system(size: 12, weight: .regular)).foregroundStyle(.white.opacity(0.56))
+            Text(batter.fours).frame(width: 28, alignment: .trailing)
+                .font(.system(size: 12, weight: .regular)).foregroundStyle(.white.opacity(0.56))
+            Text(batter.sixes).frame(width: 28, alignment: .trailing)
+                .font(.system(size: 12, weight: .regular)).foregroundStyle(.white.opacity(0.56))
+            Text(batter.sr).frame(width: 46, alignment: .trailing)
+                .font(.system(size: 11, weight: .regular)).foregroundStyle(.white.opacity(0.44))
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 54)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.08))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                )
-        )
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+    }
+
+    private var sportsWinProbabilityCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Win Probability")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(.white)
+
+            ForEach([("India", "32%", 0.32, "4891E0"), ("Sri Lanka", "68%", 0.68, "72F6A2")], id: \.0) { team in
+                HStack(spacing: 10) {
+                    Text(team.0)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 72, alignment: .leading)
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .fill(Color.white.opacity(0.1))
+                                .frame(height: 8)
+
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .fill(Color(hex: team.3))
+                                .frame(width: geo.size.width * team.2, height: 8)
+                        }
+                    }
+                    .frame(height: 8)
+
+                    Text(team.1)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Color(hex: team.3))
+                        .frame(width: 36, alignment: .trailing)
+                }
+            }
+        }
+        .padding(14)
+        .background(LiquidGlassBackground(cornerRadius: 14, tone: .dark))
+        .padding(.bottom, 16)
     }
 
     private func descriptionBlock(_ detail: ContentDetail) -> some View {
