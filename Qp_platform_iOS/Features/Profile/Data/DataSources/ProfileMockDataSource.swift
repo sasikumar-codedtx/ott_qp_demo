@@ -4,6 +4,7 @@ protocol ProfileDataSourceProtocol {
     func fetchProfiles() async throws -> [ProfileDTO]
     func fetchAvatarOptions() async throws -> [AvatarOption]
     func saveProfile(draft: ProfileDraft) async throws -> ProfileDTO
+    func updateProfileCohort(id: UUID, cohort: QuickplayCohort) async throws -> ProfileDTO
     func deleteProfile(id: UUID) async throws
 }
 
@@ -41,10 +42,12 @@ final class ProfileMockDataSource: ProfileDataSourceProtocol {
         let finalName = trimmedName.nilIfEmpty ?? (draft.isKidsProfile ? "Kids" : "New Profile")
 
         if let sourceID = draft.sourceID, let index = profiles.firstIndex(where: { $0.id == sourceID }) {
+            let resolvedCohort: QuickplayCohort = draft.isKidsProfile ? .kids : draft.cohort
             profiles[index] = ProfileDTO(
                 id: sourceID,
                 name: finalName,
                 imageName: draft.imageName,
+                cohort: resolvedCohort,
                 preference: draft.preference,
                 preferredLanguages: draft.preferredLanguages,
                 dateOfBirth: draft.dateOfBirth,
@@ -60,10 +63,12 @@ final class ProfileMockDataSource: ProfileDataSourceProtocol {
             throw AppError.profileLimitReached
         }
 
+        let resolvedCohort: QuickplayCohort = draft.isKidsProfile ? .kids : draft.cohort
         let newProfile = ProfileDTO(
             id: UUID(),
             name: finalName,
             imageName: draft.imageName,
+            cohort: resolvedCohort,
             preference: draft.preference,
             preferredLanguages: draft.preferredLanguages,
             dateOfBirth: draft.dateOfBirth,
@@ -74,6 +79,28 @@ final class ProfileMockDataSource: ProfileDataSourceProtocol {
         profiles.append(newProfile)
         persistProfiles()
         return newProfile
+    }
+
+    func updateProfileCohort(id: UUID, cohort: QuickplayCohort) async throws -> ProfileDTO {
+        guard let index = profiles.firstIndex(where: { $0.id == id }) else {
+            throw AppError.profileUnavailable
+        }
+
+        let existing = profiles[index]
+        profiles[index] = ProfileDTO(
+            id: existing.id,
+            name: existing.name,
+            imageName: existing.imageName,
+            cohort: cohort,
+            preference: cohort.defaultPreference,
+            preferredLanguages: existing.preferredLanguages,
+            dateOfBirth: existing.dateOfBirth,
+            gender: existing.gender,
+            isKidsProfile: cohort == .kids,
+            showOnSelection: existing.showOnSelection
+        )
+        persistProfiles()
+        return profiles[index]
     }
 
     func deleteProfile(id: UUID) async throws {

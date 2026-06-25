@@ -227,7 +227,6 @@ final class SpeechRecognitionService: ObservableObject {
 
 enum SupportedSpeechLanguage: String, CaseIterable, Identifiable {
     case english
-    case tamil
     case hindi
 
     var id: String { rawValue }
@@ -236,8 +235,6 @@ enum SupportedSpeechLanguage: String, CaseIterable, Identifiable {
         switch self {
         case .english:
             return Locale(identifier: "en_IN")
-        case .tamil:
-            return Locale(identifier: "ta_IN")
         case .hindi:
             return Locale(identifier: "hi_IN")
         }
@@ -247,8 +244,6 @@ enum SupportedSpeechLanguage: String, CaseIterable, Identifiable {
         switch self {
         case .english:
             return "English"
-        case .tamil:
-            return "தமிழ்"
         case .hindi:
             return "हिन्दी"
         }
@@ -258,8 +253,6 @@ enum SupportedSpeechLanguage: String, CaseIterable, Identifiable {
         switch self {
         case .english:
             return "English"
-        case .tamil:
-            return "Tamil"
         case .hindi:
             return "Hindi"
         }

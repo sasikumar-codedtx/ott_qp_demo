@@ -195,6 +195,31 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         )
     }
 
+    func fetchCollectionLookupPage(item: StorefrontItem, pageNumber: Int, pageSize: Int) async throws -> StorefrontSectionPage {
+        let cohort = await DemoSessionStore.shared.currentCohort()
+        StorefrontDebugLogger.log(
+            "Fetch collection lookup cohort=\(cohort.rawValue), item=\(item.title), id=\(item.id), cardType=\(item.cardType ?? "<nil>"), cust_sc=\(item.customSearchCategory ?? "<nil>"), page=\(pageNumber), pageSize=\(pageSize)"
+        )
+
+        let response = try await dataSource.fetchCollectionLookup(
+            cohort: cohort,
+            item: item,
+            pageNumber: pageNumber,
+            pageSize: pageSize
+        )
+        let config = await configStore.current()
+        let items = deduplicatedItems(response.data.map { $0.toDomain(config: config) })
+        let loadedCount = ((pageNumber - 1) * pageSize) + items.count
+        let hasMore = items.count >= pageSize
+
+        return StorefrontSectionPage(
+            items: items,
+            nextPage: pageNumber + 1,
+            loadedCount: loadedCount,
+            totalCount: hasMore ? loadedCount + 1 : loadedCount
+        )
+    }
+
     private func hydrateSections(
         containers: [QuickplayContainerDTO],
         config: QuickplayRuntimeConfig,
@@ -208,6 +233,7 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
                 "Hydrating container[\(index)] id=\(container.id), title=\(container.lon?.preferredText ?? "<empty>"), ratio=\(container.preferredRatio), layout=\(container.lo ?? "<nil>"), sourceType=\(container.srcType ?? "<nil>")"
             )
             let items = try await loadItems(for: container, config: config, cohort: cohort)
+            let backgroundImageURL = container.backgroundImageURL(config: config)
             sections.append(
                 HydratedSection(
                     id: container.id,
@@ -216,7 +242,8 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
                     items: items,
                     isHero: container.id == firstBannerContainerID,
                     sourceType: container.srcType,
-                    backgroundImageURL: container.backgroundImageURL(config: config)
+                    backgroundImageURL: backgroundImageURL,
+                    backgroundColorHex: backgroundImageURL == nil ? nil : container.backgroundColorHex
                 )
             )
         }
@@ -283,7 +310,8 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
                 ratio: section.ratio,
                 items: resolvedItems,
                 isHero: section.isHero,
-                backgroundImageURL: section.backgroundImageURL
+                backgroundImageURL: section.backgroundImageURL,
+                backgroundColorHex: section.backgroundColorHex
             )
         }
     }
@@ -318,6 +346,7 @@ private struct HydratedSection {
     let isHero: Bool
     let sourceType: String?
     let backgroundImageURL: URL?
+    let backgroundColorHex: String?
 }
 
 private enum StorefrontDebugLogger {

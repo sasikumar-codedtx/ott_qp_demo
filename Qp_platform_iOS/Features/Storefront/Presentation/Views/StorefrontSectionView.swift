@@ -19,9 +19,9 @@ struct StorefrontSectionView: View {
 
         VStack(alignment: .leading, spacing: StorefrontRailMetrics.headerToCardsGap) {
             if !section.isHero && !section.usesRankedArtwork && section.backgroundImageURL == nil {
-                SectionHeaderView(title: section.title, onTap: {
+                SectionHeaderView(title: section.title, onTap: section.allowsViewAll ? {
                     onViewAll?(section)
-                })
+                } : nil)
                     .padding(.horizontal, UIConstants.Spacing.lg)
             }
 
@@ -43,6 +43,7 @@ struct StorefrontSectionView: View {
                     backgroundImageURL: backgroundImageURL,
                     style: style,
                     layout: layout,
+                    sectionWidth: measuredWidth,
                     onViewAll: onViewAll,
                     onSelectItem: onSelectItem
                 )
@@ -116,86 +117,106 @@ private struct StorefrontBackgroundImageSectionView: View {
     let backgroundImageURL: URL
     let style: StorefrontCardStyle
     let layout: StorefrontCardLayout
+    let sectionWidth: CGFloat
     let onViewAll: ((StorefrontSection) -> Void)?
     let onSelectItem: (StorefrontItem) -> Void
 
-    private let backgroundHeight: CGFloat = 188
-    private let cardTopPadding: CGFloat = 134
-    private let headingHeight: CGFloat = 46
+    private let titleBandHeight: CGFloat = 40
+    private let cardBottomInset: CGFloat = 58
 
-    private var sectionHeight: CGFloat {
-        cardTopPadding + layout.size.height + 34 + 12 + headingHeight
+    private var backgroundColor: Color {
+        Color(hex: section.backgroundColorHex ?? "1F0C00")
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            GeometryReader { proxy in
-                PosterImageView(
-                    url: backgroundImageURL,
-                    size: CGSize(width: proxy.size.width, height: backgroundHeight),
-                    cornerRadius: 0
-                )
-                .frame(maxWidth: .infinity, alignment: .top)
+        GeometryReader { proxy in
+            let mediaSize = proxy.size.width
+            let sectionHeight = mediaSize + titleBandHeight
 
-                LinearGradient(
-                    stops: [
-                        .init(color: Color(hex: "462510").opacity(0), location: 0.28),
-                        .init(color: Color(hex: "462510").opacity(0.92), location: 0.58),
-                        .init(color: Color(hex: "1F0C00"), location: 1)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .allowsHitTesting(false)
+            VStack(spacing: 0) {
+                ZStack(alignment: .bottom) {
+                    PosterImageView(
+                        url: backgroundImageURL,
+                        size: CGSize(width: mediaSize, height: mediaSize),
+                        cornerRadius: 0
+                    )
+                    .frame(width: mediaSize, height: mediaSize)
 
-            VStack(spacing: 16) {
-                Spacer(minLength: cardTopPadding)
+                    LinearGradient(
+                        stops: [
+                            .init(color: backgroundColor.opacity(0), location: 0.18),
+                            .init(color: backgroundColor.opacity(0.54), location: 0.58),
+                            .init(color: backgroundColor.opacity(0.98), location: 1)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(width: mediaSize, height: mediaSize)
 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: StorefrontRailMetrics.cardGap) {
-                        ForEach(section.items, id: \.id) { item in
-                            StorefrontBackgroundSectionCard(
-                                item: item,
-                                style: style,
-                                layout: layout,
-                                onSelect: onSelectItem
-                            )
-                        }
-                    }
-                    .padding(.horizontal, UIConstants.Spacing.lg)
+                    cardRail
+                        .padding(.bottom, cardBottomInset)
                 }
+                .frame(width: mediaSize, height: mediaSize)
+                .clipped()
 
                 bottomHeading
             }
+            .frame(width: mediaSize, height: sectionHeight)
         }
-        .frame(height: sectionHeight)
+        .frame(height: max(sectionWidth, 1) + titleBandHeight)
         .clipped()
     }
 
+    private var cardRail: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(alignment: .top, spacing: StorefrontRailMetrics.cardGap) {
+                ForEach(section.items, id: \.id) { item in
+                    StorefrontBackgroundSectionCard(
+                        item: item,
+                        style: style,
+                        layout: layout,
+                        onSelect: onSelectItem
+                    )
+                }
+            }
+            .padding(.horizontal, UIConstants.Spacing.lg)
+        }
+    }
+
     private var bottomHeading: some View {
-        Button {
-            onViewAll?(section)
-        } label: {
-            HStack(spacing: UIConstants.Spacing.sm) {
-                Text(section.title)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
+        Group {
+            if section.allowsViewAll {
+                Button {
+                    onViewAll?(section)
+                } label: {
+                    bottomHeadingContent(showsChevron: true)
+                }
+                .buttonStyle(LiquidButtonPressStyle())
+            } else {
+                bottomHeadingContent(showsChevron: false)
+            }
+        }
+    }
 
-                Spacer()
+    private func bottomHeadingContent(showsChevron: Bool) -> some View {
+        HStack(spacing: UIConstants.Spacing.sm) {
+            Text(section.title)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
 
+            Spacer()
+
+            if showsChevron {
                 Image(systemName: AppIcons.Navigation.next)
                     .font(.system(size: 24, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(width: 30, height: 30)
             }
-            .frame(height: headingHeight)
-            .padding(.horizontal, UIConstants.Spacing.lg)
-            .background(Color(hex: "1F0C00"))
         }
-        .buttonStyle(LiquidButtonPressStyle())
+        .frame(height: titleBandHeight, alignment: .bottom)
+        .padding(.horizontal, UIConstants.Spacing.lg)
+        .background(backgroundColor)
     }
 }
 

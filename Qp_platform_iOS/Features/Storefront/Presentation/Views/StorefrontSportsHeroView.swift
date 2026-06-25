@@ -189,9 +189,26 @@ struct StorefrontSportsHeroView: View {
             )
 
             LinearGradient(
-                colors: [Color.clear, Color.black.opacity(0.10), Color.black.opacity(0.88)],
-                startPoint: .center,
+                colors: [
+                    Color.black.opacity(0.06),
+                    Color.clear,
+                    Color.black.opacity(0.34),
+                    Color.black.opacity(0.94),
+                    Color.black
+                ],
+                startPoint: .top,
                 endPoint: .bottom
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+
+            LinearGradient(
+                colors: [
+                    Color.black.opacity(0.58),
+                    Color.black.opacity(0.18),
+                    Color.clear
+                ],
+                startPoint: .bottomLeading,
+                endPoint: .topTrailing
             )
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 

@@ -35,32 +35,24 @@ struct BottomNavigationBar: View {
     let onProfileTap: () -> Void
 
     var body: some View {
-        GeometryReader { proxy in
-            let chromeWidth = max(0, min(Metrics.idealWidth, proxy.size.width - 32))
-            let rowWidth = max(0, chromeWidth - (Metrics.horizontalInset * 2))
-
-            barContent(rowWidth: rowWidth)
-                .frame(width: rowWidth, height: Metrics.rowHeight)
-                .padding(.horizontal, Metrics.horizontalInset)
-                .padding(.top, 10)
-                .frame(width: chromeWidth, height: Metrics.height, alignment: .top)
-                .background(barBackground)
-                .frame(maxWidth: .infinity, alignment: .center)
-        }
-        .frame(height: Metrics.height)
-    }
-
-    private func barContent(rowWidth: CGFloat) -> some View {
-        let spacing = max(12, (rowWidth - (Metrics.itemWidth * 5)) / 4)
-
-        return HStack(alignment: .top, spacing: spacing) {
+        HStack(alignment: .top, spacing: 0) {
             navButton(assetName: TabbarAsset.home, label: AppStrings.Common.home, isSelected: selection == .home, action: onHomeTap)
+            Spacer(minLength: 0)
             navButton(assetName: TabbarAsset.search, label: AppStrings.Common.search, isSelected: selection == .search, action: onSearchTap)
+            Spacer(minLength: 0)
             navButton(assetName: TabbarAsset.shorts, label: AppStrings.Common.library, isSelected: selection == .shorts, action: onShortsTap)
+            Spacer(minLength: 0)
             navButton(assetName: TabbarAsset.fire, label: AppStrings.Common.hot, isSelected: selection == .hot, action: onHotTap)
+            Spacer(minLength: 0)
             profileButton
         }
-        .frame(width: rowWidth, height: Metrics.rowHeight, alignment: .top)
+        .frame(height: Metrics.rowHeight)
+        .padding(.horizontal, Metrics.horizontalInset)
+        .padding(.top, 10)
+        .padding(.bottom, 9)
+        .frame(maxWidth: Metrics.idealWidth)
+        .background(barBackground)
+        .frame(maxWidth: .infinity)
     }
 
     private var barBackground: some View {
@@ -71,6 +63,7 @@ struct BottomNavigationBar: View {
         Button(action: action) {
             navItem(assetName: assetName, label: label, isSelected: isSelected)
         }
+        .contentShape(Rectangle())
         .buttonStyle(LiquidButtonPressStyle())
         .frame(width: Metrics.itemWidth, height: Metrics.rowHeight)
     }
@@ -93,10 +86,11 @@ struct BottomNavigationBar: View {
                     .tracking(0.48)
                     .foregroundStyle(isSelected ? selectedColor : inactiveColor)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.58)
+                    .frame(height: 12)
             }
         }
         .frame(width: Metrics.itemWidth, height: Metrics.rowHeight, alignment: .top)
+        .contentShape(Rectangle())
     }
 
     private var profileButton: some View {
@@ -119,13 +113,15 @@ struct BottomNavigationBar: View {
                         .tracking(0.48)
                         .foregroundStyle(inactiveColor)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.58)
+                        .frame(height: 12)
                 }
             }
             .frame(width: Metrics.itemWidth, height: Metrics.rowHeight, alignment: .top)
+            .contentShape(Rectangle())
             .opacity(0.95)
         }
-        .buttonStyle(.plain)
+        .contentShape(Rectangle())
+        .buttonStyle(LiquidButtonPressStyle())
         .frame(width: Metrics.itemWidth, height: Metrics.rowHeight)
     }
 

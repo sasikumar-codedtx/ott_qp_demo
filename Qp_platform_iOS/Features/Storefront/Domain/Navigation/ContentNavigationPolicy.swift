@@ -42,8 +42,9 @@ enum ContentNavigationPolicy {
 
     static func destination(for item: StorefrontItem) -> ContentNavigationDestination {
         let type = normalized(item.contentType)
+        let cardType = normalized(item.cardType ?? "")
 
-        if collectionTypes.contains(type) {
+        if collectionTypes.contains(type) || collectionTypes.contains(cardType) {
             return .collection
         }
 

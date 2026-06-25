@@ -6,6 +6,7 @@ protocol StorefrontDataSourceProtocol {
     func fetchContainers(cohort: QuickplayCohort, storefrontID: String, tabID: String, pageNumber: Int, pageSize: Int) async throws -> QuickplayContainersResponseDTO
     func fetchContent(from url: URL) async throws -> QuickplayContentResponseDTO
     func fetchContentByIDs(cohort: QuickplayCohort, ids: [String], pageNumber: Int, pageSize: Int) async throws -> QuickplayContentResponseDTO
+    func fetchCollectionLookup(cohort: QuickplayCohort, item: StorefrontItem, pageNumber: Int, pageSize: Int) async throws -> QuickplayContentResponseDTO
     func fetchCollection(from url: URL) async throws -> QuickplayCollectionResponseDTO
 }
 
@@ -34,6 +35,10 @@ final class StorefrontRemoteDataSource: StorefrontDataSourceProtocol {
 
     func fetchContentByIDs(cohort: QuickplayCohort, ids: [String], pageNumber: Int, pageSize: Int) async throws -> QuickplayContentResponseDTO {
         try await apiClient.fetchContentByIDs(cohort: cohort, ids: ids, pageNumber: pageNumber, pageSize: pageSize)
+    }
+
+    func fetchCollectionLookup(cohort: QuickplayCohort, item: StorefrontItem, pageNumber: Int, pageSize: Int) async throws -> QuickplayContentResponseDTO {
+        try await apiClient.fetchCollectionLookup(cohort: cohort, item: item, pageNumber: pageNumber, pageSize: pageSize)
     }
 
     func fetchCollection(from url: URL) async throws -> QuickplayCollectionResponseDTO {

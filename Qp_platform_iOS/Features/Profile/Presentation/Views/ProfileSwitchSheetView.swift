@@ -64,12 +64,12 @@ struct ProfileSwitchSheetView: View {
                     .padding(.top, 18)
 
                 Text(AppStrings.Profile.switchProfileSubtitle)
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundStyle(Color(hex: "6D6D6D"))
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundStyle(Color.white.opacity(0.42))
                     .padding(.top, 8)
 
                 profileRows
-                    .padding(.top, 62)
+                    .padding(.top, 48)
 
                 Spacer(minLength: 18)
 

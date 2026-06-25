@@ -55,12 +55,15 @@ struct ProfileHubView: View {
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                     .ignoresSafeArea(edges: .bottom)
-                    .transition(.move(edge: .bottom))
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .bottom).combined(with: .opacity),
+                        removal: .move(edge: .bottom).combined(with: .opacity)
+                    ))
                 }
                 .ignoresSafeArea()
             }
         }
-        .animation(.easeInOut(duration: 0.22), value: showsProfileSwitch)
+        .animation(.spring(response: 0.36, dampingFraction: 0.82), value: showsProfileSwitch)
         .task {
             await viewModel.loadIfNeeded()
         }
@@ -76,60 +79,57 @@ struct ProfileHubView: View {
             let imageHeight = baseHeaderHeight + pullDistance
             let imageOffset = scrollMinY > 0 ? -pullDistance : -scrollDistance * 0.34
 
-            VStack(spacing: 0) {
-                ZStack(alignment: .top) {
-                    Image("proBg")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: screenWidth, height: imageHeight)
-                        .scaleEffect(1 + min(pullDistance / 900, 0.08), anchor: .top)
-                        .offset(y: imageOffset)
-                        .clipped()
-
-                    LinearGradient(
-                        colors: [Color.black.opacity(0.12), Color.black.opacity(0.18), Color.black.opacity(0.86)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
+            ZStack(alignment: .top) {
+                Image("proBg")
+                    .resizable()
+                    .scaledToFill()
                     .frame(width: screenWidth, height: imageHeight)
-                    .offset(y: scrollMinY > 0 ? -pullDistance : imageOffset)
+                    .scaleEffect(1 + min(pullDistance / 900, 0.08), anchor: .top)
+                    .clipped()
+                    .offset(y: imageOffset)
 
-                    VStack {
-                        Spacer()
+                LinearGradient(
+                    colors: [Color.black.opacity(0.0), Color.black.opacity(0.12), Color.black.opacity(0.72)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(width: screenWidth, height: imageHeight)
+                .offset(y: scrollMinY > 0 ? -pullDistance : imageOffset)
 
-                        HStack(spacing: 14) {
-                            ProfileAvatarView(
-                                imageName: viewModel.displayedProfileImageName,
-                                fallbackGlyph: String(viewModel.displayedProfileName.prefix(1)).uppercased(),
-                                size: 89.636
-                            )
+                // Avatar + profile switcher at bottom of hero
+                VStack {
+                    Spacer()
+                    HStack(spacing: 14) {
+                        ProfileAvatarView(
+                            imageName: viewModel.displayedProfileImageName,
+                            fallbackGlyph: String(viewModel.displayedProfileName.prefix(1)).uppercased(),
+                            size: 89.636
+                        )
 
-                            Button(action: {
-                                showsProfileSwitch = true
-                            }) {
-                                HStack(spacing: 6) {
-                                    Text(viewModel.displayedProfileName)
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundStyle(.white)
-                                        .lineLimit(1)
+                        Button(action: {
+                            showsProfileSwitch = true
+                        }) {
+                            HStack(spacing: 6) {
+                                Text(viewModel.displayedProfileName)
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.white)
+                                    .lineLimit(1)
 
-                                    Image(systemName: "chevron.down")
-                                        .font(.system(size: 9, weight: .bold))
-                                        .foregroundStyle(.white)
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(.white)
 
-                                    Spacer(minLength: 0)
-                                }
-                                .frame(maxWidth: .infinity, minHeight: 20, alignment: .leading)
-                                .contentShape(Rectangle())
+                                Spacer(minLength: 0)
                             }
-                            .buttonStyle(LiquidButtonPressStyle())
+                            .frame(maxWidth: .infinity, minHeight: 20, alignment: .leading)
+                            .contentShape(Rectangle())
                         }
-                        .padding(.horizontal, UIConstants.Spacing.lg)
-                        .padding(.bottom, 14)
+                        .buttonStyle(LiquidButtonPressStyle())
                     }
+                    .padding(.horizontal, UIConstants.Spacing.lg)
+                    .padding(.bottom, 6)
                 }
-                .frame(height: baseHeaderHeight)
-                .clipped()
+                .frame(width: screenWidth, height: baseHeaderHeight)
             }
         }
         .frame(height: 248 + topInset)
@@ -156,7 +156,7 @@ struct ProfileHubView: View {
                         .padding(.horizontal, UIConstants.Spacing.lg)
 
                     if let clipsSection = viewModel.sections.first(where: { $0.id == "clips" }) {
-                        profileRailSection(clipsSection, style: .short, width: 188)
+                        clipsRailSection(clipsSection)
                     }
 
                     ForEach(viewModel.trailingSections.filter { $0.id != "clips" }) { section in
@@ -228,14 +228,138 @@ struct ProfileHubView: View {
 
     private var upgradeCard: some View {
         Button(action: {}) {
-            Image("upgradebg")
-                .resizable()
-                .scaledToFit()
-                .aspectRatio(1, contentMode: .fit)
-                .frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            ZStack(alignment: .topLeading) {
+                Color.black
+
+                // Decorative top-right background shape
+                Image("upgradebg")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 210, height: 270)
+                    .clipped()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .allowsHitTesting(false)
+
+                // Orange glow — top-right
+                Ellipse()
+                    .fill(Color(hex: "FF5E00"))
+                    .blur(radius: 65)
+                    .frame(width: 239, height: 217)
+                    .opacity(0.72)
+                    .offset(x: 80, y: -50)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .allowsHitTesting(false)
+
+                // Blue glow — bottom
+                Ellipse()
+                    .fill(Color(hex: "1800E7"))
+                    .blur(radius: 78)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 150)
+                    .opacity(0.4)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .allowsHitTesting(false)
+
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Upgrade\nyour Plan")
+                        .font(.system(size: 38, weight: .bold))
+                        .foregroundStyle(.white)
+                        .lineSpacing(2)
+                        .shadow(color: .black.opacity(0.25), radius: 25, x: 0, y: 4)
+                        .padding(.top, 20)
+                        .padding(.leading, UIConstants.Spacing.xl)
+
+                    upgradeFeaturesGrid
+                        .padding(.top, 24)
+                        .padding(.horizontal, UIConstants.Spacing.xl)
+
+                    Spacer(minLength: 14)
+
+                    upgradeCTAButton
+                        .padding(.horizontal, UIConstants.Spacing.xl)
+
+                    Button(action: {}) {
+                        HStack(spacing: 5) {
+                            Text("Subscribe to Basic plan")
+                                .font(.system(size: 12, weight: .regular))
+                                .foregroundStyle(.white.opacity(0.2))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.2))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(LiquidButtonPressStyle())
+                    .padding(.top, 10)
+                    .padding(.bottom, 20)
+                }
+            }
+            .frame(height: 374)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color(hex: "FFAD09"), lineWidth: 2)
+            )
         }
+        .frame(maxWidth: .infinity)
         .buttonStyle(LiquidButtonPressStyle())
+    }
+
+    private var upgradeFeaturesGrid: some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+            upgradeFeatureRow(icon: "desktopcomputer", prefix: "Upto ", bold: "5 devices", suffix: "")
+            upgradeFeatureRow(icon: "tv.fill", prefix: "", bold: "Reginal", suffix: " daily shows")
+            upgradeFeatureRow(icon: "film.fill", prefix: "High ", bold: "Audio & Video", suffix: " Quality")
+            upgradeFeatureRow(icon: "hand.raised.fill", prefix: "", bold: "Ads Free", suffix: " Movies and shows")
+        }
+    }
+
+    private func upgradeFeatureRow(icon: String, prefix: String, bold: String, suffix: String) -> some View {
+        HStack(alignment: .top, spacing: 7) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundStyle(.white.opacity(0.88))
+                .frame(width: 20)
+
+            (Text(prefix).font(.system(size: 11, weight: .regular))
+             + Text(bold).font(.system(size: 11, weight: .bold))
+             + Text(suffix).font(.system(size: 11, weight: .regular)))
+                .foregroundStyle(.white.opacity(0.9))
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var upgradeCTAButton: some View {
+        HStack(spacing: 6) {
+            Text("Became Premium Member Now")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [.white, Color(hex: "FFD24B"), .white],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+            Spacer(minLength: 0)
+            Image(systemName: "chevron.right")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(.white)
+        }
+        .padding(.horizontal, 18)
+        .frame(maxWidth: .infinity)
+        .frame(height: 46)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(hex: "FF5E00"))
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(.white.opacity(0.31), lineWidth: 1)
+                    .padding(1)
+            }
+        )
     }
 
     private var footer: some View {
@@ -285,6 +409,39 @@ struct ProfileHubView: View {
                 HStack(alignment: .top, spacing: 8) {
                     ForEach(section.items) { item in
                         StorefrontCardView(item: item, style: style, layout: layout, rank: nil, onSelect: onSelectItem)
+                    }
+                }
+                .padding(.horizontal, UIConstants.Spacing.lg)
+            }
+        }
+    }
+
+    private func clipsRailSection(_ section: StorefrontSection) -> some View {
+        let cardWidth: CGFloat = 275
+        let cardHeight: CGFloat = cardWidth * 16 / 9
+        let size = CGSize(width: cardWidth, height: cardHeight)
+        let layout = StorefrontCardLayout(size: size, overlayHeight: 0, visibleCount: 2)
+
+        return VStack(alignment: .leading, spacing: 11) {
+            SectionHeaderView(title: section.title)
+                .padding(.horizontal, UIConstants.Spacing.lg)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: 8) {
+                    ForEach(section.items) { item in
+                        ZStack {
+                            StorefrontCardView(item: item, style: .short, layout: layout, rank: nil, onSelect: onSelectItem)
+
+                            RoundedRectangle(cornerRadius: StorefrontRailMetrics.cardCornerRadius, style: .continuous)
+                                .fill(Color.black.opacity(0.36))
+                                .overlay {
+                                    Image(systemName: AppIcons.Action.playCircle)
+                                        .font(.system(size: 48, weight: .bold))
+                                        .foregroundStyle(.white.opacity(0.92), .white.opacity(0.18))
+                                }
+                                .frame(width: cardWidth, height: cardHeight)
+                                .allowsHitTesting(false)
+                        }
                     }
                 }
                 .padding(.horizontal, UIConstants.Spacing.lg)

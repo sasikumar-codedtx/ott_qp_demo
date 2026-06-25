@@ -33,9 +33,10 @@ struct StorefrontTabDockView: View {
                         .foregroundStyle(Color(hex: "F0F0F0").opacity(selectedTabID == tab.id ? 1 : 0.9))
                         .lineLimit(1)
                         .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
+                        .frame(height: 36)
                         .contentShape(Rectangle())
                 }
+                .contentShape(Rectangle())
                 .buttonStyle(LiquidButtonPressStyle())
                 .background(chipBackground(isFirst: isFirst, isLast: isLast))
                 .fixedSize()
@@ -46,12 +47,13 @@ struct StorefrontTabDockView: View {
                     Image(systemName: "chevron.up")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.9))
-                        .frame(width: 40)
-                        .padding(.vertical, 8)
+                        .frame(width: 40, height: 36)
                         .contentShape(Rectangle())
                 }
+                .contentShape(Rectangle())
                 .buttonStyle(LiquidButtonPressStyle())
                 .background(chipBackground(isFirst: false, isLast: true))
+                .fixedSize()
             }
         }
         .fixedSize(horizontal: true, vertical: false)

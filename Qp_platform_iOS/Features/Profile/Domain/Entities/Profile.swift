@@ -150,6 +150,7 @@ struct Profile: Identifiable, Equatable, Codable, Hashable {
     let id: UUID
     var name: String
     var imageName: String?
+    var cohort: QuickplayCohort
     var preference: ProfilePreference
     var preferredLanguages: [ProfileLanguage]
     var dateOfBirth: Date?
@@ -162,12 +163,20 @@ struct Profile: Identifiable, Equatable, Codable, Hashable {
     }
 
     var quickplayCohort: QuickplayCohort {
-        isKidsProfile ? .kids : preference.quickplayCohort
+        cohort
     }
 
     func withPreference(_ preference: ProfilePreference) -> Profile {
         var copy = self
         copy.preference = preference
+        return copy
+    }
+
+    func withCohort(_ cohort: QuickplayCohort) -> Profile {
+        var copy = self
+        copy.cohort = cohort
+        copy.preference = cohort.defaultPreference
+        copy.isKidsProfile = cohort == .kids
         return copy
     }
 }
@@ -182,6 +191,7 @@ struct ProfileDraft: Equatable {
     var sourceID: UUID?
     var name: String
     var imageName: String?
+    var cohort: QuickplayCohort
     var preference: ProfilePreference
     var preferredLanguages: [ProfileLanguage]
     var dateOfBirth: Date
@@ -192,6 +202,7 @@ struct ProfileDraft: Equatable {
         sourceID = profile.id
         name = profile.name
         imageName = profile.imageName
+        cohort = profile.cohort
         preference = profile.preference
         preferredLanguages = profile.preferredLanguages
         dateOfBirth = profile.dateOfBirth ?? Calendar.current.date(byAdding: .year, value: -21, to: Date()) ?? Date()
@@ -203,6 +214,7 @@ struct ProfileDraft: Equatable {
         sourceID = nil
         name = ""
         imageName = nil
+        cohort = .entertainment
         preference = .entertainment
         preferredLanguages = [.hindi, .english]
         dateOfBirth = Calendar.current.date(byAdding: .year, value: -21, to: Date()) ?? Date()

@@ -38,6 +38,7 @@ final class AppFlowViewModel: ObservableObject {
         case storefrontTab(StorefrontTab)
         case detail(StorefrontItem)
         case sectionBrowse(StorefrontSection, QuickplayCohort)
+        case collectionBrowse(StorefrontItem, QuickplayCohort)
     }
 
     @Published var rootScreen: RootScreen = .splash
@@ -59,6 +60,7 @@ final class AppFlowViewModel: ObservableObject {
     let shortsViewModel: ShortsFeedViewModel
     let detailViewModel: ContentDetailViewModel
 
+    private let profileRepository: ProfileRepository
     private var hasStarted = false
 
     convenience init() {
@@ -66,6 +68,8 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     init(container: AppContainer) {
+        profileRepository = container.profileRepository
+
         authViewModel = AuthViewModel(
             requestOTPUseCase: RequestOTPUseCase(repository: container.authRepository),
             verifyOTPUseCase: VerifyOTPUseCase(repository: container.authRepository)
@@ -152,18 +156,14 @@ final class AppFlowViewModel: ObservableObject {
 
     func selectProfile(_ profile: Profile) {
         activeProfile = profile
-        let immediateStorefrontProfile = profile.withPreference(profile.preference)
-        storefrontViewModel.applyProfile(immediateStorefrontProfile, forceReset: true)
-        hotStorefrontViewModel.applyProfile(immediateStorefrontProfile, forceReset: true)
+        storefrontViewModel.applyProfile(profile, forceReset: true)
+        hotStorefrontViewModel.applyProfile(profile, forceReset: true)
 
         Task {
-            let resolvedContext = await resolvedProfileContext(for: profile)
-            let selectedCohort = resolvedContext.cohort
-            let selectedPreference = resolvedContext.preference
-            let storefrontProfile = profile.withPreference(selectedPreference)
-            activeProfile = storefrontProfile
+            let selectedCohort = profile.cohort
+            let selectedPreference = selectedCohort.defaultPreference
             print(
-                "[ProfileContext] selectProfile name=\(profile.name), profileID=\(profile.id.uuidString), isKids=\(profile.isKidsProfile), storedPreference=\(profile.preference.rawValue), resolvedPreference=\(selectedPreference.rawValue), resolvedCohort=\(selectedCohort.rawValue), pf=\(selectedCohort.profileFlag)"
+                "[ProfileContext] selectProfile name=\(profile.name), profileID=\(profile.id.uuidString), cohort=\(selectedCohort.rawValue), preference=\(selectedPreference.rawValue), pf=\(selectedCohort.profileFlag)"
             )
             await DemoSessionStore.shared.setActiveProfileContext(
                 profileID: profile.id,
@@ -173,10 +173,6 @@ final class AppFlowViewModel: ObservableObject {
             navigationPath.removeAll()
             mainTab = .storefront
             rootScreen = .main
-            if selectedPreference != profile.preference {
-                storefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
-                hotStorefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
-            }
             await storefrontViewModel.reloadInitial(force: true)
             await hotStorefrontViewModel.reloadInitial(force: true)
         }
@@ -206,7 +202,7 @@ final class AppFlowViewModel: ObservableObject {
             let previousProfile = profileSelectionViewModel.profiles.first { $0.id == sourceProfileID }
             let saved = await profileEditorViewModel.save()
             guard let saved else { return }
-            let didChangeCohort = previousProfile?.preference != saved.preference || previousProfile?.isKidsProfile != saved.isKidsProfile
+            let didChangeCohort = previousProfile?.cohort != saved.cohort
             if isCreatingProfile || didChangeCohort {
                 await DemoSessionStore.shared.resetPreferenceHistory(for: saved.id)
             }
@@ -276,9 +272,8 @@ final class AppFlowViewModel: ObservableObject {
         push(.aiSearch)
     }
 
-    func completeAISearch(transcript: String, language: SupportedSpeechLanguage = .english) {
-        let query = AISearchQueryNormalizer.localizedDisplayText(from: transcript, language: language)
-        searchViewModel.submitAIQuery(query)
+    func completeAISearch(displayText: String, apiQuery: String) {
+        searchViewModel.submitAIQuery(displayText: displayText, apiQuery: apiQuery)
         popRoute()
     }
 
@@ -343,53 +338,46 @@ final class AppFlowViewModel: ObservableObject {
     func switchActiveProfile(_ profile: Profile) {
         activeProfile = profile
         Task {
-            let resolvedContext = await resolvedProfileContext(for: profile)
-            let storefrontProfile = profile.withPreference(resolvedContext.preference)
-            activeProfile = storefrontProfile
+            let selectedCohort = profile.cohort
+            let selectedPreference = selectedCohort.defaultPreference
             print(
-                "[ProfileContext] switchActiveProfile name=\(profile.name), profileID=\(profile.id.uuidString), isKids=\(profile.isKidsProfile), storedPreference=\(profile.preference.rawValue), resolvedPreference=\(resolvedContext.preference.rawValue), resolvedCohort=\(resolvedContext.cohort.rawValue), pf=\(resolvedContext.cohort.profileFlag)"
+                "[ProfileContext] switchActiveProfile name=\(profile.name), profileID=\(profile.id.uuidString), cohort=\(selectedCohort.rawValue), preference=\(selectedPreference.rawValue), pf=\(selectedCohort.profileFlag)"
             )
             await DemoSessionStore.shared.setActiveProfileContext(
                 profileID: profile.id,
-                cohort: resolvedContext.cohort,
-                preference: resolvedContext.preference
+                cohort: selectedCohort,
+                preference: selectedPreference
             )
-            storefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
-            hotStorefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
+            storefrontViewModel.applyProfile(profile, forceReset: true)
+            hotStorefrontViewModel.applyProfile(profile, forceReset: true)
             await storefrontViewModel.reloadInitial(force: true)
             await hotStorefrontViewModel.reloadInitial(force: true)
-            profileHubViewModel.present(profile: storefrontProfile, seedItems: storefrontViewModel.searchSeedItems)
+            profileHubViewModel.present(profile: profile, seedItems: storefrontViewModel.searchSeedItems)
         }
     }
 
     func switchActiveProfileAndOpenStorefront(_ profile: Profile) {
         activeProfile = profile
-        let immediateStorefrontProfile = profile.withPreference(profile.preference)
-        storefrontViewModel.applyProfile(immediateStorefrontProfile, forceReset: true)
-        hotStorefrontViewModel.applyProfile(immediateStorefrontProfile, forceReset: true)
+        storefrontViewModel.applyProfile(profile, forceReset: true)
+        hotStorefrontViewModel.applyProfile(profile, forceReset: true)
 
         Task {
-            let resolvedContext = await resolvedProfileContext(for: profile)
-            let storefrontProfile = profile.withPreference(resolvedContext.preference)
-            activeProfile = storefrontProfile
+            let selectedCohort = profile.cohort
+            let selectedPreference = selectedCohort.defaultPreference
             print(
-                "[ProfileContext] switchActiveProfileAndOpenStorefront name=\(profile.name), profileID=\(profile.id.uuidString), isKids=\(profile.isKidsProfile), storedPreference=\(profile.preference.rawValue), resolvedPreference=\(resolvedContext.preference.rawValue), resolvedCohort=\(resolvedContext.cohort.rawValue), pf=\(resolvedContext.cohort.profileFlag)"
+                "[ProfileContext] switchActiveProfileAndOpenStorefront name=\(profile.name), profileID=\(profile.id.uuidString), cohort=\(selectedCohort.rawValue), preference=\(selectedPreference.rawValue), pf=\(selectedCohort.profileFlag)"
             )
             await DemoSessionStore.shared.setActiveProfileContext(
                 profileID: profile.id,
-                cohort: resolvedContext.cohort,
-                preference: resolvedContext.preference
+                cohort: selectedCohort,
+                preference: selectedPreference
             )
             navigationPath.removeAll()
             mainTab = .storefront
             rootScreen = .main
-            if resolvedContext.preference != profile.preference {
-                storefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
-                hotStorefrontViewModel.applyProfile(storefrontProfile, forceReset: true)
-            }
             await storefrontViewModel.reloadInitial(force: true)
             await hotStorefrontViewModel.reloadInitial(force: true)
-            profileHubViewModel.present(profile: storefrontProfile, seedItems: storefrontViewModel.searchSeedItems)
+            profileHubViewModel.present(profile: profile, seedItems: storefrontViewModel.searchSeedItems)
         }
     }
 
@@ -406,8 +394,22 @@ final class AppFlowViewModel: ObservableObject {
     func openContent(item: StorefrontItem) {
         Task {
             if let updatedCohort = await DemoSessionStore.shared.recordContentSelection(item) {
+                let updatedProfile = try? await persistCohortOverride(updatedCohort)
                 await MainActor.run {
                     cohortOverrideToast = "\(updatedCohort.title) feed selected"
+                    if let updatedProfile {
+                        activeProfile = updatedProfile
+                        storefrontViewModel.applyProfile(updatedProfile, forceReset: true)
+                        hotStorefrontViewModel.applyProfile(updatedProfile, forceReset: true)
+                    }
+                }
+                if updatedProfile != nil {
+                    await profileSelectionViewModel.load()
+                    await storefrontViewModel.reloadInitial(force: true)
+                    await hotStorefrontViewModel.reloadInitial(force: true)
+                    if let activeProfile {
+                        profileHubViewModel.present(profile: activeProfile, seedItems: storefrontViewModel.searchSeedItems)
+                    }
                 }
                 try? await Task.sleep(for: .seconds(1.8))
                 await MainActor.run {
@@ -424,7 +426,7 @@ final class AppFlowViewModel: ObservableObject {
         case .player:
             openPlayerBackedContent(item)
         case .collection:
-            print("Collection card routing is not implemented for item: \(item.title) [\(item.id)]")
+            openCollectionBrowse(item: item, cohort: storefrontViewModel.activeCohort)
         case .unsupported(let contentType):
             print("Unsupported content type '\(contentType)' for item: \(item.title). Defaulting to detail when possible.")
             if item.canOpenDetail {
@@ -433,6 +435,20 @@ final class AppFlowViewModel: ObservableObject {
                 openPlayerBackedContent(item)
             }
         }
+    }
+
+    private func persistCohortOverride(_ cohort: QuickplayCohort) async throws -> Profile? {
+        guard let activeProfile else { return nil }
+        let updatedProfile = try await profileRepository.updateProfileCohort(id: activeProfile.id, cohort: cohort)
+        await DemoSessionStore.shared.setActiveProfileContext(
+            profileID: updatedProfile.id,
+            cohort: updatedProfile.cohort,
+            preference: updatedProfile.cohort.defaultPreference
+        )
+        print(
+            "[ProfileContext] dynamicOverride profile=\(updatedProfile.name), profileID=\(updatedProfile.id.uuidString), cohort=\(updatedProfile.cohort.rawValue), pf=\(updatedProfile.cohort.profileFlag)"
+        )
+        return updatedProfile
     }
 
     func openDetail(item: StorefrontItem) {
@@ -459,6 +475,11 @@ final class AppFlowViewModel: ObservableObject {
     func openSectionBrowse(section: StorefrontSection, cohort: QuickplayCohort) {
         storefrontSectionBrowseViewModel.present(section: section, cohort: cohort)
         push(.sectionBrowse(section, cohort))
+    }
+
+    func openCollectionBrowse(item: StorefrontItem, cohort: QuickplayCohort) {
+        storefrontSectionBrowseViewModel.present(collection: item, cohort: cohort)
+        push(.collectionBrowse(item, cohort))
     }
 
     func backFromDetail() {
@@ -504,10 +525,6 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     private func resolvedProfileContext(for profile: Profile) async -> (cohort: QuickplayCohort, preference: ProfilePreference) {
-        guard !profile.isKidsProfile else {
-            return (.kids, profile.preference)
-        }
-
-        return (profile.quickplayCohort, profile.preference)
+        (profile.cohort, profile.cohort.defaultPreference)
     }
 }

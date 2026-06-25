@@ -1,5 +1,46 @@
 import SwiftUI
 
+private enum DetailPresentationKind: Equatable {
+    case regular
+    case showInteractive
+    case sportsInteractive
+
+    static func resolve(seed: StorefrontItem?, detail: ContentDetail) -> DetailPresentationKind {
+        let terms = [
+            seed?.customID,
+            seed?.customSearchCategory,
+            seed?.cardType,
+            seed?.contentType,
+            detail.contentType,
+            detail.title,
+            detail.genres.joined(separator: " ")
+        ]
+            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .joined(separator: " ")
+            .lowercased()
+
+        if terms.contains("sport")
+            || terms.contains("cricket")
+            || terms.contains("football")
+            || terms.contains("match")
+            || terms.contains("liveevent")
+            || terms.contains("live event") {
+            return .sportsInteractive
+        }
+
+        if detail.supportsEpisodes
+            || terms.contains("show")
+            || terms.contains("series")
+            || terms.contains("episode")
+            || terms.contains("webseries")
+            || terms.contains("tvseries") {
+            return .showInteractive
+        }
+
+        return .regular
+    }
+}
+
 struct ContentDetailView: View {
     @ObservedObject var viewModel: ContentDetailViewModel
     let onBack: () -> Void
@@ -7,6 +48,10 @@ struct ContentDetailView: View {
     let onSelectRecommendation: (StorefrontItem) -> Void
     @State private var isDescriptionExpanded = false
     @State private var isMomentSearchOverlayPresented = false
+    @State private var isMockInteractionPresented = false
+    @State private var mockInteractionSelection: String?
+    @State private var mockInteractionShowsResult = false
+    @State private var mockInteractionCountdown = 4
     @State private var momentSearchDraft = ""
     @State private var keyboardHeight: CGFloat = 0
     @State private var momentAutoScrollToken = 0
@@ -25,12 +70,19 @@ struct ContentDetailView: View {
                     momentSearchOverlay(detail: detail, bottomInset: proxy.safeAreaInsets.bottom)
                         .zIndex(20)
                 }
+
+                if let detail = viewModel.detail, isMockInteractionPresented {
+                    mockShowInteractionOverlay(detail: detail)
+                        .zIndex(30)
+                }
             }
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .animation(.easeInOut(duration: 0.22), value: isMomentSearchOverlayPresented)
+            .animation(.easeInOut(duration: 0.22), value: isMockInteractionPresented)
             .task(id: viewModel.requestKey) {
                 isDescriptionExpanded = false
                 dismissMomentSearchOverlay()
+                dismissMockInteraction()
                 await viewModel.loadIfNeeded()
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { notification in
@@ -47,6 +99,8 @@ struct ContentDetailView: View {
     @ViewBuilder
     private func content(width: CGFloat) -> some View {
         if let detail = viewModel.detail {
+            let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
+
             ZStack(alignment: .top) {
                 Color(hex: "0A0A0A").ignoresSafeArea()
 
@@ -56,9 +110,15 @@ struct ContentDetailView: View {
                             hero(detail, width: width)
                                 .frame(height: heroHeight(for: width))
 
-                            detailContent(detail, width: width)
-                                .padding(.horizontal, 16)
-                                .padding(.top, -64)
+                            if kind == .sportsInteractive {
+                                sportsDetailContent(detail, width: width)
+                                    .padding(.horizontal, 16)
+                                    .padding(.top, -64)
+                            } else {
+                                detailContent(detail, kind: kind, width: width)
+                                    .padding(.horizontal, 16)
+                                    .padding(.top, -64)
+                            }
                         }
                         .padding(.bottom, 42)
                     }
@@ -69,7 +129,7 @@ struct ContentDetailView: View {
                         Task { @MainActor in
                             try? await Task.sleep(for: .milliseconds(180))
                             withAnimation(.easeInOut(duration: 0.72)) {
-                                scrollProxy.scrollTo(detailTabsAnchorID, anchor: .top)
+                                scrollProxy.scrollTo(detailTabsAnchorID, anchor: UnitPoint(x: 0.5, y: 0.09))
                             }
                         }
                     }
@@ -79,7 +139,7 @@ struct ContentDetailView: View {
                         Task { @MainActor in
                             try? await Task.sleep(for: .milliseconds(240))
                             withAnimation(.easeInOut(duration: 0.82)) {
-                                scrollProxy.scrollTo(detailTabsAnchorID, anchor: .top)
+                                scrollProxy.scrollTo(detailTabsAnchorID, anchor: UnitPoint(x: 0.5, y: 0.09))
                             }
                         }
                     }
@@ -126,14 +186,14 @@ struct ContentDetailView: View {
         max(413, width)
     }
 
-    private func detailContent(_ detail: ContentDetail, width: CGFloat) -> some View {
+    private func detailContent(_ detail: ContentDetail, kind: DetailPresentationKind, width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             titleArt(detail)
             metaLine(detail)
-            watchButton(detail)
+            watchButton(detail, kind: kind)
             descriptionBlock(detail)
             previewLabel(detail)
-            actionButtonRow(detail)
+            actionButtonRow(detail, kind: kind)
             sponsorRow(detail)
             tabRow(detail)
                 .id(detailTabsAnchorID)
@@ -171,11 +231,11 @@ struct ContentDetailView: View {
             .frame(maxWidth: .infinity)
     }
 
-    private func watchButton(_ detail: ContentDetail) -> some View {
+    private func watchButton(_ detail: ContentDetail, kind: DetailPresentationKind) -> some View {
         Button {
             onPlay(detail, viewModel.seed)
         } label: {
-            Text(viewModel.seed?.progress != nil ? "Resume" : AppStrings.Detail.watchNow)
+            Text(watchTitle(for: detail, kind: kind))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(Color(hex: "1E1E1E"))
                 .frame(maxWidth: .infinity)
@@ -183,6 +243,191 @@ struct ContentDetailView: View {
                 .background(LiquidGlassBackground(cornerRadius: 10, tone: .light, isHighlighted: true))
         }
         .buttonStyle(LiquidButtonPressStyle())
+    }
+
+    private func watchTitle(for detail: ContentDetail, kind: DetailPresentationKind) -> String {
+        if viewModel.seed?.progress != nil {
+            return "Resume"
+        }
+
+        switch kind {
+        case .sportsInteractive:
+            return "Watch Live"
+        case .showInteractive:
+            return detail.contentType.lowercased().contains("episode") ? "Watch Episode" : "Watch Show"
+        case .regular:
+            return AppStrings.Detail.watchNow
+        }
+    }
+
+    private func sportsDetailContent(_ detail: ContentDetail, width: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("LIVE SPORTS")
+                        .font(.system(size: 12, weight: .black))
+                        .foregroundStyle(Color(hex: "72F6A2"))
+                        .tracking(1.2)
+
+                    Text(detail.title.uppercased())
+                        .font(.system(size: 36, weight: .black, design: .rounded))
+                        .tracking(-1.2)
+                        .foregroundStyle(.white)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.7)
+
+                    Text(detail.metaLine.nilIfEmpty ?? "LIVE • SPORTS")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(Color.white.opacity(0.68))
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                Text("LIVE")
+                    .font(.system(size: 12, weight: .black))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .frame(height: 30)
+                    .background(Capsule().fill(Color(hex: "E50914")))
+            }
+
+            watchButton(detail, kind: .sportsInteractive)
+
+            sportsLiveCard(detail)
+            sportsPredictionCard
+            sportsMomentList
+        }
+    }
+
+    private func sportsLiveCard(_ detail: ContentDetail) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Live Match Centre")
+                    .font(.system(size: 18, weight: .black))
+                    .foregroundStyle(.white)
+
+                Spacer()
+
+                Text("2nd Innings")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.62))
+            }
+
+            HStack(spacing: 8) {
+                sportsScoreCard(title: "Home", score: "126/4")
+                sportsScoreCard(title: "Target", score: "182")
+                sportsScoreCard(title: "Win chance", score: "58%")
+            }
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: "08111F"), Color(hex: "103A2C"), Color(hex: "2E160A")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(Color(hex: "72F6A2").opacity(0.2), lineWidth: 1)
+                )
+        )
+    }
+
+    private var sportsPredictionCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Prediction is live")
+                    .font(.system(size: 15, weight: .black))
+                    .foregroundStyle(.white)
+
+                Spacer()
+
+                Text("04:59")
+                    .font(.system(size: 13, weight: .black))
+                    .foregroundStyle(Color(hex: "FFD166"))
+            }
+
+            Text("Who takes the next wicket?")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.72))
+
+            HStack(spacing: 8) {
+                interactivePill("Pacers", color: Color(hex: "22C55E"))
+                interactivePill("Spin", color: Color(hex: "3B82F6"))
+                interactivePill("Run out", color: Color(hex: "F59E0B"))
+            }
+        }
+        .padding(14)
+        .background(LiquidGlassBackground(cornerRadius: 18, tone: .dark))
+    }
+
+    private var sportsMomentList: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Match Moments")
+                .font(.system(size: 18, weight: .black))
+                .foregroundStyle(.white)
+
+            ForEach(["Powerplay highlights", "Big wicket moments", "Last over drama"], id: \.self) { title in
+                HStack(spacing: 12) {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Color(hex: "72F6A2"))
+                        .frame(width: 34, height: 34)
+                        .background(Circle().fill(Color.white.opacity(0.08)))
+
+                    Text(title)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.white)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.46))
+                }
+                .padding(12)
+                .background(LiquidGlassBackground(cornerRadius: 16, tone: .dark))
+            }
+        }
+        .padding(.top, 8)
+    }
+
+    private func interactivePill(_ title: String, color: Color) -> some View {
+        Text(title)
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .frame(height: 30)
+            .background(Capsule(style: .continuous).fill(color.opacity(0.28)))
+            .overlay(Capsule(style: .continuous).stroke(color.opacity(0.55), lineWidth: 1))
+    }
+
+    private func sportsScoreCard(title: String, score: String) -> some View {
+        VStack(spacing: 3) {
+            Text(score)
+                .font(.system(size: 14, weight: .black))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+
+            Text(title)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.58))
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 54)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.white.opacity(0.08))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                )
+        )
     }
 
     private func descriptionBlock(_ detail: ContentDetail) -> some View {
@@ -219,12 +464,16 @@ struct ContentDetailView: View {
         }
     }
 
-    private func actionButtonRow(_ detail: ContentDetail) -> some View {
+    private func actionButtonRow(_ detail: ContentDetail, kind: DetailPresentationKind) -> some View {
         HStack(spacing: 8) {
             DetailActionButton(assetImage: "clapperboard", cornerStyle: .leading, action: {})
             DetailActionButton(assetImage: "download", action: {})
             DetailActionButton(assetImage: "bookmark-plus", action: {})
-            DetailActionButton(assetImage: "thumbs-up-down", action: {})
+            DetailActionButton(assetImage: "thumbs-up-down") {
+                if detail.supportsEpisodes || kind == .showInteractive {
+                    presentMockInteraction()
+                }
+            }
             DetailActionButton(assetImage: "share", iconSize: 22, action: {})
             DetailActionButton(systemImage: AppIcons.Action.sparkles, cornerStyle: .trailing, isHighlighted: true) {
                 presentMomentSearchOverlay(for: detail)
@@ -413,6 +662,162 @@ struct ContentDetailView: View {
         }
     }
 
+    private func presentMockInteraction() {
+        mockInteractionSelection = nil
+        mockInteractionShowsResult = false
+        mockInteractionCountdown = 4
+
+        withAnimation(.easeInOut(duration: 0.22)) {
+            isMockInteractionPresented = true
+        }
+    }
+
+    private func dismissMockInteraction() {
+        isMockInteractionPresented = false
+        mockInteractionSelection = nil
+        mockInteractionShowsResult = false
+        mockInteractionCountdown = 4
+    }
+
+    private func answerMockInteraction(_ answer: String) {
+        guard mockInteractionSelection == nil else { return }
+        mockInteractionSelection = answer
+
+        Task { @MainActor in
+            for value in stride(from: 3, through: 1, by: -1) {
+                mockInteractionCountdown = value
+                try? await Task.sleep(for: .milliseconds(420))
+            }
+
+            mockInteractionShowsResult = true
+            try? await Task.sleep(for: .seconds(1.6))
+
+            if isMockInteractionPresented {
+                dismissMockInteraction()
+            }
+        }
+    }
+
+    private func mockShowInteractionOverlay(detail: ContentDetail) -> some View {
+        ZStack {
+            Color.black.opacity(0.58)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    dismissMockInteraction()
+                }
+
+            VStack(spacing: 16) {
+                Capsule()
+                    .fill(Color.white.opacity(0.22))
+                    .frame(width: 42, height: 5)
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Quick Question")
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundStyle(.white)
+
+                        Text(mockInteractionShowsResult ? "Answer locked" : "Timer \(mockInteractionCountdown)s")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(Color(hex: "FFD166"))
+                    }
+
+                    Spacer()
+
+                    Button {
+                        dismissMockInteraction()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .black))
+                            .foregroundStyle(.white)
+                            .frame(width: 36, height: 36)
+                            .background(Circle().fill(Color.white.opacity(0.12)))
+                    }
+                    .buttonStyle(LiquidButtonPressStyle())
+                }
+
+                Text("What happens next in \(detail.title)?")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.86))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                VStack(spacing: 10) {
+                    mockAnswerButton("The hero discovers a clue", isCorrect: true)
+                    mockAnswerButton("A new rival enters", isCorrect: false)
+                    mockAnswerButton("The case gets closed", isCorrect: false)
+                }
+
+                if mockInteractionShowsResult {
+                    HStack(spacing: 8) {
+                        Image(systemName: mockInteractionSelection == "The hero discovers a clue" ? "checkmark.seal.fill" : "xmark.seal.fill")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(mockInteractionSelection == "The hero discovers a clue" ? Color(hex: "72F6A2") : Color(hex: "FF6464"))
+
+                        Text(mockInteractionSelection == "The hero discovers a clue" ? "Correct answer. Nice pick." : "Wrong answer. Correct one was clue.")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                }
+            }
+            .padding(18)
+            .background(
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "271145"), Color(hex: "121218"), Color(hex: "3A1907")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 26, style: .continuous)
+                            .stroke(Color.white.opacity(0.14), lineWidth: 1)
+                    )
+                    .shadow(color: Color.black.opacity(0.48), radius: 30, x: 0, y: 18)
+            )
+            .padding(.horizontal, 22)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+    }
+
+    private func mockAnswerButton(_ title: String, isCorrect: Bool) -> some View {
+        let isSelected = mockInteractionSelection == title
+        let isLocked = mockInteractionSelection != nil
+        let resultColor = isCorrect ? Color(hex: "22C55E") : Color(hex: "FF6464")
+
+        return Button {
+            answerMockInteraction(title)
+        } label: {
+            HStack {
+                Text(title)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+
+                Spacer()
+
+                if isLocked && (isSelected || isCorrect) {
+                    Image(systemName: isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .foregroundStyle(resultColor)
+                }
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 48)
+            .background(
+                RoundedRectangle(cornerRadius: 15, style: .continuous)
+                    .fill(Color.white.opacity(isSelected ? 0.16 : 0.08))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .stroke(isLocked && (isSelected || isCorrect) ? resultColor.opacity(0.75) : Color.white.opacity(0.12), lineWidth: 1)
+                    )
+            )
+        }
+        .disabled(isLocked)
+        .buttonStyle(LiquidButtonPressStyle())
+    }
+
     private func submitMomentSearchOverlay() {
         let query = momentSearchDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard query.isEmpty == false else { return }
@@ -460,7 +865,7 @@ struct ContentDetailView: View {
                     horizontalPadding: 16,
                     onSelect: { suggestion in
                         momentSearchDraft = suggestion
-                        isMomentSearchFocused = true
+                        submitMomentSearchOverlay()
                     }
                 )
 
@@ -484,16 +889,6 @@ struct ContentDetailView: View {
                             }
                         }
 
-                    if momentSearchDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
-                        Button {
-                            submitMomentSearchOverlay()
-                        } label: {
-                            Text("Search")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(.white)
-                        }
-                        .buttonStyle(LiquidButtonPressStyle())
-                    }
                 }
                 .padding(.horizontal, 14)
                 .frame(height: 46)
@@ -637,6 +1032,9 @@ struct ContentDetailView: View {
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(.white)
                                 .multilineTextAlignment(.center)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .frame(width: UIConstants.Size.posterWidth)
                         }
                     }
                 }

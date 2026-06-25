@@ -1,4 +1,5 @@
 {
+  "generated_at": "2026-06-25T10:57:26.174Z",
   "summary": [
     {
       "storefront": "Entertainment",
@@ -13,20 +14,20 @@
             {
               "page": 1,
               "sections": 10,
-              "cards": 87,
+              "rows": 87,
               "error": null
             },
             {
               "page": 2,
               "sections": 10,
-              "cards": 130,
+              "rows": 130,
               "error": null
             },
             {
               "page": 3,
               "sections": 0,
-              "cards": 0,
-              "error": "missing data"
+              "rows": 0,
+              "error": null
             }
           ],
           "sections": 20,
@@ -39,7 +40,13 @@
             {
               "page": 1,
               "sections": 7,
-              "cards": 54,
+              "rows": 54,
+              "error": null
+            },
+            {
+              "page": 2,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
@@ -53,7 +60,13 @@
             {
               "page": 1,
               "sections": 7,
-              "cards": 127,
+              "rows": 127,
+              "error": null
+            },
+            {
+              "page": 2,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
@@ -67,7 +80,13 @@
             {
               "page": 1,
               "sections": 6,
-              "cards": 48,
+              "rows": 48,
+              "error": null
+            },
+            {
+              "page": 2,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
@@ -81,7 +100,13 @@
             {
               "page": 1,
               "sections": 4,
-              "cards": 21,
+              "rows": 21,
+              "error": null
+            },
+            {
+              "page": 2,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
@@ -95,7 +120,13 @@
             {
               "page": 1,
               "sections": 2,
-              "cards": 9,
+              "rows": 9,
+              "error": null
+            },
+            {
+              "page": 2,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
@@ -109,15 +140,14 @@
             {
               "page": 1,
               "sections": 0,
-              "cards": 0,
-              "error": "missing data"
+              "rows": 0,
+              "error": null
             }
           ],
           "sections": 0,
           "rows": 0
         }
-      ],
-      "errors": []
+      ]
     },
     {
       "storefront": "Sports",
@@ -132,12 +162,18 @@
             {
               "page": 1,
               "sections": 6,
-              "cards": 48,
+              "rows": 9,
+              "error": null
+            },
+            {
+              "page": 2,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
           "sections": 6,
-          "rows": 48
+          "rows": 9
         },
         {
           "tab": "TV Shows",
@@ -146,12 +182,18 @@
             {
               "page": 1,
               "sections": 7,
-              "cards": 57,
+              "rows": 7,
+              "error": null
+            },
+            {
+              "page": 2,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
           "sections": 7,
-          "rows": 57
+          "rows": 7
         },
         {
           "tab": "Entertainment",
@@ -160,18 +202,24 @@
             {
               "page": 1,
               "sections": 10,
-              "cards": 68,
+              "rows": 14,
               "error": null
             },
             {
               "page": 2,
               "sections": 6,
-              "cards": 54,
+              "rows": 9,
+              "error": null
+            },
+            {
+              "page": 3,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
           "sections": 16,
-          "rows": 122
+          "rows": 23
         },
         {
           "tab": "Movies",
@@ -180,12 +228,18 @@
             {
               "page": 1,
               "sections": 7,
-              "cards": 68,
+              "rows": 7,
+              "error": null
+            },
+            {
+              "page": 2,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
           "sections": 7,
-          "rows": 68
+          "rows": 7
         },
         {
           "tab": "Top Categories",
@@ -194,15 +248,20 @@
             {
               "page": 1,
               "sections": 4,
-              "cards": 21,
+              "rows": 21,
+              "error": null
+            },
+            {
+              "page": 2,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
           "sections": 4,
           "rows": 21
         }
-      ],
-      "errors": []
+      ]
     },
     {
       "storefront": "Reality",
@@ -217,12 +276,18 @@
             {
               "page": 1,
               "sections": 7,
-              "cards": 57,
+              "rows": 7,
+              "error": null
+            },
+            {
+              "page": 2,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
           "sections": 7,
-          "rows": 57
+          "rows": 7
         },
         {
           "tab": "Entertainment",
@@ -231,18 +296,24 @@
             {
               "page": 1,
               "sections": 10,
-              "cards": 68,
+              "rows": 14,
               "error": null
             },
             {
               "page": 2,
               "sections": 6,
-              "cards": 54,
+              "rows": 9,
+              "error": null
+            },
+            {
+              "page": 3,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
           "sections": 16,
-          "rows": 122
+          "rows": 23
         },
         {
           "tab": "Movies",
@@ -251,12 +322,18 @@
             {
               "page": 1,
               "sections": 7,
-              "cards": 68,
+              "rows": 7,
+              "error": null
+            },
+            {
+              "page": 2,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
           "sections": 7,
-          "rows": 68
+          "rows": 7
         },
         {
           "tab": "Sports",
@@ -265,12 +342,18 @@
             {
               "page": 1,
               "sections": 6,
-              "cards": 48,
+              "rows": 9,
+              "error": null
+            },
+            {
+              "page": 2,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
           "sections": 6,
-          "rows": 48
+          "rows": 9
         },
         {
           "tab": "Top Categories",
@@ -279,32 +362,20 @@
             {
               "page": 1,
               "sections": 4,
-              "cards": 21,
+              "rows": 21,
+              "error": null
+            },
+            {
+              "page": 2,
+              "sections": 0,
+              "rows": 0,
               "error": null
             }
           ],
           "sections": 4,
           "rows": 21
         }
-      ],
-      "errors": []
+      ]
     }
-  ],
-  "errors": [
-    {
-      "storefront": "Entertainment",
-      "tab": "Home",
-      "page": 3,
-      "url": "https://catalog-service.cms-qp.opt.quickplay.com/catalog/storefront/landingscreen?ipr=true&ivg=false&sfInfo=true&reg=in&dt=androidmobile&client=sony-sony-androidmobile&chrt=Sony1&cPageSize=10&pf=regular&cPageNumber=3&sfid=EBFB096C-CA11-4E32-A231-8A7FA15B5E13&tid=9EF17281-00E5-4C44-A480-A2FCD73E179C",
-      "error": "missing data"
-    },
-    {
-      "storefront": "Entertainment",
-      "tab": "Kids",
-      "page": 1,
-      "url": "https://catalog-service.cms-qp.opt.quickplay.com/catalog/storefront/landingscreen?ipr=true&ivg=false&sfInfo=true&reg=in&dt=androidmobile&client=sony-sony-androidmobile&chrt=Sony1&cPageSize=10&pf=regular&cPageNumber=1&sfid=EBFB096C-CA11-4E32-A231-8A7FA15B5E13&tid=2763AD7C-03F4-44E1-BA90-3D4314E92DBF",
-      "error": "missing data"
-    }
-  ],
-  "row_count": 1108
+  ]
 }

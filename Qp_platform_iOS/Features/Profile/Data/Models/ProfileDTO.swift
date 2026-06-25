@@ -4,6 +4,7 @@ struct ProfileDTO: Codable {
     let id: UUID
     let name: String
     let imageName: String?
+    let cohort: QuickplayCohort
     let preference: ProfilePreference
     let preferredLanguages: [ProfileLanguage]?
     let dateOfBirth: Date?
@@ -11,11 +12,64 @@ struct ProfileDTO: Codable {
     let isKidsProfile: Bool
     let showOnSelection: Bool
 
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case imageName
+        case cohort
+        case preference
+        case preferredLanguages
+        case dateOfBirth
+        case gender
+        case isKidsProfile
+        case showOnSelection
+    }
+
+    init(
+        id: UUID,
+        name: String,
+        imageName: String?,
+        cohort: QuickplayCohort,
+        preference: ProfilePreference,
+        preferredLanguages: [ProfileLanguage]?,
+        dateOfBirth: Date?,
+        gender: ProfileGender?,
+        isKidsProfile: Bool,
+        showOnSelection: Bool
+    ) {
+        self.id = id
+        self.name = name
+        self.imageName = imageName
+        self.cohort = cohort
+        self.preference = preference
+        self.preferredLanguages = preferredLanguages
+        self.dateOfBirth = dateOfBirth
+        self.gender = gender
+        self.isKidsProfile = isKidsProfile
+        self.showOnSelection = showOnSelection
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        imageName = try container.decodeIfPresent(String.self, forKey: .imageName)
+        preference = try container.decodeIfPresent(ProfilePreference.self, forKey: .preference) ?? .entertainment
+        preferredLanguages = try container.decodeIfPresent([ProfileLanguage].self, forKey: .preferredLanguages)
+        dateOfBirth = try container.decodeIfPresent(Date.self, forKey: .dateOfBirth)
+        gender = try container.decodeIfPresent(ProfileGender.self, forKey: .gender)
+        isKidsProfile = try container.decodeIfPresent(Bool.self, forKey: .isKidsProfile) ?? false
+        showOnSelection = try container.decodeIfPresent(Bool.self, forKey: .showOnSelection) ?? true
+        cohort = try container.decodeIfPresent(QuickplayCohort.self, forKey: .cohort) ??
+            (isKidsProfile ? .kids : preference.quickplayCohort)
+    }
+
     func toDomain() -> Profile {
         Profile(
             id: id,
             name: name,
             imageName: imageName,
+            cohort: cohort,
             preference: preference,
             preferredLanguages: preferredLanguages ?? [],
             dateOfBirth: dateOfBirth,
@@ -30,6 +84,7 @@ struct ProfileDTO: Codable {
             id: profile.id,
             name: profile.name,
             imageName: profile.imageName,
+            cohort: profile.cohort,
             preference: profile.preference,
             preferredLanguages: profile.preferredLanguages,
             dateOfBirth: profile.dateOfBirth,

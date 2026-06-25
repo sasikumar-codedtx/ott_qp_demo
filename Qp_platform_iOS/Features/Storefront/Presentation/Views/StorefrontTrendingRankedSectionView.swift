@@ -30,26 +30,38 @@ struct StorefrontTrendingRankedSectionView: View {
     }
 
     private var header: some View {
-        Button {
-            onViewAll?(section)
-        } label: {
-            HStack(spacing: 8) {
-                Text(section.title)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
+        Group {
+            if section.allowsViewAll {
+                Button {
+                    onViewAll?(section)
+                } label: {
+                    headerContent(showsChevron: true)
+                }
+                .buttonStyle(LiquidButtonPressStyle())
+            } else {
+                headerContent(showsChevron: false)
+            }
+        }
+    }
 
-                Spacer(minLength: 12)
+    private func headerContent(showsChevron: Bool) -> some View {
+        HStack(spacing: 8) {
+            Text(section.title)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
 
+            Spacer(minLength: 12)
+
+            if showsChevron {
                 Image(systemName: AppIcons.Navigation.next)
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(width: 30, height: 30)
             }
-            .frame(height: 30)
-            .padding(.horizontal, 16)
         }
-        .buttonStyle(LiquidButtonPressStyle())
+        .frame(height: 30)
+        .padding(.horizontal, 16)
     }
 
     private var sectionGlow: some View {

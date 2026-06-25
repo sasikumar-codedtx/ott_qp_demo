@@ -75,37 +75,49 @@ struct QuickplayContainerDTO: Decodable {
     }
 
     func backgroundImageURL(config: QuickplayRuntimeConfig) -> URL? {
-        guard let imageID = backgroundStyle?.imageIDs.first?.nilIfEmpty else {
+        guard let backgroundStyle, let ratio = backgroundStyle.imageRatio else {
             return nil
         }
 
-        if let directURL = URL(string: imageID), directURL.scheme != nil {
-            return directURL
-        }
-
-        let ratio = backgroundStyle?.ratio?.nilIfEmpty ?? "0-1x1"
         return ImageURLBuilder(baseURL: config.imageResizeURL).imageURL(
-            id: imageID,
+            id: id,
             ratio: ratio,
             availableRatios: [ratio, "0-1x1", "0-16x9"],
             width: 1236,
             preferredFallbacks: [ratio, "0-1x1", "0-16x9"]
         )
     }
+
+    var backgroundColorHex: String? {
+        backgroundStyle?.colorHex
+    }
 }
 
 struct QuickplaySectionBackgroundStyleDTO: Decodable {
     let imageIDs: [String]
     let ratio: String?
+    let colorHex: String?
+
+    nonisolated var imageRatio: String? {
+        Self.nonEmpty(imageIDs.first(where: Self.isAspectRatioToken))
+    }
 
     enum CodingKeys: String, CodingKey {
         case imageIDs = "ia"
         case ratio = "iar"
+        case color
+        case colour
+        case hex
+        case bg
+        case bgColor = "bg_color"
+        case backgroundColor = "background_color"
+        case backgroundColour = "background_colour"
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         ratio = try container.decodeIfPresent(String.self, forKey: .ratio)
+        colorHex = Self.decodeColor(from: container)
 
         if let strings = try? container.decode([String].self, forKey: .imageIDs) {
             imageIDs = strings
@@ -118,6 +130,58 @@ struct QuickplaySectionBackgroundStyleDTO: Decodable {
         }
 
         imageIDs = []
+    }
+
+    nonisolated private static func isAspectRatioToken(_ value: String) -> Bool {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.range(of: #"^\d+(\.\d+)?-\d+x\d+$"#, options: .regularExpression) != nil
+    }
+
+    nonisolated private static func nonEmpty(_ value: String?) -> String? {
+        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed?.isEmpty == false ? trimmed : nil
+    }
+
+    private static func decodeColor(from container: KeyedDecodingContainer<CodingKeys>) -> String? {
+        let keys: [CodingKeys] = [
+            .color,
+            .colour,
+            .hex,
+            .bg,
+            .bgColor,
+            .backgroundColor,
+            .backgroundColour
+        ]
+
+        for key in keys {
+            if let string = try? container.decode(String.self, forKey: key),
+               let normalized = normalizedHexColor(string) {
+                return normalized
+            }
+            if let object = try? container.decode(QuickplayColorReferenceDTO.self, forKey: key),
+               let normalized = normalizedHexColor(object.value) {
+                return normalized
+            }
+        }
+
+        return nil
+    }
+
+    private static func normalizedHexColor(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let cleaned = value
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+
+        guard cleaned.count == 6 || cleaned.count == 8 else {
+            return nil
+        }
+
+        guard cleaned.allSatisfy({ $0.isHexDigit }) else {
+            return nil
+        }
+
+        return String(cleaned.suffix(6))
     }
 }
 
@@ -136,6 +200,32 @@ struct QuickplayImageReferenceDTO: Decodable {
         }
 
         for key in ["id", "image", "image_id", "imageName", "image_name", "url", "n"] {
+            guard let codingKey = DynamicCodingKey(stringValue: key) else { continue }
+            if let decoded = try? container.decode(String.self, forKey: codingKey) {
+                value = decoded
+                return
+            }
+        }
+
+        value = nil
+    }
+}
+
+struct QuickplayColorReferenceDTO: Decodable {
+    let value: String?
+
+    init(from decoder: Decoder) throws {
+        if let string = try? decoder.singleValueContainer().decode(String.self) {
+            value = string
+            return
+        }
+
+        guard let container = try? decoder.container(keyedBy: DynamicCodingKey.self) else {
+            value = nil
+            return
+        }
+
+        for key in ["color", "colour", "hex", "value", "v", "bg_color", "background_color"] {
             guard let codingKey = DynamicCodingKey(stringValue: key) else { continue }
             if let decoded = try? container.decode(String.self, forKey: codingKey) {
                 value = decoded
@@ -233,7 +323,10 @@ struct QuickplayCollectionResponseDTO: Decodable {
 
 struct QuickplayContentItemDTO: Decodable {
     let id: String
+    let ty: String?
     let cty: String?
+    let custSc: String?
+    let custId: String?
     let lon: [LocalizedTextDTO]?
     let lod: [LocalizedTextDTO]?
     let log: [LocalizedTextListDTO]?
@@ -256,7 +349,10 @@ struct QuickplayContentItemDTO: Decodable {
 
     enum CodingKeys: String, CodingKey {
         case id
+        case ty
         case cty
+        case custSc = "cust_sc"
+        case custId = "cust_id"
         case lon
         case lod
         case log
@@ -284,6 +380,9 @@ struct QuickplayContentItemDTO: Decodable {
             title: lon?.preferredText ?? "Untitled",
             description: lod?.preferredText ?? "",
             contentType: cty ?? "content",
+            cardType: ty,
+            customSearchCategory: custSc,
+            customID: custId,
             seriesId: stlId?.nilIfEmpty,
             slug: nu,
             resourceURN: urn,
@@ -334,8 +433,20 @@ struct QuickplayContentItemDTO: Decodable {
 
 struct QuickplayCollectionItemDTO: Decodable {
     let id: String
+    let ty: String?
+    let custSc: String?
+    let custId: String?
     let ia: [String]?
     let lon: [LocalizedTextDTO]?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case ty
+        case custSc = "cust_sc"
+        case custId = "cust_id"
+        case ia
+        case lon
+    }
 
     func toDomain(config: QuickplayRuntimeConfig) -> StorefrontItem {
         StorefrontItem(
@@ -343,6 +454,9 @@ struct QuickplayCollectionItemDTO: Decodable {
             title: lon?.preferredText ?? "Untitled",
             description: "",
             contentType: "collection",
+            cardType: ty ?? "collection",
+            customSearchCategory: custSc,
+            customID: custId,
             seriesId: nil,
             slug: nil,
             resourceURN: nil,
@@ -354,7 +468,7 @@ struct QuickplayCollectionItemDTO: Decodable {
             availableRatios: ia ?? ["0-1x1"],
             runtimeSeconds: nil,
             progress: nil,
-            canOpenDetail: false,
+            canOpenDetail: true,
             previewURL: nil,
             imageBaseURL: config.imageResizeURL
         )

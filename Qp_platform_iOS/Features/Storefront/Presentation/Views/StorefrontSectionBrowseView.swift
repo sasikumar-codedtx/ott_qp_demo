@@ -37,7 +37,7 @@ struct StorefrontSectionBrowseView: View {
                     .offset(y: -10)
 
                 VStack(spacing: 0) {
-                    if viewModel.isInitialLoading && viewModel.items.isEmpty {
+                    if viewModel.shouldShowInitialSkeleton {
                         skeleton(columns: columns, layout: layout)
                     } else if let errorMessage = viewModel.errorMessage, viewModel.items.isEmpty {
                         ErrorView(title: viewModel.title.nilIfEmpty ?? AppStrings.Storefront.unavailableTitle, message: errorMessage, onRetry: {
@@ -84,8 +84,8 @@ struct StorefrontSectionBrowseView: View {
                 .padding(.top, proxy.safeAreaInsets.top + 16)
             }
         }
-        .task {
-            await viewModel.loadIfNeeded()
+        .task(id: viewModel.loadIdentity) {
+            await viewModel.loadAfterPushAnimationIfNeeded()
         }
         .navigationBarBackButtonHidden(true)
         .routeNavigationOverlay(title: viewModel.title, onBack: onBack)

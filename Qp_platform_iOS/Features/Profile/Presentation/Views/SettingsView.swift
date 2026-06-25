@@ -205,7 +205,7 @@ struct SettingsView: View {
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.white)
 
-                accountDetailRow(title: "Preferred Cohort", value: currentProfile?.preference.displayName ?? "Entertainment")
+                accountDetailRow(title: "Preferred Cohort", value: currentProfile?.cohort.title ?? "Entertainment")
                 accountDetailRow(title: "Languages", value: formattedLanguages)
                 accountDetailRow(title: "Mode", value: currentProfile?.isKidsProfile == true ? "Kids Profile" : "Standard")
             }

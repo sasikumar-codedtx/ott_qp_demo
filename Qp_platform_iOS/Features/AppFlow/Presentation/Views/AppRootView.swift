@@ -215,8 +215,8 @@ struct AppRootView: View {
                     onBack: {
                         viewModel.popRoute()
                     },
-                    onSubmit: { transcript, language in
-                        viewModel.completeAISearch(transcript: transcript, language: language)
+                    onSubmit: { displayText, apiQuery in
+                        viewModel.completeAISearch(displayText: displayText, apiQuery: apiQuery)
                     }
                 )
             }
@@ -370,7 +370,7 @@ struct AppRootView: View {
                     RouteNavigationIconButton(icon: AppIcons.Action.share, action: {})
                 }
             }
-        case .sectionBrowse:
+        case .sectionBrowse, .collectionBrowse:
             surface(style: .storefront) {
                 StorefrontSectionBrowseView(
                     viewModel: viewModel.storefrontSectionBrowseViewModel,
@@ -456,7 +456,6 @@ private struct StorefrontTabRouteView: View {
             showsStorefrontHeader: false,
             showsBottomChrome: false,
             loadsInitialOnAppear: false,
-            additionalTopChromeHeight: 58,
             onOpenStorefrontTab: onOpenStorefrontTab
         )
         .task(id: activeProfile?.id) {

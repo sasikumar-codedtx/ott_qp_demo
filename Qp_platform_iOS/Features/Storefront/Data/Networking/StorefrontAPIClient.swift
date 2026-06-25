@@ -71,6 +71,26 @@ struct StorefrontAPIClient {
         }
     }
 
+    func fetchCollectionLookup(cohort: QuickplayCohort, item: StorefrontItem, pageNumber: Int, pageSize: Int) async throws -> QuickplayContentResponseDTO {
+        let config = await configStore.current(using: networkClient)
+        guard let request = StorefrontRouter.collectionLookupRequest(
+            config: config,
+            cohort: cohort,
+            item: item,
+            pageNumber: pageNumber,
+            pageSize: pageSize
+        ) else {
+            throw AppError.invalidURL
+        }
+
+        let data = try await networkClient.data(for: request)
+        do {
+            return try JSONDecoder().decode(QuickplayContentResponseDTO.self, from: data)
+        } catch {
+            throw AppError.decodingFailed
+        }
+    }
+
     func fetchContainers(
         cohort: QuickplayCohort,
         storefrontID: String,

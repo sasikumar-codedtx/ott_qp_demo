@@ -1,4 +1,5 @@
 import SwiftUI
+import Translation
 
 struct SearchView: View {
     @ObservedObject var viewModel: SearchViewModel
@@ -15,6 +16,10 @@ struct SearchView: View {
     @State private var voiceSubmitTask: Task<Void, Never>?
     @State private var isKeyboardVisible = false
     @StateObject private var speechService = SpeechRecognitionService()
+    @State private var isTranslatingInlineVoice = false
+    @State private var inlineVoicePendingTranslation: PendingVoiceTranslation?
+    @State private var inlineVoiceTranslationConfig: TranslationSession.Configuration?
+    @State private var inlineVoiceTranslationError: String?
 
     private let aiPromptSuggestions = [
         "Show me Hindi thriller movies",
@@ -57,6 +62,12 @@ struct SearchView: View {
 
     private var shouldShowKeyboardSuggestions: Bool {
         isSearchFocused && viewModel.normalizedQuery.isEmpty && !searchSuggestions.isEmpty
+    }
+
+    private var inlineVoiceStatusText: String {
+        if let inlineVoiceTranslationError { return inlineVoiceTranslationError }
+        if isTranslatingInlineVoice { return "Translating Hindi to English..." }
+        return speechService.statusText
     }
 
     var body: some View {
@@ -105,6 +116,9 @@ struct SearchView: View {
         }
         .onChange(of: speechService.transcript) { _, transcript in
             scheduleVoiceSearch(for: transcript)
+        }
+        .translationTask(inlineVoiceTranslationConfig) { session in
+            await translateInlinePendingVoiceSearch(with: session)
         }
     }
 
@@ -310,11 +324,8 @@ struct SearchView: View {
         case .voiceListening:
             ZStack(alignment: .top) {
                 VoiceSearchListeningView(
-                    transcript: AISearchQueryNormalizer.localizedDisplayText(
-                        from: speechService.transcript,
-                        language: speechService.selectedLanguage
-                    ),
-                    statusText: speechService.statusText,
+                    transcript: speechService.transcript.trimmingCharacters(in: .whitespacesAndNewlines),
+                    statusText: inlineVoiceStatusText,
                     isRecording: speechService.isRecording,
                     onToggleRecording: toggleVoiceRecording
                 )
@@ -414,6 +425,9 @@ struct SearchView: View {
         aiQuery = ""
         aiSearchQuery = ""
         speechService.reset()
+        isTranslatingInlineVoice = false
+        inlineVoicePendingTranslation = nil
+        inlineVoiceTranslationError = nil
 
         withAnimation(.easeInOut(duration: 0.24)) {
             aiOverlayMode = .voiceListening
@@ -445,6 +459,9 @@ struct SearchView: View {
             SearchHaptics.recordingFinished()
             submitVoiceSearchIfPossible(speechService.transcript)
         } else {
+            isTranslatingInlineVoice = false
+            inlineVoicePendingTranslation = nil
+            inlineVoiceTranslationError = nil
             SearchHaptics.micTap()
             Task {
                 let isReady = await speechService.prepareSession()
@@ -474,26 +491,80 @@ struct SearchView: View {
         let trimmed = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
-        let normalizedQuery = AISearchQueryNormalizer.normalizedEnglishQuery(from: trimmed)
-        aiQuery = AISearchQueryNormalizer.localizedDisplayText(
-            from: trimmed,
-            language: speechService.selectedLanguage
-        )
-        aiSearchQuery = normalizedQuery
+        voiceSubmitTask?.cancel()
         let wasRecording = speechService.isRecording
         speechService.stop()
         if wasRecording {
             SearchHaptics.recordingFinished()
         }
 
-        withAnimation(.easeInOut(duration: 0.24)) {
-            aiOverlayMode = .voiceResults
-        }
+        aiQuery = trimmed
 
-        Task {
-            try? await Task.sleep(for: .milliseconds(420))
-            guard aiOverlayMode == .voiceResults else { return }
-            viewModel.query = normalizedQuery
+        switch speechService.selectedLanguage {
+        case .english:
+            aiSearchQuery = trimmed
+            withAnimation(.easeInOut(duration: 0.24)) {
+                aiOverlayMode = .voiceResults
+            }
+            Task {
+                try? await Task.sleep(for: .milliseconds(420))
+                guard aiOverlayMode == .voiceResults else { return }
+                viewModel.submitAIQuery(displayText: aiQuery, apiQuery: aiSearchQuery)
+            }
+        case .hindi:
+            requestInlineHindiTranslation(for: trimmed)
+        }
+    }
+
+    private func requestInlineHindiTranslation(for transcript: String) {
+        inlineVoiceTranslationError = nil
+        isTranslatingInlineVoice = true
+        inlineVoicePendingTranslation = PendingVoiceTranslation(displayText: transcript)
+
+        if inlineVoiceTranslationConfig == nil {
+            inlineVoiceTranslationConfig = TranslationSession.Configuration(
+                source: Locale.Language(identifier: "hi"),
+                target: Locale.Language(identifier: "en")
+            )
+        } else {
+            inlineVoiceTranslationConfig?.invalidate()
+        }
+    }
+
+    private func translateInlinePendingVoiceSearch(with session: TranslationSession) async {
+        guard let pending = inlineVoicePendingTranslation else { return }
+
+        do {
+            try await session.prepareTranslation()
+            let response = try await session.translate(pending.displayText)
+            await MainActor.run {
+                isTranslatingInlineVoice = false
+                inlineVoicePendingTranslation = nil
+                inlineVoiceTranslationError = nil
+                aiSearchQuery = response.targetText
+                withAnimation(.easeInOut(duration: 0.24)) {
+                    aiOverlayMode = .voiceResults
+                }
+                Task {
+                    try? await Task.sleep(for: .milliseconds(420))
+                    guard aiOverlayMode == .voiceResults else { return }
+                    viewModel.submitAIQuery(displayText: pending.displayText, apiQuery: response.targetText)
+                }
+            }
+        } catch {
+            await MainActor.run {
+                isTranslatingInlineVoice = false
+                inlineVoicePendingTranslation = nil
+                aiSearchQuery = pending.displayText
+                withAnimation(.easeInOut(duration: 0.24)) {
+                    aiOverlayMode = .voiceResults
+                }
+                Task {
+                    try? await Task.sleep(for: .milliseconds(420))
+                    guard aiOverlayMode == .voiceResults else { return }
+                    viewModel.submitAIQuery(displayText: pending.displayText, apiQuery: pending.displayText)
+                }
+            }
         }
     }
 
@@ -503,9 +574,8 @@ struct SearchView: View {
 
         aiQuery = trimmed
         aiTextPrompt = trimmed
-        let normalizedQuery = AISearchQueryNormalizer.normalizedEnglishQuery(from: trimmed)
-        aiSearchQuery = normalizedQuery
-        viewModel.query = normalizedQuery
+        aiSearchQuery = trimmed
+        viewModel.query = trimmed
 
         withAnimation(.easeInOut(duration: 0.24)) {
             aiOverlayMode = .textResults
@@ -516,6 +586,9 @@ struct SearchView: View {
         voiceSubmitTask?.cancel()
         voiceSubmitTask = nil
         speechService.reset()
+        isTranslatingInlineVoice = false
+        inlineVoicePendingTranslation = nil
+        inlineVoiceTranslationError = nil
         withAnimation(.easeInOut(duration: 0.22)) {
             aiOverlayMode = nil
         }
@@ -546,24 +619,23 @@ private enum SearchHaptics {
 struct AISearchVoiceRouteView: View {
     @ObservedObject var viewModel: SearchViewModel
     let onBack: () -> Void
-    let onSubmit: (String, SupportedSpeechLanguage) -> Void
+    let onSubmit: (String, String) -> Void
     @StateObject private var speechService = SpeechRecognitionService()
     @State private var voiceSubmitTask: Task<Void, Never>?
     @State private var startupRecoveryTask: Task<Void, Never>?
     @State private var hasStartedListening = false
+    @State private var pendingTranslation: PendingVoiceTranslation?
+    @State private var translationConfiguration: TranslationSession.Configuration?
+    @State private var isTranslating = false
+    @State private var translationErrorMessage: String?
 
-    private var displayTranscript: String {
-        AISearchQueryNormalizer.localizedDisplayText(
-            from: speechService.transcript,
-            language: speechService.selectedLanguage
-        )
-    }
+    private var displayTranscript: String { speechService.transcript.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     var body: some View {
         ZStack(alignment: .top) {
             VoiceSearchListeningView(
                 transcript: displayTranscript,
-                statusText: speechService.statusText,
+                statusText: translationStatusText,
                 isRecording: speechService.isRecording,
                 onToggleRecording: toggleRecording
             )
@@ -593,6 +665,21 @@ struct AISearchVoiceRouteView: View {
         .onChange(of: speechService.transcript) { _, transcript in
             scheduleSubmit(for: transcript)
         }
+        .translationTask(translationConfiguration) { session in
+            await translatePendingVoiceSearch(with: session)
+        }
+    }
+
+    private var translationStatusText: String {
+        if let translationErrorMessage {
+            return translationErrorMessage
+        }
+
+        if isTranslating {
+            return "Translating Hindi to English..."
+        }
+
+        return speechService.statusText
     }
 
     private var languageMenu: some View {
@@ -711,8 +798,55 @@ struct AISearchVoiceRouteView: View {
         if wasRecording {
             SearchHaptics.recordingFinished()
         }
-        onSubmit(trimmed, speechService.selectedLanguage)
+
+        switch speechService.selectedLanguage {
+        case .english:
+            onSubmit(trimmed, trimmed)
+        case .hindi:
+            requestHindiTranslation(for: trimmed)
+        }
     }
+
+    private func requestHindiTranslation(for transcript: String) {
+        translationErrorMessage = nil
+        isTranslating = true
+        pendingTranslation = PendingVoiceTranslation(displayText: transcript)
+
+        if translationConfiguration == nil {
+            translationConfiguration = TranslationSession.Configuration(
+                source: Locale.Language(identifier: "hi"),
+                target: Locale.Language(identifier: "en")
+            )
+        } else {
+            translationConfiguration?.invalidate()
+        }
+    }
+
+    private func translatePendingVoiceSearch(with session: TranslationSession) async {
+        guard let pendingTranslation else { return }
+
+        do {
+            try await session.prepareTranslation()
+            let response = try await session.translate(pendingTranslation.displayText)
+            await MainActor.run {
+                isTranslating = false
+                self.pendingTranslation = nil
+                translationErrorMessage = nil
+                onSubmit(pendingTranslation.displayText, response.targetText)
+            }
+        } catch {
+            await MainActor.run {
+                isTranslating = false
+                self.pendingTranslation = nil
+                translationErrorMessage = nil
+                onSubmit(pendingTranslation.displayText, pendingTranslation.displayText)
+            }
+        }
+    }
+}
+
+private struct PendingVoiceTranslation: Equatable {
+    let displayText: String
 }
 
 private struct SearchRecommendedClipGrid: View {
@@ -887,8 +1021,11 @@ private struct SearchFilterDock: View {
     let onSelect: (SearchFilter) -> Void
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: -1) {
             ForEach(Array(filters.enumerated()), id: \.element.id) { index, filter in
+                let isFirst = index == 0
+                let isLast  = index == filters.count - 1
+
                 Button {
                     onSelect(filter)
                 } label: {
@@ -897,41 +1034,43 @@ private struct SearchFilterDock: View {
                         .tracking(0.48)
                         .foregroundStyle(selectedFilterID == filter.id ? .white : Color(hex: "F0F0F0").opacity(0.8))
                         .lineLimit(1)
-                        .truncationMode(.tail)
                         .padding(.horizontal, 16)
-                        .frame(maxWidth: .infinity, minHeight: 36)
-                        .background(segmentBackground(index: index))
+                        .frame(height: 36)
                         .contentShape(Rectangle())
                 }
+                .contentShape(Rectangle())
                 .buttonStyle(LiquidButtonPressStyle())
-                .frame(maxWidth: .infinity)
+                .background(filterChipSurface(isFirst: isFirst, isLast: isLast))
+                .fixedSize()
             }
         }
-        .clipShape(Capsule())
-        .overlay(Capsule().stroke(Color.white.opacity(0.1), lineWidth: 1))
         .shadow(color: Color.black.opacity(0.35), radius: 12, x: 0, y: 4)
     }
 
-    private func segmentBackground(index: Int) -> some View {
-        Rectangle()
-            .fill(
-                LinearGradient(
-                    colors: [
-                        Color.white.opacity(0.05),
-                        Color(hex: "FF8100").opacity(0.05)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
+    @ViewBuilder
+    private func filterChipSurface(isFirst: Bool, isLast: Bool) -> some View {
+        let shape = UnevenRoundedRectangle(
+            topLeadingRadius:    isFirst ? 300 : 0,
+            bottomLeadingRadius: isFirst ? 300 : 0,
+            bottomTrailingRadius: isLast ? 300 : 0,
+            topTrailingRadius:    isLast ? 300 : 0,
+            style: .continuous
+        )
+        shape.fill(.ultraThinMaterial)
+            .overlay(shape.fill(Color.black.opacity(0.9)))
+            .overlay(
+                shape.fill(
+                    LinearGradient(
+                        stops: [
+                            .init(color: Color.white.opacity(0.05), location: 0),
+                            .init(color: Color(hex: "FF8100").opacity(0.05), location: 1)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
                 )
             )
-            .background(Color.black.opacity(0.9))
-            .overlay(alignment: .leading) {
-                if index > 0 {
-                    Rectangle()
-                        .fill(Color.white.opacity(0.1))
-                        .frame(width: 1)
-                }
-            }
+            .overlay(shape.stroke(Color.white.opacity(0.1), lineWidth: 1))
     }
 }
 
@@ -1387,7 +1526,10 @@ private struct AISearchPromptView: View {
             }
             .padding(.horizontal, UIConstants.Spacing.lg)
             .padding(.bottom, 18)
-            .background(searchDockBackdrop(height: 112))
+            .background(
+                searchDockBackdrop(height: 112)
+                    .ignoresSafeArea(edges: .bottom)
+            )
             .task {
                 try? await Task.sleep(for: .milliseconds(150))
                 isPromptFocused = true

@@ -41,26 +41,17 @@ private struct SuggestionChip: View {
     var body: some View {
         Text(title)
             .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(Color.white.opacity(0.9))
+            .foregroundStyle(Color.white)
             .lineLimit(1)
             .truncationMode(.tail)
             .padding(.horizontal, 12)
-            .frame(height: 32)
+            .padding(.vertical, 5)
             .background(
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.11),
-                                Color.white.opacity(0.05)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(Color.white.opacity(0.06))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 5, style: .continuous)
-                            .stroke(Color.white.opacity(0.18), lineWidth: 0.8)
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .stroke(Color.white.opacity(0.10), lineWidth: 1)
                     )
             )
     }

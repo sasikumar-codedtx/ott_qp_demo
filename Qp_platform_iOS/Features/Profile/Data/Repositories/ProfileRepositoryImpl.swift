@@ -19,6 +19,10 @@ final class ProfileRepositoryImpl: ProfileRepository {
         try await dataSource.saveProfile(draft: draft).toDomain()
     }
 
+    func updateProfileCohort(id: UUID, cohort: QuickplayCohort) async throws -> Profile {
+        try await dataSource.updateProfileCohort(id: id, cohort: cohort).toDomain()
+    }
+
     func deleteProfile(id: UUID) async throws {
         try await dataSource.deleteProfile(id: id)
     }

@@ -30,9 +30,11 @@ struct SectionHeaderView: View {
 
             Spacer()
 
-            Image(systemName: AppIcons.Navigation.next)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.82))
+            if onTap != nil {
+                Image(systemName: AppIcons.Navigation.next)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.82))
+            }
         }
     }
 }

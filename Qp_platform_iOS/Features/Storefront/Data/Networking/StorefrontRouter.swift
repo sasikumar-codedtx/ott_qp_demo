@@ -104,4 +104,102 @@ enum StorefrontRouter {
         request.applyQuickplayHeaders()
         return request
     }
+
+    static func collectionLookupRequest(
+        config: QuickplayRuntimeConfig,
+        cohort: QuickplayCohort,
+        item: StorefrontItem,
+        pageNumber: Int,
+        pageSize: Int
+    ) -> URLRequest? {
+        guard var components = URLComponents(string: "\(config.vodMetaDataURL)/content/lookup") else {
+            return nil
+        }
+
+        let lookupQuery = CollectionLookupQueryBuilder.query(for: item)
+        components.queryItems = [
+            URLQueryItem(name: "info", value: "detail"),
+            URLQueryItem(name: "mode", value: "detail"),
+            URLQueryItem(name: "query", value: lookupQuery),
+            URLQueryItem(name: "pageSize", value: String(pageSize)),
+            URLQueryItem(name: "pageNumber", value: String(pageNumber)),
+            URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region),
+            URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
+            URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
+            URLQueryItem(name: "pf", value: cohort.profileFlag),
+            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
+        ]
+
+        guard let url = components.url else {
+            return nil
+        }
+
+        var request = URLRequest(url: url)
+        request.applyQuickplayHeaders()
+        return request
+    }
+}
+
+private enum CollectionLookupQueryBuilder {
+    static func query(for item: StorefrontItem) -> String {
+        let term = lookupTerm(for: item)
+        var filters = [
+            LookupFilter(field: "st", term: "published", operatorValue: "equals"),
+            LookupFilter(field: "log.n", term: term, operatorValue: "equals")
+        ]
+
+        if let contentType = lookupContentType(for: item) {
+            filters.append(LookupFilter(field: "cty", term: contentType, operatorValue: "equals"))
+        }
+
+        let payload = LookupPayload(filter: filters, match: "ALL")
+        let data = (try? JSONEncoder().encode(payload)) ?? Data()
+        return data.base64EncodedString()
+    }
+
+    private static func lookupTerm(for item: StorefrontItem) -> String {
+        [
+            item.customSearchCategory,
+            item.genres.joined(separator: ",").nilIfEmpty,
+            item.title.nilIfEmpty
+        ]
+        .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+        .first(where: { !$0.isEmpty })?
+        .lowercased() ?? item.title.lowercased()
+    }
+
+    private static func lookupContentType(for item: StorefrontItem) -> String? {
+        let normalized = item.contentType
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+            .replacingOccurrences(of: "_", with: " ")
+            .replacingOccurrences(of: "-", with: " ")
+
+        guard !normalized.isEmpty,
+              normalized != "content",
+              normalized != "collection",
+              normalized != "view all",
+              normalized != "viewall" else {
+            return nil
+        }
+
+        return item.contentType
+    }
+}
+
+private struct LookupPayload: Encodable {
+    let filter: [LookupFilter]
+    let match: String
+}
+
+private struct LookupFilter: Encodable {
+    let field: String
+    let term: String
+    let operatorValue: String
+
+    enum CodingKeys: String, CodingKey {
+        case field
+        case term
+        case operatorValue = "operator"
+    }
 }

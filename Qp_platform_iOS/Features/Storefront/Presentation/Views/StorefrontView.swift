@@ -73,7 +73,7 @@ struct StorefrontView: View {
     }
 
     private var bottomChrome: some View {
-        VStack(spacing: 8) {
+        VStack(alignment: .center, spacing: 8) {
             if !isHotPresentation {
                 StorefrontTabDockView(
                     tabs: dockTabs,
@@ -87,21 +87,16 @@ struct StorefrontView: View {
                 )
             }
 
-                BottomNavigationBar(
-                    selection: bottomSelection,
-                    profileImageName: profileImageName,
-                    onHomeTap: onOpenHome,
-                    onSearchTap: onOpenSearch,
-                    onShortsTap: onOpenShorts,
-                    onHotTap: onOpenHot,
-                    onProfileTap: onProfileTap
-                )
-            }
-        .background(
-            Color.black.opacity(0.18)
-                .blur(radius: 14)
-                .allowsHitTesting(false)
-        )
+            BottomNavigationBar(
+                selection: bottomSelection,
+                profileImageName: profileImageName,
+                onHomeTap: onOpenHome,
+                onSearchTap: onOpenSearch,
+                onShortsTap: onOpenShorts,
+                onHotTap: onOpenHot,
+                onProfileTap: onProfileTap
+            )
+        }
     }
 
     private func openStorefrontTab(_ tab: StorefrontTab) {

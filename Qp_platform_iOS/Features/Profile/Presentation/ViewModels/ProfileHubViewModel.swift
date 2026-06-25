@@ -41,7 +41,7 @@ final class ProfileHubViewModel: ObservableObject {
         errorMessage = nil
         hasLoaded = false
         print(
-            "[ProfileHub] present profile=\(profile?.name ?? "<nil>"), profileID=\(profile?.id.uuidString ?? "<nil>"), preference=\(profile?.preference.rawValue ?? "<nil>"), cohort=\(profile?.quickplayCohort.rawValue ?? "<nil>"), seedCount=\(seedItems.count)"
+            "[ProfileHub] present profile=\(profile?.name ?? "<nil>"), profileID=\(profile?.id.uuidString ?? "<nil>"), preference=\(profile?.preference.rawValue ?? "<nil>"), cohort=\(profile?.cohort.rawValue ?? "<nil>"), seedCount=\(seedItems.count)"
         )
     }
 
@@ -62,7 +62,7 @@ final class ProfileHubViewModel: ObservableObject {
             let clipItems = buildClipItems(from: clipSeedItems, fallbacks: home.recommendations + home.favorites)
 
             sections = [
-                makeSection(id: "continue-watching", title: AppStrings.Profile.continueWatching, ratio: "0-16x9", items: home.continueWatching),
+                makeSection(id: "continue-watching", title: AppStrings.Profile.continueWatching, ratio: "0-2x3", items: home.continueWatching),
                 makeSection(id: "clips", title: AppStrings.Profile.clips, ratio: "0-9x16", items: clipItems),
                 makeSection(id: "liked", title: AppStrings.Profile.liked, ratio: "0-2x3", items: home.recommendations),
                 makeSection(id: "favorites", title: AppStrings.Profile.favorites, ratio: "0-2x3", items: home.favorites)

@@ -10,4 +10,8 @@ struct GetStorefrontSectionPageUseCase {
     func execute(ids: [String], pageNumber: Int, pageSize: Int) async throws -> StorefrontSectionPage {
         try await repository.fetchSectionPage(ids: ids, pageNumber: pageNumber, pageSize: pageSize)
     }
+
+    func execute(collection item: StorefrontItem, pageNumber: Int, pageSize: Int) async throws -> StorefrontSectionPage {
+        try await repository.fetchCollectionLookupPage(item: item, pageNumber: pageNumber, pageSize: pageSize)
+    }
 }

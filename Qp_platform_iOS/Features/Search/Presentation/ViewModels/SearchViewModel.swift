@@ -17,6 +17,8 @@ final class SearchViewModel: ObservableObject {
 
     private let useCase: SearchContentUseCase
     private var cancellables = Set<AnyCancellable>()
+    private var pendingManualDisplayQuery: String?
+    private var currentSearchTerm = ""
 
     static let allFilter = SearchFilter(id: "all", title: "All")
     private static let defaultSearchQuery = "Trending Search"
@@ -54,6 +56,8 @@ final class SearchViewModel: ObservableObject {
         facetFilters = []
         selectedFilterID = Self.allFilter.id
         errorMessage = nil
+        currentSearchTerm = ""
+        pendingManualDisplayQuery = nil
         if query == Self.defaultSearchQuery {
             Task { @MainActor in
                 await handleQueryChange(Self.defaultSearchQuery)
@@ -64,10 +68,26 @@ final class SearchViewModel: ObservableObject {
     }
 
     func submitAIQuery(_ query: String) {
-        let queryToSearch = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !queryToSearch.isEmpty else { return }
-        self.query = queryToSearch
+        submitAIQuery(displayText: query, apiQuery: query)
+    }
+
+    func submitAIQuery(displayText: String, apiQuery: String) {
+        let displayText = displayText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let queryToSearch = apiQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !displayText.isEmpty, !queryToSearch.isEmpty else { return }
+
+        pendingManualDisplayQuery = displayText
+        self.query = displayText
         selectedFilterID = Self.allFilter.id
+
+        Task { @MainActor in
+            await performSearch(
+                term: queryToSearch,
+                facetTerm: nil,
+                shouldUpdateFilters: true,
+                displayQuery: displayText
+            )
+        }
     }
 
     func selectFilter(_ filter: SearchFilter) {
@@ -78,33 +98,50 @@ final class SearchViewModel: ObservableObject {
     }
 
     private func handleQueryChange(_ term: String) async {
+        if pendingManualDisplayQuery == term {
+            pendingManualDisplayQuery = nil
+            return
+        }
+
         guard !term.isEmpty else {
             errorMessage = nil
             isLoading = false
             selectedFilterID = Self.allFilter.id
+            currentSearchTerm = ""
             return
         }
 
         selectedFilterID = Self.allFilter.id
-        await performSearch(term: term, facetTerm: nil, shouldUpdateFilters: true)
+        await performSearch(term: term, facetTerm: nil, shouldUpdateFilters: true, displayQuery: term)
     }
 
     private func reloadForSelectedFacet() async {
-        let term = normalizedQuery
+        let term = currentSearchTerm.isEmpty ? normalizedQuery : currentSearchTerm
         guard !term.isEmpty else { return }
 
         let facetTerm = selectedFilterID == Self.allFilter.id ? nil : selectedFilterID
-        await performSearch(term: term, facetTerm: facetTerm, shouldUpdateFilters: facetTerm == nil)
+        await performSearch(
+            term: term,
+            facetTerm: facetTerm,
+            shouldUpdateFilters: facetTerm == nil,
+            displayQuery: normalizedQuery
+        )
     }
 
-    private func performSearch(term: String, facetTerm: String?, shouldUpdateFilters: Bool) async {
+    private func performSearch(
+        term: String,
+        facetTerm: String?,
+        shouldUpdateFilters: Bool,
+        displayQuery: String
+    ) async {
         isLoading = true
         errorMessage = nil
         results = []
+        currentSearchTerm = term
 
         do {
             let page = try await useCase.execute(term: term, facetTerm: facetTerm)
-            if normalizedQuery.caseInsensitiveCompare(term) == .orderedSame {
+            if normalizedQuery.caseInsensitiveCompare(displayQuery) == .orderedSame {
                 results = page.items
                 if shouldUpdateFilters {
                     facetFilters = deduplicatedFilters(page.filters)
@@ -112,7 +149,7 @@ final class SearchViewModel: ObservableObject {
                 isLoading = false
             }
         } catch {
-            if normalizedQuery.caseInsensitiveCompare(term) == .orderedSame {
+            if normalizedQuery.caseInsensitiveCompare(displayQuery) == .orderedSame {
                 if error.localizedDescription.localizedCaseInsensitiveContains("no data match") {
                     results = []
                     errorMessage = nil

@@ -10,10 +10,12 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
     @Published private(set) var isRefreshing = false
     @Published private(set) var isLoadingMore = false
     @Published private(set) var errorMessage: String?
+    @Published private(set) var isAwaitingInitialLoad = false
 
     private let useCase: GetStorefrontSectionPageUseCase
     private let pageSize = Int(AppEnvironment.Quickplay.storefrontPageSize) ?? 20
     private var currentIDs: [String] = []
+    private var source: BrowseSource?
     private var currentCacheKey: String?
     private var cache: [String: StorefrontSectionPage] = [:]
 
@@ -23,6 +25,14 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
 
     var title: String {
         section?.title ?? ""
+    }
+
+    var loadIdentity: String {
+        currentCacheKey ?? title
+    }
+
+    var shouldShowInitialSkeleton: Bool {
+        items.isEmpty && (isInitialLoading || isAwaitingInitialLoad)
     }
 
     var isRecommendedSection: Bool {
@@ -58,18 +68,55 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
         self.section = section
         self.cohort = cohort
         currentIDs = deduplicatedIDs(from: section.items)
+        source = .sectionIDs(currentIDs)
         currentCacheKey = "\(section.id)-\(cohort.rawValue)-\(section.ratio)"
         errorMessage = nil
 
         if let cached = currentCache {
             items = cached.items
+            isAwaitingInitialLoad = false
         } else {
-            items = Array(section.items.prefix(pageSize))
+            items = []
+            isAwaitingInitialLoad = true
+        }
+    }
+
+    func present(collection item: StorefrontItem, cohort: QuickplayCohort) {
+        let preferredRatio = item.availableRatios.first(where: { ratio in
+            ratio == "0-16x9" || ratio == "0-2x3" || ratio == "0-9x16"
+        }) ?? item.availableRatios.first ?? "0-2x3"
+        let section = StorefrontSection(
+            id: item.id,
+            title: item.title,
+            ratio: preferredRatio,
+            items: [],
+            isHero: false
+        )
+        self.section = section
+        self.cohort = cohort
+        currentIDs = []
+        source = .collectionLookup(item)
+        currentCacheKey = "collection-\(item.id)-\(cohort.rawValue)-\(item.customSearchCategory ?? item.title)"
+        errorMessage = nil
+
+        if let cached = currentCache {
+            items = cached.items
+            isAwaitingInitialLoad = false
+        } else {
+            items = []
+            isAwaitingInitialLoad = true
         }
     }
 
     func loadIfNeeded() async {
         await refresh()
+    }
+
+    func loadAfterPushAnimationIfNeeded() async {
+        if isAwaitingInitialLoad {
+            try? await Task.sleep(for: .seconds(1))
+        }
+        await loadIfNeeded()
     }
 
     func loadMoreIfNeeded(currentItem item: StorefrontItem) async {
@@ -81,7 +128,7 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
         defer { isLoadingMore = false }
 
         do {
-            let page = try await useCase.execute(ids: currentIDs, pageNumber: cache.nextPage, pageSize: pageSize)
+            let page = try await fetchPage(pageNumber: cache.nextPage)
             let combinedItems = deduplicated(items + page.items)
             let merged = StorefrontSectionPage(
                 items: combinedItems,
@@ -98,7 +145,8 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
     }
 
     private func refresh() async {
-        guard !currentIDs.isEmpty else { return }
+        guard source != nil else { return }
+        isAwaitingInitialLoad = false
 
         if items.isEmpty {
             isInitialLoading = true
@@ -112,12 +160,26 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
         }
 
         do {
-            let page = try await useCase.execute(ids: currentIDs, pageNumber: 1, pageSize: pageSize)
+            let page = try await fetchPage(pageNumber: 1)
             items = page.items
             storeCurrentCache(page)
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func fetchPage(pageNumber: Int) async throws -> StorefrontSectionPage {
+        switch source {
+        case .sectionIDs(let ids):
+            guard !ids.isEmpty else {
+                return StorefrontSectionPage(items: [], nextPage: pageNumber, loadedCount: 0, totalCount: 0)
+            }
+            return try await useCase.execute(ids: ids, pageNumber: pageNumber, pageSize: pageSize)
+        case .collectionLookup(let item):
+            return try await useCase.execute(collection: item, pageNumber: pageNumber, pageSize: pageSize)
+        case nil:
+            return StorefrontSectionPage(items: [], nextPage: pageNumber, loadedCount: 0, totalCount: 0)
         }
     }
 
@@ -143,4 +205,9 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
         var seen = Set<String>()
         return items.filter { seen.insert($0.id).inserted }
     }
+}
+
+private enum BrowseSource {
+    case sectionIDs([String])
+    case collectionLookup(StorefrontItem)
 }

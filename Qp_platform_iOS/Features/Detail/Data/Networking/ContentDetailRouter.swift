@@ -101,7 +101,7 @@ enum ContentDetailRouter {
     }
 
     static func episodesRequest(seriesID: String, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
-        guard var components = URLComponents(string: "\(config.vodMetaDataURL)/content/series/\(seriesID)/episodes") else {
+        guard var components = URLComponents(string: "\(config.vodMetaDataURL)/content/series/\(seriesID)/webepisodes") else {
             return nil
         }
 

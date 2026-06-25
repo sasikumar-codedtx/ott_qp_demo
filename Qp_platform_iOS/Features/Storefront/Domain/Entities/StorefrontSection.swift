@@ -8,6 +8,7 @@ struct StorefrontSection: Identifiable, Equatable, Hashable {
     let items: [StorefrontItem]
     let isHero: Bool
     let backgroundImageURL: URL?
+    let backgroundColorHex: String?
 
     init(
         id: String,
@@ -15,7 +16,8 @@ struct StorefrontSection: Identifiable, Equatable, Hashable {
         ratio: String,
         items: [StorefrontItem],
         isHero: Bool,
-        backgroundImageURL: URL? = nil
+        backgroundImageURL: URL? = nil,
+        backgroundColorHex: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -23,6 +25,29 @@ struct StorefrontSection: Identifiable, Equatable, Hashable {
         self.items = items
         self.isHero = isHero
         self.backgroundImageURL = backgroundImageURL
+        self.backgroundColorHex = backgroundColorHex
+    }
+
+    var allowsViewAll: Bool {
+        !isGenreCollection
+    }
+
+    private var isGenreCollection: Bool {
+        guard !items.isEmpty else { return false }
+
+        let hasOnlyCollectionCards = items.allSatisfy { item in
+            let type = item.contentType.lowercased()
+            let cardType = item.cardType?.lowercased() ?? ""
+            return type == "collection" || cardType == "collection"
+        }
+
+        guard hasOnlyCollectionCards else { return false }
+
+        let searchText = ([title] + items.map(\.title) + items.compactMap(\.customSearchCategory))
+            .joined(separator: " ")
+            .lowercased()
+
+        return searchText.contains("genre")
     }
 
     func cardStyle(isHomeTab: Bool, cohort: QuickplayCohort) -> StorefrontCardStyle {
