@@ -17,7 +17,13 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
         case show = "show"
         case channel = "channel"
 
-        var catalogType: String { rawValue }
+        var catalogType: String {
+            switch self {
+            case .movie:                    return "movie"
+            case .episode, .series, .show:  return "tvepisode"
+            case .channel:                  return "channel"
+            }
+        }
     }
 
     init(

@@ -29,6 +29,7 @@ final class QuickplayPlayerEngine: ObservableObject {
     private var fairplayLicenseFetcher: (any FLPlayerInterface.FairplayLicenseFetcher)?
     #endif
     private var progressTimer: Timer?
+    private var itemObserver: NSKeyValueObservation?
     private let injectedConfig: QuickplayPlayerConfig?
 
     init(config: QuickplayPlayerConfig? = nil) {
@@ -44,15 +45,16 @@ final class QuickplayPlayerEngine: ObservableObject {
 
             var fairplayCertificateData: Data?
             #if !targetEnvironment(simulator)
-            if asset.drm == .fairplay,
-               let certificateURLString = asset.fpCertificateUrl,
-               let certificateURL = URL(string: certificateURLString) {
-                let request = URLRequest(url: certificateURL)
-                NetworkLogger.logRequest(request)
-                if let (data, response) = try? await URLSession.shared.data(for: request) {
-                    NetworkLogger.logResponse(request: request, data: data, response: response)
+            if asset.drm == .fairplay, let certURLString = asset.fpCertificateUrl, let certURL = URL(string: certURLString) {
+                let request = URLRequest(url: certURL)
+                if let (data, _) = try? await URLSession.shared.data(for: request), !data.isEmpty {
                     fairplayCertificateData = data
+                    print("[Player] cert ✅ \(data.count)b")
+                } else {
+                    print("[Player] cert ❌ fetch failed — \(certURLString)")
                 }
+            } else {
+                print("[Player] cert ❌ drm=\(asset.drm) fpCertUrl=\(asset.fpCertificateUrl ?? "nil")")
             }
             #endif
 
@@ -78,34 +80,25 @@ final class QuickplayPlayerEngine: ObservableObject {
             return
         }
 
-        let avAsset = AVURLAsset(url: url)
+        // CDN origin servers require the QPAT in headers for authenticated access.
+        let cdnHeaders: [String: String] = [
+            "X-Authorization": config.defaultQpat,
+            "X-Client-Id": config.xClientId
+        ]
+        let avAsset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": cdnHeaders])
 
         #if !targetEnvironment(simulator)
-        if asset.drm == .fairplay,
-           let licenseURLString = asset.licenseUrl,
-           let licenseURL = URL(string: licenseURLString),
-           let skd = asset.skd,
-           let fairplayCertificateData,
-           let authorizer = QuickplayAuthRegistry.shared.platformAuthorizer {
-            let fetcher = FLPlatformPlayerFactory.fairplaylicenseFetcher()
-            let fetcherDelegate = FLPlatformPlayerFactory.fairplayLicenseFetcherDelegate(
-                applicationCertificate: fairplayCertificateData,
-                licenseUrl: licenseURL,
-                skd: skd,
-                keyDeliveryType: .streamingKey,
-                platformAuthorizer: authorizer
-            )
-            fetcher.updateLicenseFetcherDelegate(fetcherDelegate, for: avAsset)
-            fairplayLicenseFetcher = fetcher
-        }
+        setupFairPlay(asset: asset, avAsset: avAsset, fairplayCertificateData: fairplayCertificateData)
         #endif
 
         let player = FLPlatformPlayerFactory.player(asset: avAsset)
         playerView = player.playbackView
+        print("[Player] view=\(player.playbackView != nil ? "✅" : "❌nil") → play()")
 
         player.playbackState.add(self) { [weak self] _, newState in
             Task { @MainActor in
                 guard let self else { return }
+                print("[Player] playbackState → \(newState)")
                 switch newState {
                 case .playing:
                     self.isPlaying = true
@@ -118,17 +111,22 @@ final class QuickplayPlayerEngine: ObservableObject {
                 case .loaded:
                     self.isBuffering = false
                     self.isReady = true
-                case .idle, .stopping:
+                case .idle:
                     break
+                case .stopping:
+                    self.isPlaying = false
+                    self.isBuffering = false
                 @unknown default:
-                    break
+                    print("[Player] ⚠️ Unhandled state: \(newState) — clearing buffer")
+                    self.isBuffering = false
                 }
             }
         }
 
-        player.isBuffering.add(self) { [weak self] _, isBuffering in
+        player.isBuffering.add(self) { [weak self] _, buffering in
             Task { @MainActor in
-                self?.isBuffering = isBuffering
+                print("[Player] isBuffering → \(buffering)")
+                self?.isBuffering = buffering
             }
         }
 
@@ -150,6 +148,47 @@ final class QuickplayPlayerEngine: ObservableObject {
         startHeartbeat(asset: asset, content: content, config: config)
         startBookmarks(content: content, config: config)
     }
+
+    #if !targetEnvironment(simulator)
+    private func setupFairPlay(
+        asset: any FLContentAuthorizer.PlaybackAsset,
+        avAsset: AVURLAsset,
+        fairplayCertificateData: Data?
+    ) {
+        guard asset.drm == .fairplay else {
+            print("[DRM] skip — drm=\(asset.drm)")
+            return
+        }
+        guard let licenseURLString = asset.licenseUrl, let licenseURL = URL(string: licenseURLString) else {
+            print("[DRM] ❌ licenseUrl nil")
+            return
+        }
+        guard let authorizer = QuickplayAuthRegistry.shared.platformAuthorizer else {
+            print("[DRM] ❌ authorizer nil")
+            return
+        }
+
+        // SKD is extracted from the HLS manifest by AVFoundation during key exchange — not needed upfront.
+        let skd = asset.skd ?? ""
+        let certData = fairplayCertificateData ?? Data()
+
+        if certData.isEmpty {
+            print("[DRM] ⚠️ no cert — key exchange will likely fail")
+        }
+
+        let fetcher = FLPlatformPlayerFactory.fairplaylicenseFetcher()
+        let fetcherDelegate = FLPlatformPlayerFactory.fairplayLicenseFetcherDelegate(
+            applicationCertificate: certData,
+            licenseUrl: licenseURL,
+            skd: skd,
+            keyDeliveryType: .streamingKey,
+            platformAuthorizer: authorizer
+        )
+        fetcher.updateLicenseFetcherDelegate(fetcherDelegate, for: avAsset)
+        fairplayLicenseFetcher = fetcher
+        print("[DRM] ✅ configured — cert=\(certData.count)b skd='\(skd.isEmpty ? "from-manifest" : skd)'")
+    }
+    #endif
 
     private func startHeartbeat(asset: any FLContentAuthorizer.PlaybackAsset, content: QuickplayPlaybackContent, config: QuickplayPlayerConfig) {
         guard let heartbeatToken = asset.heartbeatToken,

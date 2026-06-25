@@ -12,6 +12,7 @@ struct QuickplayPlayerConfig {
     let heartbeatEndpoint: String
     let streamConcurrencyEndpoint: String
     let imageResizerURL: String
+    let defaultQpat: String
 
     init(
         oauthEndpoint: String,
@@ -24,7 +25,8 @@ struct QuickplayPlayerConfig {
         guestFlatEndpoint: String,
         heartbeatEndpoint: String,
         streamConcurrencyEndpoint: String,
-        imageResizerURL: String
+        imageResizerURL: String,
+        defaultQpat: String
     ) {
         self.oauthEndpoint = oauthEndpoint
         self.registrationEndpoint = registrationEndpoint
@@ -37,21 +39,23 @@ struct QuickplayPlayerConfig {
         self.heartbeatEndpoint = heartbeatEndpoint
         self.streamConcurrencyEndpoint = streamConcurrencyEndpoint
         self.imageResizerURL = imageResizerURL
+        self.defaultQpat = defaultQpat
     }
 
     init(config: QuickplayRuntimeConfig) {
         self.init(
-            oauthEndpoint: config.oauthURL,
+            oauthEndpoint: config.oauthURL + "/oauth2/token",
             registrationEndpoint: config.clientRegistrationURL,
             contentAuthEndpoint: config.contentAuthURL,
             clientId: config.clientID,
             clientSecret: config.clientSecret,
             xClientId: config.xClientID.isEmpty ? config.clientID : config.xClientID,
             xPropertyId: "",
-            guestFlatEndpoint: config.guestFlatURL,
+            guestFlatEndpoint: "https://auth-gw.edge-qp.opt.quickplay.com",
             heartbeatEndpoint: config.heartBeatURL,
             streamConcurrencyEndpoint: config.streamConcurrencyURL,
-            imageResizerURL: config.imageResizeURL
+            imageResizerURL: config.imageResizeURL,
+            defaultQpat: config.defaultQpat
         )
     }
 }

@@ -13,15 +13,24 @@ final class QuickplayAuthRegistry {
     private(set) var contentAuthorizer: (any ContentAuthorizer)?
     private(set) var platformClient: (any PlatformClient)?
     private(set) var isReady = false
+    private var enrolledConfig: QuickplayPlayerConfig?
 
     private init() {}
 
     func enroll(config: QuickplayPlayerConfig) async throws {
         if isReady { return }
 
-        let oauthToken = try await fetchOAuthToken(config: config)
-        let ovat = try await fetchOvat(oauthToken: oauthToken, config: config)
-        let device = FLPlatformCoreFactory.createDevice()
+        // NOTE: OAuth + OVAT fetch skipped — using defaultQpat from config as the platform token.
+        // Uncomment below when real entitlement flow is needed:
+        // let oauthToken = try await fetchOAuthToken(config: config)
+        // let ovat = try await fetchOvat(oauthToken: oauthToken, config: config)
+
+        let ovat = config.defaultQpat
+
+        // Hardcoded device ID shared across platforms for entitlement bypass.
+        // Replace with FLPlatformCoreFactory.createDevice() when using real entitlement flow.
+        let device = FLPlatformCoreFactory.createDevice(id: "959ff2101e40f82c")
+
         let authConfig = FLPlatformCoreFactory.authorizerConfiguration(
             clientId: config.clientId,
             clientSecret: config.clientSecret,
@@ -54,12 +63,15 @@ final class QuickplayAuthRegistry {
                     contentAuth.ensureDeviceRegistration { regResult in
                         switch regResult {
                         case .success:
+                            print("[Auth] ✅ enrolled")
                             continuation.resume()
                         case .failure(let error):
+                            print("[Auth] ❌ deviceReg: \(error.localizedDescription)")
                             continuation.resume(throwing: QuickplayPlayerError.authFailed("Device registration failed: \(error.localizedDescription)"))
                         }
                     }
                 case .failure(let error):
+                    print("[Auth] ❌ ensureAuth: \(error.localizedDescription)")
                     continuation.resume(throwing: QuickplayPlayerError.authFailed("Platform auth failed: \(error.localizedDescription)"))
                 }
             }
@@ -68,12 +80,25 @@ final class QuickplayAuthRegistry {
         platformClient = device
         platformAuthorizer = authorizer
         contentAuthorizer = contentAuth
+        enrolledConfig = config
         isReady = true
     }
 
     func authorizeContent(content: QuickplayPlaybackContent) async throws -> any PlaybackAsset {
         guard let contentAuthorizer else {
             throw QuickplayPlayerError.authFailed("Content authorizer is not enrolled")
+        }
+
+        print("[Auth] ▶ authorizeContent() contentId=\(content.contentId) catalogType=\(content.contentType.catalogType)")
+        if let cfg = enrolledConfig {
+            print("""
+[Curl] curl -X POST '\(cfg.contentAuthEndpoint)' \\
+  -H 'Content-Type: application/json' \\
+  -H 'Authorization: Bearer <oauth-token>' \\
+  -H 'X-Authorization: \(cfg.defaultQpat)' \\
+  -H 'X-Client-Id: \(cfg.xClientId)' \\
+  --data-raw '{"contentId":"\(content.contentId)","catalogType":"\(content.contentType.catalogType)","mediaFormat":"hls","drm":"fairplay","delivery":"streaming","contentTypeId":"vod"}'
+""")
         }
 
         let asset = FLContentAuthorizerFactory.vodPlatformAsset(
@@ -87,8 +112,11 @@ final class QuickplayAuthRegistry {
             contentAuthorizer.authorizeContent(asset: asset, delivery: .streaming) { result in
                 switch result {
                 case .success(let playbackAsset):
+                    print("[Auth] ✅ drm=\(playbackAsset.drm) licenseUrl=\(playbackAsset.licenseUrl != nil ? "✅" : "❌nil") fpCertUrl=\(playbackAsset.fpCertificateUrl != nil ? "✅" : "❌nil") skd=\(playbackAsset.skd != nil ? "✅" : "❌nil")")
+                    print("[Auth] contentUrl=\(playbackAsset.contentUrl)")
                     continuation.resume(returning: playbackAsset)
                 case .failure(let error):
+                    print("[Auth] ❌ authorizeContent failed: \(error.localizedDescription)")
                     continuation.resume(throwing: QuickplayPlayerError.authFailed("Content auth failed: \(error.localizedDescription)"))
                 }
             }
