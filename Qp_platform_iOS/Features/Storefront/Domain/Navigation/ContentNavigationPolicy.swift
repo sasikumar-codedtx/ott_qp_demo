@@ -15,7 +15,8 @@ enum ContentNavigationPolicy {
         "tvepisode",
         "webseries",
         "webseason",
-        "webepisode"
+        "webepisode",
+        "sporthighlight"
     ]
 
     private static let playerTypes: Set<String> = [

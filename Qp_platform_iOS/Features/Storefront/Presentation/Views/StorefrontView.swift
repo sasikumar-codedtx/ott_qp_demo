@@ -16,6 +16,7 @@ struct StorefrontView: View {
     var showsStorefrontHeader = true
     var showsBottomChrome = true
     var loadsInitialOnAppear = true
+    var scrollsToTopOnTabChange = true
     var additionalTopChromeHeight: CGFloat = 0
     var onOpenStorefrontTab: ((StorefrontTab) -> Void)?
     @State private var isTabMenuPresented = false
@@ -177,6 +178,7 @@ struct StorefrontView: View {
                     scrollToTop(using: scrollProxy)
                 }
                 .onChange(of: viewModel.selectedTabID) { _, _ in
+                    guard scrollsToTopOnTabChange else { return }
                     scrollToTop(using: scrollProxy)
                 }
             }

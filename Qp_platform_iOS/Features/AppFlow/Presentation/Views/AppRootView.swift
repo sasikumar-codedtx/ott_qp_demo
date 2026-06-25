@@ -406,6 +406,7 @@ private struct StorefrontTabRouteView: View {
     let onViewAllSection: (StorefrontSection) -> Void
     let onOpenStorefrontTab: (StorefrontTab) -> Void
     @StateObject private var tabViewModel: StorefrontViewModel
+    @State private var loadedProfileID: UUID?
 
     init(
         tab: StorefrontTab,
@@ -456,9 +457,13 @@ private struct StorefrontTabRouteView: View {
             showsStorefrontHeader: false,
             showsBottomChrome: false,
             loadsInitialOnAppear: false,
+            scrollsToTopOnTabChange: false,
             onOpenStorefrontTab: onOpenStorefrontTab
         )
         .task(id: activeProfile?.id) {
+            let profileID = activeProfile?.id
+            guard loadedProfileID != profileID else { return }
+            loadedProfileID = profileID
             tabViewModel.applyProfile(activeProfile, forceReset: true)
             await tabViewModel.reloadInitial(force: true)
         }

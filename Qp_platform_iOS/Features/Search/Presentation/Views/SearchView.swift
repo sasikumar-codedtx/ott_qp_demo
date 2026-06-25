@@ -99,7 +99,7 @@ struct SearchView: View {
             }
 
             if let aiOverlayMode {
-                aiOverlay(mode: aiOverlayMode, topInset: proxy.safeAreaInsets.top)
+                aiOverlay(mode: aiOverlayMode, topInset: proxy.safeAreaInsets.top, bottomInset: proxy.safeAreaInsets.bottom)
                     .transition(.opacity)
                     .zIndex(10)
             }
@@ -258,26 +258,26 @@ struct SearchView: View {
 
     private var searchDockReservedHeight: CGFloat {
         if shouldShowKeyboardSuggestions {
-            return 182
+            return 194
         }
 
-        return showsSearchDockFilters ? 166 : 116
+        return showsSearchDockFilters ? 178 : 128
     }
 
     private var searchDockBackdropHeight: CGFloat {
         if shouldShowKeyboardSuggestions {
-            return isKeyboardVisible ? 260 : 182
+            return isKeyboardVisible ? 260 : 194
         }
 
         if showsSearchDockFilters {
-            return isKeyboardVisible ? 226 : 166
+            return isKeyboardVisible ? 226 : 178
         }
 
-        return isKeyboardVisible ? 190 : 118
+        return isKeyboardVisible ? 190 : 130
     }
 
     private func searchDockBottomPadding(bottomInset: CGFloat) -> CGFloat {
-        isKeyboardVisible ? 8 : max(bottomInset, 12)
+        isKeyboardVisible ? 8 : max(bottomInset, 12) + 12
     }
 
     private func searchSectionHeader(title: String, showsChevron: Bool) -> some View {
@@ -319,7 +319,7 @@ struct SearchView: View {
     }
 
     @ViewBuilder
-    private func aiOverlay(mode: AISearchOverlayMode, topInset: CGFloat) -> some View {
+    private func aiOverlay(mode: AISearchOverlayMode, topInset: CGFloat, bottomInset: CGFloat) -> some View {
         switch mode {
         case .voiceListening:
             ZStack(alignment: .top) {
@@ -346,6 +346,7 @@ struct SearchView: View {
         case .textPrompt:
             AISearchPromptView(
                 topInset: topInset,
+                bottomInset: bottomInset,
                 prompt: $aiTextPrompt,
                 suggestions: aiPromptSuggestions,
                 onBack: closeAISearch,
@@ -1417,6 +1418,7 @@ private struct VoiceSearchResultsView: View {
 
 private struct AISearchPromptView: View {
     let topInset: CGFloat
+    let bottomInset: CGFloat
     @Binding var prompt: String
     let suggestions: [String]
     let onBack: () -> Void
@@ -1525,11 +1527,20 @@ private struct AISearchPromptView: View {
                 .buttonStyle(LiquidButtonPressStyle())
             }
             .padding(.horizontal, UIConstants.Spacing.lg)
-            .padding(.bottom, 18)
-            .background(
-                searchDockBackdrop(height: 112)
-                    .ignoresSafeArea(edges: .bottom)
-            )
+            .padding(.bottom, max(bottomInset, 8))
+            .background {
+                ZStack(alignment: .bottom) {
+                    LinearGradient(
+                        colors: [Color.black.opacity(0), Color.black.opacity(0.92)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    Color.black
+                        .frame(height: max(bottomInset, 0) + 16)
+                }
+                .ignoresSafeArea(edges: .bottom)
+                .allowsHitTesting(false)
+            }
             .task {
                 try? await Task.sleep(for: .milliseconds(150))
                 isPromptFocused = true
