@@ -286,8 +286,7 @@ struct QuickplayContentSourceDTO: Decodable {
         upsert(&queryItems, name: "reg", value: AppEnvironment.Quickplay.region)
         upsert(&queryItems, name: "dt", value: AppEnvironment.Quickplay.deviceType)
         upsert(&queryItems, name: "client", value: AppEnvironment.Quickplay.client)
-        let resolvedProfileFlag = cu.contains("/content") ? QuickplayCohort.entertainment.profileFlag : cohort.profileFlag
-        upsert(&queryItems, name: "pf", value: resolvedProfileFlag)
+        upsert(&queryItems, name: "pf", value: cohort.profileFlag)
         upsert(&queryItems, name: "chrt", value: AppEnvironment.Quickplay.cohort)
         if queryItems.contains(where: { $0.name == "mode" }) == false {
             queryItems.append(URLQueryItem(name: "mode", value: "detail"))

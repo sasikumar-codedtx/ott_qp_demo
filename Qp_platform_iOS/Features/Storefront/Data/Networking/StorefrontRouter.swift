@@ -60,14 +60,28 @@ enum StorefrontRouter {
         pageNumber: Int,
         pageSize: Int
     ) -> URLRequest? {
-        landingScreenRequest(
-            config: config,
-            cohort: cohort,
-            storefrontID: storefrontID,
-            tabID: tabID,
-            pageNumber: pageNumber,
-            pageSize: pageSize
-        )
+        guard var components = URLComponents(string: "\(config.catalogURL)/catalog/storefront/\(storefrontID)/\(tabID)/containers") else {
+            return nil
+        }
+
+        components.queryItems = [
+            URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region),
+            URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
+            URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
+            URLQueryItem(name: "pf", value: cohort.profileFlag),
+            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort),
+            URLQueryItem(name: "policy_evaluate", value: "false"),
+            URLQueryItem(name: "pageSize", value: String(pageSize)),
+            URLQueryItem(name: "pageNumber", value: String(pageNumber))
+        ]
+
+        guard let url = components.url else {
+            return nil
+        }
+
+        var request = URLRequest(url: url)
+        request.applyQuickplayHeaders()
+        return request
     }
 
     static func sectionContentRequest(

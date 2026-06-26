@@ -71,10 +71,25 @@ struct ContentDetailAPIClient {
         }
     }
 
-    func fetchEpisodes(seriesID: String) async throws -> ContentDetailResponseDTO {
+    func fetchSeasons(seriesID: String) async throws -> ContentDetailResponseDTO {
         let config = await configStore.current(using: networkClient)
         let cohort = await DemoSessionStore.shared.currentCohort()
-        guard let request = ContentDetailRouter.episodesRequest(seriesID: seriesID, config: config, cohort: cohort) else {
+        guard let request = ContentDetailRouter.seasonsRequest(seriesID: seriesID, config: config, cohort: cohort) else {
+            throw AppError.invalidURL
+        }
+
+        let data = try await networkClient.data(for: request)
+        do {
+            return try JSONDecoder().decode(ContentDetailResponseDTO.self, from: data)
+        } catch {
+            throw AppError.decodingFailed
+        }
+    }
+
+    func fetchEpisodes(seriesID: String, seasonID: String) async throws -> ContentDetailResponseDTO {
+        let config = await configStore.current(using: networkClient)
+        let cohort = await DemoSessionStore.shared.currentCohort()
+        guard let request = ContentDetailRouter.episodesRequest(seriesID: seriesID, seasonID: seasonID, config: config, cohort: cohort) else {
             throw AppError.invalidURL
         }
 

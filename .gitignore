@@ -3,6 +3,7 @@
 # Local build artifacts
 build/
 DerivedData/
+Artifacts/performance/DerivedData_QA/
 *.log
 
 # Temporary API/Figma inspection files

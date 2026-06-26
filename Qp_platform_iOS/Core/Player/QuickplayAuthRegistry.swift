@@ -63,15 +63,12 @@ final class QuickplayAuthRegistry {
                     contentAuth.ensureDeviceRegistration { regResult in
                         switch regResult {
                         case .success:
-                            print("[Auth] ✅ enrolled")
                             continuation.resume()
                         case .failure(let error):
-                            print("[Auth] ❌ deviceReg: \(error.localizedDescription)")
                             continuation.resume(throwing: QuickplayPlayerError.authFailed("Device registration failed: \(error.localizedDescription)"))
                         }
                     }
                 case .failure(let error):
-                    print("[Auth] ❌ ensureAuth: \(error.localizedDescription)")
                     continuation.resume(throwing: QuickplayPlayerError.authFailed("Platform auth failed: \(error.localizedDescription)"))
                 }
             }
@@ -89,18 +86,6 @@ final class QuickplayAuthRegistry {
             throw QuickplayPlayerError.authFailed("Content authorizer is not enrolled")
         }
 
-        print("[Auth] ▶ authorizeContent() contentId=\(content.contentId) catalogType=\(content.contentType.catalogType)")
-        if let cfg = enrolledConfig {
-            print("""
-[Curl] curl -X POST '\(cfg.contentAuthEndpoint)' \\
-  -H 'Content-Type: application/json' \\
-  -H 'Authorization: Bearer <oauth-token>' \\
-  -H 'X-Authorization: \(cfg.defaultQpat)' \\
-  -H 'X-Client-Id: \(cfg.xClientId)' \\
-  --data-raw '{"contentId":"\(content.contentId)","catalogType":"\(content.contentType.catalogType)","mediaFormat":"hls","drm":"fairplay","delivery":"streaming","contentTypeId":"vod"}'
-""")
-        }
-
         let asset = FLContentAuthorizerFactory.vodPlatformAsset(
             contentId: content.contentId,
             catalogType: content.contentType.catalogType,
@@ -112,11 +97,8 @@ final class QuickplayAuthRegistry {
             contentAuthorizer.authorizeContent(asset: asset, delivery: .streaming) { result in
                 switch result {
                 case .success(let playbackAsset):
-                    print("[Auth] ✅ drm=\(playbackAsset.drm) licenseUrl=\(playbackAsset.licenseUrl != nil ? "✅" : "❌nil") fpCertUrl=\(playbackAsset.fpCertificateUrl != nil ? "✅" : "❌nil") skd=\(playbackAsset.skd != nil ? "✅" : "❌nil")")
-                    print("[Auth] contentUrl=\(playbackAsset.contentUrl)")
                     continuation.resume(returning: playbackAsset)
                 case .failure(let error):
-                    print("[Auth] ❌ authorizeContent failed: \(error.localizedDescription)")
                     continuation.resume(throwing: QuickplayPlayerError.authFailed("Content auth failed: \(error.localizedDescription)"))
                 }
             }
@@ -141,12 +123,7 @@ final class QuickplayAuthRegistry {
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.httpBody = "grant_type=client_credentials&client_id=\(config.clientId)&client_secret=\(config.clientSecret)".data(using: .utf8)
 
-        NetworkLogger.logRequest(request)
-        let (data, response) = try await URLSession.shared.data(for: request)
-        NetworkLogger.logResponse(request: request, data: data, response: response)
-        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw QuickplayPlayerError.authFailed("OAuth token request failed")
-        }
+        let data = try await NetworkClient().data(for: request)
 
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         guard let token = json?["access_token"] as? String else {
@@ -170,12 +147,7 @@ final class QuickplayAuthRegistry {
         let deviceName = await UIDevice.current.name
         request.httpBody = try JSONSerialization.data(withJSONObject: ["deviceName": deviceName, "deviceId": deviceId])
 
-        NetworkLogger.logRequest(request)
-        let (data, response) = try await URLSession.shared.data(for: request)
-        NetworkLogger.logResponse(request: request, data: data, response: response)
-        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw QuickplayPlayerError.authFailed("OVAT request failed")
-        }
+        let data = try await NetworkClient().data(for: request)
 
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         let dataObject = json?["data"] as? [String: Any]

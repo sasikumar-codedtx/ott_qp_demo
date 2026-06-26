@@ -27,7 +27,6 @@ actor QuickplayConfigurationStore {
             hasLoaded = true
             loadTask = nil
         } catch {
-            print("[QuickplayConfig] Failed to load config: \(error.localizedDescription)")
             loadTask = nil
         }
 

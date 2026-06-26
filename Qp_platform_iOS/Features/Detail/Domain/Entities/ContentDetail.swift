@@ -86,6 +86,17 @@ struct ContentDetail: Equatable {
     }
 }
 
+struct ContentSeason: Identifiable, Equatable, Hashable {
+    let id: String
+    let title: String
+}
+
+struct ContentEpisodeBundle: Equatable {
+    let seasons: [ContentSeason]
+    let selectedSeason: ContentSeason?
+    let episodes: [StorefrontItem]
+}
+
 private extension String {
     var personImageSlug: String {
         lowercased()

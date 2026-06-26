@@ -11,6 +11,9 @@ import SwiftUI
 struct Qp_platform_iOSApp: App {
     init() {
         ImageCacheManager.configure()
+        Task {
+            _ = await QuickplayConfigurationStore.shared.current()
+        }
     }
 
     var body: some Scene {

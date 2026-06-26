@@ -100,18 +100,43 @@ enum ContentDetailRouter {
         return request
     }
 
-    static func episodesRequest(seriesID: String, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
-        guard var components = URLComponents(string: "\(config.vodMetaDataURL)/content/series/\(seriesID)/webepisodes") else {
+    static func seasonsRequest(seriesID: String, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
+        guard var components = URLComponents(string: "\(config.vodMetaDataURL)/content/series/\(seriesID)/seasons") else {
             return nil
         }
 
         components.queryItems = [
-            URLQueryItem(name: "mode", value: "detail"),
-            URLQueryItem(name: "st", value: "published"),
+            URLQueryItem(name: "pageSize", value: "100"),
+            URLQueryItem(name: "pageNumber", value: "1"),
             URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region),
             URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
             URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
-            URLQueryItem(name: "pf", value: QuickplayCohort.entertainment.profileFlag),
+            URLQueryItem(name: "pf", value: cohort.profileFlag),
+            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
+        ]
+
+        guard let url = components.url else {
+            return nil
+        }
+
+        var request = URLRequest(url: url)
+        request.applyQuickplayHeaders()
+        return request
+    }
+
+    static func episodesRequest(seriesID: String, seasonID: String, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
+        guard var components = URLComponents(string: "\(config.vodMetaDataURL)/content/series/\(seriesID)/episodes") else {
+            return nil
+        }
+
+        components.queryItems = [
+            URLQueryItem(name: "seasonId", value: seasonID),
+            URLQueryItem(name: "pageSize", value: "100"),
+            URLQueryItem(name: "pageNumber", value: "1"),
+            URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region),
+            URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
+            URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
+            URLQueryItem(name: "pf", value: cohort.profileFlag),
             URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
         ]
 

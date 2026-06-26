@@ -92,6 +92,7 @@ struct ContentDetailView: View {
     @State private var mockInteractionSelection: String?
     @State private var mockInteractionShowsResult = false
     @State private var mockInteractionCountdown = 4
+    @State private var mockInteractionConfirmed = false
     @State private var momentSearchDraft = ""
     @State private var keyboardHeight: CGFloat = 0
     @State private var momentAutoScrollToken = 0
@@ -118,8 +119,9 @@ struct ContentDetailView: View {
                 }
 
                 if let detail = viewModel.detail, isMockInteractionPresented {
-                    mockShowInteractionOverlay(detail: detail)
+                    mockShowInteractionOverlay(detail: detail, screenWidth: proxy.size.width)
                         .zIndex(30)
+                        .transition(.opacity)
                 }
             }
             .ignoresSafeArea(.keyboard, edges: .bottom)
@@ -907,17 +909,20 @@ struct ContentDetailView: View {
     }
 
     private func detailTabs(for detail: ContentDetail) -> [String] {
-        var tabs = [
-            AppStrings.Detail.moreLikeThis,
-            AppStrings.Detail.moments
-        ]
-
         if detail.supportsEpisodes {
-            tabs.append(AppStrings.Detail.episodes)
+            return [
+                AppStrings.Detail.episodes,
+                AppStrings.Detail.moreLikeThis,
+                AppStrings.Detail.moments,
+                AppStrings.Detail.castAndMore
+            ]
         }
 
-        tabs.append(AppStrings.Detail.castAndMore)
-        return tabs
+        return [
+            AppStrings.Detail.moreLikeThis,
+            AppStrings.Detail.moments,
+            AppStrings.Detail.castAndMore
+        ]
     }
 
     private func tabRow(_ detail: ContentDetail) -> some View {
@@ -1065,28 +1070,32 @@ struct ContentDetailView: View {
         mockInteractionSelection = nil
         mockInteractionShowsResult = false
         mockInteractionCountdown = 4
+        mockInteractionConfirmed = false
     }
 
-    private func answerMockInteraction(_ answer: String) {
-        guard mockInteractionSelection == nil else { return }
-        mockInteractionSelection = answer
+    private func answerMockInteraction(_ letter: String) {
+        guard mockInteractionSelection == nil, !mockInteractionConfirmed else { return }
+        withAnimation(.easeInOut(duration: 0.18)) {
+            mockInteractionSelection = letter
+        }
+    }
 
+    private func confirmMockInteraction() {
+        guard mockInteractionSelection != nil, !mockInteractionConfirmed else { return }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            mockInteractionConfirmed = true
+        }
         Task { @MainActor in
-            for value in stride(from: 3, through: 1, by: -1) {
-                mockInteractionCountdown = value
-                try? await Task.sleep(for: .milliseconds(420))
-            }
-
-            mockInteractionShowsResult = true
-            try? await Task.sleep(for: .seconds(1.6))
-
-            if isMockInteractionPresented {
-                dismissMockInteraction()
+            try? await Task.sleep(for: .seconds(2.8))
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                mockInteractionShowsResult = true
             }
         }
     }
 
     // MARK: KBC Quiz overlay (full screen)
+
+    // MARK: - KBC Quiz overlay — Figma-accurate full-screen
 
     private static let kbcQuizOptions: [(letter: String, text: String, isCorrect: Bool)] = [
         ("A", "18", true),
@@ -1095,248 +1104,405 @@ struct ContentDetailView: View {
         ("D", "4",  false)
     ]
 
-    private func mockShowInteractionOverlay(detail: ContentDetail) -> some View {
-        ZStack {
-            // Full-screen dark purple background
-            LinearGradient(
-                colors: [Color(hex: "0D0820"), Color(hex: "080F1E")],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+    private func mockShowInteractionOverlay(detail: ContentDetail, screenWidth: CGFloat) -> some View {
+        let imageH: CGFloat = screenWidth  // square video area, same as Figma 412x412
+        let hexW: CGFloat = screenWidth * 0.693  // 285.186 / 412 ≈ 0.693
+
+        return ZStack(alignment: .top) {
+            // ── Page background: dark purple gradient ────────────────────
+            ZStack {
+                LinearGradient(
+                    stops: [
+                        .init(color: Color(hex: "2602A2"), location: 0),
+                        .init(color: Color(hex: "1E0535"), location: 1)
+                    ],
+                    startPoint: .top, endPoint: .bottom
+                )
+                Color.black.opacity(0.77)
+            }
             .ignoresSafeArea()
 
+            // ── Orange→purple glow blur at very top ──────────────────────
+            LinearGradient(
+                stops: [
+                    .init(color: Color(hex: "FF5E00"), location: 0.033),
+                    .init(color: Color(hex: "4418B4"), location: 0.877)
+                ],
+                startPoint: .topLeading, endPoint: .bottomTrailing
+            )
+            .frame(width: screenWidth, height: 150)
+            .blur(radius: 90)
+            .offset(y: -40)
+            .allowsHitTesting(false)
+
             VStack(spacing: 0) {
-                // ── Nav bar ────────────────────────────────────────────────
-                kbcQuizNavBar
+                // ── Image / Player area (square) ─────────────────────────
+                ZStack {
+                    Color.black
+                        .frame(width: screenWidth, height: imageH)
 
-                // ── Video thumbnail ────────────────────────────────────────
-                ZStack(alignment: .topLeading) {
-                    Rectangle()
-                        .fill(Color(hex: "1A1030"))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 220)
-                        .overlay(
-                            Image(systemName: "film")
-                                .font(.system(size: 48))
-                                .foregroundStyle(.white.opacity(0.08))
-                        )
-
-                    // KBC logo badge
-                    ZStack {
-                        Circle()
-                            .fill(Color(hex: "1A0A30"))
-                            .frame(width: 52, height: 52)
-                            .overlay(Circle().stroke(Color(hex: "9B4DCA").opacity(0.7), lineWidth: 1.5))
-                        Text("KBC")
-                            .font(.system(size: 10, weight: .black))
-                            .foregroundStyle(.white)
-                    }
-                    .padding(.top, 10)
-                    .padding(.leading, 14)
-                }
-
-                // ── Question block ─────────────────────────────────────────
-                VStack(spacing: 16) {
-                    // Question number badge
-                    Text("20")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 42, height: 42)
-                        .background(
-                            Circle()
-                                .fill(Color(hex: "0D0820"))
-                                .overlay(Circle().stroke(Color.white.opacity(0.38), lineWidth: 2))
-                        )
-                        .padding(.top, 16)
-
-                    // Question text
-                    Text("How many holes are contained in a typical golf course")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 16)
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(Color(hex: "10183A"))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .stroke(Color.white.opacity(0.22), lineWidth: 1)
-                                )
-                        )
-                        .padding(.horizontal, 18)
-
-                    // Options grid
-                    VStack(spacing: 10) {
-                        ForEach(Self.kbcQuizOptions, id: \.letter) { opt in
-                            kbcOptionButton(opt.letter, text: opt.text, isCorrect: opt.isCorrect)
+                    AsyncImage(url: detail.imageURL(for: "16x9", width: Int(screenWidth))) { phase in
+                        if let img = phase.image {
+                            img.resizable().scaledToFill()
+                                .frame(width: screenWidth, height: imageH)
+                                .clipped()
+                        } else {
+                            Color(hex: "0A0618").frame(width: screenWidth, height: imageH)
                         }
                     }
-                    .padding(.horizontal, 18)
+
+                    // Gradient to blend image into quiz content
+                    LinearGradient(
+                        colors: [Color.clear, Color.black.opacity(0.55)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+
+                    // ── Nav bar overlaid on image ────────────────────────
+                    VStack {
+                        kbcOverlayNavBar
+                        Spacer()
+                    }
+                }
+                .frame(width: screenWidth, height: imageH)
+                .clipped()
+
+                // ── Quiz content area ────────────────────────────────────
+                VStack(spacing: 0) {
+                    // Question number circle (overlaps image boundary via negative offset)
+                    kbcQuestionCircle
+                        .offset(y: -26)
+                        .padding(.bottom, -26)
+
+                    // Question text box
+                    Text("How many holes are contained in a typical golf course")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                        .frame(width: screenWidth * 0.823)  // 339/412
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(
+                                    LinearGradient(
+                                        stops: [.init(color: Color(hex: "000001"), location: 0.028),
+                                                .init(color: Color(hex: "00083A"), location: 0.993)],
+                                        startPoint: .top, endPoint: .bottom
+                                    )
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(Color.white, lineWidth: 2)
+                                )
+                                .shadow(color: Color.black.opacity(0.7), radius: 45, x: 0, y: 0)
+                        )
+                        .padding(.top, 25)
+
+                    // Options
+                    VStack(spacing: 15) {
+                        ForEach(Self.kbcQuizOptions, id: \.letter) { opt in
+                            kbcOptionRow(opt.letter, text: opt.text, isCorrect: opt.isCorrect,
+                                         screenWidth: screenWidth, hexW: hexW)
+                        }
+                    }
+                    .padding(.top, 25)
+
+                    // Confirm / status button
+                    kbcActionRow
 
                     // Lifelines
                     kbcLifelineRow
-                        .padding(.horizontal, 18)
-                        .padding(.bottom, 24)
+                        .padding(.top, 14)
+                        .padding(.bottom, 20)
                 }
-
-                Spacer(minLength: 0)
             }
         }
-        .transition(.opacity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea()
     }
 
-    private var kbcQuizNavBar: some View {
+    // ── Nav bar overlaid on the image ─────────────────────────────────────
+    private var kbcOverlayNavBar: some View {
         HStack(spacing: 0) {
+            // Back button  (glass pill, rounded left side taller)
             Button { dismissMockInteraction() } label: {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
+                    .frame(width: 30, height: 30)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color.black.opacity(0.23))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1.2)
+                            )
+                    )
             }
             .buttonStyle(LiquidButtonPressStyle())
 
             Spacer()
 
-            HStack(spacing: 8) {
-                ZStack {
-                    Circle()
-                        .fill(Color(hex: "1A0A30"))
-                        .frame(width: 32, height: 32)
-                        .overlay(Circle().stroke(Color(hex: "9B4DCA").opacity(0.7), lineWidth: 1))
+            // Center: avatar with crown + score
+            HStack(spacing: 10) {
+                ZStack(alignment: .topLeading) {
+                    // Avatar frame
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color(hex: "FFA576"))
+                        .frame(width: 34, height: 34)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color(hex: "FFAC33"), lineWidth: 1)
+                        )
+
+                    // Crown badge top-left
                     Image(systemName: "crown.fill")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color(hex: "F5A623"))
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundStyle(Color(hex: "FFAC33"))
+                        .rotationEffect(.degrees(-35))
+                        .offset(x: -7, y: -8)
                 }
+                .frame(width: 34, height: 34)
 
                 Text("1300")
-                    .font(.system(size: 22, weight: .black))
-                    .foregroundStyle(Color(hex: "F5A623"))
+                    .font(.system(size: 26, weight: .bold))
+                    .italic()
+                    .foregroundStyle(Color(hex: "FFAC33"))
             }
 
             Spacer()
 
+            // Game controller
             Button {} label: {
                 Image(systemName: "gamecontroller")
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
+                    .frame(width: 46, height: 46)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color.black.opacity(0.23))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1.2)
+                            )
+                    )
             }
             .buttonStyle(LiquidButtonPressStyle())
         }
-        .padding(.horizontal, 4)
-        .frame(height: 54)
+        .padding(.horizontal, 16)
+        .padding(.top, 52)  // below status bar
+        .frame(maxWidth: .infinity)
     }
 
-    private func kbcOptionButton(_ letter: String, text: String, isCorrect: Bool) -> some View {
+    // ── Question number circle ────────────────────────────────────────────
+    private var kbcQuestionCircle: some View {
+        ZStack {
+            // Two ellipse glow layers (Figma: Ellipse2415 + Ellipse2416)
+            Circle()
+                .fill(Color(hex: "260299").opacity(0.6))
+                .frame(width: 52, height: 52)
+                .blur(radius: 14)
+
+            Circle()
+                .fill(Color(hex: "FFFFFF").opacity(0.12))
+                .frame(width: 30, height: 30)
+                .blur(radius: 6)
+                .offset(x: 9, y: -12)
+
+            // Main circle
+            Circle()
+                .fill(Color(hex: "080A22"))
+                .frame(width: 52, height: 52)
+                .overlay(Circle().stroke(Color.white, lineWidth: 2))
+
+            Text("20")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(.white)
+        }
+        .frame(width: 52, height: 52)
+    }
+
+    // ── Single option row (hex shape + full-width lines) ──────────────────
+    private func kbcOptionRow(_ letter: String, text: String, isCorrect: Bool,
+                               screenWidth: CGFloat, hexW: CGFloat) -> some View {
         let isSelected = mockInteractionSelection == letter
-        let isLocked = mockInteractionSelection != nil
+        let isLocked = mockInteractionConfirmed
+        let showResult = mockInteractionShowsResult
 
-        let fillColor: Color = {
-            if !isLocked { return Color.clear }
-            if mockInteractionShowsResult {
+        // Hex fill color
+        let hexFill: Color = {
+            if showResult {
                 if isCorrect { return Color(hex: "22C55E") }
-                if isSelected && !isCorrect { return Color(hex: "EF4444") }
-            } else {
-                if isSelected { return Color(hex: "D4860E") }
+                if isSelected { return Color(hex: "EF4444") }
+            } else if isSelected && !isLocked {
+                return Color(hex: "E48820")
+            } else if isSelected && isLocked {
+                return Color(hex: "555566")
             }
-            return Color.clear
+            return Color(hex: "000001").opacity(0.95)
         }()
 
-        let strokeColor: Color = {
-            if !isLocked { return Color.white.opacity(0.22) }
-            if mockInteractionShowsResult {
-                if isCorrect { return Color(hex: "22C55E") }
-                if isSelected && !isCorrect { return Color(hex: "EF4444") }
-            } else {
-                if isSelected { return Color(hex: "F5A623") }
-            }
-            return Color.white.opacity(0.12)
-        }()
-
+        // Letter color: amber normally, white when filled
         let letterColor: Color = {
-            if isLocked && mockInteractionShowsResult && (isCorrect || isSelected) {
-                return .white
-            }
-            return isLocked && !isSelected ? Color(hex: "F5A623").opacity(0.38) : Color(hex: "F5A623")
+            if showResult && (isCorrect || isSelected) { return .white }
+            if isSelected { return .white }
+            if isLocked && !isSelected { return Color(hex: "E48820").opacity(0.35) }
+            return Color(hex: "E48820")
         }()
 
-        let textOpacity: Double = isLocked && !isSelected && !(mockInteractionShowsResult && isCorrect) ? 0.38 : 1.0
+        // Answer text opacity
+        let textAlpha: Double = isLocked && !isSelected && !(showResult && isCorrect) ? 0.35 : 1.0
 
         return Button {
             answerMockInteraction(letter)
         } label: {
             ZStack {
-                // Hexagon shape fill
-                KBCHexShape()
-                    .fill(
-                        fillColor == Color.clear
-                            ? AnyShapeStyle(Color(hex: "0B1630"))
-                            : AnyShapeStyle(fillColor)
-                    )
+                // Full-width horizontal accent line
+                Rectangle()
+                    .fill(Color.white.opacity(0.18))
+                    .frame(width: screenWidth, height: 1)
 
-                KBCHexShape()
-                    .stroke(strokeColor, lineWidth: 1.2)
+                // Centered hex shape
+                ZStack {
+                    KBCHexShape()
+                        .fill(hexFill)
+                        .frame(width: hexW, height: 43)
 
-                HStack(spacing: 0) {
-                    // Letter section with vertical divider
-                    Text(letter + ".")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(letterColor)
-                        .frame(width: 44)
+                    KBCHexShape()
+                        .stroke(
+                            isSelected && !isLocked ? Color(hex: "E48820")
+                                : showResult && isCorrect ? Color(hex: "22C55E")
+                                : showResult && isSelected ? Color(hex: "EF4444")
+                                : Color.white.opacity(0.25),
+                            lineWidth: 1
+                        )
+                        .frame(width: hexW, height: 43)
 
-                    Rectangle()
-                        .fill(Color.white.opacity(0.12))
-                        .frame(width: 1, height: 28)
+                    // Letter + divider + text
+                    HStack(spacing: 0) {
+                        Text(letter + ".")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(letterColor)
+                            .frame(width: hexW * 0.27)
 
-                    Text(text)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(.white.opacity(textOpacity))
-                        .frame(maxWidth: .infinity)
+                        Rectangle()
+                            .fill(Color.white.opacity(0.2))
+                            .frame(width: 1, height: 22)
+
+                        Text(text)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.white.opacity(textAlpha))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .frame(width: hexW * 0.9)
                 }
             }
-            .frame(height: 52)
+            .frame(width: screenWidth, height: 43)
         }
-        .disabled(isLocked)
+        .disabled(isLocked || showResult)
         .buttonStyle(LiquidButtonPressStyle())
     }
 
-    private var kbcLifelineRow: some View {
-        HStack(spacing: 12) {
-            kbcLifelineButton(label: "50:50", systemImage: nil)
-            kbcLifelineButton(label: nil, systemImage: "arrow.triangle.2.circlepath")
-            kbcLifelineButton(label: nil, systemImage: "person.2.fill")
-            kbcLifelineButton(label: nil, systemImage: "info.circle")
+    // ── Confirm / close action row ────────────────────────────────────────
+    @ViewBuilder
+    private var kbcActionRow: some View {
+        if mockInteractionShowsResult {
+            // Answer revealed — show close button
+            Button { dismissMockInteraction() } label: {
+                Text("Close")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 46)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color.white.opacity(0.14))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.white.opacity(0.25), lineWidth: 1)
+                            )
+                    )
+            }
+            .buttonStyle(LiquidButtonPressStyle())
+            .padding(.horizontal, 36)
+            .padding(.top, 18)
+            .transition(.opacity.combined(with: .scale(scale: 0.96)))
+        } else if mockInteractionSelection != nil && !mockInteractionConfirmed {
+            // Option selected, awaiting confirm
+            Button { confirmMockInteraction() } label: {
+                Text("Confirm Answer")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(Color(hex: "0A0A0A"))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 46)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color(hex: "E48820"))
+                    )
+            }
+            .buttonStyle(LiquidButtonPressStyle())
+            .padding(.horizontal, 36)
+            .padding(.top, 18)
+            .transition(.opacity.combined(with: .move(edge: .bottom)))
+        } else if mockInteractionConfirmed && !mockInteractionShowsResult {
+            // Locked, waiting for live reveal
+            HStack(spacing: 8) {
+                ProgressView()
+                    .tint(Color(hex: "E48820"))
+                    .scaleEffect(0.8)
+                Text("Waiting for live reveal…")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color(hex: "E48820").opacity(0.8))
+            }
+            .padding(.top, 18)
+            .transition(.opacity)
         }
-        .padding(.top, 8)
     }
 
-    private func kbcLifelineButton(label: String?, systemImage: String?) -> some View {
+    // ── Lifelines row ─────────────────────────────────────────────────────
+    private var kbcLifelineRow: some View {
+        HStack(spacing: 8) {
+            kbcLifelineBtn(label: "50:50",  icon: nil,         leftRound: true,  rightRound: false)
+            kbcLifelineBtn(label: nil,      icon: "arrow.clockwise", leftRound: false, rightRound: false)
+            kbcLifelineBtn(label: nil,      icon: "person.fill",leftRound: false, rightRound: false)
+            kbcLifelineBtn(label: nil,      icon: "chart.bar.fill", leftRound: false, rightRound: true)
+        }
+    }
+
+    private func kbcLifelineBtn(label: String?, icon: String?,
+                                 leftRound: Bool, rightRound: Bool) -> some View {
         Button {} label: {
             ZStack {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color(hex: "0B1630"))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                RoundedRectangle(
+                    cornerRadius: 8, style: .continuous
+                )
+                .fill(
+                    LinearGradient(
+                        stops: [.init(color: Color(hex: "000001"), location: 0.052),
+                                .init(color: Color(hex: "00083A"), location: 0.994)],
+                        startPoint: .top, endPoint: .bottom
                     )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.white, lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.7), radius: 45, x: 0, y: 0)
 
                 if let label = label {
                     Text(label)
-                        .font(.system(size: 13, weight: .bold))
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(.white)
-                } else if let img = systemImage {
-                    Image(systemName: img)
+                } else if let icon = icon {
+                    Image(systemName: icon)
                         .font(.system(size: 18, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.8))
+                        .foregroundStyle(.white)
                 }
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 52)
+            .frame(width: 62, height: 45)
         }
         .buttonStyle(LiquidButtonPressStyle())
     }
+
 
     private func submitMomentSearchOverlay() {
         let query = momentSearchDraft.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1495,36 +1661,76 @@ struct ContentDetailView: View {
 
     @ViewBuilder
     private func episodesSection(width: CGFloat) -> some View {
-        if viewModel.isLoadingEpisodes {
-            HStack(spacing: 10) {
-                ProgressView()
-                    .tint(.white)
-                Text("Loading episodes...")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.76))
+        VStack(alignment: .leading, spacing: 14) {
+            if viewModel.seasons.isEmpty == false {
+                seasonSelector
             }
-            .frame(maxWidth: .infinity, minHeight: 96)
-            .background(LiquidGlassBackground(cornerRadius: UIConstants.CornerRadius.lg, tone: .dark))
-            .padding(.top, 8)
-        } else if let message = viewModel.episodesErrorMessage {
-            EmptyStateView(title: AppStrings.Detail.episodes, message: message, systemImage: "play.rectangle.on.rectangle")
-                .padding(.top, 8)
-        } else if viewModel.episodes.isEmpty {
-            EmptyStateView(title: AppStrings.Detail.episodes, message: "Episodes are not available for this title yet.", systemImage: "play.rectangle.on.rectangle")
-                .padding(.top, 8)
-        } else {
-            LazyVStack(spacing: 12) {
-                ForEach(viewModel.episodes) { episode in
-                    Button {
-                        onSelectRecommendation(episode)
-                    } label: {
-                        EpisodeCard(item: episode, width: width - 32)
+
+            if viewModel.isLoadingEpisodes {
+                HStack(spacing: 10) {
+                    ProgressView()
+                        .tint(.white)
+                    Text("Loading episodes...")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.76))
+                }
+                .frame(maxWidth: .infinity, minHeight: 96)
+                .background(LiquidGlassBackground(cornerRadius: UIConstants.CornerRadius.lg, tone: .dark))
+            } else if let message = viewModel.episodesErrorMessage {
+                EmptyStateView(title: AppStrings.Detail.episodes, message: message, systemImage: "play.rectangle.on.rectangle")
+            } else if viewModel.episodes.isEmpty {
+                EmptyStateView(title: AppStrings.Detail.episodes, message: "Episodes are not available for this title yet.", systemImage: "play.rectangle.on.rectangle")
+            } else {
+                LazyVStack(spacing: 12) {
+                    ForEach(viewModel.episodes) { episode in
+                        Button {
+                            onSelectRecommendation(episode)
+                        } label: {
+                            EpisodeCard(item: episode, width: width - 32)
+                        }
+                        .buttonStyle(LiquidButtonPressStyle())
                     }
-                    .buttonStyle(LiquidButtonPressStyle())
                 }
             }
-            .padding(.top, 8)
         }
+        .padding(.top, 8)
+    }
+
+    private var seasonSelector: some View {
+        Menu {
+            ForEach(viewModel.seasons) { season in
+                Button {
+                    viewModel.selectSeason(season)
+                } label: {
+                    if viewModel.selectedSeasonID == season.id {
+                        Label(season.title, systemImage: "checkmark")
+                    } else {
+                        Text(season.title)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 10) {
+                Text(viewModel.seasons.first(where: { $0.id == viewModel.selectedSeasonID })?.title ?? "Season 1")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.82))
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 44)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.white.opacity(0.05))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(LiquidButtonPressStyle())
     }
 
     private func castSection(_ detail: ContentDetail) -> some View {

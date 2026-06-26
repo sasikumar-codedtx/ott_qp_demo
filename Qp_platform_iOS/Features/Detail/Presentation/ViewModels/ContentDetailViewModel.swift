@@ -10,6 +10,8 @@ final class ContentDetailViewModel: ObservableObject {
     @Published private(set) var isLoadingMoments = false
     @Published private(set) var momentsErrorMessage: String?
     @Published private(set) var episodes: [StorefrontItem] = []
+    @Published private(set) var seasons: [ContentSeason] = []
+    @Published private(set) var selectedSeasonID: String?
     @Published private(set) var isLoadingEpisodes = false
     @Published private(set) var episodesErrorMessage: String?
     @Published var momentQuery = ""
@@ -46,7 +48,7 @@ final class ContentDetailViewModel: ObservableObject {
         let currentPath = seed?.detailID ?? seed?.id
 
         seed = item
-        selectedTab = AppStrings.Detail.moreLikeThis
+        selectedTab = item.seriesId?.nilIfEmpty == nil ? AppStrings.Detail.moreLikeThis : AppStrings.Detail.episodes
 
         guard nextPath != currentPath else { return }
 
@@ -83,6 +85,7 @@ final class ContentDetailViewModel: ObservableObject {
             let (detail, recommendations) = try await (detailResponse, recommendationResponse)
             self.detail = detail
             self.recommendations = recommendations
+            selectedTab = detail.supportsEpisodes ? AppStrings.Detail.episodes : AppStrings.Detail.moreLikeThis
             self.loadedPath = requestKey
             isLoading = false
 
@@ -97,6 +100,18 @@ final class ContentDetailViewModel: ObservableObject {
 
     func selectTab(_ tab: String) {
         selectedTab = tab
+    }
+
+    func selectSeason(_ season: ContentSeason) {
+        guard selectedSeasonID != season.id,
+              let seriesID = loadedEpisodesSeriesID else {
+            return
+        }
+
+        selectedSeasonID = season.id
+        Task {
+            await loadEpisodes(seriesID: seriesID, seasonID: season.id)
+        }
     }
 
     func submitMomentSearch(_ term: String) {
@@ -129,6 +144,8 @@ final class ContentDetailViewModel: ObservableObject {
 
     private func resetEpisodes() {
         episodes = []
+        seasons = []
+        selectedSeasonID = nil
         isLoadingEpisodes = false
         episodesErrorMessage = nil
         loadedEpisodesSeriesID = nil
@@ -143,7 +160,24 @@ final class ContentDetailViewModel: ObservableObject {
         episodesErrorMessage = nil
 
         do {
-            episodes = try await episodesUseCase.execute(seriesID: seriesID)
+            let bundle = try await episodesUseCase.execute(seriesID: seriesID)
+            seasons = bundle.seasons
+            selectedSeasonID = bundle.selectedSeason?.id
+            episodes = bundle.episodes
+            isLoadingEpisodes = false
+        } catch {
+            episodes = []
+            episodesErrorMessage = error.localizedDescription
+            isLoadingEpisodes = false
+        }
+    }
+
+    private func loadEpisodes(seriesID: String, seasonID: String) async {
+        isLoadingEpisodes = true
+        episodesErrorMessage = nil
+
+        do {
+            episodes = try await episodesUseCase.execute(seriesID: seriesID, seasonID: seasonID)
             isLoadingEpisodes = false
         } catch {
             episodes = []

@@ -5,7 +5,8 @@ protocol ContentDetailDataSourceProtocol {
     func fetchRecommendations(itemID: String, contentType: String) async throws -> RecommendationResponseDTO
     func searchRecommendations(term: String) async throws -> SearchResponseDTO
     func searchMoments(contentID: String, term: String) async throws -> SearchResponseDTO
-    func fetchEpisodes(seriesID: String) async throws -> ContentDetailResponseDTO
+    func fetchSeasons(seriesID: String) async throws -> ContentDetailResponseDTO
+    func fetchEpisodes(seriesID: String, seasonID: String) async throws -> ContentDetailResponseDTO
 }
 
 final class ContentDetailRemoteDataSource: ContentDetailDataSourceProtocol {
@@ -31,7 +32,11 @@ final class ContentDetailRemoteDataSource: ContentDetailDataSourceProtocol {
         try await apiClient.searchMoments(contentID: contentID, term: term)
     }
 
-    func fetchEpisodes(seriesID: String) async throws -> ContentDetailResponseDTO {
-        try await apiClient.fetchEpisodes(seriesID: seriesID)
+    func fetchSeasons(seriesID: String) async throws -> ContentDetailResponseDTO {
+        try await apiClient.fetchSeasons(seriesID: seriesID)
+    }
+
+    func fetchEpisodes(seriesID: String, seasonID: String) async throws -> ContentDetailResponseDTO {
+        try await apiClient.fetchEpisodes(seriesID: seriesID, seasonID: seasonID)
     }
 }

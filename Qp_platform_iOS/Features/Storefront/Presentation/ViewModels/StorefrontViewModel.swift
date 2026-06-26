@@ -17,7 +17,6 @@ final class StorefrontViewModel: ObservableObject {
 
     private let initialUseCase: GetInitialStorefrontUseCase
     private let pageUseCase: GetStorefrontPageUseCase
-    private let initialStorefrontID: String?
     private let preferredInitialTabTitle: String?
     private let fixedCohort: QuickplayCohort?
     private var storefrontID: String?
@@ -27,13 +26,11 @@ final class StorefrontViewModel: ObservableObject {
     init(
         initialUseCase: GetInitialStorefrontUseCase,
         pageUseCase: GetStorefrontPageUseCase,
-        initialStorefrontID: String? = nil,
         preferredInitialTabTitle: String? = nil,
         fixedCohort: QuickplayCohort? = nil
     ) {
         self.initialUseCase = initialUseCase
         self.pageUseCase = pageUseCase
-        self.initialStorefrontID = initialStorefrontID
         self.preferredInitialTabTitle = preferredInitialTabTitle
         self.fixedCohort = fixedCohort
     }
@@ -78,12 +75,15 @@ final class StorefrontViewModel: ObservableObject {
 
     func loadInitialIfNeeded() async {
         guard tabs.isEmpty, !isInitialLoading else { return }
-        await load(storefrontID: storefrontID ?? initialStorefrontID, tabID: nil, pageNumber: 1, append: false, preserveVisibleContent: false)
+        await load(storefrontID: storefrontID, tabID: nil, pageNumber: 1, append: false, preserveVisibleContent: false)
     }
 
     func reloadInitial(force: Bool = false) async {
         guard force || !isInitialLoading else { return }
-        await load(storefrontID: storefrontID ?? initialStorefrontID, tabID: nil, pageNumber: 1, append: false, preserveVisibleContent: false)
+        if force {
+            storefrontID = nil
+        }
+        await load(storefrontID: storefrontID, tabID: nil, pageNumber: 1, append: false, preserveVisibleContent: false)
     }
 
     func applyProfile(_ profile: Profile?, forceReset: Bool = false) {
@@ -98,7 +98,7 @@ final class StorefrontViewModel: ObservableObject {
         isInitialLoading = true
         isRefreshing = false
         isLoadingMore = false
-        storefrontID = initialStorefrontID
+        storefrontID = nil
         tabCache = [:]
         errorMessage = nil
         Task {

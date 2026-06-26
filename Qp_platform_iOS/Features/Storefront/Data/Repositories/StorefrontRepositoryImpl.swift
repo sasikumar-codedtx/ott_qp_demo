@@ -5,8 +5,9 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
     private let configStore: QuickplayConfigurationStore
     private let landingPageSize = 5
 
-    // landingscreen is called once per cohort. Tab switches call landingscreen again with sfid + tid.
-    private var manifestByCohort: [QuickplayCohort: StorefrontManifest] = [:]
+    // Initial landingscreen calls always start without sfid/tid. Subsequent tab/page calls reuse
+    // the storefront id returned by that response and pass it back with the selected tab id.
+    private var manifestByStorefrontID: [String: StorefrontManifest] = [:]
 
     init(
         dataSource: StorefrontDataSourceProtocol,
@@ -26,33 +27,50 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
             return try await fetchCustomLanding(from: customSourceURL, config: config, cohort: cohort, tabID: tabID)
         }
 
-        let manifest = try await resolveManifest(for: cohort)
-        let selectedTab = manifest.tabs.first(where: { $0.id == tabID })
-            ?? manifest.tabs.first(where: { $0.title.caseInsensitiveCompare(AppStrings.Common.home) == .orderedSame })
-            ?? manifest.tabs.first
-
-        guard let selectedTab else {
-            throw AppError.invalidResponse
-        }
-
-        StorefrontDebugLogger.log(
-            "cohort=\(cohort.rawValue) storefrontID=\(manifest.storefrontID) selectedTab=\(selectedTab.title)(\(selectedTab.id))"
-        )
-
+        let manifest: StorefrontManifest
+        let selectedTab: StorefrontTab
         let containers: [QuickplayContainerDTO]
-        if tabID == nil, let initialContainers = manifest.initialContainers {
-            containers = initialContainers
-            StorefrontDebugLogger.log("Using initial landingscreen containers \(containers.count) for tab=\(selectedTab.title)")
-        } else {
+
+        if storefrontID == nil, tabID == nil {
+            let freshManifest = try await fetchFreshManifest(for: cohort)
+            guard let firstTab = freshManifest.tabs.first else {
+                throw AppError.invalidResponse
+            }
+
+            manifest = freshManifest
+            selectedTab = firstTab
             let containersResponse = try await dataSource.fetchContainers(
                 cohort: cohort,
-                storefrontID: manifest.storefrontID,
+                storefrontID: freshManifest.storefrontID,
+                tabID: firstTab.id,
+                pageNumber: 1,
+                pageSize: landingPageSize
+            )
+            containers = containersResponse.data
+        } else {
+            guard let storefrontID else {
+                throw AppError.invalidResponse
+            }
+
+            let cachedManifest = manifestByStorefrontID[storefrontID]
+            let selected = cachedManifest?.tabs.first(where: { $0.id == tabID })
+                ?? cachedManifest?.tabs.first
+                ?? StorefrontTab(id: tabID ?? "", title: "Tab")
+
+            guard selected.id.isEmpty == false else {
+                throw AppError.invalidResponse
+            }
+
+            manifest = cachedManifest ?? StorefrontManifest(storefrontID: storefrontID, tabs: [selected], initialContainers: nil)
+            selectedTab = selected
+            let containersResponse = try await dataSource.fetchContainers(
+                cohort: cohort,
+                storefrontID: storefrontID,
                 tabID: selectedTab.id,
                 pageNumber: pageNumber,
                 pageSize: landingPageSize
             )
             containers = containersResponse.data
-            StorefrontDebugLogger.log("Landingscreen tab returned \(containers.count) containers for tab=\(selectedTab.title)")
         }
 
         let hydratedSections = try await hydrateSections(containers: containers, config: config, cohort: cohort)
@@ -71,14 +89,9 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         )
     }
 
-    // Calls landingscreen for the cohort if we haven't done so yet, then caches storefront id, tabs, and first tab containers.
-    private func resolveManifest(for cohort: QuickplayCohort) async throws -> StorefrontManifest {
-        if let cached = manifestByCohort[cohort] {
-            StorefrontDebugLogger.log("Manifest cache hit cohort=\(cohort.rawValue) storefrontID=\(cached.storefrontID)")
-            return cached
-        }
-
-        StorefrontDebugLogger.log("Fetching landingscreen cohort=\(cohort.rawValue) pf=\(cohort.profileFlag)")
+    // Always fresh-fetches the first landingscreen for launch/profile changes. The response data
+    // object provides the storefront id and its first tab becomes the selected tab.
+    private func fetchFreshManifest(for cohort: QuickplayCohort) async throws -> StorefrontManifest {
         let response = try await fetchLandingScreenWithFallback(for: cohort)
 
         guard let storefront = response.data.first else {
@@ -89,13 +102,9 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
             StorefrontTab(id: $0.id, title: $0.lon?.preferredText ?? "Tab")
         }
 
-        let initialContainers = storefront.t?.first(where: { ($0.c ?? []).isEmpty == false })?.c
+        let initialContainers = storefront.t?.first?.c
         let manifest = StorefrontManifest(storefrontID: storefront.id, tabs: tabs, initialContainers: initialContainers)
-        manifestByCohort[cohort] = manifest
-
-        StorefrontDebugLogger.log(
-            "Stored manifest cohort=\(cohort.rawValue) storefrontID=\(storefront.id) tabs=\(tabs.map { "\($0.title)(\($0.id))" })"
-        )
+        manifestByStorefrontID[storefront.id] = manifest
         return manifest
     }
 
@@ -271,27 +280,7 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
             return deduplicatedItems(embeddedItems.map { $0.toDomain(config: config) })
         }
 
-        guard let sources = container.i, !sources.isEmpty else { return [] }
-
-        var items: [StorefrontItem] = []
-        for source in sources.sorted(by: { ($0.priority ?? 0) < ($1.priority ?? 0) }) {
-            guard let url = source.normalizedURL(config: config, cohort: cohort) else { continue }
-            StorefrontDebugLogger.log("Loading source type=\(source.type ?? "<nil>"), url=\(url.absoluteString)")
-            do {
-                switch source.type {
-                case "collection":
-                    let response = try await dataSource.fetchCollection(from: url)
-                    items.append(contentsOf: response.data.map { $0.toDomain(config: config) })
-                default:
-                    let response = try await dataSource.fetchContent(from: url)
-                    items.append(contentsOf: response.data.map { $0.toDomain(config: config) })
-                }
-            } catch {
-                StorefrontDebugLogger.log("Skipping source container=\(container.id), error=\(error.localizedDescription)")
-            }
-        }
-
-        return deduplicatedItems(items)
+        return []
     }
 
     private func buildSections(from hydratedSections: [HydratedSection]) async -> [StorefrontSection] {
@@ -394,7 +383,6 @@ private enum StorefrontDebugLogger {
         log("Built sections count=\(sections.count), sections=\(sectionSummary)")
     }
 
-    static func log(_ message: String) {
-        print("[Storefront] \(message)")
+    static func log(_: String) {
     }
 }

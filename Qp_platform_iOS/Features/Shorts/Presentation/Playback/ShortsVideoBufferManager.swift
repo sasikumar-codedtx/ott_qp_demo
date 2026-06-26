@@ -101,15 +101,7 @@ final class ShortsVideoBufferManager {
                 withIntermediateDirectories: true
             )
 
-            print("[Network][Download][Request] GET \(remoteURL.absoluteString)")
-            let (temporaryURL, response) = try await URLSession.shared.download(from: remoteURL)
-            if let httpResponse = response as? HTTPURLResponse {
-                print(
-                    "[Network][Download][Response] GET \(remoteURL.absoluteString) status=\(httpResponse.statusCode) headers=\(httpResponse.allHeaderFields)"
-                )
-            } else {
-                print("[Network][Download][Response] GET \(remoteURL.absoluteString) response=\(response)")
-            }
+            let (temporaryURL, _) = try await URLSession.shared.download(from: remoteURL)
 
             if fileManager.fileExists(atPath: localURL.path) {
                 try? fileManager.removeItem(at: temporaryURL)

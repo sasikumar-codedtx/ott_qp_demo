@@ -103,14 +103,7 @@ struct StorefrontAPIClient {
         }
         let data = try await networkClient.data(for: request)
         do {
-            let response = try JSONDecoder().decode(QuickplayStorefrontResponseDTO.self, from: data)
-            let storefront = response.data.first
-            let selectedTab = storefront?.t?.first(where: { $0.id == tabID }) ??
-                storefront?.t?.first(where: { ($0.c ?? []).isEmpty == false })
-            return QuickplayContainersResponseDTO(
-                header: response.header,
-                data: selectedTab?.c ?? []
-            )
+            return try JSONDecoder().decode(QuickplayContainersResponseDTO.self, from: data)
         } catch {
             throw AppError.decodingFailed
         }
