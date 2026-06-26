@@ -84,13 +84,10 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
     }
 
     func present(collection item: StorefrontItem, cohort: QuickplayCohort) {
-        let preferredRatio = item.availableRatios.first(where: { ratio in
-            ratio == "0-16x9" || ratio == "0-2x3" || ratio == "0-9x16"
-        }) ?? item.availableRatios.first ?? "0-2x3"
         let section = StorefrontSection(
             id: item.id,
             title: item.title,
-            ratio: preferredRatio,
+            ratio: "0-2x3",
             items: [],
             isHero: false
         )

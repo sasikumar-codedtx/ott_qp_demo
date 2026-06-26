@@ -5,6 +5,7 @@ struct PosterImageView: View {
     let url: URL?
     let size: CGSize
     let cornerRadius: CGFloat
+    var contentMode: SwiftUI.ContentMode = .fill
     @Environment(\.displayScale) private var displayScale
     @State private var hasLoaded = false
     @State private var isVisible = false
@@ -41,7 +42,7 @@ struct PosterImageView: View {
                         hasLoaded = true
                     }
                     .resizable()
-                    .scaledToFill()
+                    .aspectRatio(contentMode: contentMode)
                     .opacity(hasLoaded ? 1 : 0.01)
                     .scaleEffect(hasLoaded ? 1 : 1.065)
                     .animation(.interpolatingSpring(stiffness: 165, damping: 18), value: hasLoaded)

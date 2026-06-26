@@ -94,14 +94,7 @@ struct StorefrontEntertainmentHeroView: View {
                         )
                 }
 
-                Text(item.title.uppercased())
-                    .font(.system(size: 46, weight: .ultraLight))
-                    .tracking(5.8)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.white)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.65)
-                    .padding(.horizontal, 18)
+                heroTitle(for: item)
 
                 metadataRow(for: item)
 
@@ -127,6 +120,29 @@ struct StorefrontEntertainmentHeroView: View {
             .frame(maxWidth: .infinity)
         }
         .frame(width: 358, height: 537)
+    }
+
+    @ViewBuilder
+    private func heroTitle(for item: StorefrontItem) -> some View {
+        if let titleImageURL = item.titleImageURL(width: 720) {
+            PosterImageView(
+                url: titleImageURL,
+                size: CGSize(width: 252, height: 86),
+                cornerRadius: 0,
+//                contentMode: .fit
+            )
+            .frame(width: 252, height: 86)
+            .padding(.horizontal, 18)
+        } else {
+            Text(item.title.uppercased())
+                .font(.system(size: 46, weight: .ultraLight))
+                .tracking(5.8)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.white)
+                .lineLimit(2)
+                .minimumScaleFactor(0.65)
+                .padding(.horizontal, 18)
+        }
     }
 
     private func heroMedia(item: StorefrontItem, size: CGSize, ratio: String, cornerRadius: CGFloat) -> some View {

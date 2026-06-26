@@ -4,29 +4,42 @@ struct AppRootView: View {
     @StateObject private var viewModel = AppFlowViewModel()
 
     var body: some View {
-        NavigationStack(path: $viewModel.navigationPath) {
-            rootScene
-                .navigationDestination(for: AppFlowViewModel.Route.self) { route in
-                    destination(for: route)
+        ZStack {
+            NavigationStack(path: $viewModel.navigationPath) {
+                rootScene
+                    .navigationDestination(for: AppFlowViewModel.Route.self) { route in
+                        destination(for: route)
+                    }
+            }
+            .overlay(alignment: .bottom) {
+                if let cohortOverrideToast = viewModel.cohortOverrideToast {
+                    CohortResultToast(message: cohortOverrideToast)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .padding(.bottom, 118)
                 }
-        }
-        .overlay(alignment: .bottom) {
-            if let cohortOverrideToast = viewModel.cohortOverrideToast {
-                CohortResultToast(message: cohortOverrideToast)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .padding(.bottom, 118)
+            }
+            .animation(.spring(response: 0.28, dampingFraction: 0.82), value: viewModel.cohortOverrideToast)
+
+            // Player overlay — smooth scale+fade instead of fullScreenCover slide-up
+            if let content = viewModel.activePlaybackContent {
+                QuickplayPlayerScreen(content: content, onDismiss: viewModel.closePlayer)
+                    .ignoresSafeArea()
+                    .transition(
+                        .asymmetric(
+                            insertion: .scale(scale: 0.96).combined(with: .opacity),
+                            removal:   .scale(scale: 0.98).combined(with: .opacity)
+                        )
+                    )
+                    .zIndex(100)
             }
         }
-        .animation(.spring(response: 0.28, dampingFraction: 0.82), value: viewModel.cohortOverrideToast)
+        .animation(.spring(response: 0.46, dampingFraction: 0.9), value: viewModel.activePlaybackContent != nil)
         .preferredColorScheme(.dark)
         .task {
             await viewModel.start()
         }
         .onChange(of: viewModel.navigationPath) { oldPath, newPath in
             viewModel.handleNavigationPathChange(from: oldPath, to: newPath)
-        }
-        .fullScreenCover(item: $viewModel.activePlaybackContent) { content in
-            QuickplayPlayerScreen(content: content, onDismiss: viewModel.closePlayer)
         }
     }
 

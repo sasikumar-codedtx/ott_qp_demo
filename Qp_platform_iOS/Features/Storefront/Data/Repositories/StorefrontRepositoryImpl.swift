@@ -3,7 +3,7 @@ import Foundation
 final class StorefrontRepositoryImpl: StorefrontRepository {
     private let dataSource: StorefrontDataSourceProtocol
     private let configStore: QuickplayConfigurationStore
-    private let landingPageSize = 5
+    private let landingPageSize = 50
 
     // Initial landingscreen calls always start without sfid/tid. Subsequent tab/page calls reuse
     // the storefront id returned by that response and pass it back with the selected tab id.

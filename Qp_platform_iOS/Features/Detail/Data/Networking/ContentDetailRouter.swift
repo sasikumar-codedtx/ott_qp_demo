@@ -87,8 +87,8 @@ enum ContentDetailRouter {
             URLQueryItem(name: "term", value: term),
             URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region.lowercased()),
             URLQueryItem(name: "info", value: "detail"),
-            URLQueryItem(name: "moment", value: "true"),
-            URLQueryItem(name: "id", value: contentID)
+            URLQueryItem(name: "moment", value: "true")
+//            URLQueryItem(name: "id", value: contentID)
         ]
 
         guard let url = components.url else {

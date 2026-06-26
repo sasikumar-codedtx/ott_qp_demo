@@ -142,25 +142,12 @@ private struct StorefrontBackgroundImageSectionView: View {
                         cornerRadius: 0
                     )
                     .frame(width: mediaSize, height: mediaSize)
-
-                    LinearGradient(
-                        stops: [
-                            .init(color: backgroundColor.opacity(0), location: 0.18),
-                            .init(color: backgroundColor.opacity(0.54), location: 0.58),
-                            .init(color: backgroundColor.opacity(0.98), location: 1)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(width: mediaSize, height: mediaSize)
-
                     cardRail
-                        .padding(.bottom, titleBandHeight + cardToTitleGap)
+                        .padding(.bottom,titleBandHeight + cardToTitleGap)
+                    bottomHeading
                 }
                 .frame(width: mediaSize, height: mediaSize)
                 .clipped()
-
-                bottomHeading
             }
             .frame(width: mediaSize, height: sectionHeight)
         }

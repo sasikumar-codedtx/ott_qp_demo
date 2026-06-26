@@ -35,6 +35,22 @@ struct StorefrontItem: Identifiable, Equatable, Hashable, Codable {
         )
     }
 
+    func titleImageURL(width: Int) -> URL? {
+        guard let titleRatio = availableRatios.first(where: { ratio in
+            ratio.contains("12-") || ratio.contains("13-")
+        }) else {
+            return nil
+        }
+
+        return ImageURLBuilder(baseURL: imageBaseURL).imageURL(
+            id: id,
+            ratio: titleRatio,
+            availableRatios: availableRatios,
+            width: width,
+            preferredFallbacks: []
+        )
+    }
+
     var primaryMetaText: String {
         let parts = [year, genres.prefix(2).joined(separator: ", ").nilIfEmpty].compactMap { $0 }
         return parts.joined(separator: " • ")
