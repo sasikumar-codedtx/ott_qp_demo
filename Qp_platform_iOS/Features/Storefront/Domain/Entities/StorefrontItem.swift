@@ -8,6 +8,8 @@ struct StorefrontItem: Identifiable, Equatable, Hashable, Codable {
     let cardType: String?
     let customSearchCategory: String?
     let customID: String?
+    let collectionURL: String?
+    let collectionQueryIDs: String?
     let seriesId: String?
     let slug: String?
     let resourceURN: String?
@@ -88,6 +90,8 @@ struct StorefrontItem: Identifiable, Equatable, Hashable, Codable {
             cardType: cardType,
             customSearchCategory: customSearchCategory,
             customID: customID,
+            collectionURL: collectionURL,
+            collectionQueryIDs: collectionQueryIDs,
             seriesId: seriesId,
             slug: slug,
             resourceURN: resourceURN,

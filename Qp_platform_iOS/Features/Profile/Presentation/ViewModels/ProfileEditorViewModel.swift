@@ -94,15 +94,9 @@ final class ProfileEditorViewModel: ObservableObject {
 
         isLoading = true
         errorMessage = nil
-        print(
-            "[ProfileEditor] save draft name=\(draft.name), preference=\(draft.preference.rawValue), cohort=\(draft.cohort.rawValue), isKids=\(draft.isKidsProfile), pf=\((draft.isKidsProfile ? QuickplayCohort.kids : draft.cohort).profileFlag)"
-        )
 
         do {
             let profile = try await saveProfileUseCase.execute(draft: draft)
-            print(
-                "[ProfileEditor] saved profile name=\(profile.name), preference=\(profile.preference.rawValue), cohort=\(profile.cohort.rawValue), pf=\(profile.cohort.profileFlag)"
-            )
             isLoading = false
             return profile
         } catch {
@@ -194,9 +188,6 @@ final class ProfileEditorViewModel: ObservableObject {
         draft.isKidsProfile = false
         draft.preferredLanguages = preferredLanguages(for: result.preference)
         errorMessage = nil
-        print(
-            "[ProfileEditor] cohort result selected=\(result.primaryCategory.rawValue), preference=\(result.preference.rawValue), scores=e\(result.entertainmentScore)/s\(result.sportsScore)/r\(result.realityScore), confidence=\(result.confidence), draftCohort=\(draft.cohort.rawValue), draftPreference=\(draft.preference.rawValue), isKids=\(draft.isKidsProfile), pf=\(draft.cohort.profileFlag)"
-        )
     }
 
     func formattedDateOfBirth() -> String {

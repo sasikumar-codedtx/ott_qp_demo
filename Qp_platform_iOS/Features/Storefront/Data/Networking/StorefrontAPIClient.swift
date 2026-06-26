@@ -18,17 +18,9 @@ struct StorefrontAPIClient {
             throw AppError.invalidURL
         }
 
-        print("🔥🔥🔥🔥🔥 STOREFRONT REQUEST 🔥🔥🔥🔥🔥")
-        print(request.url?.absoluteString ?? "invalid-url")
         let data = try await networkClient.data(for: request)
         do {
-            let response = try JSONDecoder().decode(QuickplayStorefrontResponseDTO.self, from: data)
-            print("🔥🔥🔥🔥🔥 STOREFRONT RESPONSE 🔥🔥🔥🔥🔥")
-            print("cohort -> \(cohort.rawValue), pf -> \(cohort.profileFlag)")
-            print("data count -> \(response.data.count)")
-            print("ids -> \(response.data.map(\.id))")
-            print("🔥🔥🔥🔥🔥 END STOREFRONT 🔥🔥🔥🔥🔥")
-            return response
+            return try JSONDecoder().decode(QuickplayStorefrontResponseDTO.self, from: data)
         } catch {
             throw AppError.decodingFailed
         }
@@ -109,7 +101,6 @@ struct StorefrontAPIClient {
         ) else {
             throw AppError.invalidURL
         }
-        print("[StorefrontAPIClient] landingscreen tab \(request.url?.absoluteString ?? "invalid")")
         let data = try await networkClient.data(for: request)
         do {
             let response = try JSONDecoder().decode(QuickplayStorefrontResponseDTO.self, from: data)

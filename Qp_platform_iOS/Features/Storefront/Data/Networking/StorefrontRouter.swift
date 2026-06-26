@@ -87,13 +87,14 @@ enum StorefrontRouter {
             URLQueryItem(name: "info", value: "detail"),
             URLQueryItem(name: "mode", value: "detail"),
             URLQueryItem(name: "st", value: "published"),
+            URLQueryItem(name: "dst", value: "published"),
             URLQueryItem(name: "pageSize", value: String(pageSize)),
-            URLQueryItem(name: "pageNumber", value: String(pageNumber)),
             URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region),
             URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
             URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
-            URLQueryItem(name: "pf", value: QuickplayCohort.entertainment.profileFlag),
-            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
+            URLQueryItem(name: "pf", value: cohort.profileFlag),
+            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort),
+            URLQueryItem(name: "itvod", value: "true")
         ]
 
         guard let url = components.url else {
@@ -112,23 +113,27 @@ enum StorefrontRouter {
         pageNumber: Int,
         pageSize: Int
     ) -> URLRequest? {
-        guard var components = URLComponents(string: "\(config.vodMetaDataURL)/content/lookup") else {
+        let fallbackLookupQuery = CollectionLookupQueryBuilder.query(for: item)
+        let sourceURL = item.collectionURL?.nilIfEmpty ?? "\(config.vodMetaDataURL)/content/lookup?query=\(fallbackLookupQuery)"
+        guard var components = URLComponents(string: sourceURL) else {
             return nil
         }
 
-        let lookupQuery = CollectionLookupQueryBuilder.query(for: item)
-        components.queryItems = [
-            URLQueryItem(name: "info", value: "detail"),
-            URLQueryItem(name: "mode", value: "detail"),
-            URLQueryItem(name: "query", value: lookupQuery),
-            URLQueryItem(name: "pageSize", value: String(pageSize)),
-            URLQueryItem(name: "pageNumber", value: String(pageNumber)),
-            URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region),
-            URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
-            URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
-            URLQueryItem(name: "pf", value: cohort.profileFlag),
-            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
-        ]
+        var queryItems = components.queryItems ?? []
+        upsert(&queryItems, name: "info", value: "detail")
+        upsert(&queryItems, name: "mode", value: "detail")
+        upsert(&queryItems, name: "pageSize", value: String(pageSize))
+        upsert(&queryItems, name: "pageNumber", value: String(pageNumber))
+        upsert(&queryItems, name: "reg", value: AppEnvironment.Quickplay.region)
+        upsert(&queryItems, name: "dt", value: AppEnvironment.Quickplay.deviceType)
+        upsert(&queryItems, name: "client", value: AppEnvironment.Quickplay.client)
+        upsert(&queryItems, name: "pf", value: cohort.profileFlag)
+        upsert(&queryItems, name: "chrt", value: AppEnvironment.Quickplay.cohort)
+        upsert(&queryItems, name: "itvod", value: "true")
+        if queryItems.contains(where: { $0.name == "st" }) == false {
+            queryItems.append(URLQueryItem(name: "st", value: "published"))
+        }
+        components.queryItems = queryItems
 
         guard let url = components.url else {
             return nil
@@ -137,6 +142,11 @@ enum StorefrontRouter {
         var request = URLRequest(url: url)
         request.applyQuickplayHeaders()
         return request
+    }
+
+    private static func upsert(_ queryItems: inout [URLQueryItem], name: String, value: String) {
+        queryItems.removeAll { $0.name == name }
+        queryItems.append(URLQueryItem(name: name, value: value))
     }
 }
 

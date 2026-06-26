@@ -14,6 +14,7 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
 
     private let useCase: GetStorefrontSectionPageUseCase
     private let pageSize = Int(AppEnvironment.Quickplay.storefrontPageSize) ?? 20
+    private let prefetchDistance = 10
     private var currentIDs: [String] = []
     private var source: BrowseSource?
     private var currentCacheKey: String?
@@ -67,7 +68,8 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
     func present(section: StorefrontSection, cohort: QuickplayCohort) {
         self.section = section
         self.cohort = cohort
-        currentIDs = deduplicatedIDs(from: section.items)
+        let viewAllIDs = section.viewAllContentIDs ?? []
+        currentIDs = viewAllIDs.isEmpty ? deduplicatedIDs(from: section.items) : viewAllIDs
         source = .sectionIDs(currentIDs)
         currentCacheKey = "\(section.id)-\(cohort.rawValue)-\(section.ratio)"
         errorMessage = nil
@@ -94,9 +96,17 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
         )
         self.section = section
         self.cohort = cohort
-        currentIDs = []
-        source = .collectionLookup(item)
-        currentCacheKey = "collection-\(item.id)-\(cohort.rawValue)-\(item.customSearchCategory ?? item.title)"
+        let fixedIDs = Self.contentIDs(from: item.collectionQueryIDs)
+        currentIDs = fixedIDs
+        source = item.collectionURL?.nilIfEmpty == nil && fixedIDs.isEmpty == false ? .sectionIDs(fixedIDs) : .collectionLookup(item)
+        currentCacheKey = [
+            "collection",
+            item.id,
+            cohort.rawValue,
+            item.collectionURL ?? "",
+            item.collectionQueryIDs ?? "",
+            item.customSearchCategory ?? item.title
+        ].joined(separator: "-")
         errorMessage = nil
 
         if let cached = currentCache {
@@ -120,7 +130,8 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
     }
 
     func loadMoreIfNeeded(currentItem item: StorefrontItem) async {
-        guard item.id == items.last?.id else { return }
+        guard let currentIndex = items.firstIndex(where: { $0.id == item.id }) else { return }
+        guard items.distance(from: currentIndex, to: items.endIndex) <= prefetchDistance else { return }
         guard let cache = currentCache, cache.hasMore else { return }
         guard !isLoadingMore else { return }
 
@@ -199,6 +210,15 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
             guard seen.insert(item.id).inserted else { return nil }
             return item.id
         }
+    }
+
+    private static func contentIDs(from query: String?) -> [String] {
+        guard let query else { return [] }
+        let ids = query
+            .split(separator: ",")
+            .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        return Array(NSOrderedSet(array: ids)) as? [String] ?? ids
     }
 
     private func deduplicated(_ items: [StorefrontItem]) -> [StorefrontItem] {

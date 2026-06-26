@@ -3,6 +3,9 @@ import Foundation
 struct APIHeaderDTO: Decodable {
     let code: Int
     let message: String
+    let start: Int?
+    let rows: Int?
+    let count: Int?
 }
 
 struct QuickplayStorefrontResponseDTO: Decodable {
@@ -255,6 +258,7 @@ private struct DynamicCodingKey: CodingKey {
 struct QuickplayContentSourceDTO: Decodable {
     let count: Int?
     let cu: String?
+    let q: String?
     let priority: Int?
     let type: String?
 
@@ -327,6 +331,8 @@ struct QuickplayContentItemDTO: Decodable {
     let cty: String?
     let custSc: String?
     let custId: String?
+    let cu: String?
+    let q: String?
     let lon: [LocalizedTextDTO]?
     let lod: [LocalizedTextDTO]?
     let log: [LocalizedTextListDTO]?
@@ -353,6 +359,8 @@ struct QuickplayContentItemDTO: Decodable {
         case cty
         case custSc = "cust_sc"
         case custId = "cust_id"
+        case cu
+        case q
         case lon
         case lod
         case log
@@ -383,6 +391,8 @@ struct QuickplayContentItemDTO: Decodable {
             cardType: ty,
             customSearchCategory: custSc,
             customID: custId,
+            collectionURL: cu?.nilIfEmpty,
+            collectionQueryIDs: q?.nilIfEmpty,
             seriesId: stlId?.nilIfEmpty,
             slug: nu,
             resourceURN: urn,
@@ -436,6 +446,8 @@ struct QuickplayCollectionItemDTO: Decodable {
     let ty: String?
     let custSc: String?
     let custId: String?
+    let cu: String?
+    let q: String?
     let ia: [String]?
     let lon: [LocalizedTextDTO]?
 
@@ -444,6 +456,8 @@ struct QuickplayCollectionItemDTO: Decodable {
         case ty
         case custSc = "cust_sc"
         case custId = "cust_id"
+        case cu
+        case q
         case ia
         case lon
     }
@@ -457,6 +471,8 @@ struct QuickplayCollectionItemDTO: Decodable {
             cardType: ty ?? "collection",
             customSearchCategory: custSc,
             customID: custId,
+            collectionURL: cu?.nilIfEmpty,
+            collectionQueryIDs: q?.nilIfEmpty,
             seriesId: nil,
             slug: nil,
             resourceURN: nil,

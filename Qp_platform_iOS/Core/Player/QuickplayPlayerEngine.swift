@@ -49,12 +49,7 @@ final class QuickplayPlayerEngine: ObservableObject {
                 let request = URLRequest(url: certURL)
                 if let (data, _) = try? await URLSession.shared.data(for: request), !data.isEmpty {
                     fairplayCertificateData = data
-                    print("[Player] cert ✅ \(data.count)b")
-                } else {
-                    print("[Player] cert ❌ fetch failed — \(certURLString)")
                 }
-            } else {
-                print("[Player] cert ❌ drm=\(asset.drm) fpCertUrl=\(asset.fpCertificateUrl ?? "nil")")
             }
             #endif
 
@@ -93,12 +88,10 @@ final class QuickplayPlayerEngine: ObservableObject {
 
         let player = FLPlatformPlayerFactory.player(asset: avAsset)
         playerView = player.playbackView
-        print("[Player] view=\(player.playbackView != nil ? "✅" : "❌nil") → play()")
 
         player.playbackState.add(self) { [weak self] _, newState in
             Task { @MainActor in
                 guard let self else { return }
-                print("[Player] playbackState → \(newState)")
                 switch newState {
                 case .playing:
                     self.isPlaying = true
@@ -117,7 +110,6 @@ final class QuickplayPlayerEngine: ObservableObject {
                     self.isPlaying = false
                     self.isBuffering = false
                 @unknown default:
-                    print("[Player] ⚠️ Unhandled state: \(newState) — clearing buffer")
                     self.isBuffering = false
                 }
             }
@@ -125,7 +117,6 @@ final class QuickplayPlayerEngine: ObservableObject {
 
         player.isBuffering.add(self) { [weak self] _, buffering in
             Task { @MainActor in
-                print("[Player] isBuffering → \(buffering)")
                 self?.isBuffering = buffering
             }
         }
@@ -156,25 +147,18 @@ final class QuickplayPlayerEngine: ObservableObject {
         fairplayCertificateData: Data?
     ) {
         guard asset.drm == .fairplay else {
-            print("[DRM] skip — drm=\(asset.drm)")
             return
         }
         guard let licenseURLString = asset.licenseUrl, let licenseURL = URL(string: licenseURLString) else {
-            print("[DRM] ❌ licenseUrl nil")
             return
         }
         guard let authorizer = QuickplayAuthRegistry.shared.platformAuthorizer else {
-            print("[DRM] ❌ authorizer nil")
             return
         }
 
         // SKD is extracted from the HLS manifest by AVFoundation during key exchange — not needed upfront.
         let skd = asset.skd ?? ""
         let certData = fairplayCertificateData ?? Data()
-
-        if certData.isEmpty {
-            print("[DRM] ⚠️ no cert — key exchange will likely fail")
-        }
 
         let fetcher = FLPlatformPlayerFactory.fairplaylicenseFetcher()
         let fetcherDelegate = FLPlatformPlayerFactory.fairplayLicenseFetcherDelegate(
@@ -186,7 +170,6 @@ final class QuickplayPlayerEngine: ObservableObject {
         )
         fetcher.updateLicenseFetcherDelegate(fetcherDelegate, for: avAsset)
         fairplayLicenseFetcher = fetcher
-        print("[DRM] ✅ configured — cert=\(certData.count)b skd='\(skd.isEmpty ? "from-manifest" : skd)'")
     }
     #endif
 

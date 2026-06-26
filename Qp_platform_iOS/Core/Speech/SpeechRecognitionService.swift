@@ -32,10 +32,8 @@ final class SpeechRecognitionService: ObservableObject {
             try await requestPermissions()
             try activateAudioSession()
             statusText = "Starting microphone..."
-            print("[SpeechRecognition] Session prepared for \(selectedLanguage.locale.identifier)")
             return true
         } catch {
-            print("[SpeechRecognition] Prepare failed: \(error.localizedDescription)")
             statusText = "Speech unavailable. Type your query instead."
             return false
         }
@@ -48,7 +46,6 @@ final class SpeechRecognitionService: ObservableObject {
             try await requestPermissions()
             try await startRecognitionWithRetry()
         } catch {
-            print("[SpeechRecognition] Start failed: \(error.localizedDescription)")
             cleanupRecognitionSession()
             try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
             statusText = "Speech unavailable. Type your query instead."
@@ -87,13 +84,11 @@ final class SpeechRecognitionService: ObservableObject {
         }
 
         guard speechStatus == .authorized else {
-            print("[SpeechRecognition] Speech authorization denied: \(speechStatus.rawValue)")
             throw AppError.invalidResponse
         }
 
         let audioGranted = await AVAudioApplication.requestRecordPermission()
         guard audioGranted else {
-            print("[SpeechRecognition] Microphone permission denied")
             throw AppError.invalidResponse
         }
     }
@@ -113,7 +108,6 @@ final class SpeechRecognitionService: ObservableObject {
         do {
             try startRecognition()
         } catch {
-            print("[SpeechRecognition] First start attempt failed: \(error.localizedDescription)")
             cleanupRecognitionSession()
             try? await Task.sleep(for: .milliseconds(450))
             try startRecognition()
@@ -127,8 +121,6 @@ final class SpeechRecognitionService: ObservableObject {
 
         guard let recognizer = SFSpeechRecognizer(locale: selectedLanguage.locale), recognizer.isAvailable else {
             statusText = "\(selectedLanguage.displayName) speech is unavailable. Try English or type your query."
-            print("[SpeechRecognition] Recognizer unavailable for \(selectedLanguage.locale.identifier)")
-            print("[SpeechRecognition] Supported locales: \(SupportedSpeechLanguage.supportedLocaleIdentifiers.joined(separator: ", "))")
             throw AppError.invalidResponse
         }
 
@@ -150,7 +142,6 @@ final class SpeechRecognitionService: ObservableObject {
               recordingFormat.sampleRate > 0,
               recordingFormat.channelCount > 0 else {
             statusText = "Microphone unavailable. Type your query instead."
-            print("[SpeechRecognition] Invalid recording format: sampleRate=\(recordingFormat.sampleRate) channels=\(recordingFormat.channelCount)")
             throw AppError.invalidResponse
         }
 
@@ -168,7 +159,6 @@ final class SpeechRecognitionService: ObservableObject {
         try audioEngine.start()
         isRecording = true
         statusText = "Listening in \(selectedLanguage.displayName)..."
-        print("[SpeechRecognition] Listening started locale=\(selectedLanguage.locale.identifier) sampleRate=\(recordingFormat.sampleRate) channels=\(recordingFormat.channelCount)")
 
         session.task = recognizer.recognitionTask(with: request) { [weak self, weak session] result, error in
             Task { @MainActor in
@@ -178,8 +168,7 @@ final class SpeechRecognitionService: ObservableObject {
                     self.consume(result: result, language: session.language)
                 }
 
-                if let error {
-                    print("[SpeechRecognition] Recognition error: \(error.localizedDescription)")
+                if error != nil {
                     session.didFail = true
                     self.handleRecognitionFailureIfNeeded()
                 }

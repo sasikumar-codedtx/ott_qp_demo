@@ -764,7 +764,6 @@ struct AISearchVoiceRouteView: View {
                     return
                 }
 
-                print("[SpeechRecognition] No transcript after startup; restarting recognizer once.")
                 speechService.stop()
                 let isReady = await speechService.prepareSession()
                 guard isReady else { return }

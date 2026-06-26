@@ -274,9 +274,6 @@ struct CohortQuestionnaireView: View {
         guard !isAnimatingOut, !isFinishing else { return }
 
         let answer = CohortSwipeAnswer(questionID: currentQuestion.id, direction: direction, categories: currentQuestion.categories(for: direction))
-        print(
-            "[CohortQuestionnaire] answer question=\"\(currentQuestion.title)\", direction=\(direction.logValue), signals=\(answer.categories.map(\.logValue).joined(separator: ","))"
-        )
         scoredAnswers.append(answer)
         isAnimatingOut = true
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -670,10 +667,6 @@ private enum CohortQuestionnaireScorer {
         let highestScore = scores[winner, default: 0]
         let totalSignals = max(scores.values.reduce(0, +), 1)
         let confidence = Int(round((Double(highestScore) / Double(totalSignals)) * 100))
-
-        print(
-            "[CohortQuestionnaire] final scores entertainment=\(entertainmentScore), sports=\(sportsScore), reality=\(realityScore), winner=\(winner.logValue), cohort=\(winner.cohort.rawValue), pf=\(winner.cohort.profileFlag)"
-        )
 
         return CohortQuestionnaireResult(
             entertainmentScore: entertainmentScore,

@@ -63,17 +63,9 @@ struct ContentDetailAPIClient {
             throw AppError.invalidURL
         }
 
-        print("🔥🔥🔥🔥🔥 MOMENTS SEARCH REQUEST 🔥🔥🔥🔥🔥")
-        print(request.url?.absoluteString ?? "invalid-url")
-
         let data = try await networkClient.data(for: request)
         do {
-            let response = try JSONDecoder().decode(SearchResponseDTO.self, from: data)
-            print("🔥🔥🔥🔥🔥 MOMENTS SEARCH RESPONSE 🔥🔥🔥🔥🔥")
-            print("response -> \(response.header.code) \(response.header.message)")
-            print("data count -> \(response.data.count)")
-            print("🔥🔥🔥🔥🔥 END MOMENTS SEARCH 🔥🔥🔥🔥🔥")
-            return response
+            return try JSONDecoder().decode(SearchResponseDTO.self, from: data)
         } catch {
             throw AppError.decodingFailed
         }
@@ -86,17 +78,9 @@ struct ContentDetailAPIClient {
             throw AppError.invalidURL
         }
 
-        print("🔥🔥🔥🔥🔥 EPISODES REQUEST 🔥🔥🔥🔥🔥")
-        print(request.url?.absoluteString ?? "invalid-url")
-
         let data = try await networkClient.data(for: request)
         do {
-            let response = try JSONDecoder().decode(ContentDetailResponseDTO.self, from: data)
-            print("🔥🔥🔥🔥🔥 EPISODES RESPONSE 🔥🔥🔥🔥🔥")
-            print("response -> \(response.header.code) \(response.header.message)")
-            print("data count -> \(response.data.count)")
-            print("🔥🔥🔥🔥🔥 END EPISODES 🔥🔥🔥🔥🔥")
-            return response
+            return try JSONDecoder().decode(ContentDetailResponseDTO.self, from: data)
         } catch {
             throw AppError.decodingFailed
         }

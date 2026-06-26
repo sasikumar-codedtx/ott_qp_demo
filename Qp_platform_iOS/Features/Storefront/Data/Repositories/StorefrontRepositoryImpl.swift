@@ -209,14 +209,23 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         )
         let config = await configStore.current()
         let items = deduplicatedItems(response.data.map { $0.toDomain(config: config) })
-        let loadedCount = ((pageNumber - 1) * pageSize) + items.count
-        let hasMore = items.count >= pageSize
+        let loadedCount: Int
+        let totalCount: Int
+        if let start = response.header.start,
+           let rows = response.header.rows,
+           let count = response.header.count {
+            loadedCount = min(start + rows, count)
+            totalCount = count
+        } else {
+            loadedCount = ((pageNumber - 1) * pageSize) + items.count
+            totalCount = items.isEmpty ? loadedCount : loadedCount + 1
+        }
 
         return StorefrontSectionPage(
             items: items,
             nextPage: pageNumber + 1,
             loadedCount: loadedCount,
-            totalCount: hasMore ? loadedCount + 1 : loadedCount
+            totalCount: totalCount
         )
     }
 
@@ -243,7 +252,8 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
                     isHero: container.id == firstBannerContainerID,
                     sourceType: container.srcType,
                     backgroundImageURL: backgroundImageURL,
-                    backgroundColorHex: backgroundImageURL == nil ? nil : container.backgroundColorHex
+                    backgroundColorHex: backgroundImageURL == nil ? nil : container.backgroundColorHex,
+                    viewAllContentIDs: contentIDs(from: container.i)
                 )
             )
         }
@@ -311,9 +321,21 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
                 items: resolvedItems,
                 isHero: section.isHero,
                 backgroundImageURL: section.backgroundImageURL,
-                backgroundColorHex: section.backgroundColorHex
+                backgroundColorHex: section.backgroundColorHex,
+                viewAllContentIDs: section.viewAllContentIDs
             )
         }
+    }
+
+    private func contentIDs(from sources: [QuickplayContentSourceDTO]?) -> [String]? {
+        let ids = sources?
+            .flatMap { source in
+                (source.q ?? "")
+                    .split(separator: ",")
+                    .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .filter { !$0.isEmpty }
+            } ?? []
+        return ids.isEmpty ? nil : Array(NSOrderedSet(array: ids)) as? [String] ?? ids
     }
 
     private func deduplicatedItems(_ items: [StorefrontItem]) -> [StorefrontItem] {
@@ -347,6 +369,7 @@ private struct HydratedSection {
     let sourceType: String?
     let backgroundImageURL: URL?
     let backgroundColorHex: String?
+    let viewAllContentIDs: [String]?
 }
 
 private enum StorefrontDebugLogger {

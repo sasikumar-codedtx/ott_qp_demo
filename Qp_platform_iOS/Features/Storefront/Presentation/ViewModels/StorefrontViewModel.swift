@@ -91,9 +91,6 @@ final class StorefrontViewModel: ObservableObject {
         guard forceReset || nextProfileID != activeProfileID else { return }
         activeProfileID = nextProfileID
         activeCohort = fixedCohort ?? profile?.quickplayCohort ?? .entertainment
-        print(
-            "[StorefrontViewModel] applyProfile profile=\(profile?.name ?? "<nil>"), profileID=\(nextProfileID?.uuidString ?? "<nil>"), fixedCohort=\(fixedCohort?.rawValue ?? "<nil>"), activeCohort=\(activeCohort.rawValue), pf=\(activeCohort.profileFlag), forceReset=\(forceReset)"
-        )
         tabs = []
         selectedTabID = nil
         sections = []
@@ -173,9 +170,6 @@ final class StorefrontViewModel: ObservableObject {
         } else {
             activeCohort = await DemoSessionStore.shared.currentCohort()
         }
-        print(
-            "[StorefrontViewModel] load activeCohort=\(activeCohort.rawValue), pf=\(activeCohort.profileFlag), storefrontID=\(storefrontID ?? "<nil>"), tabID=\(tabID ?? "<nil>"), page=\(pageNumber), append=\(append), preserveVisibleContent=\(preserveVisibleContent)"
-        )
 
         if append {
             isLoadingMore = true
@@ -241,9 +235,6 @@ final class StorefrontViewModel: ObservableObject {
             selectedTabID = page.selectedTabID
             sections = combinedSections
             errorMessage = nil
-            print(
-                "[StorefrontViewModel] loaded page storefrontID=\(page.storefrontID), selectedTabID=\(page.selectedTabID), tabs=\(tabs.map(\.title)), sections=\(combinedSections.map { "\($0.title)(\($0.items.count))" })"
-            )
 
         } catch {
             errorMessage = error.localizedDescription

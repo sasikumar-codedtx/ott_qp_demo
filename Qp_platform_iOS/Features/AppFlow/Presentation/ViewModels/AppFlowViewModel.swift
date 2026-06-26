@@ -162,9 +162,6 @@ final class AppFlowViewModel: ObservableObject {
         Task {
             let selectedCohort = profile.cohort
             let selectedPreference = selectedCohort.defaultPreference
-            print(
-                "[ProfileContext] selectProfile name=\(profile.name), profileID=\(profile.id.uuidString), cohort=\(selectedCohort.rawValue), preference=\(selectedPreference.rawValue), pf=\(selectedCohort.profileFlag)"
-            )
             await DemoSessionStore.shared.setActiveProfileContext(
                 profileID: profile.id,
                 cohort: selectedCohort,
@@ -340,9 +337,6 @@ final class AppFlowViewModel: ObservableObject {
         Task {
             let selectedCohort = profile.cohort
             let selectedPreference = selectedCohort.defaultPreference
-            print(
-                "[ProfileContext] switchActiveProfile name=\(profile.name), profileID=\(profile.id.uuidString), cohort=\(selectedCohort.rawValue), preference=\(selectedPreference.rawValue), pf=\(selectedCohort.profileFlag)"
-            )
             await DemoSessionStore.shared.setActiveProfileContext(
                 profileID: profile.id,
                 cohort: selectedCohort,
@@ -364,9 +358,6 @@ final class AppFlowViewModel: ObservableObject {
         Task {
             let selectedCohort = profile.cohort
             let selectedPreference = selectedCohort.defaultPreference
-            print(
-                "[ProfileContext] switchActiveProfileAndOpenStorefront name=\(profile.name), profileID=\(profile.id.uuidString), cohort=\(selectedCohort.rawValue), preference=\(selectedPreference.rawValue), pf=\(selectedCohort.profileFlag)"
-            )
             await DemoSessionStore.shared.setActiveProfileContext(
                 profileID: profile.id,
                 cohort: selectedCohort,
@@ -417,8 +408,7 @@ final class AppFlowViewModel: ObservableObject {
             openPlayerBackedContent(item)
         case .collection:
             openCollectionBrowse(item: item, cohort: storefrontViewModel.activeCohort)
-        case .unsupported(let contentType):
-            print("Unsupported content type '\(contentType)' for item: \(item.title). Defaulting to detail when possible.")
+        case .unsupported:
             if item.canOpenDetail {
                 openDetail(item: item)
             } else {
@@ -430,9 +420,6 @@ final class AppFlowViewModel: ObservableObject {
     private func persistCohortOverride(_ cohort: QuickplayCohort) async throws -> Profile? {
         guard let activeProfile else { return nil }
         let updatedProfile = try await profileRepository.updateProfileCohort(id: activeProfile.id, cohort: cohort)
-        print(
-            "[ProfileContext] dynamicOverrideSavedForNextLaunch profile=\(updatedProfile.name), profileID=\(updatedProfile.id.uuidString), cohort=\(updatedProfile.cohort.rawValue), pf=\(updatedProfile.cohort.profileFlag)"
-        )
         return updatedProfile
     }
 

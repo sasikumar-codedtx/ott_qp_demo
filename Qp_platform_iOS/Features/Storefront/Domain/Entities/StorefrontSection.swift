@@ -9,6 +9,7 @@ struct StorefrontSection: Identifiable, Equatable, Hashable {
     let isHero: Bool
     let backgroundImageURL: URL?
     let backgroundColorHex: String?
+    let viewAllContentIDs: [String]?
 
     init(
         id: String,
@@ -17,7 +18,8 @@ struct StorefrontSection: Identifiable, Equatable, Hashable {
         items: [StorefrontItem],
         isHero: Bool,
         backgroundImageURL: URL? = nil,
-        backgroundColorHex: String? = nil
+        backgroundColorHex: String? = nil,
+        viewAllContentIDs: [String]? = nil
     ) {
         self.id = id
         self.title = title
@@ -26,6 +28,7 @@ struct StorefrontSection: Identifiable, Equatable, Hashable {
         self.isHero = isHero
         self.backgroundImageURL = backgroundImageURL
         self.backgroundColorHex = backgroundColorHex
+        self.viewAllContentIDs = viewAllContentIDs
     }
 
     var allowsViewAll: Bool {

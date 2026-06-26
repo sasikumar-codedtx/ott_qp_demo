@@ -73,9 +73,6 @@ actor DemoSessionStore {
         activeProfileID = profileID?.uuidString
         activeCohort = cohort
         activePreference = preference
-        print(
-            "[DemoSessionStore] setActiveProfileContext profileID=\(activeProfileID ?? "<nil>"), selectedCohort=\(cohort.rawValue), selectedPreference=\(preference.rawValue), pf=\(cohort.profileFlag)"
-        )
         UserDefaults.standard.set(activeProfileID, forKey: StorageKey.activeProfileID)
         UserDefaults.standard.set(cohort.rawValue, forKey: StorageKey.activeCohort)
         UserDefaults.standard.set(preference.rawValue, forKey: StorageKey.activePreference)
@@ -87,7 +84,6 @@ actor DemoSessionStore {
         cohortTapCountsByProfile[profileID.uuidString] = [:]
         UserDefaults.standard.set(preferenceHistoryByProfile, forKey: StorageKey.preferenceHistoryByProfile)
         UserDefaults.standard.set(cohortTapCountsByProfile, forKey: StorageKey.cohortTapCountsByProfile)
-        print("[DemoSessionStore] resetPreferenceHistory profileID=\(profileID.uuidString)")
     }
 
     func clearActiveProfileContext() {
@@ -138,9 +134,6 @@ actor DemoSessionStore {
         continueWatchingByProfile[key] = continueItems
         persistContinueWatching()
 
-        print(
-            "[DemoSessionStore] recordContentSelection profileKey=\(key), item=\(item.title), cust_sc=\(item.customSearchCategory ?? "<nil>"), tappedCohort=\(tappedCohort.rawValue), counts=\(counts), previousCohort=\(previousCohort.rawValue)"
-        )
         guard let updatedCohort = firstCohortAtThreshold(in: counts) else { return nil }
 
         cohortTapCountsByProfile[key] = [:]

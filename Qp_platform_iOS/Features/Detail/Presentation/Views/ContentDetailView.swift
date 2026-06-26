@@ -100,6 +100,7 @@ struct ContentDetailView: View {
     @State private var selectedSportsTab = "Live Feed"
     @State private var liveChatInput = ""
     @State private var sportsPollAnswer: String? = nil
+    @State private var scorecardTeamTab = "India"
     @FocusState private var isChatInputFocused: Bool
 
     private let recommendationColumns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
@@ -165,6 +166,7 @@ struct ContentDetailView: View {
                                     .padding(.top, -64)
                             }
                         }
+                        .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 120 : 0)
                         .padding(.bottom, 42)
                     }
                     .ignoresSafeArea(edges: .top)
@@ -186,6 +188,11 @@ struct ContentDetailView: View {
                             withAnimation(.easeInOut(duration: 0.82)) {
                                 scrollProxy.scrollTo(detailTabsAnchorID, anchor: UnitPoint(x: 0.5, y: 0.09))
                             }
+                        }
+                    }
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        if kind == .sportsInteractive && selectedSportsTab == "Live Feed" {
+                            sportsLiveInputDock
                         }
                     }
                 }
@@ -396,73 +403,78 @@ struct ContentDetailView: View {
 
     private var sportsLiveFeedTab: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Chat messages
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(sportsLiveChatMessages) { msg in
-                    liveChatRow(msg)
-                }
-
-                // Embedded poll card
-                sportsPollInChat
-                    .padding(.top, 8)
-                    .padding(.bottom, 4)
+            ForEach(sportsLiveChatMessages) { msg in
+                liveChatRow(msg)
             }
-            .padding(.top, 10)
 
-            // Emoji reaction bar
+            sportsPollInChat
+                .padding(.top, 8)
+        }
+        .padding(.top, 10)
+    }
+
+    // Fixed input dock (pinned to bottom via safeAreaInset on the ScrollView)
+    private var sportsLiveInputDock: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(Color.white.opacity(0.1))
+                .frame(height: 1)
+
+            // Emoji bar
             HStack(spacing: 0) {
-                ForEach(["😜", "😍", "😏", "💀", "👏", "🤨", "❤️", "😂"], id: \.self) { emoji in
+                ForEach(["😅", "😮", "😤", "💀", "👏", "❤️", "🤍", "😂"], id: \.self) { emoji in
                     Button {
-                        // reaction tap
+                        // reaction
                     } label: {
                         Text(emoji)
                             .font(.system(size: 22))
                             .frame(maxWidth: .infinity)
-                            .frame(height: 40)
+                            .frame(height: 44)
                     }
                     .buttonStyle(LiquidButtonPressStyle())
                 }
             }
-            .padding(.top, 14)
+            .padding(.horizontal, 4)
 
-            // Chat text input
+            // Send message input
             HStack(spacing: 0) {
-                TextField("", text: $liveChatInput, prompt: Text("Add a comment…").foregroundStyle(.white.opacity(0.36)))
+                TextField("", text: $liveChatInput, prompt: Text("Send message").foregroundStyle(.white.opacity(0.38)))
                     .focused($isChatInputFocused)
                     .submitLabel(.send)
                     .font(.system(size: 14, weight: .regular))
                     .foregroundStyle(.white)
-                    .padding(.leading, 16)
-                    .padding(.vertical, 16)
+                    .padding(.leading, 18)
+                    .frame(height: 54)
 
                 Button(action: {}) {
                     Image(systemName: "face.smiling")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.58))
-                        .frame(width: 36, height: 36)
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.52))
+                        .frame(width: 40, height: 40)
                 }
                 .buttonStyle(LiquidButtonPressStyle())
 
                 Button(action: {}) {
-                    Text("GIF")
-                        .font(.system(size: 11, weight: .black))
-                        .foregroundStyle(.white.opacity(0.58))
-                        .frame(width: 36, height: 36)
+                    Image(systemName: "photo.on.rectangle")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.52))
+                        .frame(width: 40, height: 40)
                 }
                 .buttonStyle(LiquidButtonPressStyle())
-                .padding(.trailing, 4)
+                .padding(.trailing, 8)
             }
             .background(
                 RoundedRectangle(cornerRadius: 27, style: .continuous)
                     .fill(Color.white.opacity(0.07))
                     .overlay(
                         RoundedRectangle(cornerRadius: 27, style: .continuous)
-                            .stroke(Color.white.opacity(0.14), lineWidth: 1)
+                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
                     )
             )
-            .padding(.top, 8)
-            .padding(.bottom, 16)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
         }
+        .background(Color(hex: "0A0A0A").opacity(0.96).ignoresSafeArea(edges: .bottom))
     }
 
     private func liveChatRow(_ msg: SportsLiveChatMessage) -> some View {
@@ -568,135 +580,174 @@ struct ContentDetailView: View {
     // MARK: Scorecard tab
 
     private var sportsScorecardTab: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            // Live score header
-            sportsLiveScoreHeader
+        VStack(alignment: .leading, spacing: 0) {
+            // ── Live score block (Figma-accurate) ──────────────────────────
+            scorecardScoreBlock
+                .padding(.top, 14)
+
+            // ── Bowler + at-crease batters + ball history ───────────────────
+            scorecardLiveMatchRow
                 .padding(.top, 12)
 
-            // Current over
-            sportsCurrentOverCard
+            // ── India / Sri Lanka innings tab picker ────────────────────────
+            scorecardInningsTabRow
+                .padding(.top, 16)
 
-            // Batting scorecard table
+            // ── Batting table ───────────────────────────────────────────────
             sportsBattingTable
-
-            // Win probability
-            sportsWinProbabilityCard
+                .padding(.top, 12)
+                .padding(.bottom, 20)
         }
     }
 
-    private var sportsLiveScoreHeader: some View {
-        HStack(spacing: 0) {
-            VStack(alignment: .center, spacing: 4) {
+    private var scorecardScoreBlock: some View {
+        HStack(alignment: .center, spacing: 0) {
+            // Left team — IND
+            VStack(alignment: .leading, spacing: 2) {
                 Text("IND")
-                    .font(.system(size: 16, weight: .black))
-                    .foregroundStyle(.white)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.62))
                 Text("210-5")
-                    .font(.system(size: 32, weight: .black, design: .rounded))
+                    .font(.system(size: 34, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
-                Text("Over 20")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.52))
-            }
-            .frame(maxWidth: .infinity)
-
-            VStack(spacing: 6) {
-                Text("LIVE")
-                    .font(.system(size: 9, weight: .black))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 8)
-                    .frame(height: 18)
-                    .background(Capsule().fill(Color(hex: "E50914")))
-
-                Text("vs")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.48))
-            }
-            .frame(width: 52)
-
-            VStack(alignment: .center, spacing: 4) {
-                Text("SL")
-                    .font(.system(size: 16, weight: .black))
-                    .foregroundStyle(.white)
-                Text("48-2")
-                    .font(.system(size: 32, weight: .black, design: .rounded))
-                    .foregroundStyle(.white)
-                Text("Over 5.4")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.52))
-            }
-            .frame(maxWidth: .infinity)
-        }
-        .padding(.vertical, 18)
-        .padding(.horizontal, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(hex: "08111F"), Color(hex: "1A2940")],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(Color(hex: "72F6A2").opacity(0.28), lineWidth: 1)
-                )
-        )
-    }
-
-    private var sportsCurrentOverCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("J Bumrah")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
-                    Text("3.5 – 8 – 1")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.56))
-                }
-
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text("CRR 10.2")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(Color(hex: "72F6A2"))
-                    Text("Need 163 off 85 balls")
+                HStack(spacing: 4) {
+                    Circle().fill(Color(hex: "22C55E")).frame(width: 7, height: 7)
+                    Text("Over 20")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(.white.opacity(0.52))
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-            HStack(spacing: 8) {
-                Text("This over:")
+            // Centre — LIVE + pause icon
+            VStack(spacing: 5) {
+                Text("LIVE")
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 7)
+                    .frame(height: 17)
+                    .background(Capsule().fill(Color(hex: "E50914")))
+
+                Image(systemName: "pause.circle.fill")
+                    .font(.system(size: 22, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.72))
+            }
+            .frame(width: 56)
+
+            // Right team — SL
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("SL")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.62))
+                Text("48-2")
+                    .font(.system(size: 34, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                Text("Over 5.4")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.44))
+                    .foregroundStyle(.white.opacity(0.52))
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color(hex: "0D1C2E"))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
+        )
+    }
 
-                HStack(spacing: 5) {
-                    ForEach(["0", "4", "W", "0", "4", "1lb"], id: \.self) { ball in
+    private var scorecardLiveMatchRow: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Bowler info
+            HStack(spacing: 12) {
+                Image(systemName: "cricket.ball.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(Color(hex: "72F6A2"))
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("J Bumrah")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.white)
+                    Text("3.5 - 8 - 1")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.52))
+                }
+
+                Spacer()
+
+                // Ball history
+                HStack(spacing: 4) {
+                    ForEach([("W", "E50914", false), ("0", "", true), ("4", "22C55E", false), ("1LB", "", true)], id: \.0) { ball, colorHex, isLight in
                         Text(ball)
-                            .font(.system(size: 11, weight: .black))
-                            .foregroundStyle(
-                                ball == "W" ? Color.white :
-                                ball == "4" || ball == "6" ? Color.black :
-                                Color.white
-                            )
+                            .font(.system(size: 10, weight: .black))
+                            .foregroundStyle(isLight ? Color.white.opacity(0.82) : Color.white)
                             .frame(width: 28, height: 28)
                             .background(
                                 Circle().fill(
-                                    ball == "W" ? Color(hex: "E50914") :
-                                    ball == "4" ? Color(hex: "22C55E") :
-                                    ball == "6" ? Color(hex: "F59E0B") :
-                                    Color.white.opacity(0.14)
+                                    isLight ? Color.white.opacity(0.12) : Color(hex: colorHex)
                                 )
                             )
                     }
                 }
             }
+
+            // At-crease batters
+            HStack(spacing: 16) {
+                batsmanChip(name: "D Warner", scoreStr: "0  1")
+                batsmanChip(name: "G Maxwell", scoreStr: "52  38")
+            }
         }
         .padding(14)
         .background(LiquidGlassBackground(cornerRadius: 14, tone: .dark))
+    }
+
+    private func batsmanChip(name: String, scoreStr: String) -> some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(Color.white.opacity(0.14))
+                .frame(width: 28, height: 28)
+                .overlay(
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.62))
+                )
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(name)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
+                Text(scoreStr)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.52))
+            }
+        }
+    }
+
+    private var scorecardInningsTabRow: some View {
+        HStack(spacing: 8) {
+            ForEach(["India", "Sri Lanka"], id: \.self) { team in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.18)) {
+                        scorecardTeamTab = team
+                    }
+                } label: {
+                    Text(team)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(scorecardTeamTab == team ? Color(hex: "0A0A0A") : .white.opacity(0.62))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 36)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(scorecardTeamTab == team ? Color.white : Color.white.opacity(0.08))
+                        )
+                }
+                .buttonStyle(LiquidButtonPressStyle())
+            }
+        }
     }
 
     private var sportsBattingTable: some View {
@@ -709,11 +760,11 @@ struct ContentDetailView: View {
                 Text("B").frame(width: 30, alignment: .trailing)
                 Text("4s").frame(width: 28, alignment: .trailing)
                 Text("6s").frame(width: 28, alignment: .trailing)
-                Text("SR").frame(width: 46, alignment: .trailing)
+                Text("SR").frame(width: 48, alignment: .trailing)
             }
             .font(.system(size: 10, weight: .bold))
             .foregroundStyle(.white.opacity(0.44))
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 14)
             .padding(.vertical, 10)
 
             Rectangle().fill(Color.white.opacity(0.1)).frame(height: 1)
@@ -730,8 +781,8 @@ struct ContentDetailView: View {
 
     private func sportsBatterRow(_ batter: ScorecardBatter) -> some View {
         HStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 1) {
-                HStack(spacing: 4) {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 5) {
                     Text(batter.name)
                         .font(.system(size: 13, weight: batter.isAtCrease ? .bold : .regular))
                         .foregroundStyle(batter.isAtCrease ? .white : .white.opacity(0.82))
@@ -746,62 +797,25 @@ struct ContentDetailView: View {
 
                 Text(batter.dismissal)
                     .font(.system(size: 10, weight: .regular))
-                    .foregroundStyle(.white.opacity(0.36))
+                    .foregroundStyle(.white.opacity(0.34))
                     .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Text(batter.r).frame(width: 34, alignment: .trailing)
                 .font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
             Text(batter.b).frame(width: 30, alignment: .trailing)
-                .font(.system(size: 12, weight: .regular)).foregroundStyle(.white.opacity(0.56))
+                .font(.system(size: 12)).foregroundStyle(.white.opacity(0.52))
             Text(batter.fours).frame(width: 28, alignment: .trailing)
-                .font(.system(size: 12, weight: .regular)).foregroundStyle(.white.opacity(0.56))
+                .font(.system(size: 12)).foregroundStyle(.white.opacity(0.52))
             Text(batter.sixes).frame(width: 28, alignment: .trailing)
-                .font(.system(size: 12, weight: .regular)).foregroundStyle(.white.opacity(0.56))
-            Text(batter.sr).frame(width: 46, alignment: .trailing)
-                .font(.system(size: 11, weight: .regular)).foregroundStyle(.white.opacity(0.44))
+                .font(.system(size: 12)).foregroundStyle(.white.opacity(0.52))
+            Text(batter.sr).frame(width: 48, alignment: .trailing)
+                .font(.system(size: 11)).foregroundStyle(.white.opacity(0.4))
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-    }
-
-    private var sportsWinProbabilityCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Win Probability")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(.white)
-
-            ForEach([("India", "32%", 0.32, "4891E0"), ("Sri Lanka", "68%", 0.68, "72F6A2")], id: \.0) { team in
-                HStack(spacing: 10) {
-                    Text(team.0)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 72, alignment: .leading)
-
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                .fill(Color.white.opacity(0.1))
-                                .frame(height: 8)
-
-                            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                .fill(Color(hex: team.3))
-                                .frame(width: geo.size.width * team.2, height: 8)
-                        }
-                    }
-                    .frame(height: 8)
-
-                    Text(team.1)
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(Color(hex: team.3))
-                        .frame(width: 36, alignment: .trailing)
-                }
-            }
-        }
-        .padding(14)
-        .background(LiquidGlassBackground(cornerRadius: 14, tone: .dark))
-        .padding(.bottom, 16)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 11)
     }
 
     private func descriptionBlock(_ detail: ContentDetail) -> some View {
@@ -1072,123 +1086,255 @@ struct ContentDetailView: View {
         }
     }
 
+    // MARK: KBC Quiz overlay (full screen)
+
+    private static let kbcQuizOptions: [(letter: String, text: String, isCorrect: Bool)] = [
+        ("A", "18", true),
+        ("B", "10", false),
+        ("C", "12", false),
+        ("D", "4",  false)
+    ]
+
     private func mockShowInteractionOverlay(detail: ContentDetail) -> some View {
         ZStack {
-            Color.black.opacity(0.58)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    dismissMockInteraction()
-                }
-
-            VStack(spacing: 16) {
-                Capsule()
-                    .fill(Color.white.opacity(0.22))
-                    .frame(width: 42, height: 5)
-
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Quick Question")
-                            .font(.system(size: 20, weight: .black))
-                            .foregroundStyle(.white)
-
-                        Text(mockInteractionShowsResult ? "Answer locked" : "Timer \(mockInteractionCountdown)s")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(Color(hex: "FFD166"))
-                    }
-
-                    Spacer()
-
-                    Button {
-                        dismissMockInteraction()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 13, weight: .black))
-                            .foregroundStyle(.white)
-                            .frame(width: 36, height: 36)
-                            .background(Circle().fill(Color.white.opacity(0.12)))
-                    }
-                    .buttonStyle(LiquidButtonPressStyle())
-                }
-
-                Text("What happens next in \(detail.title)?")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.86))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                VStack(spacing: 10) {
-                    mockAnswerButton("The hero discovers a clue", isCorrect: true)
-                    mockAnswerButton("A new rival enters", isCorrect: false)
-                    mockAnswerButton("The case gets closed", isCorrect: false)
-                }
-
-                if mockInteractionShowsResult {
-                    HStack(spacing: 8) {
-                        Image(systemName: mockInteractionSelection == "The hero discovers a clue" ? "checkmark.seal.fill" : "xmark.seal.fill")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(mockInteractionSelection == "The hero discovers a clue" ? Color(hex: "72F6A2") : Color(hex: "FF6464"))
-
-                        Text(mockInteractionSelection == "The hero discovers a clue" ? "Correct answer. Nice pick." : "Wrong answer. Correct one was clue.")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(.white)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
-                }
-            }
-            .padding(18)
-            .background(
-                RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(hex: "271145"), Color(hex: "121218"), Color(hex: "3A1907")],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 26, style: .continuous)
-                            .stroke(Color.white.opacity(0.14), lineWidth: 1)
-                    )
-                    .shadow(color: Color.black.opacity(0.48), radius: 30, x: 0, y: 18)
+            // Full-screen dark purple background
+            LinearGradient(
+                colors: [Color(hex: "0D0820"), Color(hex: "080F1E")],
+                startPoint: .top,
+                endPoint: .bottom
             )
-            .padding(.horizontal, 22)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // ── Nav bar ────────────────────────────────────────────────
+                kbcQuizNavBar
+
+                // ── Video thumbnail ────────────────────────────────────────
+                ZStack(alignment: .topLeading) {
+                    Rectangle()
+                        .fill(Color(hex: "1A1030"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 220)
+                        .overlay(
+                            Image(systemName: "film")
+                                .font(.system(size: 48))
+                                .foregroundStyle(.white.opacity(0.08))
+                        )
+
+                    // KBC logo badge
+                    ZStack {
+                        Circle()
+                            .fill(Color(hex: "1A0A30"))
+                            .frame(width: 52, height: 52)
+                            .overlay(Circle().stroke(Color(hex: "9B4DCA").opacity(0.7), lineWidth: 1.5))
+                        Text("KBC")
+                            .font(.system(size: 10, weight: .black))
+                            .foregroundStyle(.white)
+                    }
+                    .padding(.top, 10)
+                    .padding(.leading, 14)
+                }
+
+                // ── Question block ─────────────────────────────────────────
+                VStack(spacing: 16) {
+                    // Question number badge
+                    Text("20")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 42, height: 42)
+                        .background(
+                            Circle()
+                                .fill(Color(hex: "0D0820"))
+                                .overlay(Circle().stroke(Color.white.opacity(0.38), lineWidth: 2))
+                        )
+                        .padding(.top, 16)
+
+                    // Question text
+                    Text("How many holes are contained in a typical golf course")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 16)
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(Color(hex: "10183A"))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(Color.white.opacity(0.22), lineWidth: 1)
+                                )
+                        )
+                        .padding(.horizontal, 18)
+
+                    // Options grid
+                    VStack(spacing: 10) {
+                        ForEach(Self.kbcQuizOptions, id: \.letter) { opt in
+                            kbcOptionButton(opt.letter, text: opt.text, isCorrect: opt.isCorrect)
+                        }
+                    }
+                    .padding(.horizontal, 18)
+
+                    // Lifelines
+                    kbcLifelineRow
+                        .padding(.horizontal, 18)
+                        .padding(.bottom, 24)
+                }
+
+                Spacer(minLength: 0)
+            }
         }
+        .transition(.opacity)
     }
 
-    private func mockAnswerButton(_ title: String, isCorrect: Bool) -> some View {
-        let isSelected = mockInteractionSelection == title
+    private var kbcQuizNavBar: some View {
+        HStack(spacing: 0) {
+            Button { dismissMockInteraction() } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+            }
+            .buttonStyle(LiquidButtonPressStyle())
+
+            Spacer()
+
+            HStack(spacing: 8) {
+                ZStack {
+                    Circle()
+                        .fill(Color(hex: "1A0A30"))
+                        .frame(width: 32, height: 32)
+                        .overlay(Circle().stroke(Color(hex: "9B4DCA").opacity(0.7), lineWidth: 1))
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color(hex: "F5A623"))
+                }
+
+                Text("1300")
+                    .font(.system(size: 22, weight: .black))
+                    .foregroundStyle(Color(hex: "F5A623"))
+            }
+
+            Spacer()
+
+            Button {} label: {
+                Image(systemName: "gamecontroller")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+            }
+            .buttonStyle(LiquidButtonPressStyle())
+        }
+        .padding(.horizontal, 4)
+        .frame(height: 54)
+    }
+
+    private func kbcOptionButton(_ letter: String, text: String, isCorrect: Bool) -> some View {
+        let isSelected = mockInteractionSelection == letter
         let isLocked = mockInteractionSelection != nil
-        let resultColor = isCorrect ? Color(hex: "22C55E") : Color(hex: "FF6464")
+
+        let fillColor: Color = {
+            if !isLocked { return Color.clear }
+            if mockInteractionShowsResult {
+                if isCorrect { return Color(hex: "22C55E") }
+                if isSelected && !isCorrect { return Color(hex: "EF4444") }
+            } else {
+                if isSelected { return Color(hex: "D4860E") }
+            }
+            return Color.clear
+        }()
+
+        let strokeColor: Color = {
+            if !isLocked { return Color.white.opacity(0.22) }
+            if mockInteractionShowsResult {
+                if isCorrect { return Color(hex: "22C55E") }
+                if isSelected && !isCorrect { return Color(hex: "EF4444") }
+            } else {
+                if isSelected { return Color(hex: "F5A623") }
+            }
+            return Color.white.opacity(0.12)
+        }()
+
+        let letterColor: Color = {
+            if isLocked && mockInteractionShowsResult && (isCorrect || isSelected) {
+                return .white
+            }
+            return isLocked && !isSelected ? Color(hex: "F5A623").opacity(0.38) : Color(hex: "F5A623")
+        }()
+
+        let textOpacity: Double = isLocked && !isSelected && !(mockInteractionShowsResult && isCorrect) ? 0.38 : 1.0
 
         return Button {
-            answerMockInteraction(title)
+            answerMockInteraction(letter)
         } label: {
-            HStack {
-                Text(title)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
+            ZStack {
+                // Hexagon shape fill
+                KBCHexShape()
+                    .fill(
+                        fillColor == Color.clear
+                            ? AnyShapeStyle(Color(hex: "0B1630"))
+                            : AnyShapeStyle(fillColor)
+                    )
 
-                Spacer()
+                KBCHexShape()
+                    .stroke(strokeColor, lineWidth: 1.2)
 
-                if isLocked && (isSelected || isCorrect) {
-                    Image(systemName: isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
-                        .foregroundStyle(resultColor)
+                HStack(spacing: 0) {
+                    // Letter section with vertical divider
+                    Text(letter + ".")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(letterColor)
+                        .frame(width: 44)
+
+                    Rectangle()
+                        .fill(Color.white.opacity(0.12))
+                        .frame(width: 1, height: 28)
+
+                    Text(text)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white.opacity(textOpacity))
+                        .frame(maxWidth: .infinity)
                 }
             }
-            .padding(.horizontal, 14)
-            .frame(height: 48)
-            .background(
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
-                    .fill(Color.white.opacity(isSelected ? 0.16 : 0.08))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 15, style: .continuous)
-                            .stroke(isLocked && (isSelected || isCorrect) ? resultColor.opacity(0.75) : Color.white.opacity(0.12), lineWidth: 1)
-                    )
-            )
+            .frame(height: 52)
         }
         .disabled(isLocked)
+        .buttonStyle(LiquidButtonPressStyle())
+    }
+
+    private var kbcLifelineRow: some View {
+        HStack(spacing: 12) {
+            kbcLifelineButton(label: "50:50", systemImage: nil)
+            kbcLifelineButton(label: nil, systemImage: "arrow.triangle.2.circlepath")
+            kbcLifelineButton(label: nil, systemImage: "person.2.fill")
+            kbcLifelineButton(label: nil, systemImage: "info.circle")
+        }
+        .padding(.top, 8)
+    }
+
+    private func kbcLifelineButton(label: String?, systemImage: String?) -> some View {
+        Button {} label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(hex: "0B1630"))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    )
+
+                if let label = label {
+                    Text(label)
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.white)
+                } else if let img = systemImage {
+                    Image(systemName: img)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.8))
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 52)
+        }
         .buttonStyle(LiquidButtonPressStyle())
     }
 
@@ -1735,5 +1881,21 @@ private struct CastAvatarTile: View {
             RoundedRectangle(cornerRadius: UIConstants.CornerRadius.lg, style: .continuous)
                 .stroke(Color.white.opacity(0.12), lineWidth: 1)
         )
+    }
+}
+
+// Hexagonal KBC-style option shape (pointed left/right ends)
+private struct KBCHexShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        let indent = rect.height * 0.38
+        var p = Path()
+        p.move(to: CGPoint(x: indent, y: 0))
+        p.addLine(to: CGPoint(x: rect.maxX - indent, y: 0))
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
+        p.addLine(to: CGPoint(x: rect.maxX - indent, y: rect.maxY))
+        p.addLine(to: CGPoint(x: indent, y: rect.maxY))
+        p.addLine(to: CGPoint(x: 0, y: rect.midY))
+        p.closeSubpath()
+        return p
     }
 }

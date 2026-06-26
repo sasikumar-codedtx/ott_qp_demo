@@ -40,9 +40,6 @@ final class ProfileHubViewModel: ObservableObject {
         sections = []
         errorMessage = nil
         hasLoaded = false
-        print(
-            "[ProfileHub] present profile=\(profile?.name ?? "<nil>"), profileID=\(profile?.id.uuidString ?? "<nil>"), preference=\(profile?.preference.rawValue ?? "<nil>"), cohort=\(profile?.cohort.rawValue ?? "<nil>"), seedCount=\(seedItems.count)"
-        )
     }
 
     func loadIfNeeded() async {
