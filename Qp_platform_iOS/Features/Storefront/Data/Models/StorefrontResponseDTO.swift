@@ -351,6 +351,7 @@ struct QuickplayContentItemDTO: Decodable {
     let vsm: [ContentMomentsDTO]?
     let yearDate: String?
     let stlId: String?
+    let setlId: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -379,6 +380,7 @@ struct QuickplayContentItemDTO: Decodable {
         case vsm = "v_sm"
         case yearDate = "rdt"
         case stlId = "stl_id"
+        case setlId = "setl_id"
     }
 
     func toDomain(config: QuickplayRuntimeConfig, progress: Double? = nil) -> StorefrontItem {
@@ -392,7 +394,7 @@ struct QuickplayContentItemDTO: Decodable {
             customID: custId,
             collectionURL: cu?.nilIfEmpty,
             collectionQueryIDs: q?.nilIfEmpty,
-            seriesId: stlId?.nilIfEmpty,
+            seriesId: seriesID,
             slug: nu,
             resourceURN: urn,
             year: yearDate.flatMap { String($0.prefix(4)) },
@@ -434,7 +436,7 @@ struct QuickplayContentItemDTO: Decodable {
     }
 
     private var seriesID: String? {
-        [stlId, id]
+        [stlId, setlId, id]
             .compactMap { $0?.nilIfEmpty }
             .first
     }

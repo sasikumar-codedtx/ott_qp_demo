@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="460" viewBox="0 0 960 460" role="img" aria-label="Storefront API lifecycle">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#080a12"/>
+      <stop offset="1" stop-color="#121828"/>
+    </linearGradient>
+    <linearGradient id="a" x1="0" x2="1">
+      <stop offset="0" stop-color="#ff934d"/>
+      <stop offset="1" stop-color="#9f5cff"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="460" rx="28" fill="url(#bg)"/>
+  <text x="44" y="58" font-family="Inter, Arial" font-size="28" font-weight="800" fill="#fff">Storefront Request Lifecycle</text>
+  <text x="44" y="88" font-family="Inter, Arial" font-size="14" fill="#95a0b4">Bootstrap with landing screen, render with containers, paginate until empty.</text>
+  <g font-family="Inter, Arial">
+    <g transform="translate(52 130)">
+      <rect width="250" height="104" rx="18" fill="#111827" stroke="#303849"/>
+      <text x="18" y="30" font-size="16" font-weight="800" fill="#fff">1. Landing screen</text>
+      <text x="18" y="56" font-size="13" fill="#aeb8ca">sfid=nil, tid=nil</text>
+      <text x="18" y="78" font-size="13" fill="#aeb8ca">Returns data.id and data.t[]</text>
+    </g>
+    <g transform="translate(354 130)">
+      <rect width="250" height="104" rx="18" fill="#111827" stroke="#303849"/>
+      <text x="18" y="30" font-size="16" font-weight="800" fill="#fff">2. Select tab</text>
+      <text x="18" y="56" font-size="13" fill="#aeb8ca">selectedTab = data.t.first.id</text>
+      <text x="18" y="78" font-size="13" fill="#aeb8ca">tab menu uses all returned tabs</text>
+    </g>
+    <g transform="translate(656 130)">
+      <rect width="250" height="104" rx="18" fill="#111827" stroke="#303849"/>
+      <text x="18" y="30" font-size="16" font-weight="800" fill="#fff">3. Containers</text>
+      <text x="18" y="56" font-size="13" fill="#aeb8ca">/storefront/{sfid}/{tid}/containers</text>
+      <text x="18" y="78" font-size="13" fill="#aeb8ca">Returns c[] rails and cd[] cards</text>
+    </g>
+    <g transform="translate(198 286)">
+      <rect width="250" height="104" rx="18" fill="#111827" stroke="#303849"/>
+      <text x="18" y="30" font-size="16" font-weight="800" fill="#fff">4. Pagination</text>
+      <text x="18" y="56" font-size="13" fill="#aeb8ca">pageNumber increments</text>
+      <text x="18" y="78" font-size="13" fill="#aeb8ca">empty response means complete</text>
+    </g>
+    <g transform="translate(510 286)">
+      <rect width="250" height="104" rx="18" fill="#111827" stroke="#303849"/>
+      <text x="18" y="30" font-size="16" font-weight="800" fill="#fff">5. Profile switch</text>
+      <text x="18" y="56" font-size="13" fill="#aeb8ca">reset sfid, tid, tabs, cache</text>
+      <text x="18" y="78" font-size="13" fill="#aeb8ca">repeat from landing screen</text>
+    </g>
+  </g>
+  <g stroke="url(#a)" stroke-width="4" stroke-linecap="round" fill="none">
+    <path d="M302 182 H354"/>
+    <path d="M604 182 H656"/>
+    <path d="M782 234 C782 282 710 286 660 286"/>
+    <path d="M510 338 H448"/>
+    <path d="M198 338 C92 338 70 238 96 234"/>
+  </g>
+</svg>

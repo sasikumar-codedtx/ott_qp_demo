@@ -121,8 +121,9 @@ private struct StorefrontBackgroundImageSectionView: View {
     let onViewAll: ((StorefrontSection) -> Void)?
     let onSelectItem: (StorefrontItem) -> Void
 
-    private let titleBandHeight: CGFloat = 40
-    private let cardBottomInset: CGFloat = 58
+    private let titleBandHeight: CGFloat = 48
+    private let titleBandVerticalPadding: CGFloat = 12
+    private let cardToTitleGap: CGFloat = 12
 
     private var backgroundColor: Color {
         Color(hex: section.backgroundColorHex ?? "1F0C00")
@@ -154,7 +155,7 @@ private struct StorefrontBackgroundImageSectionView: View {
                     .frame(width: mediaSize, height: mediaSize)
 
                     cardRail
-                        .padding(.bottom, cardBottomInset)
+                        .padding(.bottom, titleBandHeight + cardToTitleGap)
                 }
                 .frame(width: mediaSize, height: mediaSize)
                 .clipped()
@@ -211,10 +212,11 @@ private struct StorefrontBackgroundImageSectionView: View {
                 Image(systemName: AppIcons.Navigation.next)
                     .font(.system(size: 24, weight: .semibold))
                     .foregroundStyle(.white)
-                    .frame(width: 30, height: 30)
+                    .frame(width: 24, height: 24)
             }
         }
-        .frame(height: titleBandHeight, alignment: .bottom)
+        .padding(.vertical, titleBandVerticalPadding)
+        .frame(height: titleBandHeight, alignment: .center)
         .padding(.horizontal, UIConstants.Spacing.lg)
         .background(backgroundColor)
     }

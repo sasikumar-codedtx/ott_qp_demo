@@ -32,12 +32,32 @@ private struct ScorecardBatter: Identifiable {
 }
 
 private let scorecardInnningsData: [ScorecardBatter] = [
-    .init(id: "1", name: "R Sharma (c)", dismissal: "b Wellalage", r: "53", b: "48", fours: "7", sixes: "2", sr: "110.4", isAtCrease: false),
-    .init(id: "2", name: "S Gill", dismissal: "b Wellalage", r: "19", b: "25", fours: "2", sixes: "0", sr: "76.0", isAtCrease: false),
-    .init(id: "3", name: "V Kohli", dismissal: "c Shanaka b Wellalage", r: "3", b: "12", fours: "0", sixes: "0", sr: "25.0", isAtCrease: false),
-    .init(id: "4", name: "I Kishan", dismissal: "c Wellalage b Asalanka", r: "44", b: "29", fours: "3", sixes: "2", sr: "151.7", isAtCrease: false),
-    .init(id: "5", name: "D Warner", dismissal: "not out", r: "0", b: "1", fours: "0", sixes: "0", sr: "0.0", isAtCrease: true),
-    .init(id: "6", name: "G Maxwell", dismissal: "not out", r: "52", b: "38", fours: "4", sixes: "3", sr: "136.8", isAtCrease: true),
+    .init(id: "1",  name: "R Sharma (c)",  dismissal: "b Wellalage",            r: "53", b: "48", fours: "7", sixes: "2", sr: "110.42", isAtCrease: false),
+    .init(id: "2",  name: "S Gill",        dismissal: "b Wellalage",            r: "19", b: "25", fours: "2", sixes: "0", sr: "76.00",  isAtCrease: false),
+    .init(id: "3",  name: "V Kohli",       dismissal: "c Shanaka b Wellalage",  r: "3",  b: "12", fours: "0", sixes: "0", sr: "25.00",  isAtCrease: false),
+    .init(id: "4",  name: "I Kishan",      dismissal: "c Wellalage b Asalanka", r: "33", b: "61", fours: "1", sixes: "1", sr: "54.10",  isAtCrease: false),
+    .init(id: "5",  name: "KL Rahul (wk)", dismissal: "lbw Wellalage",          r: "33", b: "61", fours: "1", sixes: "1", sr: "88.64",  isAtCrease: false),
+    .init(id: "6",  name: "H Pandya",      dismissal: "c Markdu b Asalanka",    r: "5",  b: "18", fours: "0", sixes: "0", sr: "27.18",  isAtCrease: false),
+    .init(id: "7",  name: "R Jadeja",      dismissal: "c Markdu b Asalanka",    r: "4",  b: "19", fours: "0", sixes: "0", sr: "21.05",  isAtCrease: false),
+    .init(id: "8",  name: "A Patel",       dismissal: "c Markdu b Asalanka",    r: "26", b: "36", fours: "0", sixes: "1", sr: "72.22",  isAtCrease: false),
+    .init(id: "9",  name: "J Bumrah",      dismissal: "c Dhanaka",              r: "5",  b: "12", fours: "0", sixes: "0", sr: "41.67",  isAtCrease: false),
+    .init(id: "10", name: "K Yadav",       dismissal: "b Asalanka",             r: "0",  b: "1",  fours: "0", sixes: "0", sr: "0.00",   isAtCrease: false),
+    .init(id: "11", name: "M Siraj",       dismissal: "Not Out",                r: "5",  b: "19", fours: "0", sixes: "0", sr: "26.32",  isAtCrease: true),
+]
+
+private struct ScorecardBowler: Identifiable {
+    let id: String; let name: String; let o: String; let m: String
+    let r: String; let w: String; let er: String
+}
+
+private let scorecardBowlingData: [ScorecardBowler] = [
+    .init(id: "1", name: "K Rajitha",    o: "4.0",  m: "0", r: "30", w: "0", er: "7.50"),
+    .init(id: "2", name: "M Theekshana", o: "8.1",  m: "0", r: "41", w: "1", er: "4.47"),
+    .init(id: "3", name: "D Shanaka",    o: "3.0",  m: "0", r: "24", w: "0", er: "8.00"),
+    .init(id: "4", name: "M Pathirana",  o: "4.0",  m: "0", r: "31", w: "0", er: "7.75"),
+    .init(id: "5", name: "D Wellalage",  o: "1.0",  m: "1", r: "40", w: "5", er: "4.00"),
+    .init(id: "6", name: "D Silva",      o: "10.0", m: "0", r: "28", w: "0", er: "2.80"),
+    .init(id: "7", name: "C Asalanka",   o: "9.0",  m: "1", r: "18", w: "4", er: "2.00"),
 ]
 
 private enum DetailPresentationKind: Equatable {
@@ -85,6 +105,7 @@ struct ContentDetailView: View {
     @ObservedObject var viewModel: ContentDetailViewModel
     let onBack: () -> Void
     let onPlay: (ContentDetail, StorefrontItem?) -> Void
+    var onPlayEpisode: ((StorefrontItem) -> Void)? = nil
     let onSelectRecommendation: (StorefrontItem) -> Void
     @State private var isDescriptionExpanded = false
     @State private var isMomentSearchOverlayPresented = false
@@ -100,6 +121,7 @@ struct ContentDetailView: View {
     // Sports interactive
     @State private var selectedSportsTab = "Live Feed"
     @State private var liveChatInput = ""
+    @State private var liveChatDemoMessages: [SportsLiveChatMessage] = []
     @State private var sportsPollAnswer: String? = nil
     @State private var scorecardTeamTab = "India"
     @FocusState private var isChatInputFocused: Bool
@@ -118,11 +140,7 @@ struct ContentDetailView: View {
                         .zIndex(20)
                 }
 
-                if let detail = viewModel.detail, isMockInteractionPresented {
-                    mockShowInteractionOverlay(detail: detail, screenWidth: proxy.size.width)
-                        .zIndex(30)
-                        .transition(.opacity)
-                }
+                // Quiz is now inline inside the ScrollView — no overlay needed here
             }
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .animation(.easeInOut(duration: 0.22), value: isMomentSearchOverlayPresented)
@@ -156,9 +174,17 @@ struct ContentDetailView: View {
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 0) {
                             hero(detail, width: width)
-                                .frame(height: heroHeight(for: width))
+                                .frame(height: isMockInteractionPresented
+                                       ? miniHeroHeight
+                                       : heroHeight(for: width))
+                                .animation(.spring(response: 0.44, dampingFraction: 0.84),
+                                           value: isMockInteractionPresented)
+                                .clipped()
 
-                            if kind == .sportsInteractive {
+                            if isMockInteractionPresented {
+                                quizPanel(detail: detail, width: width)
+                                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                            } else if kind == .sportsInteractive {
                                 sportsDetailContent(detail, width: width)
                                     .padding(.horizontal, 16)
                                     .padding(.top, -64)
@@ -170,8 +196,14 @@ struct ContentDetailView: View {
                         }
                         .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 120 : 0)
                         .padding(.bottom, 42)
+                        .id("scrollTop")
                     }
                     .ignoresSafeArea(edges: .top)
+                    .onChange(of: isMockInteractionPresented) { _, isOn in
+                        if isOn {
+                            withAnimation { scrollProxy.scrollTo("scrollTop", anchor: .top) }
+                        }
+                    }
                     .onChange(of: momentAutoScrollToken) { _, _ in
                         guard viewModel.selectedTab == AppStrings.Detail.moments else { return }
 
@@ -239,6 +271,8 @@ struct ContentDetailView: View {
     private func heroHeight(for width: CGFloat) -> CGFloat {
         max(413, width)
     }
+
+    private var miniHeroHeight: CGFloat { 220 }
 
     private func detailContent(_ detail: ContentDetail, kind: DetailPresentationKind, width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -344,6 +378,7 @@ struct ContentDetailView: View {
 
             // Tab bar
             sportsTabRow
+                .id(detailTabsAnchorID)
                 .padding(.top, 20)
 
             Rectangle()
@@ -411,8 +446,28 @@ struct ContentDetailView: View {
 
             sportsPollInChat
                 .padding(.top, 8)
+
+            ForEach(liveChatDemoMessages) { msg in
+                liveChatRow(msg)
+            }
         }
         .padding(.top, 10)
+    }
+
+    private func sendLiveChatMessage() {
+        let text = liveChatInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        let newMsg = SportsLiveChatMessage(
+            id: UUID().uuidString,
+            username: "You",
+            text: text,
+            avatarLetter: "Y",
+            colorHex: "6366F1"
+        )
+        withAnimation(.easeInOut(duration: 0.18)) {
+            liveChatDemoMessages.append(newMsg)
+            liveChatInput = ""
+        }
     }
 
     // Fixed input dock (pinned to bottom via safeAreaInset on the ScrollView)
@@ -447,6 +502,7 @@ struct ContentDetailView: View {
                     .foregroundStyle(.white)
                     .padding(.leading, 18)
                     .frame(height: 54)
+                    .onSubmit { sendLiveChatMessage() }
 
                 Button(action: {}) {
                     Image(systemName: "face.smiling")
@@ -456,14 +512,23 @@ struct ContentDetailView: View {
                 }
                 .buttonStyle(LiquidButtonPressStyle())
 
-                Button(action: {}) {
-                    Image(systemName: "photo.on.rectangle")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.52))
-                        .frame(width: 40, height: 40)
+                // Rounded send button inside the field
+                Button(action: sendLiveChatMessage) {
+                    Image(systemName: "arrow.up")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(liveChatInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.white.opacity(0.25) : Color.white)
+                        .frame(width: 34, height: 34)
+                        .background(
+                            Circle()
+                                .fill(liveChatInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                      ? Color.white.opacity(0.1)
+                                      : Color(hex: "6366F1"))
+                        )
                 }
                 .buttonStyle(LiquidButtonPressStyle())
-                .padding(.trailing, 8)
+                .disabled(liveChatInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .padding(.trailing, 10)
+                .animation(.easeInOut(duration: 0.15), value: liveChatInput)
             }
             .background(
                 RoundedRectangle(cornerRadius: 27, style: .continuous)
@@ -583,22 +648,14 @@ struct ContentDetailView: View {
 
     private var sportsScorecardTab: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // ── Live score block (Figma-accurate) ──────────────────────────
-            scorecardScoreBlock
-                .padding(.top, 14)
-
-            // ── Bowler + at-crease batters + ball history ───────────────────
-            scorecardLiveMatchRow
-                .padding(.top, 12)
-
-            // ── India / Sri Lanka innings tab picker ────────────────────────
-            scorecardInningsTabRow
-                .padding(.top, 16)
-
-            // ── Batting table ───────────────────────────────────────────────
-            sportsBattingTable
-                .padding(.top, 12)
-                .padding(.bottom, 20)
+            scorecardScoreBlock.padding(.top, 14)
+            scorecardLiveMatchRow.padding(.top, 12)
+            scorecardInningsTabRow.padding(.top, 16)
+            sportsBattingTable.padding(.top, 12)
+            sportsBowlingTable.padding(.top, 16)
+            scorecardTopPerformance.padding(.top, 16)
+            scorecardFallOfWickets.padding(.top, 16)
+            scorecardPartnership.padding(.top, 16).padding(.bottom, 20)
         }
     }
 
@@ -773,12 +830,200 @@ struct ContentDetailView: View {
 
             ForEach(scorecardInnningsData) { batter in
                 sportsBatterRow(batter)
-                if batter.id != scorecardInnningsData.last?.id {
+                Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1)
+            }
+
+            // Extras row
+            HStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Extras")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundStyle(.white.opacity(0.82))
+                    Text("(LB 1, W 21)")
+                        .font(.system(size: 10, weight: .regular))
+                        .foregroundStyle(.white.opacity(0.34))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Text("21").frame(width: 34, alignment: .trailing)
+                    .font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
+                Spacer().frame(width: 30 + 28 + 28 + 48)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+        }
+        .background(LiquidGlassBackground(cornerRadius: 14, tone: .dark))
+    }
+
+    private var sportsBowlingTable: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 0) {
+                Text("Bowler").frame(maxWidth: .infinity, alignment: .leading)
+                Text("O").frame(width: 34, alignment: .trailing)
+                Text("M").frame(width: 26, alignment: .trailing)
+                Text("R").frame(width: 30, alignment: .trailing)
+                Text("W").frame(width: 28, alignment: .trailing)
+                Text("ER").frame(width: 44, alignment: .trailing)
+            }
+            .font(.system(size: 10, weight: .bold))
+            .foregroundStyle(.white.opacity(0.44))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+
+            Rectangle().fill(Color.white.opacity(0.1)).frame(height: 1)
+
+            ForEach(scorecardBowlingData) { bowler in
+                HStack(spacing: 0) {
+                    Text(bowler.name)
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundStyle(.white.opacity(0.88))
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(bowler.o).frame(width: 34, alignment: .trailing)
+                        .font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
+                    Text(bowler.m).frame(width: 26, alignment: .trailing)
+                        .font(.system(size: 12)).foregroundStyle(.white.opacity(0.52))
+                    Text(bowler.r).frame(width: 30, alignment: .trailing)
+                        .font(.system(size: 12)).foregroundStyle(.white.opacity(0.52))
+                    Text(bowler.w).frame(width: 28, alignment: .trailing)
+                        .font(.system(size: 12, weight: bowler.w != "0" ? .bold : .regular))
+                        .foregroundStyle(bowler.w != "0" ? Color(hex: "22C55E") : .white.opacity(0.52))
+                    Text(bowler.er).frame(width: 44, alignment: .trailing)
+                        .font(.system(size: 11)).foregroundStyle(.white.opacity(0.4))
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 11)
+                if bowler.id != scorecardBowlingData.last?.id {
                     Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1)
                 }
             }
         }
         .background(LiquidGlassBackground(cornerRadius: 14, tone: .dark))
+    }
+
+    private var scorecardTopPerformance: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Top Performance")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(.white.opacity(0.72))
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    scorecardPerfCard(stat: "80", label: "S Gill", sub: "Runs")
+                    scorecardPerfCard(stat: "90", label: "V Kohli", sub: "Runs")
+                    scorecardPerfCard(stat: "5-40", label: "D Wellalage", sub: "Bowling")
+                    scorecardPerfCard(stat: "4-18", label: "C Asalanka", sub: "Bowling")
+                }
+            }
+        }
+    }
+
+    private func scorecardPerfCard(stat: String, label: String, sub: String) -> some View {
+        VStack(spacing: 6) {
+            Text(stat)
+                .font(.system(size: 28, weight: .black, design: .rounded))
+                .foregroundStyle(.white)
+            Circle()
+                .fill(Color.white.opacity(0.12))
+                .frame(width: 46, height: 46)
+                .overlay(
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.white.opacity(0.6))
+                )
+            Text(label)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+            Text(sub)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.white.opacity(0.44))
+        }
+        .frame(width: 86)
+        .padding(.vertical, 14)
+        .background(LiquidGlassBackground(cornerRadius: 12, tone: .dark))
+    }
+
+    private var scorecardFallOfWickets: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 0) {
+                Text("Fall of Wickets").frame(maxWidth: .infinity, alignment: .leading)
+                Text("Score").frame(width: 60, alignment: .trailing)
+                Text("Over").frame(width: 48, alignment: .trailing)
+            }
+            .font(.system(size: 10, weight: .bold))
+            .foregroundStyle(.white.opacity(0.44))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+
+            Rectangle().fill(Color.white.opacity(0.1)).frame(height: 1)
+
+            ForEach([
+                ("R Sharma (c)", "39-1", "4.1"),
+                ("S Gill",       "68-2", "7.6"),
+                ("V Kohli",      "119-3","10.2"),
+            ], id: \.0) { name, score, over in
+                HStack(spacing: 0) {
+                    Text(name).font(.system(size: 13)).foregroundStyle(.white.opacity(0.82))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(score).frame(width: 60, alignment: .trailing)
+                        .font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
+                    Text(over).frame(width: 48, alignment: .trailing)
+                        .font(.system(size: 12)).foregroundStyle(.white.opacity(0.52))
+                }
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1)
+            }
+        }
+        .background(LiquidGlassBackground(cornerRadius: 14, tone: .dark))
+    }
+
+    private var scorecardPartnership: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Partnership")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(.white.opacity(0.72))
+
+            VStack(spacing: 8) {
+                partnershipRow(p1: "R Sharma 47", p1Runs: 80, p2: "S Gill 19",  p2Runs: 73, total: 153)
+                partnershipRow(p1: "R Sharma 5",  p1Runs: 10, p2: "V Kohli",    p2Runs: 16, total: 26)
+                partnershipRow(p1: "R Sharma 5",  p1Runs: 1,  p2: "I Kishan",   p2Runs: 5,  total: 6)
+                partnershipRow(p1: "I Kishan 23", p1Runs: 63, p2: "KL Rahul 39",p2Runs: 90, total: 153)
+            }
+        }
+        .padding(14)
+        .background(LiquidGlassBackground(cornerRadius: 14, tone: .dark))
+    }
+
+    private func partnershipRow(p1: String, p1Runs: Int, p2: String, p2Runs: Int, total: Int) -> some View {
+        let p1Frac = total > 0 ? CGFloat(p1Runs) / CGFloat(total) : 0.5
+        let p2Frac = total > 0 ? CGFloat(p2Runs) / CGFloat(total) : 0.5
+
+        return HStack(spacing: 6) {
+            Text(p1)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.white.opacity(0.72))
+                .frame(width: 80, alignment: .trailing)
+                .lineLimit(1).minimumScaleFactor(0.7)
+
+            GeometryReader { geo in
+                HStack(spacing: 2) {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color(hex: "6366F1"))
+                        .frame(width: geo.size.width * p1Frac)
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color(hex: "22C55E"))
+                        .frame(width: geo.size.width * p2Frac)
+                }
+            }
+            .frame(height: 8)
+
+            Text(p2)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.white.opacity(0.72))
+                .frame(width: 80, alignment: .leading)
+                .lineLimit(1).minimumScaleFactor(0.7)
+        }
+        .frame(height: 22)
     }
 
     private func sportsBatterRow(_ batter: ScorecardBatter) -> some View {
@@ -1095,7 +1340,7 @@ struct ContentDetailView: View {
 
     // MARK: KBC Quiz overlay (full screen)
 
-    // MARK: - KBC Quiz overlay — Figma-accurate full-screen
+    // MARK: - KBC Quiz panel (inline, replaces detailContent)
 
     private static let kbcQuizOptions: [(letter: String, text: String, isCorrect: Bool)] = [
         ("A", "18", true),
@@ -1104,12 +1349,11 @@ struct ContentDetailView: View {
         ("D", "4",  false)
     ]
 
-    private func mockShowInteractionOverlay(detail: ContentDetail, screenWidth: CGFloat) -> some View {
-        let imageH: CGFloat = screenWidth  // square video area, same as Figma 412x412
-        let hexW: CGFloat = screenWidth * 0.693  // 285.186 / 412 ≈ 0.693
+    private func quizPanel(detail: ContentDetail, width: CGFloat) -> some View {
+        let hexW: CGFloat = width * 0.693  // 285 / 412
 
-        return ZStack(alignment: .top) {
-            // ── Page background: dark purple gradient ────────────────────
+        return ZStack {
+            // Dark purple background matching Figma
             ZStack {
                 LinearGradient(
                     stops: [
@@ -1120,195 +1364,111 @@ struct ContentDetailView: View {
                 )
                 Color.black.opacity(0.77)
             }
-            .ignoresSafeArea()
-
-            // ── Orange→purple glow blur at very top ──────────────────────
-            LinearGradient(
-                stops: [
-                    .init(color: Color(hex: "FF5E00"), location: 0.033),
-                    .init(color: Color(hex: "4418B4"), location: 0.877)
-                ],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
-            .frame(width: screenWidth, height: 150)
-            .blur(radius: 90)
-            .offset(y: -40)
-            .allowsHitTesting(false)
 
             VStack(spacing: 0) {
-                // ── Image / Player area (square) ─────────────────────────
-                ZStack {
-                    Color.black
-                        .frame(width: screenWidth, height: imageH)
-
-                    AsyncImage(url: detail.imageURL(for: "16x9", width: Int(screenWidth))) { phase in
-                        if let img = phase.image {
-                            img.resizable().scaledToFill()
-                                .frame(width: screenWidth, height: imageH)
-                                .clipped()
-                        } else {
-                            Color(hex: "0A0618").frame(width: screenWidth, height: imageH)
-                        }
-                    }
-
-                    // Gradient to blend image into quiz content
-                    LinearGradient(
-                        colors: [Color.clear, Color.black.opacity(0.55)],
-                        startPoint: .top, endPoint: .bottom
-                    )
-
-                    // ── Nav bar overlaid on image ────────────────────────
-                    VStack {
-                        kbcOverlayNavBar
-                        Spacer()
-                    }
-                }
-                .frame(width: screenWidth, height: imageH)
-                .clipped()
-
-                // ── Quiz content area ────────────────────────────────────
-                VStack(spacing: 0) {
-                    // Question number circle (overlaps image boundary via negative offset)
-                    kbcQuestionCircle
-                        .offset(y: -26)
-                        .padding(.bottom, -26)
-
-                    // Question text box
-                    Text("How many holes are contained in a typical golf course")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .multilineTextAlignment(.center)
-                        .frame(width: screenWidth * 0.823)  // 339/412
-                        .padding(.vertical, 14)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(
-                                    LinearGradient(
-                                        stops: [.init(color: Color(hex: "000001"), location: 0.028),
-                                                .init(color: Color(hex: "00083A"), location: 0.993)],
-                                        startPoint: .top, endPoint: .bottom
-                                    )
-                                )
+                // ── Header row: score (left) + Q-number (centre) + X (right) ──
+                HStack(alignment: .center, spacing: 0) {
+                    // Score badge
+                    HStack(spacing: 8) {
+                        ZStack(alignment: .topLeading) {
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color(hex: "FFA576"))
+                                .frame(width: 30, height: 30)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .stroke(Color.white, lineWidth: 2)
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color(hex: "FFAC33"), lineWidth: 1)
                                 )
-                                .shadow(color: Color.black.opacity(0.7), radius: 45, x: 0, y: 0)
-                        )
-                        .padding(.top, 25)
-
-                    // Options
-                    VStack(spacing: 15) {
-                        ForEach(Self.kbcQuizOptions, id: \.letter) { opt in
-                            kbcOptionRow(opt.letter, text: opt.text, isCorrect: opt.isCorrect,
-                                         screenWidth: screenWidth, hexW: hexW)
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 8, weight: .black))
+                                .foregroundStyle(Color(hex: "FFAC33"))
+                                .rotationEffect(.degrees(-35))
+                                .offset(x: -6, y: -7)
                         }
+                        .frame(width: 30, height: 30)
+
+                        Text("1300")
+                            .font(.system(size: 22, weight: .bold))
+                            .italic()
+                            .foregroundStyle(Color(hex: "FFAC33"))
                     }
-                    .padding(.top, 25)
 
-                    // Confirm / status button
-                    kbcActionRow
+                    Spacer()
 
-                    // Lifelines
-                    kbcLifelineRow
-                        .padding(.top, 14)
-                        .padding(.bottom, 20)
+                    // Question number circle
+                    kbcQuestionCircle
+
+                    Spacer()
+
+                    // X dismiss button
+                    Button { dismissMockInteraction() } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 34, height: 34)
+                            .background(Circle().fill(Color.white.opacity(0.12)))
+                    }
+                    .buttonStyle(LiquidButtonPressStyle())
                 }
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea()
-    }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 16)
 
-    // ── Nav bar overlaid on the image ─────────────────────────────────────
-    private var kbcOverlayNavBar: some View {
-        HStack(spacing: 0) {
-            // Back button  (glass pill, rounded left side taller)
-            Button { dismissMockInteraction() } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 16, weight: .semibold))
+                // ── Question text box ─────────────────────────────────────
+                Text("How many holes are contained in a typical golf course")
+                    .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(.white)
-                    .frame(width: 30, height: 30)
+                    .multilineTextAlignment(.center)
+                    .frame(width: width * 0.823)
+                    .padding(.vertical, 14)
                     .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(Color.black.opacity(0.23))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(Color.white.opacity(0.2), lineWidth: 1.2)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    stops: [.init(color: Color(hex: "000001"), location: 0.028),
+                                            .init(color: Color(hex: "00083A"), location: 0.993)],
+                                    startPoint: .top, endPoint: .bottom
+                                )
                             )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.white, lineWidth: 2)
+                            )
+                            .shadow(color: Color.black.opacity(0.7), radius: 45, x: 0, y: 0)
                     )
-            }
-            .buttonStyle(LiquidButtonPressStyle())
 
-            Spacer()
-
-            // Center: avatar with crown + score
-            HStack(spacing: 10) {
-                ZStack(alignment: .topLeading) {
-                    // Avatar frame
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color(hex: "FFA576"))
-                        .frame(width: 34, height: 34)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color(hex: "FFAC33"), lineWidth: 1)
-                        )
-
-                    // Crown badge top-left
-                    Image(systemName: "crown.fill")
-                        .font(.system(size: 9, weight: .black))
-                        .foregroundStyle(Color(hex: "FFAC33"))
-                        .rotationEffect(.degrees(-35))
-                        .offset(x: -7, y: -8)
+                // ── Options ───────────────────────────────────────────────
+                VStack(spacing: 15) {
+                    ForEach(Self.kbcQuizOptions, id: \.letter) { opt in
+                        kbcOptionRow(opt.letter, text: opt.text, isCorrect: opt.isCorrect,
+                                     screenWidth: width, hexW: hexW)
+                    }
                 }
-                .frame(width: 34, height: 34)
+                .padding(.top, 25)
 
-                Text("1300")
-                    .font(.system(size: 26, weight: .bold))
-                    .italic()
-                    .foregroundStyle(Color(hex: "FFAC33"))
+                // ── Confirm / waiting / close ─────────────────────────────
+                kbcActionRow
+                    .animation(.easeInOut(duration: 0.22), value: mockInteractionSelection)
+                    .animation(.easeInOut(duration: 0.22), value: mockInteractionConfirmed)
+                    .animation(.easeInOut(duration: 0.22), value: mockInteractionShowsResult)
+
+                // ── Lifelines ─────────────────────────────────────────────
+                kbcLifelineRow
+                    .padding(.top, 14)
+                    .padding(.bottom, 32)
             }
-
-            Spacer()
-
-            // Game controller
-            Button {} label: {
-                Image(systemName: "gamecontroller")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.white)
-                    .frame(width: 46, height: 46)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(Color.black.opacity(0.23))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.white.opacity(0.2), lineWidth: 1.2)
-                            )
-                    )
-            }
-            .buttonStyle(LiquidButtonPressStyle())
+            .frame(maxWidth: .infinity)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 52)  // below status bar
         .frame(maxWidth: .infinity)
     }
 
     // ── Question number circle ────────────────────────────────────────────
     private var kbcQuestionCircle: some View {
         ZStack {
-            // Two ellipse glow layers (Figma: Ellipse2415 + Ellipse2416)
             Circle()
-                .fill(Color(hex: "260299").opacity(0.6))
+                .fill(Color(hex: "260299").opacity(0.55))
                 .frame(width: 52, height: 52)
-                .blur(radius: 14)
+                .blur(radius: 12)
 
-            Circle()
-                .fill(Color(hex: "FFFFFF").opacity(0.12))
-                .frame(width: 30, height: 30)
-                .blur(radius: 6)
-                .offset(x: 9, y: -12)
-
-            // Main circle
             Circle()
                 .fill(Color(hex: "080A22"))
                 .frame(width: 52, height: 52)
@@ -1321,14 +1481,13 @@ struct ContentDetailView: View {
         .frame(width: 52, height: 52)
     }
 
-    // ── Single option row (hex shape + full-width lines) ──────────────────
+    // ── Single option row ─────────────────────────────────────────────────
     private func kbcOptionRow(_ letter: String, text: String, isCorrect: Bool,
                                screenWidth: CGFloat, hexW: CGFloat) -> some View {
         let isSelected = mockInteractionSelection == letter
-        let isLocked = mockInteractionConfirmed
+        let isLocked   = mockInteractionConfirmed
         let showResult = mockInteractionShowsResult
 
-        // Hex fill color
         let hexFill: Color = {
             if showResult {
                 if isCorrect { return Color(hex: "22C55E") }
@@ -1341,43 +1500,34 @@ struct ContentDetailView: View {
             return Color(hex: "000001").opacity(0.95)
         }()
 
-        // Letter color: amber normally, white when filled
+        let hexStroke: Color = {
+            if isSelected && !isLocked { return Color(hex: "E48820") }
+            if showResult && isCorrect  { return Color(hex: "22C55E") }
+            if showResult && isSelected { return Color(hex: "EF4444") }
+            return Color.white.opacity(0.25)
+        }()
+
         let letterColor: Color = {
-            if showResult && (isCorrect || isSelected) { return .white }
+            if (showResult || isLocked) && (isCorrect || isSelected) { return .white }
             if isSelected { return .white }
-            if isLocked && !isSelected { return Color(hex: "E48820").opacity(0.35) }
+            if isLocked   { return Color(hex: "E48820").opacity(0.35) }
             return Color(hex: "E48820")
         }()
 
-        // Answer text opacity
         let textAlpha: Double = isLocked && !isSelected && !(showResult && isCorrect) ? 0.35 : 1.0
 
-        return Button {
-            answerMockInteraction(letter)
-        } label: {
+        return Button { answerMockInteraction(letter) } label: {
             ZStack {
-                // Full-width horizontal accent line
+                // Full-width horizontal line (Figma imgLine1 effect)
                 Rectangle()
                     .fill(Color.white.opacity(0.18))
                     .frame(width: screenWidth, height: 1)
 
-                // Centered hex shape
+                // Hex shape centred
                 ZStack {
-                    KBCHexShape()
-                        .fill(hexFill)
-                        .frame(width: hexW, height: 43)
+                    KBCHexShape().fill(hexFill).frame(width: hexW, height: 43)
+                    KBCHexShape().stroke(hexStroke, lineWidth: 1).frame(width: hexW, height: 43)
 
-                    KBCHexShape()
-                        .stroke(
-                            isSelected && !isLocked ? Color(hex: "E48820")
-                                : showResult && isCorrect ? Color(hex: "22C55E")
-                                : showResult && isSelected ? Color(hex: "EF4444")
-                                : Color.white.opacity(0.25),
-                            lineWidth: 1
-                        )
-                        .frame(width: hexW, height: 43)
-
-                    // Letter + divider + text
                     HStack(spacing: 0) {
                         Text(letter + ".")
                             .font(.system(size: 16, weight: .medium))
@@ -1400,55 +1550,45 @@ struct ContentDetailView: View {
         }
         .disabled(isLocked || showResult)
         .buttonStyle(LiquidButtonPressStyle())
+        .animation(.easeInOut(duration: 0.2), value: mockInteractionSelection)
+        .animation(.easeInOut(duration: 0.2), value: mockInteractionShowsResult)
     }
 
-    // ── Confirm / close action row ────────────────────────────────────────
+    // ── Confirm / waiting / close row ─────────────────────────────────────
     @ViewBuilder
     private var kbcActionRow: some View {
         if mockInteractionShowsResult {
-            // Answer revealed — show close button
             Button { dismissMockInteraction() } label: {
                 Text("Close")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 46)
+                    .frame(maxWidth: .infinity).frame(height: 46)
                     .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        RoundedRectangle(cornerRadius: 10)
                             .fill(Color.white.opacity(0.14))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.white.opacity(0.25), lineWidth: 1)
-                            )
+                            .overlay(RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.white.opacity(0.25), lineWidth: 1))
                     )
             }
             .buttonStyle(LiquidButtonPressStyle())
-            .padding(.horizontal, 36)
-            .padding(.top, 18)
+            .padding(.horizontal, 36).padding(.top, 18)
             .transition(.opacity.combined(with: .scale(scale: 0.96)))
+
         } else if mockInteractionSelection != nil && !mockInteractionConfirmed {
-            // Option selected, awaiting confirm
             Button { confirmMockInteraction() } label: {
                 Text("Confirm Answer")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(Color(hex: "0A0A0A"))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 46)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(Color(hex: "E48820"))
-                    )
+                    .frame(maxWidth: .infinity).frame(height: 46)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(hex: "E48820")))
             }
             .buttonStyle(LiquidButtonPressStyle())
-            .padding(.horizontal, 36)
-            .padding(.top, 18)
+            .padding(.horizontal, 36).padding(.top, 18)
             .transition(.opacity.combined(with: .move(edge: .bottom)))
+
         } else if mockInteractionConfirmed && !mockInteractionShowsResult {
-            // Locked, waiting for live reveal
             HStack(spacing: 8) {
-                ProgressView()
-                    .tint(Color(hex: "E48820"))
-                    .scaleEffect(0.8)
+                ProgressView().tint(Color(hex: "E48820")).scaleEffect(0.8)
                 Text("Waiting for live reveal…")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(Color(hex: "E48820").opacity(0.8))
@@ -1461,47 +1601,34 @@ struct ContentDetailView: View {
     // ── Lifelines row ─────────────────────────────────────────────────────
     private var kbcLifelineRow: some View {
         HStack(spacing: 8) {
-            kbcLifelineBtn(label: "50:50",  icon: nil,         leftRound: true,  rightRound: false)
-            kbcLifelineBtn(label: nil,      icon: "arrow.clockwise", leftRound: false, rightRound: false)
-            kbcLifelineBtn(label: nil,      icon: "person.fill",leftRound: false, rightRound: false)
-            kbcLifelineBtn(label: nil,      icon: "chart.bar.fill", leftRound: false, rightRound: true)
+            kbcLifelineBtn(label: "50:50",  icon: nil)
+            kbcLifelineBtn(label: nil,      icon: "arrow.clockwise")
+            kbcLifelineBtn(label: nil,      icon: "person.fill")
+            kbcLifelineBtn(label: nil,      icon: "chart.bar.fill")
         }
     }
 
-    private func kbcLifelineBtn(label: String?, icon: String?,
-                                 leftRound: Bool, rightRound: Bool) -> some View {
+    private func kbcLifelineBtn(label: String?, icon: String?) -> some View {
         Button {} label: {
             ZStack {
-                RoundedRectangle(
-                    cornerRadius: 8, style: .continuous
-                )
-                .fill(
-                    LinearGradient(
-                        stops: [.init(color: Color(hex: "000001"), location: 0.052),
-                                .init(color: Color(hex: "00083A"), location: 0.994)],
-                        startPoint: .top, endPoint: .bottom
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(
+                        LinearGradient(
+                            stops: [.init(color: Color(hex: "000001"), location: 0.052),
+                                    .init(color: Color(hex: "00083A"), location: 0.994)],
+                            startPoint: .top, endPoint: .bottom
+                        )
                     )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.white, lineWidth: 1)
-                )
-                .shadow(color: Color.black.opacity(0.7), radius: 45, x: 0, y: 0)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white, lineWidth: 1))
 
-                if let label = label {
-                    Text(label)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white)
-                } else if let icon = icon {
-                    Image(systemName: icon)
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundStyle(.white)
-                }
+                if let label { Text(label).font(.system(size: 14, weight: .medium)).foregroundStyle(.white) }
+                else if let icon { Image(systemName: icon).font(.system(size: 18)).foregroundStyle(.white) }
             }
             .frame(width: 62, height: 45)
         }
         .buttonStyle(LiquidButtonPressStyle())
     }
+
 
 
     private func submitMomentSearchOverlay() {
@@ -1511,6 +1638,16 @@ struct ContentDetailView: View {
         dismissMomentSearchOverlay()
         viewModel.submitMomentSearch(query)
         momentAutoScrollToken += 1
+
+        // For sports page: auto-switch to Key Moments tab so scroll lands visibly
+        if let detail = viewModel.detail {
+            let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
+            if kind == .sportsInteractive {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    selectedSportsTab = "Key Moments"
+                }
+            }
+        }
     }
 
     private func updateKeyboardHeight(from notification: Notification, containerHeight: CGFloat) {
@@ -1661,15 +1798,14 @@ struct ContentDetailView: View {
 
     @ViewBuilder
     private func episodesSection(width: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 16) {
             if viewModel.seasons.isEmpty == false {
                 seasonSelector
             }
 
             if viewModel.isLoadingEpisodes {
                 HStack(spacing: 10) {
-                    ProgressView()
-                        .tint(.white)
+                    ProgressView().tint(.white)
                     Text("Loading episodes...")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.76))
@@ -1681,12 +1817,16 @@ struct ContentDetailView: View {
             } else if viewModel.episodes.isEmpty {
                 EmptyStateView(title: AppStrings.Detail.episodes, message: "Episodes are not available for this title yet.", systemImage: "play.rectangle.on.rectangle")
             } else {
-                LazyVStack(spacing: 12) {
+                LazyVStack(spacing: 0) {
                     ForEach(viewModel.episodes) { episode in
                         Button {
-                            onSelectRecommendation(episode)
+                            if let playEpisode = onPlayEpisode {
+                                playEpisode(episode)
+                            } else {
+                                onSelectRecommendation(episode)
+                            }
                         } label: {
-                            EpisodeCard(item: episode, width: width - 32)
+                            EpisodeCard(item: episode, totalWidth: width)
                         }
                         .buttonStyle(LiquidButtonPressStyle())
                     }
@@ -1697,7 +1837,8 @@ struct ContentDetailView: View {
     }
 
     private var seasonSelector: some View {
-        Menu {
+        let title = viewModel.seasons.first(where: { $0.id == viewModel.selectedSeasonID })?.title ?? "Season 1"
+        return Menu {
             ForEach(viewModel.seasons) { season in
                 Button {
                     viewModel.selectSeason(season)
@@ -1710,27 +1851,43 @@ struct ContentDetailView: View {
                 }
             }
         } label: {
-            HStack(spacing: 10) {
-                Text(viewModel.seasons.first(where: { $0.id == viewModel.selectedSeasonID })?.title ?? "Season 1")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.white)
+            HStack(spacing: 8) {
+                Text(title)
+                    .font(.system(size: 13, weight: .regular))
+                    .tracking(0.4)
+                    .foregroundStyle(Color(hex: "F0F0F0"))
                     .lineLimit(1)
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.82))
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
             }
-            .padding(.horizontal, 12)
-            .frame(height: 44)
-            .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.white.opacity(0.05))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                    )
-            )
+            .padding(.horizontal, 16)
+            .frame(height: 36)
+            .background(seasonChipBackground)
         }
-        .buttonStyle(LiquidButtonPressStyle())
+        .fixedSize()
+    }
+
+    private var seasonChipBackground: some View {
+        let shape = UnevenRoundedRectangle(
+            topLeadingRadius: 300, bottomLeadingRadius: 300,
+            bottomTrailingRadius: 300, topTrailingRadius: 300,
+            style: .continuous
+        )
+        return shape.fill(.ultraThinMaterial)
+            .overlay(shape.fill(Color.black.opacity(0.9)))
+            .overlay(
+                shape.fill(
+                    LinearGradient(
+                        stops: [
+                            .init(color: Color.white.opacity(0.05), location: 0),
+                            .init(color: Color(hex: "FF8100").opacity(0.05), location: 1)
+                        ],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
+            )
+            .overlay(shape.stroke(Color.white.opacity(0.1), lineWidth: 1))
     }
 
     private func castSection(_ detail: ContentDetail) -> some View {
@@ -1996,44 +2153,100 @@ private struct MomentResultCard: View {
 
 private struct EpisodeCard: View {
     let item: StorefrontItem
-    let width: CGFloat
+    let totalWidth: CGFloat
+
+    private let thumbSize = CGSize(width: 120, height: 84)
+
+    private var durationText: String? {
+        guard let secs = item.runtimeSeconds, secs > 0 else { return nil }
+        let m = secs / 60; let s = secs % 60
+        return String(format: "%d:%02d", m, s)
+    }
+
+    private var badges: [String] {
+        var result: [String] = []
+        if let r = item.rating?.nilIfEmpty { result.append(r) }
+        if let q = item.quality?.nilIfEmpty { result.append(q) }
+        return result
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ZStack(alignment: .center) {
-                PosterImageView(
-                    url: item.imageURL(for: "0-16x9", width: Int(width * 3)),
-                    size: CGSize(width: width, height: width * 9 / 16),
-                    cornerRadius: 10
-                )
+        VStack(alignment: .leading, spacing: 0) {
+            // ── Row: thumbnail LEFT + info RIGHT ──────────────────────────
+            HStack(alignment: .top, spacing: 12) {
+                // Thumbnail with duration overlay
+                ZStack(alignment: .bottomLeading) {
+                    PosterImageView(
+                        url: item.imageURL(for: "0-16x9", width: Int(thumbSize.width * 3)),
+                        size: thumbSize,
+                        cornerRadius: 8
+                    )
+                    .frame(width: thumbSize.width, height: thumbSize.height)
 
-                LinearGradient(
-                    colors: [Color.clear, Color.black.opacity(0.18), Color.black.opacity(0.68)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+                    if let dur = durationText {
+                        Text(dur)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(Color.black.opacity(0.74))
+                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                            .padding(5)
+                    }
+                }
+                .frame(width: thumbSize.width, height: thumbSize.height)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
-                Image(systemName: "play.fill")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(Color.black.opacity(0.84))
-                    .frame(width: 44, height: 44)
-                    .background(Circle().fill(Color.white.opacity(0.9)))
+                // Info column
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(item.title)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    if let meta = item.primaryMetaText.nilIfEmpty {
+                        Text(meta)
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundStyle(.white.opacity(0.5))
+                            .lineLimit(1)
+                    }
+
+                    if !badges.isEmpty {
+                        HStack(spacing: 5) {
+                            ForEach(badges.prefix(4), id: \.self) { badge in
+                                Text(badge)
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(.white.opacity(0.78))
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 2)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .stroke(Color.white.opacity(0.26), lineWidth: 1)
+                                    )
+                            }
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(width: width, height: width * 9 / 16)
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .padding(.vertical, 14)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(item.title)
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-
-                Text(item.description.nilIfEmpty ?? item.primaryMetaText.nilIfEmpty ?? item.watchLabel)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.68))
-                    .lineLimit(2)
+            // Description full-width below
+            if let desc = item.description.nilIfEmpty {
+                Text(desc)
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(.white.opacity(0.5))
+                    .lineLimit(3)
+                    .padding(.bottom, 14)
             }
+
+            // Row divider
+            Rectangle()
+                .fill(Color.white.opacity(0.08))
+                .frame(height: 1)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

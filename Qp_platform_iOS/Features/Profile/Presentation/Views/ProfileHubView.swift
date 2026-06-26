@@ -229,37 +229,14 @@ struct ProfileHubView: View {
     private var upgradeCard: some View {
         Button(action: {}) {
             ZStack(alignment: .topLeading) {
-                Color.black
-
-                // Decorative top-right background shape
                 Image("upgradebg")
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 210, height: 270)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                     .allowsHitTesting(false)
 
-                // Orange glow — top-right
-                Ellipse()
-                    .fill(Color(hex: "FF5E00"))
-                    .blur(radius: 65)
-                    .frame(width: 239, height: 217)
-                    .opacity(0.72)
-                    .offset(x: 80, y: -50)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .allowsHitTesting(false)
-
-                // Blue glow — bottom
-                Ellipse()
-                    .fill(Color(hex: "1800E7"))
-                    .blur(radius: 78)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 150)
-                    .opacity(0.4)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                    .allowsHitTesting(false)
-
+//                Color.black.opacity(0.35)
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Upgrade\nyour Plan")
                         .font(.system(size: 38, weight: .bold))
@@ -294,6 +271,7 @@ struct ProfileHubView: View {
                     .padding(.bottom, 20)
                 }
             }
+            .frame(maxWidth: .infinity)
             .frame(height: 374)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
@@ -301,10 +279,8 @@ struct ProfileHubView: View {
                     .stroke(Color(hex: "FFAD09"), lineWidth: 2)
             )
         }
-        .frame(maxWidth: .infinity)
         .buttonStyle(LiquidButtonPressStyle())
     }
-
     private var upgradeFeaturesGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
             upgradeFeatureRow(icon: "desktopcomputer", prefix: "Upto ", bold: "5 devices", suffix: "")

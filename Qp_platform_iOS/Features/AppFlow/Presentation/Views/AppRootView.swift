@@ -358,6 +358,9 @@ struct AppRootView: View {
                     onPlay: { detail, item in
                         viewModel.play(detail: detail, fallback: item)
                     },
+                    onPlayEpisode: { item in
+                        viewModel.play(item: item)
+                    },
                     onSelectRecommendation: { item in
                         viewModel.openContent(item: item)
                     }

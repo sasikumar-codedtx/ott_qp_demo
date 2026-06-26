@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sony LIV Quickplay OTT App Requirements</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">LIV</div>
+          <div>
+            <h1>Sony LIV Quickplay<br>OTT Requirements</h1>
+            <p>Business + API build guide</p>
+          </div>
+        </div>
+
+        <nav>
+          <div class="nav-group">
+            <p class="nav-title">Start</p>
+            <a class="nav-link active" data-nav-link href="#overview">Overview</a>
+            <a class="nav-link" data-nav-link href="#principles">Product Principles</a>
+            <a class="nav-link" data-nav-link href="#architecture">Architecture</a>
+          </div>
+          <div class="nav-group">
+            <p class="nav-title">Journeys</p>
+            <a class="nav-link" data-nav-link href="#launch">App Launch</a>
+            <a class="nav-link" data-nav-link href="#auth">Login and OTP</a>
+            <a class="nav-link" data-nav-link href="#profile">Profile</a>
+            <a class="nav-link" data-nav-link href="#cohort">Cohort</a>
+            <a class="nav-link" data-nav-link href="#storefront">Storefront</a>
+            <a class="nav-link" data-nav-link href="#cards">Card Selection</a>
+            <a class="nav-link" data-nav-link href="#detail">Detail</a>
+            <a class="nav-link" data-nav-link href="#search">Search</a>
+            <a class="nav-link" data-nav-link href="#player">Player</a>
+            <a class="nav-link" data-nav-link href="#profile-section">Profile Section</a>
+          </div>
+          <div class="nav-group">
+            <p class="nav-title">Reference</p>
+            <a class="nav-link" data-nav-link href="#apis">API Catalog</a>
+            <a class="nav-link" data-nav-link href="#data-model">Data Model</a>
+            <a class="nav-link" data-nav-link href="#qa">QA Checklist</a>
+          </div>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <header class="hero" id="overview">
+          <div>
+            <span class="eyebrow">Use-case document inspired by Stripe docs structure</span>
+            <h2>Build the full OTT app from one document.</h2>
+            <p>
+              This guide combines business requirements, journey rules, API contracts, data mapping,
+              and implementation expectations for a Sony LIV style Quickplay OTT app. It is written so a
+              product owner, designer, API engineer, or app engineer can understand the entire system
+              without reading the source code first.
+            </p>
+            <div class="meta-grid">
+              <div class="metric"><strong>9</strong><span>core journeys</span></div>
+              <div class="metric"><strong>3</strong><span>primary cohorts</span></div>
+              <div class="metric"><strong>1</strong><span>profile cohort field</span></div>
+              <div class="metric"><strong>API</strong><span>first rendering</span></div>
+            </div>
+          </div>
+          <div class="hero-card">
+            <img src="./assets/screens.svg" alt="Sample OTT app screens">
+          </div>
+        </header>
+
+        <section class="section-card" id="principles">
+          <h2>Product Principles</h2>
+          <p>
+            The app should feel native, content-led, and predictable. Every screen should be driven by
+            profile context and API data unless a feature is explicitly marked as demo-only mock behavior.
+          </p>
+          <div class="grid-3">
+            <div class="mini-card">
+              <h4>Profile is the source of truth</h4>
+              <p>Each profile owns a single cohort field. Storefront, search context, detail calls, and recommendations read from that profile context.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Render what the API returns</h4>
+              <p>Storefront rails are generated from returned tabs, containers, and cards. Do not invent rails when the API has empty content.</p>
+            </div>
+            <div class="mini-card">
+              <h4>Native navigation</h4>
+              <p>All pushed screens should use a consistent navigation stack, custom toolbar buttons, and preserve swipe-back behavior.</p>
+            </div>
+          </div>
+          <div class="callout">
+            Design note: match Figma first. If a design reference is unavailable, stop and ask instead of inventing UI.
+          </div>
+        </section>
+
+        <section class="section-card" id="architecture">
+          <h2>Architecture</h2>
+          <p>
+            Use clean architecture boundaries. Presentation owns UI state, domain owns business concepts,
+            data owns DTO mapping and network calls, and core owns shared configuration, networking, image
+            building, session state, and player services.
+          </p>
+          <img class="visual" src="./assets/app-flow.svg" alt="App architecture flow">
+          <h3>Recommended module split</h3>
+          <table class="rules-table">
+            <thead>
+              <tr><th>Layer</th><th>Responsibilities</th><th>Examples</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Core</td><td>Runtime config, request logging, session state, image URL building, player SDK wrapper.</td><td>NetworkClient, QuickplayRuntimeConfig, DemoSessionStore</td></tr>
+              <tr><td>Data</td><td>DTOs, routers, API clients, repository implementations.</td><td>StorefrontRouter, SearchRouter, ContentDetailRouter</td></tr>
+              <tr><td>Domain</td><td>Entities, use cases, navigation policies, cohort rules.</td><td>Profile, StorefrontItem, ContentNavigationPolicy</td></tr>
+              <tr><td>Presentation</td><td>SwiftUI views and view models. No hardcoded API decisions here.</td><td>StorefrontViewModel, ProfileHubViewModel</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="section-card" id="launch">
+          <h2>App Launch</h2>
+          <p>
+            App launch prepares configuration and decides whether the user enters login or profile selection.
+            Runtime config must be fetched once and reused. Screens should not wait to fetch config for the
+            first time after navigation.
+          </p>
+          <ol class="flow-list">
+            <li>Start runtime configuration fetch during app initialization.</li>
+            <li>Read local auth completion flag.</li>
+            <li>If not logged in, route to Login.</li>
+            <li>If logged in, route to Profile Selection.</li>
+            <li>When a profile is selected, reset storefront ids and fetch storefront for that profile cohort.</li>
+          </ol>
+          <h3>Configuration API</h3>
+          <pre><code>GET https://config-service-cdn.cms-qp.opt.quickplay.com/launch/config?device=androidmobile&amp;client=sony-sony-androidmobile</code></pre>
+          <p>Required keys include catalogURL, vodMetaDataURL, searchURL, imageResizeURL, recommendURL, OAuth/player keys, bookmarkURL, favoriteURL, and heartbeatURL.</p>
+        </section>
+
+        <section class="section-card" id="auth">
+          <h2>Login and OTP</h2>
+          <p>
+            Login and OTP are mocked for the POC but should behave like production. The login page appears
+            only once after install unless local state is cleared. OTP accepts only the configured demo code.
+          </p>
+          <div class="grid-2">
+            <div class="mini-card">
+              <h4>Business behavior</h4>
+              <ul>
+                <li>Login page has no back button.</li>
+                <li>OTP page has one custom navigation back button, not duplicate native plus custom.</li>
+                <li>OTP uses six fields and accepts `121212` only.</li>
+                <li>Loading is shown as a calm bottom toast, not an aggressive full screen blocker.</li>
+              </ul>
+            </div>
+            <div class="mini-card">
+              <h4>API behavior</h4>
+              <p>POC uses mock login and OTP. Production can replace this with OTP send and verify endpoints without changing profile or storefront flow.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="profile">
+          <h2>Profile</h2>
+          <p>
+            Profiles are locally stored for the POC. A fresh install should have no stale user-created profiles.
+            Creation, edit, delete, avatar selection, kids toggle, and cohort assignment all persist in the
+            local profile repository.
+          </p>
+          <h3>Profile rules</h3>
+          <table class="rules-table">
+            <thead>
+              <tr><th>Rule</th><th>Requirement</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Max profiles</td><td>Allow creation up to five profiles. Hide Add Profile after five.</td></tr>
+              <tr><td>Avatar</td><td>Persist selected avatar image name with profile. Use the same image in profile selection, bottom tab, profile hub, and profile switch sheet.</td></tr>
+              <tr><td>Edit</td><td>Profile Selection > Edit Profiles opens the editor. Tapping another avatar inside editor loads that profile for editing.</td></tr>
+              <tr><td>Delete</td><td>Delete action shows confirmation, removes profile, and refreshes profile selection.</td></tr>
+              <tr><td>Switch</td><td>Tapping profile in Profile Selection routes directly to Storefront with shimmer while loading.</td></tr>
+            </tbody>
+          </table>
+          <h3>Local profile shape</h3>
+          <pre><code>{
+  "id": "uuid",
+  "name": "Prabhu",
+  "imageName": "profiles/avatar_01",
+  "cohort": "entertainment",
+  "preference": "entertainment",
+  "isKidsProfile": false,
+  "dateOfBirth": "1998-02-12",
+  "gender": "male"
+}</code></pre>
+        </section>
+
+        <section class="section-card" id="cohort">
+          <h2>Cohort</h2>
+          <p>
+            Cohort controls which storefront profile flag is sent. The app should use one field on profile:
+            `profile.cohort`. Creation flow, edit flow, and dynamic override all update the same field.
+          </p>
+          <table class="api-table">
+            <thead>
+              <tr><th>Cohort</th><th>profile.cohort</th><th>pf sent to APIs</th><th>Use case</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Entertainment</td><td>entertainment</td><td>regular</td><td>Default movies/shows feed.</td></tr>
+              <tr><td>Sports</td><td>sports</td><td>kids</td><td>Sports storefront mapping for current POC API contract.</td></tr>
+              <tr><td>Reality</td><td>realityShows</td><td>Preschool</td><td>Reality storefront mapping for current POC API contract.</td></tr>
+              <tr><td>Kids</td><td>kids</td><td>kids</td><td>Kids profile behavior.</td></tr>
+            </tbody>
+          </table>
+          <h3>Onboarding cohort selection</h3>
+          <ol class="flow-list">
+            <li>After profile creation, show swipe-card cohort questionnaire.</li>
+            <li>Right is Yes, left is No. Each answer increments one or more buckets.</li>
+            <li>At the end, choose the highest score. Tie priority: Sports, Entertainment, Reality unless product changes it.</li>
+            <li>Persist result into `profile.cohort`.</li>
+            <li>Show a toast with selected cohort, then load Storefront with matching `pf`.</li>
+          </ol>
+          <h3>Dynamic override</h3>
+          <p>
+            On each card tap, inspect `cust_sc`. If value is `sports`, count Sports. If value is `shows`,
+            count Reality. Otherwise count Entertainment. When any bucket reaches seven for the active
+            profile, update the same `profile.cohort` field. Product decision: the new cohort can apply on
+            next launch/profile selection, or storefront can be reloaded immediately if required.
+          </p>
+        </section>
+
+        <section class="section-card" id="storefront">
+          <h2>Storefront</h2>
+          <p>
+            Storefront is API-driven. The first call discovers the storefront id and tabs. The render call
+            fetches containers for the selected tab. Every profile switch must reset storefront id and tab id.
+          </p>
+          <img class="visual" src="./assets/storefront-flow.svg" alt="Storefront API lifecycle">
+          <h3>Storefront bootstrap</h3>
+          <pre><code>GET {catalogURL}/catalog/storefront/landingscreen
+  ?ipr=true
+  &amp;ivg=false
+  &amp;sfInfo=true
+  &amp;reg=in
+  &amp;dt=androidmobile
+  &amp;cPageNumber=1
+  &amp;cPageSize=5
+  &amp;client=sony-sony-androidmobile
+  &amp;pf={profile.cohort.profileFlag}
+  &amp;chrt=Sony1</code></pre>
+          <h3>Container render call</h3>
+          <pre><code>GET {catalogURL}/catalog/storefront/{sfid}/{tid}/containers
+  ?reg=IN
+  &amp;dt=androidmobile
+  &amp;client=sony-sony-androidmobile
+  &amp;pf={profile.cohort.profileFlag}
+  &amp;chrt=Sony1
+  &amp;policy_evaluate=false
+  &amp;pageSize=5
+  &amp;pageNumber=1</code></pre>
+          <h3>Rendering contract</h3>
+          <ul>
+            <li>`data.id` from landing screen is the storefront id.</li>
+            <li>`data.t[]` from landing screen is the tab menu.</li>
+            <li>First selected tab is `data.t.first.id`.</li>
+            <li>Container response returns `c[]` directly.</li>
+            <li>Each `c` is one section or rail.</li>
+            <li>Each `c.cd[]` is the render card array.</li>
+            <li>If `c.cd[]` is empty, ignore that section for normal storefront rendering.</li>
+            <li>Only the first `lo == "banner"` section is hero. Later banners are normal sections.</li>
+          </ul>
+          <h3>Hero variants</h3>
+          <table class="rules-table">
+            <thead>
+              <tr><th>Condition</th><th>Hero type</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Tab name contains `sport`, case-insensitive</td><td>Sports stacked hero</td><td>Cards stack like sports feed. Add dark gradient for text readability.</td></tr>
+              <tr><td>Tab name contains `enter`, case-insensitive</td><td>Immersive hero</td><td>Image goes edge-to-edge and ignores safe area. Only this hero type does that.</td></tr>
+              <tr><td>Default</td><td>Carousel hero</td><td>Standard safe-area aligned hero.</td></tr>
+            </tbody>
+          </table>
+          <h3>Section styling</h3>
+          <p>
+            Use `iar` for card aspect ratio. Use `bg_style` only if it has a valid `ia` value. For background
+            image sections, construct the section background image using the section id and `bg_style.ia`.
+            The media area is square, followed by a title band with balanced top/bottom padding.
+          </p>
+        </section>
+
+        <section class="section-card" id="cards">
+          <h2>Card Selection</h2>
+          <p>
+            Card tap behavior is determined by card metadata. Entitlement is considered full-access for demo.
+            Do not route based on visual style alone.
+          </p>
+          <table class="rules-table">
+            <thead>
+              <tr><th>Card condition</th><th>Destination</th><th>API behavior</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>`ty == collection`, case-insensitive</td><td>Collection Browse</td><td>Call collection lookup or `cu` pagination if available.</td></tr>
+              <tr><td>`cty == sporthighlight`</td><td>Detail</td><td>Open sports-capable detail page.</td></tr>
+              <tr><td>Playable short/highlight</td><td>Player or detail by policy</td><td>Use preview/full playback when available.</td></tr>
+              <tr><td>Movie/show/episode</td><td>Detail</td><td>Call metadata detail API by content id.</td></tr>
+            </tbody>
+          </table>
+          <h3>View All</h3>
+          <p>
+            View All is separate from normal storefront rendering. Storefront rails use `c.cd[]`. View All can
+            use section source URLs, fixed IDs, or collection lookup and should paginate with pageNumber and
+            pageSize. Add shimmer before loading to avoid loading during push animation.
+          </p>
+        </section>
+
+        <section class="section-card" id="detail">
+          <h2>Detail</h2>
+          <p>
+            Detail has regular, sports, and show-interactive variants. Current implementation can start with
+            regular detail and branch by content metadata when business rules are ready.
+          </p>
+          <h3>Detail metadata</h3>
+          <pre><code>GET {vodMetaDataURL}/content
+  ?ids={contentId}
+  &amp;mode=detail
+  &amp;st=published
+  &amp;reg=IN
+  &amp;dt=androidmobile
+  &amp;client=sony-sony-androidmobile
+  &amp;pf=regular
+  &amp;chrt=Sony1</code></pre>
+          <h3>More Like This</h3>
+          <pre><code>GET {vodMetaDataURL}/content/morelikethis/{contentId}
+  ?cty={contentType}
+  &amp;pageNumber=1
+  &amp;pageSize=10
+  &amp;client=sony-sony-androidmobile
+  &amp;reg=in
+  &amp;dt=web</code></pre>
+          <h3>Moments search</h3>
+          <pre><code>GET {searchURL}/content/search
+  ?client=sony-sony-androidmobile
+  &amp;dt=androidmobile
+  &amp;term={momentQuery}
+  &amp;reg=in
+  &amp;info=detail
+  &amp;moment=true
+  &amp;id={contentId}</code></pre>
+          <h3>Episodes</h3>
+          <p>
+            If content is episodic (`webepisode`, `webseries`, `tvepisode`) show Episodes as the first tab.
+            Series id priority is `stl_id -> setl_id -> id`. Fetch seasons first, cache them, select first
+            season by default, then fetch episodes for selected season.
+          </p>
+          <pre><code>GET {vodMetaDataURL}/content/series/{seriesId}/seasons
+  ?pageSize=100
+  &amp;pageNumber=1
+  &amp;reg=IN
+  &amp;dt=androidmobile
+  &amp;client=sony-sony-androidmobile
+  &amp;pf={profileFlag}
+  &amp;chrt=Sony1</code></pre>
+          <pre><code>GET {vodMetaDataURL}/content/series/{seriesId}/episodes
+  ?seasonId={seasonId}
+  &amp;pageSize=100
+  &amp;pageNumber=1
+  &amp;reg=IN
+  &amp;dt=androidmobile
+  &amp;client=sony-sony-androidmobile
+  &amp;pf={profileFlag}
+  &amp;chrt=Sony1</code></pre>
+        </section>
+
+        <section class="section-card" id="search">
+          <h2>Search</h2>
+          <p>
+            Search has two pages: normal Search and AI Search. Normal Search displays initial default query
+            results, search results, and facet filters from the API response. AI Search records speech, displays
+            recognized text, translates to English where required, then calls the same search API.
+          </p>
+          <h3>Search API</h3>
+          <pre><code>GET {searchURL}/content/search
+  ?client=sony-sony-androidmobile
+  &amp;dt=androidmobile
+  &amp;term={query}
+  &amp;reg=in
+  &amp;info=detail
+  &amp;moment=true</code></pre>
+          <h3>Facet search</h3>
+          <pre><code>GET {searchURL}/content/search
+  ?client=sony-sony-androidmobile
+  &amp;dt=androidmobile
+  &amp;term={query}
+  &amp;reg=in
+  &amp;info=detail
+  &amp;moment=true
+  &amp;cust_sc={selectedFacetTerm}</code></pre>
+          <ul>
+            <li>When entering Search, call search with default query `Trending Search`.</li>
+            <li>When user types, call without facet and reload `facet.terms` from response.</li>
+            <li>Ignore facet terms with count zero.</li>
+            <li>When user taps a facet chip, call again with `cust_sc`.</li>
+            <li>No search cache. Every type or facet action should hit API.</li>
+            <li>Display one vertical grid from the returned result array only.</li>
+          </ul>
+        </section>
+
+        <section class="section-card" id="player">
+          <h2>Player</h2>
+          <p>
+            Playback should use the Quickplay platform player SDK, not a standalone AVPlayer-only approach.
+            The app can use preview URLs in hero/detail where available, and full content playback from detail
+            or continue-watching routes.
+          </p>
+          <h3>Player responsibilities</h3>
+          <ul>
+            <li>Enroll device/client using runtime config and OAuth/OVAT flow.</li>
+            <li>Authorize content using content auth URL.</li>
+            <li>Start heartbeat and bookmarks when playback begins.</li>
+            <li>Show SDK unavailable fallback if pods or framework are missing.</li>
+            <li>Interactive mock overlays can be shown for show/sports POC flows until backend contracts exist.</li>
+          </ul>
+        </section>
+
+        <section class="section-card" id="profile-section">
+          <h2>Profile Section</h2>
+          <p>
+            Profile hub is a user dashboard. It should show selected profile, switch profile sheet, account
+            shortcuts, downloads, favorites, continue watching, and recommendations. POC favorites can be mock
+            local data. Continue watching should come from local watched history until real APIs are connected.
+          </p>
+          <table class="rules-table">
+            <thead>
+              <tr><th>Section</th><th>Data source</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Selected profile</td><td>Local profile repository</td><td>Name and avatar must match selected profile everywhere.</td></tr>
+              <tr><td>Continue watching</td><td>Local session/history for POC</td><td>Store full item object with progress.</td></tr>
+              <tr><td>Favorites</td><td>Mock/local for POC</td><td>Add/remove from detail plus button and hero plus button.</td></tr>
+              <tr><td>Recommendations</td><td>Seeded from storefront or recommendation API</td><td>Replace with final API once confirmed.</td></tr>
+              <tr><td>Settings</td><td>Mock functional pages</td><td>Profile switch opens bottom sheet and refreshes storefront on selection.</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="section-card" id="apis">
+          <h2>API Catalog</h2>
+          <table class="api-table">
+            <thead>
+              <tr><th>Area</th><th>Endpoint</th><th>Purpose</th><th>Important params</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Config</td><td>`{launchConfigURL}/launch/config`</td><td>Runtime URLs and player credentials.</td><td>device, client</td></tr>
+              <tr><td>Storefront metadata</td><td>`{catalogURL}/catalog/storefront/landingscreen`</td><td>Discover sfid and tabs for profile cohort.</td><td>pf, chrt, reg, client</td></tr>
+              <tr><td>Storefront render</td><td>`{catalogURL}/catalog/storefront/{sfid}/{tid}/containers`</td><td>Fetch tab containers and cards.</td><td>pageSize, pageNumber, pf</td></tr>
+              <tr><td>Detail</td><td>`{vodMetaDataURL}/content`</td><td>Fetch content metadata.</td><td>ids, mode, st</td></tr>
+              <tr><td>More Like This</td><td>`{vodMetaDataURL}/content/morelikethis/{id}`</td><td>Fetch related content.</td><td>cty, pageNumber, pageSize</td></tr>
+              <tr><td>Search</td><td>`{searchURL}/content/search`</td><td>Text, AI, and moments search.</td><td>term, moment, cust_sc, id</td></tr>
+              <tr><td>Seasons</td><td>`{vodMetaDataURL}/content/series/{seriesId}/seasons`</td><td>Fetch season list.</td><td>pageSize=100</td></tr>
+              <tr><td>Episodes</td><td>`{vodMetaDataURL}/content/series/{seriesId}/episodes`</td><td>Fetch episodes for a season.</td><td>seasonId</td></tr>
+              <tr><td>Collection</td><td>`{vodMetaDataURL}/content/lookup`</td><td>Browse collection/genre cards.</td><td>query, pageNumber, pageSize</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="section-card" id="data-model">
+          <h2>Data Model Reference</h2>
+          <h3>Storefront hierarchy</h3>
+          <pre><code>{
+  "data": {
+    "id": "storefront-id",
+    "t": [
+      {
+        "id": "tab-id",
+        "title": "TV Shows",
+        "c": [
+          {
+            "id": "section-id",
+            "title": "Trending",
+            "lo": "rail",
+            "iar": "0-16x9",
+            "bg_style": { "ia": [{ "ar": "1x1" }] },
+            "cd": [
+              {
+                "id": "content-id",
+                "title": "Content title",
+                "ty": "content",
+                "cty": "movie",
+                "cust_sc": "shows",
+                "stl_id": "series-id",
+                "setl_id": "season-id"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+          <h3>Implementation invariants</h3>
+          <ul>
+            <li>Use config URLs, not hardcoded service URLs, except launch config bootstrap.</li>
+            <li>Image URLs are constructed through the shared image URL builder using imageResizeURL.</li>
+            <li>Network logging belongs only in NetworkClient.</li>
+            <li>Do not fetch `content?ids=` during normal storefront rendering because `c.cd[]` is authoritative for visible rails.</li>
+            <li>Use `content?ids=` only for View All fixed-ID pagination where the source explicitly requires it.</li>
+          </ul>
+        </section>
+
+        <section class="section-card" id="qa">
+          <h2>QA Checklist</h2>
+          <div class="grid-2">
+            <div class="mini-card">
+              <h4>Functional checks</h4>
+              <ul>
+                <li>Fresh install shows Login once, then Profile Selection after OTP.</li>
+                <li>Profile selection tap opens Storefront immediately with shimmer.</li>
+                <li>Profile switch resets sfid/tid and calls landing screen with current cohort pf.</li>
+                <li>Tab switch fetches containers for selected tab and starts from top.</li>
+                <li>Back navigation uses a single custom navigation item and preserves iOS swipe back.</li>
+                <li>Episodes call seasons first, then episodes for selected season.</li>
+              </ul>
+            </div>
+            <div class="mini-card">
+              <h4>Visual checks</h4>
+              <ul>
+                <li>Login, OTP, profile selection, bottom bar, and search match Figma.</li>
+                <li>Immersive hero alone ignores safe area and goes edge-to-edge.</li>
+                <li>Sports and regular hero do not have extra top gap on pushed storefront.</li>
+                <li>Profile switch sheet fills width, has correct background, and dismisses on outside tap.</li>
+                <li>Search overlay is full-screen translucent and animates by opacity, not ugly vertical panel movement.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <div class="footer">
+          <p>
+            Reference style: Stripe use-case documentation pattern, with a product-first overview followed by
+            implementation contracts and copyable API examples. Source consulted:
+            <a href="https://docs.stripe.com/get-started/use-cases">docs.stripe.com/get-started/use-cases</a>.
+          </p>
+          <p>Generated for Sony LIV Quickplay iOS POC. Last updated: 2026-06-26.</p>
+        </div>
+      </main>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>

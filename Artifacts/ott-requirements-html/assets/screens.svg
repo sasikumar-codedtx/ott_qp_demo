@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-label="Sample OTT app screens">
+  <defs>
+    <linearGradient id="phoneBg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#221a46"/>
+      <stop offset="0.5" stop-color="#08080d"/>
+      <stop offset="1" stop-color="#2d1606"/>
+    </linearGradient>
+    <linearGradient id="poster" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#27406f"/>
+      <stop offset="1" stop-color="#191b25"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" x2="1">
+      <stop offset="0" stop-color="#ff8b3d"/>
+      <stop offset="1" stop-color="#a94cff"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="420" rx="28" fill="#080a12"/>
+  <g transform="translate(72 38)">
+    <rect width="210" height="344" rx="34" fill="url(#phoneBg)" stroke="#2b3141"/>
+    <text x="26" y="48" font-family="Inter, Arial" font-size="24" font-weight="800" fill="#fff">Profile</text>
+    <circle cx="70" cy="136" r="32" fill="#6aaefc"/>
+    <circle cx="140" cy="136" r="32" fill="#ffca47"/>
+    <circle cx="105" cy="212" r="32" fill="#f16f93"/>
+    <text x="105" y="284" text-anchor="middle" font-family="Inter, Arial" font-size="15" font-weight="800" fill="#fff">Who's Watching</text>
+  </g>
+  <g transform="translate(376 38)">
+    <rect width="210" height="344" rx="34" fill="#050508" stroke="#2b3141"/>
+    <rect x="0" y="0" width="210" height="178" rx="34" fill="url(#poster)"/>
+    <text x="24" y="48" font-family="Inter, Arial" font-size="24" font-weight="800" fill="#fff">Home</text>
+    <text x="24" y="146" font-family="Inter, Arial" font-size="22" font-weight="800" fill="#fff">Immersive Hero</text>
+    <rect x="24" y="200" width="72" height="100" rx="10" fill="#172032"/>
+    <rect x="106" y="200" width="72" height="100" rx="10" fill="#172032"/>
+    <rect x="24" y="318" width="160" height="16" rx="8" fill="url(#accent)" opacity=".45"/>
+  </g>
+  <g transform="translate(680 38)">
+    <rect width="210" height="344" rx="34" fill="#050508" stroke="#2b3141"/>
+    <rect x="0" y="0" width="210" height="156" rx="34" fill="#111827"/>
+    <text x="24" y="48" font-family="Inter, Arial" font-size="22" font-weight="800" fill="#fff">Detail</text>
+    <rect x="24" y="178" width="162" height="30" rx="15" fill="#fff"/>
+    <text x="105" y="198" text-anchor="middle" font-family="Inter, Arial" font-size="13" font-weight="800" fill="#111827">Watch Now</text>
+    <text x="24" y="240" font-family="Inter, Arial" font-size="15" fill="#fff">More Like This</text>
+    <rect x="24" y="260" width="48" height="70" rx="8" fill="#172032"/>
+    <rect x="82" y="260" width="48" height="70" rx="8" fill="#172032"/>
+    <rect x="140" y="260" width="48" height="70" rx="8" fill="#172032"/>
+  </g>
+</svg>
