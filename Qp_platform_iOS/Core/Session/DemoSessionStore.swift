@@ -223,6 +223,7 @@ actor DemoSessionStore {
     }
 
     private enum StorefrontPolicySignal: String {
+        case entertainment
         case reality
         case sports
     }
@@ -250,34 +251,50 @@ actor DemoSessionStore {
             return .reality
         }
 
-        return nil
+        return .entertainment
     }
 
     private func resolvedStorefrontPolicy(for profileKey: String) -> StorefrontPolicy {
         let counts = storefrontPolicyClicksByProfile[profileKey] ?? [:]
+        let entertainmentClicks = counts[StorefrontPolicySignal.entertainment.rawValue] ?? 0
         let realityClicks = counts[StorefrontPolicySignal.reality.rawValue] ?? 0
         let sportsClicks = counts[StorefrontPolicySignal.sports.rawValue] ?? 0
+        let totalClicks = entertainmentClicks + realityClicks + sportsClicks
 
-        if sportsClicks >= 5 {
+        guard totalClicks > 0 else {
+            return .entertainment
+        }
+
+        let entertainmentShare = Double(entertainmentClicks) / Double(totalClicks)
+        let realityShare = Double(realityClicks) / Double(totalClicks)
+        let sportsShare = Double(sportsClicks) / Double(totalClicks)
+        let pureCohortThreshold = 0.70
+
+        if sportsShare >= pureCohortThreshold {
             return .sports
         }
 
-        if realityClicks >= 5 {
-            if sportsClicks >= 2 {
-                return .realitySports
-            }
+        if realityShare >= pureCohortThreshold {
             return .reality
         }
 
-        if sportsClicks >= 2 {
-            return .sportsEntertainment
+        if entertainmentShare >= pureCohortThreshold {
+            return .entertainment
         }
 
-        if realityClicks >= 2 {
+        if sportsClicks == realityClicks, realityClicks == entertainmentClicks {
+            return .entertainment
+        }
+
+        if entertainmentClicks <= sportsClicks, entertainmentClicks <= realityClicks {
+            return .realitySports
+        }
+
+        if sportsClicks <= entertainmentClicks, sportsClicks <= realityClicks {
             return .realityEntertainment
         }
 
-        return .entertainment
+        return .sportsEntertainment
     }
 
     private func persistContinueWatching() {

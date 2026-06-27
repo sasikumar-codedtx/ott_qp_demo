@@ -100,7 +100,9 @@ final class ProfileEditorViewModel: ObservableObject {
 
         do {
             let profile = try await saveProfileUseCase.execute(draft: draft)
-            await DemoSessionStore.shared.setStorefrontPolicyOverride(selectedStorefrontPolicy, for: profile.id)
+            if mode == .editExisting {
+                await DemoSessionStore.shared.setStorefrontPolicyOverride(selectedStorefrontPolicy, for: profile.id)
+            }
             isLoading = false
             return profile
         } catch {

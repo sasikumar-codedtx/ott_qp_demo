@@ -5,68 +5,63 @@ struct DetailInlinePlayerView: View {
     @ObservedObject var engine: QuickplayPlayerEngine
     let content: QuickplayPlaybackContent
     let posterURL: URL?
-    let height: CGFloat
+    let height: CGFloat       // 16:9 video height only
+    let topInset: CGFloat     // safe area top (status bar height)
     @Binding var isFullscreenPresented: Bool
 
-    var body: some View {
-        ZStack {
-            poster
+    private var totalHeight: CGFloat { topInset + height }
 
+    var body: some View {
+        ZStack(alignment: .top) {
+            // Poster: from Y=0, covers topInset+height — visible until player ready
+            PosterImageView(
+                url: posterURL,
+                size: CGSize(width: UIScreen.main.bounds.width, height: totalHeight),
+                cornerRadius: 0
+            )
+            .opacity(engine.isReady ? 0 : 1)
+            .animation(.easeInOut(duration: 0.45), value: engine.isReady)
+
+            // Player surface: starts at topInset (below status bar), fills 16:9 height
             if !isFullscreenPresented {
                 QuickplayPlayerSurfaceView(engine: engine)
+                    .frame(height: height)
+                    .padding(.top, topInset)
                     .opacity(engine.isReady ? 1 : 0)
                     .animation(.easeInOut(duration: 0.45), value: engine.isReady)
             }
 
             LinearGradient(
-                colors: [
-                    .black.opacity(0.42),
-                    .clear,
-                    .black.opacity(0.62)
-                ],
+                colors: [.black.opacity(0.38), .clear, .black.opacity(0.58)],
                 startPoint: .top,
                 endPoint: .bottom
             )
+            .frame(height: totalHeight)
 
-            VStack {
-                Spacer()
-                if engine.error != nil {
-                    DetailPlayerErrorToast()
-                        .padding(.bottom, 64)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-            }
-            .animation(.easeInOut(duration: 0.3), value: engine.error != nil)
-
+            // Controls sit at the bottom of the video area
             inlineControls
         }
-        .frame(height: height)
+        .frame(height: totalHeight)
         .clipped()
         .task(id: content.id) {
             engine.release()
             await engine.load(content: content)
         }
-    }
-
-    private var poster: some View {
-        PosterImageView(
-            url: posterURL,
-            size: CGSize(width: UIScreen.main.bounds.width, height: height),
-            cornerRadius: 0
-        )
+        .onChange(of: engine.error) { _, error in
+            guard error != nil else { return }
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+        }
     }
 
     private var inlineControls: some View {
-        VStack {
+        VStack(spacing: 0) {
             Spacer()
             HStack(spacing: 10) {
                 PlayerChromeIconButton(
                     systemImage: engine.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill",
                     action: engine.toggleMute
                 )
-
                 Spacer()
-
                 PlayerChromeIconButton(systemImage: "arrow.up.left.and.arrow.down.right") {
                     isFullscreenPresented = true
                 }
@@ -191,19 +186,3 @@ private struct DetailPlayerLoadingBadge: View {
     }
 }
 
-private struct DetailPlayerErrorToast: View {
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.red)
-            Text("Unable to load video")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.white)
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 40)
-        .background(.black.opacity(0.82), in: Capsule())
-        .overlay(Capsule().stroke(.red.opacity(0.55), lineWidth: 1))
-        .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
-    }
-}
