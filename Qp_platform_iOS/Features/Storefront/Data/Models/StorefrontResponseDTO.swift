@@ -291,6 +291,9 @@ struct QuickplayContentSourceDTO: Decodable {
         if queryItems.contains(where: { $0.name == "mode" }) == false {
             queryItems.append(URLQueryItem(name: "mode", value: "detail"))
         }
+        if queryItems.contains(where: { $0.name == "info" }) == false {
+            queryItems.append(URLQueryItem(name: "info", value: "detail"))
+        }
         if queryItems.contains(where: { $0.name == "st" }) == false {
             queryItems.append(URLQueryItem(name: "st", value: "published"))
         }

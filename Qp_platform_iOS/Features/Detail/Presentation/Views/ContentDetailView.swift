@@ -132,7 +132,7 @@ struct ContentDetailView: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .bottom) {
-                content(width: proxy.size.width)
+                content(width: proxy.size.width, height: proxy.size.height)
                     .ignoresSafeArea(edges: .top)
 
                 if let detail = viewModel.detail, isMomentSearchOverlayPresented {
@@ -163,7 +163,7 @@ struct ContentDetailView: View {
     }
 
     @ViewBuilder
-    private func content(width: CGFloat) -> some View {
+    private func content(width: CGFloat, height: CGFloat) -> some View {
         if let detail = viewModel.detail {
             let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
 
@@ -187,15 +187,15 @@ struct ContentDetailView: View {
                             } else if kind == .sportsInteractive {
                                 sportsDetailContent(detail, width: width)
                                     .padding(.horizontal, 16)
-                                    .padding(.top, -64)
+                                    .padding(.top, -48)
                             } else {
-                                detailContent(detail, kind: kind, width: width)
+                                detailContent(detail, kind: kind, width: width, screenHeight: height)
                                     .padding(.horizontal, 16)
-                                    .padding(.top, -64)
+                                    .padding(.top, -48)
                             }
                         }
                         .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 120 : 0)
-                        .padding(.bottom, 42)
+                        .padding(.bottom, 80)
                         .id("scrollTop")
                     }
                     .ignoresSafeArea(edges: .top)
@@ -269,13 +269,17 @@ struct ContentDetailView: View {
     }
 
     private func heroHeight(for width: CGFloat) -> CGFloat {
-        max(413, width)
+        // Reduced from max(413,width) — less scroll travel, hero fills ~84% of typical screen width
+        min(width * 0.88, 340)
     }
 
     private var miniHeroHeight: CGFloat { 220 }
 
-    private func detailContent(_ detail: ContentDetail, kind: DetailPresentationKind, width: CGFloat) -> some View {
+    private func detailContent(_ detail: ContentDetail, kind: DetailPresentationKind, width: CGFloat, screenHeight: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 12) {
+            // Extra breathing room between hero bottom and first content element
+            Spacer().frame(height: 20)
+
             titleArt(detail)
             metaLine(detail)
             watchButton(detail, kind: kind)
@@ -286,6 +290,8 @@ struct ContentDetailView: View {
             tabRow(detail)
                 .id(detailTabsAnchorID)
             tabContent(detail, width: width)
+                // Ensure tab content fills enough of the screen so bottom isn't empty
+                .frame(minHeight: screenHeight * 0.45)
         }
     }
 
