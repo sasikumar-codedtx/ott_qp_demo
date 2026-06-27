@@ -112,7 +112,6 @@ struct ContentDetailView: View {
     @State private var isDescriptionExpanded = false
     @State private var isMomentSearchOverlayPresented = false
     @State private var isMockInteractionPresented = false
-    @State private var isDetailPlayerFullscreenPresented = false
     @State private var mockInteractionSelection: String?
     @State private var mockInteractionShowsResult = false
     @State private var momentSearchDraft = ""
@@ -135,8 +134,7 @@ struct ContentDetailView: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .bottom) {
-                content(width: proxy.size.width, height: proxy.size.height, safeAreaTop: proxy.safeAreaInsets.top)
-                    .ignoresSafeArea(edges: .top)
+                content(width: proxy.size.width, height: proxy.size.height)
 
                 if let detail = viewModel.detail, isMomentSearchOverlayPresented {
                     momentSearchOverlay(detail: detail, bottomInset: proxy.safeAreaInsets.bottom)
@@ -193,7 +191,6 @@ struct ContentDetailView: View {
             }
             .task(id: viewModel.requestKey) {
                 isDescriptionExpanded = false
-                isDetailPlayerFullscreenPresented = false
                 dismissMomentSearchOverlay()
                 dismissMockInteraction()
                 await viewModel.loadIfNeeded()
@@ -213,50 +210,42 @@ struct ContentDetailView: View {
     }
 
     @ViewBuilder
-    private func content(width: CGFloat, height: CGFloat, safeAreaTop: CGFloat) -> some View {
+    private func content(width: CGFloat, height: CGFloat) -> some View {
         if let detail = viewModel.detail {
             let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
             let playerContent = detail.quickplayPlaybackContent(fallback: viewModel.seed)
-            let videoHeight = width * 9 / 16
-            let navBarHeight: CGFloat = 58               // custom floating nav bar (RouteNavigationBar)
-            let topInset = safeAreaTop + navBarHeight    // status bar + nav bar
-            let heroHeight = topInset + videoHeight      // image: Y=0 → topInset+videoHeight
+            let mediaHeight = width * 9 / 16
 
             ZStack(alignment: .top) {
                 Color(hex: "0A0A0A").ignoresSafeArea()
-                DetailInlinePlayerView(
-                    engine: detailPlayerEngine,
-                    content: playerContent,
-                    posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
-                    height: videoHeight,
-                    topInset: topInset,
-                    isFullscreenPresented: $isDetailPlayerFullscreenPresented
-                )
-                .ignoresSafeArea(edges: .top)
-                .zIndex(3)
 
                 ScrollViewReader { scrollProxy in
                     ScrollView(.vertical, showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            // Spacer pushes content below the full hero image
-                            Color.clear
-                                .frame(height: heroHeight)
-
-                            if kind == .sportsInteractive {
-                                sportsDetailContent(detail, width: width)
-                                    .padding(.horizontal, 16)
-                                    .padding(.top, 16)
-                            } else {
-                                detailContent(detail, kind: kind, width: width, screenHeight: height)
-                                    .padding(.horizontal, 16)
-                                    .padding(.top, 16)
+                        LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+                            Section {
+                                if kind == .sportsInteractive {
+                                    sportsDetailContent(detail, width: width)
+                                        .padding(.horizontal, 16)
+                                        .padding(.top, 8)
+                                } else {
+                                    detailContent(detail, kind: kind, width: width, screenHeight: height)
+                                        .padding(.horizontal, 16)
+                                        .padding(.top, 8)
+                                }
+                            } header: {
+                                DetailInlinePlayerView(
+                                    engine: detailPlayerEngine,
+                                    content: playerContent,
+                                    posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
+                                    height: mediaHeight,
+                                    onFullscreen: { openFullPlayer(detail: detail) }
+                                )
                             }
                         }
                         .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 120 : 0)
                         .padding(.bottom, 80)
                         .id("scrollTop")
                     }
-                    .ignoresSafeArea(edges: .top)
                     .onChange(of: momentAutoScrollToken) { _, _ in
                         guard viewModel.selectedTab == AppStrings.Detail.moments else { return }
 
@@ -283,29 +272,9 @@ struct ContentDetailView: View {
                         }
                     }
                 }
-                .mask(
-                    VStack(spacing: 0) {
-                        // Clip scroll content behind status bar + nav bar
-                        Color.clear.frame(height: topInset)
-                        Color.black.frame(maxHeight: .infinity)
-                    }
-                    .ignoresSafeArea(edges: .top)
-                )
+                .clipped()
                 .zIndex(2)
 
-                if isDetailPlayerFullscreenPresented {
-                    DetailFullscreenPlayerView(
-                        engine: detailPlayerEngine,
-                        content: playerContent,
-                        posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3))
-                    ) {
-                        withAnimation(.easeInOut(duration: 0.24)) {
-                            isDetailPlayerFullscreenPresented = false
-                        }
-                    }
-                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                    .zIndex(50)
-                }
             }
         } else if viewModel.isLoading {
             LoadingView()
@@ -400,11 +369,14 @@ struct ContentDetailView: View {
             .frame(maxWidth: .infinity)
     }
 
+    private func openFullPlayer(detail: ContentDetail) {
+        detailPlayerEngine.release()
+        onPlay(detail, viewModel.seed)
+    }
+
     private func watchButton(_ detail: ContentDetail, kind: DetailPresentationKind) -> some View {
         Button {
-            withAnimation(.easeInOut(duration: 0.24)) {
-                isDetailPlayerFullscreenPresented = true
-            }
+            openFullPlayer(detail: detail)
         } label: {
             Text(watchTitle(for: detail, kind: kind))
                 .font(.system(size: 16, weight: .semibold))

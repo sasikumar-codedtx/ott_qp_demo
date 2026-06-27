@@ -5,47 +5,63 @@ struct DetailInlinePlayerView: View {
     @ObservedObject var engine: QuickplayPlayerEngine
     let content: QuickplayPlaybackContent
     let posterURL: URL?
-    let height: CGFloat       // 16:9 video height only
-    let topInset: CGFloat     // safe area top (status bar height)
-    @Binding var isFullscreenPresented: Bool
-
-    private var totalHeight: CGFloat { topInset + height }
+    let height: CGFloat
+    let onFullscreen: () -> Void
+    @State private var isSeeking = false
+    @State private var seekPosition: Double = 0
+    @State private var showControls = false
 
     var body: some View {
-        ZStack(alignment: .top) {
-            // Poster: from Y=0, covers topInset+height — visible until player ready
+        ZStack {
             PosterImageView(
                 url: posterURL,
-                size: CGSize(width: UIScreen.main.bounds.width, height: totalHeight),
+                size: CGSize(width: UIScreen.main.bounds.width, height: height),
                 cornerRadius: 0
             )
-            .opacity(engine.isReady ? 0 : 1)
-            .animation(.easeInOut(duration: 0.45), value: engine.isReady)
 
-            // Player surface: starts at topInset (below status bar), fills 16:9 height
-            if !isFullscreenPresented {
-                QuickplayPlayerSurfaceView(engine: engine)
-                    .frame(height: height)
-                    .padding(.top, topInset)
-                    .opacity(engine.isReady ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.45), value: engine.isReady)
+            QuickplayPlayerSurfaceView(engine: engine)
+                .opacity(engine.isReady ? 1 : 0)
+                .animation(.easeInOut(duration: 0.45), value: engine.isReady)
+                .allowsHitTesting(false)
+
+            if engine.isReady && showControls {
+                LinearGradient(
+                    colors: [.black.opacity(0.3), .clear, .black.opacity(0.55)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .allowsHitTesting(false)
+
+                controls
+                    .transition(.opacity)
             }
 
-            LinearGradient(
-                colors: [.black.opacity(0.38), .clear, .black.opacity(0.58)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: totalHeight)
-
-            // Controls sit at the bottom of the video area
-            inlineControls
+            if engine.error != nil {
+                VStack {
+                    Spacer()
+                    DetailPlayerErrorToast()
+                        .padding(.bottom, 64)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .animation(.easeInOut(duration: 0.3), value: engine.error != nil)
+            }
         }
-        .frame(height: totalHeight)
+        .frame(height: height)
         .clipped()
+        .contentShape(Rectangle())
+        .onTapGesture {
+            guard engine.isReady else { return }
+            withAnimation(.easeInOut(duration: 0.2)) { showControls.toggle() }
+        }
         .task(id: content.id) {
             engine.release()
             await engine.load(content: content)
+        }
+        .onChange(of: engine.isReady) { _, ready in
+            if !ready { showControls = false }
+        }
+        .onChange(of: isSeeking) { _, seeking in
+            if !seeking { engine.seek(to: seekPosition) }
         }
         .onChange(of: engine.error) { _, error in
             guard error != nil else { return }
@@ -53,104 +69,107 @@ struct DetailInlinePlayerView: View {
         }
     }
 
-    private var inlineControls: some View {
-        VStack(spacing: 0) {
-            Spacer()
-            HStack(spacing: 10) {
-                PlayerChromeIconButton(
-                    systemImage: engine.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill",
-                    action: engine.toggleMute
-                )
-                Spacer()
-                PlayerChromeIconButton(systemImage: "arrow.up.left.and.arrow.down.right") {
-                    isFullscreenPresented = true
-                }
+    private var controls: some View {
+        ZStack {
+            // Play/pause — centered
+            Button(action: engine.togglePlayPause) {
+                Image(systemName: engine.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 30, weight: .medium))
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.5), radius: 6, x: 0, y: 2)
+                    .frame(width: 52, height: 52)
+                    .contentShape(Rectangle())
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 14)
+            .buttonStyle(.plain)
+            .animation(.easeInOut(duration: 0.15), value: engine.isPlaying)
+
+            // Bottom: mute | fullscreen + seekbar
+            VStack(spacing: 0) {
+                Spacer()
+                HStack {
+                    PlayerChromeIconButton(
+                        systemImage: engine.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill",
+                        action: engine.toggleMute
+                    )
+                    Spacer()
+                    PlayerChromeIconButton(systemImage: "arrow.up.left.and.arrow.down.right", action: onFullscreen)
+                }
+                .padding(.horizontal, 12)
+                .padding(.bottom, 6)
+
+                DetailSeekBar(
+                    currentTime: engine.currentTime,
+                    duration: engine.duration,
+                    isSeeking: $isSeeking,
+                    seekPosition: $seekPosition
+                )
+            }
         }
     }
 }
 
-struct DetailFullscreenPlayerView: View {
-    @ObservedObject var engine: QuickplayPlayerEngine
-    let content: QuickplayPlaybackContent
-    let posterURL: URL?
-    let onDismiss: () -> Void
+// MARK: - Seekbar
+
+private struct DetailSeekBar: View {
+    let currentTime: Double
+    let duration: Double
+    @Binding var isSeeking: Bool
+    @Binding var seekPosition: Double
+
+    private var progress: Double {
+        guard duration > 0 else { return 0 }
+        let t = isSeeking ? seekPosition : currentTime
+        return min(max(t / duration, 0), 1)
+    }
 
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
+        GeometryReader { proxy in
+            let w = proxy.size.width
+            let thumbR: CGFloat = 6
+            let filled = max(0, CGFloat(progress) * w)
 
-            PosterImageView(
-                url: posterURL,
-                size: UIScreen.main.bounds.size,
-                cornerRadius: 0
+            ZStack(alignment: .leading) {
+                Rectangle()
+                    .fill(Color.white.opacity(0.3))
+                    .frame(height: isSeeking ? 4 : 2)
+                    .animation(.easeInOut(duration: 0.18), value: isSeeking)
+
+                Rectangle()
+                    .fill(Color.white)
+                    .frame(width: filled, height: isSeeking ? 4 : 2)
+                    .animation(.easeInOut(duration: 0.18), value: isSeeking)
+
+                Circle()
+                    .fill(Color.white)
+                    .frame(
+                        width: isSeeking ? thumbR * 2.4 : thumbR * 2,
+                        height: isSeeking ? thumbR * 2.4 : thumbR * 2
+                    )
+                    .offset(x: max(0, filled - (isSeeking ? thumbR * 1.2 : thumbR)))
+                    .animation(.easeInOut(duration: 0.18), value: isSeeking)
+                    .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 1)
+            }
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle().size(CGSize(width: w, height: 44)))
+            .gesture(
+                DragGesture(minimumDistance: 2)
+                    .onChanged { value in
+                        guard duration > 0 else { return }
+                        if !isSeeking {
+                            let thumbX = filled
+                            guard abs(value.startLocation.x - thumbX) < 28 else { return }
+                            isSeeking = true
+                        }
+                        seekPosition = min(max(Double(value.location.x / w) * duration, 0), duration)
+                    }
+                    .onEnded { _ in isSeeking = false }
             )
-            .opacity(engine.isReady ? 0 : 1)
-
-            QuickplayPlayerSurfaceView(engine: engine)
-                .ignoresSafeArea()
-                .opacity(engine.isReady ? 1 : 0)
-
-            fullscreenChrome
-
-            if !engine.isReady || engine.isBuffering {
-                DetailPlayerLoadingBadge()
-            }
         }
-        .preferredColorScheme(.dark)
-        .onAppear { lockLandscape() }
-        .onDisappear { lockPortrait() }
-    }
-
-    private var fullscreenChrome: some View {
-        VStack {
-            HStack(spacing: 12) {
-                NavigationChromeButton(icon: AppIcons.Navigation.back, action: onDismiss)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(content.title)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                }
-
-                Spacer()
-
-                PlayerChromeIconButton(
-                    systemImage: engine.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill",
-                    action: engine.toggleMute
-                )
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-
-            Spacer()
-        }
-        .background(alignment: .top) {
-            LinearGradient(colors: [.black.opacity(0.78), .clear], startPoint: .top, endPoint: .bottom)
-                .frame(height: 120)
-                .ignoresSafeArea(edges: .top)
-        }
-    }
-
-    private func lockLandscape() {
-        AppDelegate.orientationLock = .landscape
-        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            scene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscape))
-        }
-        UIViewController.attemptRotationToDeviceOrientation()
-    }
-
-    private func lockPortrait() {
-        AppDelegate.orientationLock = .portrait
-        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            scene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
-        }
-        UIViewController.attemptRotationToDeviceOrientation()
+        .frame(height: 44)
     }
 }
+
+// MARK: - Chrome icon button
 
 private struct PlayerChromeIconButton: View {
     let systemImage: String
@@ -159,30 +178,31 @@ private struct PlayerChromeIconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: systemImage)
-                .font(.system(size: 17, weight: .bold))
+                .font(.system(size: 15, weight: .bold))
                 .foregroundStyle(.white)
-                .frame(width: 40, height: 40)
+                .frame(width: 34, height: 34)
                 .background(.black.opacity(0.34), in: Circle())
                 .overlay(Circle().stroke(.white.opacity(0.16), lineWidth: 1))
-                .shadow(color: .black.opacity(0.35), radius: 10, x: 0, y: 6)
         }
         .buttonStyle(LiquidButtonPressStyle())
     }
 }
 
-private struct DetailPlayerLoadingBadge: View {
+// MARK: - Error toast
+
+private struct DetailPlayerErrorToast: View {
     var body: some View {
         HStack(spacing: 8) {
-            ProgressView()
-                .tint(.white)
-            Text("Loading video")
-                .font(.system(size: 12, weight: .semibold))
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.red)
+            Text("Unable to load video")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.white)
         }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 12)
-        .frame(height: 34)
-        .background(.black.opacity(0.36), in: Capsule())
-        .overlay(Capsule().stroke(.white.opacity(0.14), lineWidth: 1))
+        .padding(.horizontal, 16)
+        .frame(height: 40)
+        .background(.black.opacity(0.82), in: Capsule())
+        .overlay(Capsule().stroke(.red.opacity(0.55), lineWidth: 1))
+        .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
     }
 }
-

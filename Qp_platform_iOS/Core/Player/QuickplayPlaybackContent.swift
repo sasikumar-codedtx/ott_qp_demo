@@ -11,6 +11,12 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
     let episodeNumber: Int?
     let rating: String?
     let genre: String?
+    let playbackMode: PlaybackMode
+
+    enum PlaybackMode: Hashable {
+        case inline
+        case fullscreen
+    }
 
     enum ContentType: String, Hashable {
         case movie = "movie"
@@ -37,7 +43,8 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
         seasonId: String? = nil,
         episodeNumber: Int? = nil,
         rating: String? = nil,
-        genre: String? = nil
+        genre: String? = nil,
+        playbackMode: PlaybackMode = .inline
     ) {
         self.id = contentId
         self.contentId = contentId
@@ -49,6 +56,22 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
         self.episodeNumber = episodeNumber
         self.rating = rating
         self.genre = genre
+        self.playbackMode = playbackMode
+    }
+
+    func asFullscreen() -> QuickplayPlaybackContent {
+        QuickplayPlaybackContent(
+            contentId: contentId,
+            contentType: contentType,
+            title: title,
+            resumePosition: resumePosition,
+            seriesId: seriesId,
+            seasonId: seasonId,
+            episodeNumber: episodeNumber,
+            rating: rating,
+            genre: genre,
+            playbackMode: .fullscreen
+        )
     }
 }
 

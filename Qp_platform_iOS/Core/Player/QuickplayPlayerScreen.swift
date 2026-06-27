@@ -1,5 +1,6 @@
 import os
 import SwiftUI
+import UIKit
 
 struct QuickplayPlayerScreen: View {
     private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "ott.qp", category: "PlayerScreen")
@@ -25,6 +26,12 @@ struct QuickplayPlayerScreen: View {
     @State private var lastSportsBucket = -1
     @State private var quizDemoTask: Task<Void, Never>?
 
+    private var windowSafeArea: UIEdgeInsets {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first(where: { $0.isKeyWindow })?.safeAreaInsets ?? .zero
+    }
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -47,12 +54,17 @@ struct QuickplayPlayerScreen: View {
             }
 
             if engine.isFinished {
-                videoEndScreen
-                    .transition(.opacity)
-                    .zIndex(60)
+                let insets = windowSafeArea
+                videoEndScreen(
+                    safeTop: insets.top,
+                    safeLeading: insets.left
+                )
+                .transition(.opacity)
+                .zIndex(60)
             }
 
             if controlsVisible || isSeeking {
+                let insets = windowSafeArea
                 QuickplayPlayerControlsOverlay(
                     engine: engine,
                     title: content.title,
@@ -63,55 +75,60 @@ struct QuickplayPlayerScreen: View {
                     showQualityDialog: $showQualityDialog,
                     showSubtitleDialog: $showSubtitleDialog,
                     showSpeedSheet: $showSpeedSheet,
+                    safeTop: insets.top,
+                    safeLeading: insets.left,
+                    safeTrailing: insets.right,
+                    safeBottom: insets.bottom,
                     onDismiss: dismissPlayer
                 )
                 .transition(.opacity)
             }
 
-            if let feedback = seekFeedback {
-                SeekFeedbackView(feedback: feedback)
-                    .transition(.opacity)
-                    .zIndex(30)
-            }
-
-            if showQualityDialog {
-                QuickplayQualityDialog(engine: engine, isPresented: $showQualityDialog)
-                    .transition(.opacity)
-                    .zIndex(20)
-            }
-
-            #if canImport(FLPlayerInterface)
-            if showSubtitleDialog {
-                QuickplaySubtitleDialog(engine: engine, isPresented: $showSubtitleDialog)
-                    .transition(.opacity)
-                    .zIndex(20)
-            }
-            #endif
-
-            if showSpeedSheet {
-                SpeedSelectorView(engine: engine, isPresented: $showSpeedSheet)
-                    .transition(.opacity)
-                    .zIndex(20)
-            }
-
-            if let activeQuizPrompt {
-                PlayerQuizOverlayView(prompt: activeQuizPrompt) {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) { self.activeQuizPrompt = nil }
-                    scheduleHide()
+                if let feedback = seekFeedback {
+                    SeekFeedbackView(feedback: feedback)
+                        .transition(.opacity)
+                        .zIndex(30)
                 }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .zIndex(40)
-            }
 
-            if let activeSportsPrompt {
-                PlayerSportsOverlayView(prompt: activeSportsPrompt) {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) { self.activeSportsPrompt = nil }
-                    scheduleHide()
+                if showQualityDialog {
+                    QuickplayQualityDialog(engine: engine, isPresented: $showQualityDialog)
+                        .transition(.opacity)
+                        .zIndex(20)
                 }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .zIndex(40)
-            }
+
+                #if canImport(FLPlayerInterface)
+                if showSubtitleDialog {
+                    QuickplaySubtitleDialog(engine: engine, isPresented: $showSubtitleDialog)
+                        .transition(.opacity)
+                        .zIndex(20)
+                }
+                #endif
+
+                if showSpeedSheet {
+                    SpeedSelectorView(engine: engine, isPresented: $showSpeedSheet)
+                        .transition(.opacity)
+                        .zIndex(20)
+                }
+
+                if let activeQuizPrompt {
+                    PlayerQuizOverlayView(prompt: activeQuizPrompt) {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) { self.activeQuizPrompt = nil }
+                        scheduleHide()
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(40)
+                }
+
+                if let activeSportsPrompt {
+                    PlayerSportsOverlayView(prompt: activeSportsPrompt) {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) { self.activeSportsPrompt = nil }
+                        scheduleHide()
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(40)
+                }
         }
+        .ignoresSafeArea()
         .preferredColorScheme(.dark)
         .animation(.easeInOut(duration: 0.4), value: engine.isFinished)
         .animation(.easeInOut(duration: 0.3), value: engine.isReady)
@@ -192,7 +209,7 @@ struct QuickplayPlayerScreen: View {
 
     @State private var endThumbnail: UIImage? = nil
 
-    private var videoEndScreen: some View {
+    private func videoEndScreen(safeTop: CGFloat, safeLeading: CGFloat) -> some View {
         ZStack {
             Color.black.ignoresSafeArea()
 
@@ -207,8 +224,8 @@ struct QuickplayPlayerScreen: View {
 
             NavigationChromeButton(icon: AppIcons.Navigation.back, action: dismissPlayer)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .padding(.leading, 16)
-                .padding(.top, 12)
+                .padding(.leading, safeLeading + 16)
+                .padding(.top, safeTop + 12)
         }
         .task {
             endThumbnail = await engine.thumbnailImage(at: engine.duration * 0.1)
@@ -389,7 +406,7 @@ struct QuickplayPlayerScreen: View {
 
 // MARK: - Speed selector (full-screen snapping rail)
 
-private struct SpeedSelectorView: View {
+struct SpeedSelectorView: View {
     @ObservedObject var engine: QuickplayPlayerEngine
     @Binding var isPresented: Bool
 
@@ -635,7 +652,7 @@ private struct QuickplayPlayerLoadingView: View {
 
 // MARK: - Content extensions
 
-private extension QuickplayPlaybackContent {
+extension QuickplayPlaybackContent {
     var playerSubtitle: String? {
         var parts: [String] = []
         if let seasonId { parts.append("S\(seasonId)") }

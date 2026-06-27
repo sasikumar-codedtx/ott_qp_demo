@@ -20,16 +20,10 @@ struct AppRootView: View {
             }
             .animation(.spring(response: 0.28, dampingFraction: 0.82), value: viewModel.cohortOverrideToast)
 
-            // Player overlay — smooth scale+fade instead of fullScreenCover slide-up
             if let content = viewModel.activePlaybackContent {
                 QuickplayPlayerScreen(content: content, onDismiss: viewModel.closePlayer)
                     .ignoresSafeArea()
-                    .transition(
-                        .asymmetric(
-                            insertion: .scale(scale: 0.96).combined(with: .opacity),
-                            removal:   .scale(scale: 0.98).combined(with: .opacity)
-                        )
-                    )
+                    .transition(.opacity)
                     .zIndex(100)
             }
         }
@@ -380,12 +374,7 @@ struct AppRootView: View {
                 )
             }
             .routeNavigationChrome(showsNavigationBar: false)
-            .routeNavigationOverlay(onBack: viewModel.backFromDetail) {
-                HStack(spacing: 4) {
-                    RouteNavigationIconButton(icon: AppIcons.Action.tv, action: {})
-                    RouteNavigationIconButton(icon: AppIcons.Action.share, action: {})
-                }
-            }
+            .routeNavigationOverlay(onBack: viewModel.backFromDetail)
         case .sectionBrowse, .collectionBrowse:
             surface(style: .storefront) {
                 StorefrontSectionBrowseView(

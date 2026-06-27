@@ -11,6 +11,10 @@ struct QuickplayPlayerControlsOverlay: View {
     @Binding var showQualityDialog: Bool
     @Binding var showSubtitleDialog: Bool
     @Binding var showSpeedSheet: Bool
+    let safeTop: CGFloat
+    let safeLeading: CGFloat
+    let safeTrailing: CGFloat
+    let safeBottom: CGFloat
     let onDismiss: () -> Void
 
     @State private var seekThumbnail: UIImage? = nil
@@ -36,7 +40,7 @@ struct QuickplayPlayerControlsOverlay: View {
                     Spacer()
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 20)
+                .padding(.leading, safeLeading + 20)
                 .padding(.vertical, 70)
             }
         }
@@ -85,8 +89,9 @@ struct QuickplayPlayerControlsOverlay: View {
 
             Spacer()
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
+        .padding(.leading, safeLeading + 18)
+        .padding(.trailing, safeTrailing + 16)
+        .padding(.top, safeTop + 12)
     }
 
     // MARK: Center — skip ±15s + play/pause
@@ -128,7 +133,7 @@ struct QuickplayPlayerControlsOverlay: View {
             seekRow
 
             actionPills
-                .padding(.bottom, 10)
+                .padding(.bottom, safeBottom + 14)
                 .opacity(isSeeking ? 0 : 1)
                 .animation(.easeInOut(duration: 0.18), value: isSeeking)
         }
@@ -194,7 +199,7 @@ struct QuickplayPlayerControlsOverlay: View {
                 .foregroundStyle(.white)
                 .monospacedDigit()
                 .frame(minWidth: 52, alignment: .trailing)
-                .padding(.trailing, 16)
+                .padding(.trailing, safeTrailing + 16)
         }
     }
 
