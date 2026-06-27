@@ -8,21 +8,20 @@ actor DemoSessionStore {
         static let activePreference = "sony.quickplay.demo.active-preference"
         static let activeProfileID = "sony.quickplay.demo.active-profile-id"
         static let preferenceHistoryByProfile = "sony.quickplay.demo.preference-history-by-profile"
-        static let cohortTapCountsByProfile = "sony.quickplay.demo.cohort-tap-counts-by-profile"
+        static let storefrontPolicyClicksByProfile = "sony.quickplay.demo.storefront-policy-clicks-by-profile"
         static let prefersVoiceAISearch = "sony.quickplay.demo.prefers-voice-ai"
         static let continueWatchingByProfile = "sony.quickplay.demo.continue-watching-by-profile"
         static let favoritesByProfile = "sony.quickplay.demo.favorites-by-profile"
         static let hasCompletedLogin = "sony.quickplay.demo.has-completed-login"
     }
 
-    private let historyThreshold = 7
     private let maxHistoryCount = 24
 
     private var activeCohort: QuickplayCohort
     private var activePreference: ProfilePreference
     private var activeProfileID: String?
     private var preferenceHistoryByProfile: [String: [String]]
-    private var cohortTapCountsByProfile: [String: [String: Int]]
+    private var storefrontPolicyClicksByProfile: [String: [String: Int]]
     private var prefersVoiceAISearch: Bool
     private var continueWatchingByProfile: [String: [StorefrontItem]]
     private var favoritesByProfile: [String: [StorefrontItem]]
@@ -48,7 +47,7 @@ actor DemoSessionStore {
 
         activeProfileID = UserDefaults.standard.string(forKey: StorageKey.activeProfileID)
         preferenceHistoryByProfile = UserDefaults.standard.dictionary(forKey: StorageKey.preferenceHistoryByProfile) as? [String: [String]] ?? [:]
-        cohortTapCountsByProfile = UserDefaults.standard.dictionary(forKey: StorageKey.cohortTapCountsByProfile) as? [String: [String: Int]] ?? [:]
+        storefrontPolicyClicksByProfile = UserDefaults.standard.dictionary(forKey: StorageKey.storefrontPolicyClicksByProfile) as? [String: [String: Int]] ?? [:]
         if let data = UserDefaults.standard.data(forKey: StorageKey.continueWatchingByProfile),
            let stored = try? JSONDecoder().decode([String: [StorefrontItem]].self, from: data) {
             continueWatchingByProfile = stored
@@ -81,9 +80,9 @@ actor DemoSessionStore {
     func resetPreferenceHistory(for profileID: UUID?) {
         guard let profileID else { return }
         preferenceHistoryByProfile[profileID.uuidString] = []
-        cohortTapCountsByProfile[profileID.uuidString] = [:]
+        storefrontPolicyClicksByProfile[profileID.uuidString] = [:]
         UserDefaults.standard.set(preferenceHistoryByProfile, forKey: StorageKey.preferenceHistoryByProfile)
-        UserDefaults.standard.set(cohortTapCountsByProfile, forKey: StorageKey.cohortTapCountsByProfile)
+        UserDefaults.standard.set(storefrontPolicyClicksByProfile, forKey: StorageKey.storefrontPolicyClicksByProfile)
     }
 
     func clearActiveProfileContext() {
@@ -114,14 +113,14 @@ actor DemoSessionStore {
         UserDefaults.standard.set(preference.rawValue, forKey: StorageKey.activePreference)
     }
 
-    func recordContentSelection(_ item: StorefrontItem) -> QuickplayCohort? {
-        let previousCohort = activeCohort
+    func recordContentSelection(_ item: StorefrontItem) {
         let key = historyKey
-        let tappedCohort = cohortSignal(from: item)
-        var counts = cohortTapCountsByProfile[key] ?? [:]
-        counts[tappedCohort.rawValue, default: 0] += 1
-        cohortTapCountsByProfile[key] = counts
-        UserDefaults.standard.set(cohortTapCountsByProfile, forKey: StorageKey.cohortTapCountsByProfile)
+        if let signal = storefrontPolicySignal(from: item) {
+            var counts = storefrontPolicyClicksByProfile[key] ?? [:]
+            counts[signal.rawValue, default: 0] += 1
+            storefrontPolicyClicksByProfile[key] = counts
+            UserDefaults.standard.set(storefrontPolicyClicksByProfile, forKey: StorageKey.storefrontPolicyClicksByProfile)
+        }
 
         var continueItems = continueWatchingByProfile[key] ?? []
         let progressValue = item.progress ?? 0.32
@@ -133,14 +132,6 @@ actor DemoSessionStore {
         }
         continueWatchingByProfile[key] = continueItems
         persistContinueWatching()
-
-        guard let updatedCohort = firstCohortAtThreshold(in: counts) else { return nil }
-
-        cohortTapCountsByProfile[key] = [:]
-        UserDefaults.standard.set(cohortTapCountsByProfile, forKey: StorageKey.cohortTapCountsByProfile)
-
-        guard updatedCohort != previousCohort else { return nil }
-        return updatedCohort
     }
 
     func continueWatchingItems(limit: Int = 20) -> [StorefrontItem] {
@@ -185,6 +176,14 @@ actor DemoSessionStore {
         activePreference
     }
 
+    func currentStorefrontPolicy() -> StorefrontPolicy {
+        storefrontPolicy(for: historyKey)
+    }
+
+    func currentStorefrontPolicyAttribute() -> String {
+        currentStorefrontPolicy().chrtValue
+    }
+
     func currentDominantPreference() -> ProfilePreference? {
         nil
     }
@@ -202,26 +201,62 @@ actor DemoSessionStore {
         activeProfileID ?? "guest"
     }
 
-    private func cohortSignal(from item: StorefrontItem) -> QuickplayCohort {
-        let value = item.customSearchCategory?
+    private enum StorefrontPolicySignal: String {
+        case reality
+        case sports
+    }
+
+    private func storefrontPolicySignal(from item: StorefrontItem) -> StorefrontPolicySignal? {
+        let value = [
+            item.customSearchCategory,
+            item.contentType,
+            item.cardType,
+            item.customID,
+            item.title
+        ]
+            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .joined(separator: " ")
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
 
-        switch value {
-        case "sports":
+        guard !value.isEmpty else { return nil }
+
+        if value.contains("sport") || value.contains("match") || value.contains("cricket") || value.contains("football") {
             return .sports
-        case "shows":
-            return .realityShows
-        default:
-            return .entertainment
         }
+
+        if value.contains("show") || value.contains("reality") {
+            return .reality
+        }
+
+        return nil
     }
 
-    private func firstCohortAtThreshold(in counts: [String: Int]) -> QuickplayCohort? {
-        let candidates: [QuickplayCohort] = [.sports, .realityShows, .entertainment]
-        return candidates.first { cohort in
-            (counts[cohort.rawValue] ?? 0) >= historyThreshold
+    private func storefrontPolicy(for profileKey: String) -> StorefrontPolicy {
+        let counts = storefrontPolicyClicksByProfile[profileKey] ?? [:]
+        let realityClicks = counts[StorefrontPolicySignal.reality.rawValue] ?? 0
+        let sportsClicks = counts[StorefrontPolicySignal.sports.rawValue] ?? 0
+
+        if sportsClicks >= 5 {
+            return .sports
         }
+
+        if realityClicks >= 5 {
+            if sportsClicks >= 2 {
+                return .realitySports
+            }
+            return .reality
+        }
+
+        if sportsClicks >= 2 {
+            return .sportsEntertainment
+        }
+
+        if realityClicks >= 2 {
+            return .realityEntertainment
+        }
+
+        return .entertainment
     }
 
     private func persistContinueWatching() {

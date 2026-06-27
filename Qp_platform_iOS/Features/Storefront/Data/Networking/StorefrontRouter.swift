@@ -1,13 +1,14 @@
 import Foundation
 
 enum StorefrontRouter {
-    static func storefrontRequest(config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
-        landingScreenRequest(config: config, cohort: cohort, storefrontID: nil, tabID: nil, pageNumber: 1, pageSize: 5)
+    static func storefrontRequest(config: QuickplayRuntimeConfig, cohort: QuickplayCohort, policyAttribute: String) -> URLRequest? {
+        landingScreenRequest(config: config, cohort: cohort, policyAttribute: policyAttribute, storefrontID: nil, tabID: nil, pageNumber: 1, pageSize: 5)
     }
 
     static func landingScreenRequest(
         config: QuickplayRuntimeConfig,
         cohort: QuickplayCohort,
+        policyAttribute: String,
         storefrontID: String?,
         tabID: String?,
         pageNumber: Int,
@@ -27,7 +28,7 @@ enum StorefrontRouter {
             URLQueryItem(name: "cPageSize", value: String(pageSize)),
             URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
             URLQueryItem(name: "pf", value: cohort.profileFlag),
-            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
+            URLQueryItem(name: "chrt", value: policyAttribute)
         ]
         if let storefrontID {
             queryItems.append(URLQueryItem(name: "sfid", value: storefrontID))
@@ -55,6 +56,7 @@ enum StorefrontRouter {
     static func containersRequest(
         config: QuickplayRuntimeConfig,
         cohort: QuickplayCohort,
+        policyAttribute: String,
         storefrontID: String,
         tabID: String,
         pageNumber: Int,
@@ -69,7 +71,7 @@ enum StorefrontRouter {
             URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
             URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
             URLQueryItem(name: "pf", value: cohort.profileFlag),
-            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort),
+            URLQueryItem(name: "chrt", value: policyAttribute),
             URLQueryItem(name: "policy_evaluate", value: "false"),
             URLQueryItem(name: "pageSize", value: String(pageSize)),
             URLQueryItem(name: "pageNumber", value: String(pageNumber))
@@ -87,6 +89,7 @@ enum StorefrontRouter {
     static func sectionContentRequest(
         config: QuickplayRuntimeConfig,
         cohort: QuickplayCohort,
+        policyAttribute: String,
         ids: [String],
         pageNumber: Int,
         pageSize: Int
@@ -107,7 +110,7 @@ enum StorefrontRouter {
             URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
             URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
             URLQueryItem(name: "pf", value: cohort.profileFlag),
-            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort),
+            URLQueryItem(name: "chrt", value: policyAttribute),
             URLQueryItem(name: "itvod", value: "true")
         ]
 
@@ -123,6 +126,7 @@ enum StorefrontRouter {
     static func collectionLookupRequest(
         config: QuickplayRuntimeConfig,
         cohort: QuickplayCohort,
+        policyAttribute: String,
         item: StorefrontItem,
         pageNumber: Int,
         pageSize: Int
@@ -142,7 +146,7 @@ enum StorefrontRouter {
         upsert(&queryItems, name: "dt", value: AppEnvironment.Quickplay.deviceType)
         upsert(&queryItems, name: "client", value: AppEnvironment.Quickplay.client)
         upsert(&queryItems, name: "pf", value: cohort.profileFlag)
-        upsert(&queryItems, name: "chrt", value: AppEnvironment.Quickplay.cohort)
+        upsert(&queryItems, name: "chrt", value: policyAttribute)
         upsert(&queryItems, name: "itvod", value: "true")
         if queryItems.contains(where: { $0.name == "st" }) == false {
             queryItems.append(URLQueryItem(name: "st", value: "published"))

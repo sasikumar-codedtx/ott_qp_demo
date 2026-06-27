@@ -28,15 +28,15 @@ struct DetailInlinePlayerView: View {
                 endPoint: .bottom
             )
 
-            if !engine.isReady || engine.isBuffering {
-                DetailPlayerLoadingBadge()
-                    .transition(.opacity)
+            VStack {
+                Spacer()
+                if engine.error != nil {
+                    DetailPlayerErrorToast()
+                        .padding(.bottom, 64)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
-
-            if engine.error != nil {
-                DetailPlayerErrorBadge()
-                    .transition(.opacity)
-            }
+            .animation(.easeInOut(duration: 0.3), value: engine.error != nil)
 
             inlineControls
         }
@@ -191,16 +191,19 @@ private struct DetailPlayerLoadingBadge: View {
     }
 }
 
-private struct DetailPlayerErrorBadge: View {
+private struct DetailPlayerErrorToast: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.red)
             Text("Unable to load video")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.white)
         }
-        .font(.system(size: 12, weight: .semibold))
-        .foregroundStyle(.white)
-        .padding(.horizontal, 12)
-        .frame(height: 34)
-        .background(Color.red.opacity(0.5), in: Capsule())
+        .padding(.horizontal, 16)
+        .frame(height: 40)
+        .background(.black.opacity(0.82), in: Capsule())
+        .overlay(Capsule().stroke(.red.opacity(0.55), lineWidth: 1))
+        .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
     }
 }

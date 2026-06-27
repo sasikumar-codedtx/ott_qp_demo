@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 // MARK: - Sports hardcoded data
@@ -126,6 +127,8 @@ struct ContentDetailView: View {
     @State private var sportsPollAnswer: String? = nil
     @State private var scorecardTeamTab = "India"
     @FocusState private var isChatInputFocused: Bool
+    @State private var quizCountdown = 20
+    @State private var showQuizConfetti = false
 
     private let recommendationColumns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
     private let momentColumns = [GridItem(.flexible(), spacing: 10)]
@@ -141,11 +144,40 @@ struct ContentDetailView: View {
                         .zIndex(20)
                 }
 
-                // Quiz is now inline inside the ScrollView — no overlay needed here
+                if let detail = viewModel.detail, isMockInteractionPresented {
+                    quizOverlay(detail: detail, width: proxy.size.width, height: proxy.size.height)
+                        .ignoresSafeArea()
+                        .zIndex(30)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .bottom).combined(with: .opacity),
+                            removal: .move(edge: .bottom).combined(with: .opacity)
+                        ))
+                }
             }
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .animation(.easeInOut(duration: 0.22), value: isMomentSearchOverlayPresented)
-            .animation(.easeInOut(duration: 0.22), value: isMockInteractionPresented)
+            .animation(.spring(response: 0.38, dampingFraction: 0.88), value: isMockInteractionPresented)
+            .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
+                guard isMockInteractionPresented, !mockInteractionConfirmed else { return }
+                if quizCountdown > 0 {
+                    quizCountdown -= 1
+                } else {
+                    confirmMockInteraction()
+                }
+            }
+            .onChange(of: isMockInteractionPresented) { _, isOn in
+                if isOn {
+                    quizCountdown = 20
+                    showQuizConfetti = false
+                }
+            }
+            .onChange(of: mockInteractionShowsResult) { _, shows in
+                guard shows else { return }
+                let correct = mockInteractionSelection.map { letter in
+                    Self.kbcQuizOptions.first(where: { $0.letter == letter })?.isCorrect ?? false
+                } ?? false
+                if correct { withAnimation { showQuizConfetti = true } }
+            }
             .task(id: viewModel.requestKey) {
                 isDescriptionExpanded = false
                 isDetailPlayerFullscreenPresented = false
@@ -192,10 +224,7 @@ struct ContentDetailView: View {
                             Color.clear
                                 .frame(height: mediaHeight)
 
-                            if isMockInteractionPresented {
-                                quizPanel(detail: detail, width: width)
-                                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                            } else if kind == .sportsInteractive {
+                            if kind == .sportsInteractive {
                                 sportsDetailContent(detail, width: width)
                                     .padding(.horizontal, 16)
                                     .padding(.top, -48)
@@ -210,11 +239,6 @@ struct ContentDetailView: View {
                         .id("scrollTop")
                     }
                     .ignoresSafeArea(edges: .top)
-                    .onChange(of: isMockInteractionPresented) { _, isOn in
-                        if isOn {
-                            withAnimation { scrollProxy.scrollTo("scrollTop", anchor: .top) }
-                        }
-                    }
                     .onChange(of: momentAutoScrollToken) { _, _ in
                         guard viewModel.selectedTab == AppStrings.Detail.moments else { return }
 
@@ -1336,8 +1360,9 @@ struct ContentDetailView: View {
     private func presentMockInteraction() {
         mockInteractionSelection = nil
         mockInteractionShowsResult = false
+        mockInteractionConfirmed = false
 
-        withAnimation(.easeInOut(duration: 0.22)) {
+        withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
             isMockInteractionPresented = true
         }
     }
@@ -1380,11 +1405,12 @@ struct ContentDetailView: View {
         ("D", "4",  false)
     ]
 
-    private func quizPanel(detail: ContentDetail, width: CGFloat) -> some View {
-        let hexW: CGFloat = width * 0.693  // 285 / 412
+    private func quizOverlay(detail: ContentDetail, width: CGFloat, height: CGFloat) -> some View {
+        let hexW: CGFloat = width * 0.693
+        let posterH: CGFloat = width * 9 / 16
 
         return ZStack {
-            // Dark purple background matching Figma
+            // Dark purple gradient background
             ZStack {
                 LinearGradient(
                     stops: [
@@ -1395,105 +1421,135 @@ struct ContentDetailView: View {
                 )
                 Color.black.opacity(0.77)
             }
+            .ignoresSafeArea()
+
+            // Confetti celebration
+            if showQuizConfetti {
+                KBCConfettiView()
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+                    .zIndex(99)
+            }
 
             VStack(spacing: 0) {
-                // ── Header row: score (left) + Q-number (centre) + X (right) ──
-                HStack(alignment: .center, spacing: 0) {
-                    // Score badge
-                    HStack(spacing: 8) {
-                        ZStack(alignment: .topLeading) {
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(Color(hex: "FFA576"))
-                                .frame(width: 30, height: 30)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color(hex: "FFAC33"), lineWidth: 1)
-                                )
-                            Image(systemName: "crown.fill")
-                                .font(.system(size: 8, weight: .black))
-                                .foregroundStyle(Color(hex: "FFAC33"))
-                                .rotationEffect(.degrees(-35))
-                                .offset(x: -6, y: -7)
-                        }
-                        .frame(width: 30, height: 30)
+                // ── Mini poster at top ────────────────────────────────────
+                ZStack(alignment: .topTrailing) {
+                    PosterImageView(
+                        url: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
+                        size: CGSize(width: width, height: posterH),
+                        cornerRadius: 0
+                    )
+                    LinearGradient(
+                        colors: [.clear, .black.opacity(0.55)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                    .frame(height: posterH)
 
-                        Text("1300")
-                            .font(.system(size: 22, weight: .bold))
-                            .italic()
-                            .foregroundStyle(Color(hex: "FFAC33"))
-                    }
-
-                    Spacer()
-
-                    // Question number circle
-                    kbcQuestionCircle
-
-                    Spacer()
-
-                    // X dismiss button
                     Button { dismissMockInteraction() } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 13, weight: .bold))
                             .foregroundStyle(.white)
-                            .frame(width: 34, height: 34)
-                            .background(Circle().fill(Color.white.opacity(0.12)))
+                            .frame(width: 36, height: 36)
+                            .background(Circle().fill(Color.black.opacity(0.45)))
+                            .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
                     }
                     .buttonStyle(LiquidButtonPressStyle())
+                    .padding(.top, 12)
+                    .padding(.trailing, 14)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-                .padding(.bottom, 16)
+                .frame(width: width, height: posterH)
+                .clipped()
 
-                // ── Question text box ─────────────────────────────────────
-                Text("How many holes are contained in a typical golf course")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                    .frame(width: width * 0.823)
-                    .padding(.vertical, 14)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    stops: [.init(color: Color(hex: "000001"), location: 0.028),
-                                            .init(color: Color(hex: "00083A"), location: 0.993)],
-                                    startPoint: .top, endPoint: .bottom
-                                )
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.white, lineWidth: 2)
-                            )
-                            .shadow(color: Color.black.opacity(0.7), radius: 45, x: 0, y: 0)
-                    )
+                // ── Scrollable quiz content ───────────────────────────────
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        // Header: score + countdown + spacer
+                        HStack(alignment: .center, spacing: 0) {
+                            HStack(spacing: 8) {
+                                ZStack(alignment: .topLeading) {
+                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                        .fill(Color(hex: "FFA576"))
+                                        .frame(width: 30, height: 30)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(Color(hex: "FFAC33"), lineWidth: 1)
+                                        )
+                                    Image(systemName: "crown.fill")
+                                        .font(.system(size: 8, weight: .black))
+                                        .foregroundStyle(Color(hex: "FFAC33"))
+                                        .rotationEffect(.degrees(-35))
+                                        .offset(x: -6, y: -7)
+                                }
+                                .frame(width: 30, height: 30)
 
-                // ── Options ───────────────────────────────────────────────
-                VStack(spacing: 15) {
-                    ForEach(Self.kbcQuizOptions, id: \.letter) { opt in
-                        kbcOptionRow(opt.letter, text: opt.text, isCorrect: opt.isCorrect,
-                                     screenWidth: width, hexW: hexW)
+                                Text("1300")
+                                    .font(.system(size: 22, weight: .bold))
+                                    .italic()
+                                    .foregroundStyle(Color(hex: "FFAC33"))
+                            }
+
+                            Spacer()
+                            kbcCountdownCircle
+                            Spacer()
+
+                            Color.clear.frame(width: 68, height: 30)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 18)
+                        .padding(.bottom, 14)
+
+                        // ── Question text box ─────────────────────────────
+                        Text("How many holes are contained in a typical golf course")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                            .frame(width: width * 0.823)
+                            .padding(.vertical, 14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(
+                                        LinearGradient(
+                                            stops: [.init(color: Color(hex: "000001"), location: 0.028),
+                                                    .init(color: Color(hex: "00083A"), location: 0.993)],
+                                            startPoint: .top, endPoint: .bottom
+                                        )
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.white, lineWidth: 2)
+                                    )
+                                    .shadow(color: Color.black.opacity(0.7), radius: 45, x: 0, y: 0)
+                            )
+
+                        // ── Options ───────────────────────────────────────
+                        VStack(spacing: 15) {
+                            ForEach(Self.kbcQuizOptions, id: \.letter) { opt in
+                                kbcOptionRow(opt.letter, text: opt.text, isCorrect: opt.isCorrect,
+                                             screenWidth: width, hexW: hexW)
+                            }
+                        }
+                        .padding(.top, 22)
+
+                        // ── Confirm / waiting / close ─────────────────────
+                        kbcActionRow
+                            .animation(.easeInOut(duration: 0.22), value: mockInteractionSelection)
+                            .animation(.easeInOut(duration: 0.22), value: mockInteractionConfirmed)
+                            .animation(.easeInOut(duration: 0.22), value: mockInteractionShowsResult)
+
+                        // ── Lifelines ─────────────────────────────────────
+                        kbcLifelineRow
+                            .padding(.top, 14)
+                            .padding(.bottom, 40)
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                .padding(.top, 25)
-
-                // ── Confirm / waiting / close ─────────────────────────────
-                kbcActionRow
-                    .animation(.easeInOut(duration: 0.22), value: mockInteractionSelection)
-                    .animation(.easeInOut(duration: 0.22), value: mockInteractionConfirmed)
-                    .animation(.easeInOut(duration: 0.22), value: mockInteractionShowsResult)
-
-                // ── Lifelines ─────────────────────────────────────────────
-                kbcLifelineRow
-                    .padding(.top, 14)
-                    .padding(.bottom, 32)
             }
-            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
+        .frame(width: width, height: height)
     }
 
-    // ── Question number circle ────────────────────────────────────────────
-    private var kbcQuestionCircle: some View {
+    // ── Animated countdown circle ──────────────────────────────────────────
+    private var kbcCountdownCircle: some View {
         ZStack {
             Circle()
                 .fill(Color(hex: "260299").opacity(0.55))
@@ -1503,11 +1559,22 @@ struct ContentDetailView: View {
             Circle()
                 .fill(Color(hex: "080A22"))
                 .frame(width: 52, height: 52)
-                .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 2))
 
-            Text("20")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(.white)
+            Circle()
+                .trim(from: 0, to: CGFloat(quizCountdown) / 20.0)
+                .stroke(
+                    quizCountdown > 5 ? Color(hex: "FFAC33") : Color(hex: "FF3B30"),
+                    style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                )
+                .frame(width: 46, height: 46)
+                .rotationEffect(.degrees(-90))
+                .animation(.linear(duration: 1), value: quizCountdown)
+
+            Text("\(quizCountdown)")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(quizCountdown > 5 ? .white : Color(hex: "FF3B30"))
+                .animation(.none, value: quizCountdown)
         }
         .frame(width: 52, height: 52)
     }
@@ -2331,6 +2398,62 @@ private struct CastAvatarTile: View {
             RoundedRectangle(cornerRadius: UIConstants.CornerRadius.lg, style: .continuous)
                 .stroke(Color.white.opacity(0.12), lineWidth: 1)
         )
+    }
+}
+
+// Canvas-based confetti rain for correct KBC answer
+private struct KBCConfettiView: View {
+    private struct Particle {
+        let x: CGFloat
+        let speed: CGFloat
+        let delay: CGFloat
+        let colorIdx: Int
+        let spinDir: Double
+        let tall: Bool
+    }
+
+    private static let palette: [Color] = [
+        Color(hex: "FF3B30"), Color(hex: "FF9500"), Color(hex: "FFCC00"),
+        Color(hex: "34C759"), Color(hex: "007AFF"), Color(hex: "AF52DE"),
+        Color(hex: "FFAC33"), Color(hex: "FF2D55")
+    ]
+
+    private static let particles: [Particle] = (0..<72).map { idx in
+        let f = Double(idx)
+        return Particle(
+            x: CGFloat(sin(f * 2.399) * 0.5 + 0.5),
+            speed: CGFloat(120 + abs(sin(f * 3.1)) * 190),
+            delay: CGFloat((sin(f * 5.7) * 0.5 + 0.5) * 1.3),
+            colorIdx: idx % palette.count,
+            spinDir: sin(f * 2.1) >= 0 ? 260 : -260,
+            tall: idx % 3 == 0
+        )
+    }
+
+    var body: some View {
+        TimelineView(.animation) { timeline in
+            Canvas { context, size in
+                let t = CGFloat(fmod(timeline.date.timeIntervalSinceReferenceDate * 0.48, 2.9))
+                for p in Self.particles {
+                    let elapsed = max(0, t - p.delay)
+                    guard elapsed > 0 else { continue }
+                    let px = p.x * size.width
+                    let py = elapsed * p.speed - 30
+                    guard py < size.height + 50 else { continue }
+                    let angle = Angle.degrees(Double(elapsed) * p.spinDir)
+                    let w: CGFloat = p.tall ? 5 : 10
+                    let h: CGFloat = p.tall ? 10 : 4
+                    context.drawLayer { ctx in
+                        ctx.translateBy(x: px, y: py)
+                        ctx.rotate(by: angle)
+                        ctx.fill(
+                            Path(ellipseIn: CGRect(x: -w / 2, y: -h / 2, width: w, height: h)),
+                            with: .color(Self.palette[p.colorIdx])
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -262,7 +262,7 @@ struct QuickplayContentSourceDTO: Decodable {
     let priority: Int?
     let type: String?
 
-    func normalizedURL(config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URL? {
+    func normalizedURL(config: QuickplayRuntimeConfig, cohort: QuickplayCohort, policyAttribute: String) -> URL? {
         guard let cu, let rawURL = URL(string: cu), var components = URLComponents(url: rawURL, resolvingAgainstBaseURL: false) else {
             return nil
         }
@@ -287,7 +287,7 @@ struct QuickplayContentSourceDTO: Decodable {
         upsert(&queryItems, name: "dt", value: AppEnvironment.Quickplay.deviceType)
         upsert(&queryItems, name: "client", value: AppEnvironment.Quickplay.client)
         upsert(&queryItems, name: "pf", value: cohort.profileFlag)
-        upsert(&queryItems, name: "chrt", value: AppEnvironment.Quickplay.cohort)
+        upsert(&queryItems, name: "chrt", value: policyAttribute)
         if queryItems.contains(where: { $0.name == "mode" }) == false {
             queryItems.append(URLQueryItem(name: "mode", value: "detail"))
         }

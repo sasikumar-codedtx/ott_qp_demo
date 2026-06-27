@@ -384,21 +384,7 @@ final class AppFlowViewModel: ObservableObject {
 
     func openContent(item: StorefrontItem) {
         Task {
-            if let updatedCohort = await DemoSessionStore.shared.recordContentSelection(item) {
-                let didPersistOverride = (try? await persistCohortOverride(updatedCohort)) != nil
-                await MainActor.run {
-                    cohortOverrideToast = "\(updatedCohort.title) feed selected"
-                }
-                if didPersistOverride {
-                    await profileSelectionViewModel.load()
-                }
-                try? await Task.sleep(for: .seconds(1.8))
-                await MainActor.run {
-                    if cohortOverrideToast == "\(updatedCohort.title) feed selected" {
-                        cohortOverrideToast = nil
-                    }
-                }
-            }
+            await DemoSessionStore.shared.recordContentSelection(item)
         }
 
         switch ContentNavigationPolicy.destination(for: item) {

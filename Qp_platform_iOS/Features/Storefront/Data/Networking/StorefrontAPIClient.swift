@@ -14,7 +14,8 @@ struct StorefrontAPIClient {
 
     func fetchStorefront(cohort: QuickplayCohort) async throws -> QuickplayStorefrontResponseDTO {
         let config = await configStore.current(using: networkClient)
-        guard let request = StorefrontRouter.storefrontRequest(config: config, cohort: cohort) else {
+        let policyAttribute = await DemoSessionStore.shared.currentStorefrontPolicyAttribute()
+        guard let request = StorefrontRouter.storefrontRequest(config: config, cohort: cohort, policyAttribute: policyAttribute) else {
             throw AppError.invalidURL
         }
 
@@ -45,9 +46,11 @@ struct StorefrontAPIClient {
 
     func fetchContentByIDs(cohort: QuickplayCohort, ids: [String], pageNumber: Int, pageSize: Int) async throws -> QuickplayContentResponseDTO {
         let config = await configStore.current(using: networkClient)
+        let policyAttribute = await DemoSessionStore.shared.currentStorefrontPolicyAttribute()
         guard let request = StorefrontRouter.sectionContentRequest(
             config: config,
             cohort: cohort,
+            policyAttribute: policyAttribute,
             ids: ids,
             pageNumber: pageNumber,
             pageSize: pageSize
@@ -65,9 +68,11 @@ struct StorefrontAPIClient {
 
     func fetchCollectionLookup(cohort: QuickplayCohort, item: StorefrontItem, pageNumber: Int, pageSize: Int) async throws -> QuickplayContentResponseDTO {
         let config = await configStore.current(using: networkClient)
+        let policyAttribute = await DemoSessionStore.shared.currentStorefrontPolicyAttribute()
         guard let request = StorefrontRouter.collectionLookupRequest(
             config: config,
             cohort: cohort,
+            policyAttribute: policyAttribute,
             item: item,
             pageNumber: pageNumber,
             pageSize: pageSize
@@ -91,9 +96,11 @@ struct StorefrontAPIClient {
         pageSize: Int
     ) async throws -> QuickplayContainersResponseDTO {
         let config = await configStore.current(using: networkClient)
+        let policyAttribute = await DemoSessionStore.shared.currentStorefrontPolicyAttribute()
         guard let request = StorefrontRouter.containersRequest(
             config: config,
             cohort: cohort,
+            policyAttribute: policyAttribute,
             storefrontID: storefrontID,
             tabID: tabID,
             pageNumber: pageNumber,

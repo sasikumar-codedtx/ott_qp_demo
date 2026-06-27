@@ -1,7 +1,12 @@
 import Foundation
 
 enum ContentDetailRouter {
-    static func detailRequest(itemID: String, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
+    static func detailRequest(
+        itemID: String,
+        config: QuickplayRuntimeConfig,
+        cohort: QuickplayCohort,
+        policyAttribute: String
+    ) -> URLRequest? {
         guard var components = URLComponents(string: "\(config.vodMetaDataURL)/content") else {
             return nil
         }
@@ -13,8 +18,8 @@ enum ContentDetailRouter {
             URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region),
             URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
             URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
-            URLQueryItem(name: "pf", value: QuickplayCohort.entertainment.profileFlag),
-            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
+            URLQueryItem(name: "pf", value: cohort.profileFlag),
+            URLQueryItem(name: "chrt", value: policyAttribute)
         ]
 
         guard let url = components.url else {
@@ -26,7 +31,13 @@ enum ContentDetailRouter {
         return request
     }
 
-    static func recommendationRequest(itemID: String, contentType: String, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
+    static func recommendationRequest(
+        itemID: String,
+        contentType: String,
+        config: QuickplayRuntimeConfig,
+        cohort: QuickplayCohort,
+        policyAttribute: String
+    ) -> URLRequest? {
         guard var components = URLComponents(string: "\(config.vodMetaDataURL)/content/morelikethis/\(itemID)") else {
             return nil
         }
@@ -37,7 +48,9 @@ enum ContentDetailRouter {
             URLQueryItem(name: "pageSize", value: "10"),
             URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
             URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region.lowercased()),
-            URLQueryItem(name: "dt", value: "web")
+            URLQueryItem(name: "dt", value: "web"),
+            URLQueryItem(name: "pf", value: cohort.profileFlag),
+            URLQueryItem(name: "chrt", value: policyAttribute)
         ]
 
         guard let url = components.url else {
@@ -49,7 +62,12 @@ enum ContentDetailRouter {
         return request
     }
 
-    static func searchFallbackRequest(term: String, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
+    static func searchFallbackRequest(
+        term: String,
+        config: QuickplayRuntimeConfig,
+        cohort: QuickplayCohort,
+        policyAttribute: String
+    ) -> URLRequest? {
         guard var components = URLComponents(string: "\(config.searchURL)/content/search") else {
             return nil
         }
@@ -63,8 +81,8 @@ enum ContentDetailRouter {
             URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region),
             URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
             URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
-            URLQueryItem(name: "pf", value: QuickplayCohort.entertainment.profileFlag),
-            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
+            URLQueryItem(name: "pf", value: cohort.profileFlag),
+            URLQueryItem(name: "chrt", value: policyAttribute)
         ]
 
         guard let url = components.url else {
@@ -76,7 +94,13 @@ enum ContentDetailRouter {
         return request
     }
 
-    static func momentSearchRequest(contentID: String, term: String, config: QuickplayRuntimeConfig) -> URLRequest? {
+    static func momentSearchRequest(
+        contentID: String,
+        term: String,
+        config: QuickplayRuntimeConfig,
+        cohort: QuickplayCohort,
+        policyAttribute: String
+    ) -> URLRequest? {
         guard var components = URLComponents(string: "\(config.searchURL)/content/search") else {
             return nil
         }
@@ -87,7 +111,9 @@ enum ContentDetailRouter {
             URLQueryItem(name: "term", value: term),
             URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region.lowercased()),
             URLQueryItem(name: "info", value: "detail"),
-            URLQueryItem(name: "moment", value: "true")
+            URLQueryItem(name: "moment", value: "true"),
+            URLQueryItem(name: "pf", value: cohort.profileFlag),
+            URLQueryItem(name: "chrt", value: policyAttribute)
 //            URLQueryItem(name: "id", value: contentID)
         ]
 
@@ -100,7 +126,12 @@ enum ContentDetailRouter {
         return request
     }
 
-    static func seasonsRequest(seriesID: String, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
+    static func seasonsRequest(
+        seriesID: String,
+        config: QuickplayRuntimeConfig,
+        cohort: QuickplayCohort,
+        policyAttribute: String
+    ) -> URLRequest? {
         guard var components = URLComponents(string: "\(config.vodMetaDataURL)/content/series/\(seriesID)/seasons") else {
             return nil
         }
@@ -112,7 +143,7 @@ enum ContentDetailRouter {
             URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
             URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
             URLQueryItem(name: "pf", value: cohort.profileFlag),
-            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
+            URLQueryItem(name: "chrt", value: policyAttribute)
         ]
 
         guard let url = components.url else {
@@ -124,7 +155,13 @@ enum ContentDetailRouter {
         return request
     }
 
-    static func episodesRequest(seriesID: String, seasonID: String, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URLRequest? {
+    static func episodesRequest(
+        seriesID: String,
+        seasonID: String,
+        config: QuickplayRuntimeConfig,
+        cohort: QuickplayCohort,
+        policyAttribute: String
+    ) -> URLRequest? {
         guard var components = URLComponents(string: "\(config.vodMetaDataURL)/content/series/\(seriesID)/episodes") else {
             return nil
         }
@@ -137,7 +174,7 @@ enum ContentDetailRouter {
             URLQueryItem(name: "dt", value: AppEnvironment.Quickplay.deviceType),
             URLQueryItem(name: "client", value: AppEnvironment.Quickplay.client),
             URLQueryItem(name: "pf", value: cohort.profileFlag),
-            URLQueryItem(name: "chrt", value: AppEnvironment.Quickplay.cohort)
+            URLQueryItem(name: "chrt", value: policyAttribute)
         ]
 
         guard let url = components.url else {

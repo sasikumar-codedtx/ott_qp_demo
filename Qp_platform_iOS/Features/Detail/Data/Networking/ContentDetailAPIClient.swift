@@ -15,7 +15,13 @@ struct ContentDetailAPIClient {
     func fetchDetail(itemID: String) async throws -> ContentDetailResponseDTO {
         let config = await configStore.current(using: networkClient)
         let cohort = await DemoSessionStore.shared.currentCohort()
-        guard let request = ContentDetailRouter.detailRequest(itemID: itemID, config: config, cohort: cohort) else {
+        let policyAttribute = await DemoSessionStore.shared.currentStorefrontPolicyAttribute()
+        guard let request = ContentDetailRouter.detailRequest(
+            itemID: itemID,
+            config: config,
+            cohort: cohort,
+            policyAttribute: policyAttribute
+        ) else {
             throw AppError.invalidURL
         }
 
@@ -30,7 +36,14 @@ struct ContentDetailAPIClient {
     func fetchRecommendations(itemID: String, contentType: String) async throws -> RecommendationResponseDTO {
         let config = await configStore.current(using: networkClient)
         let cohort = await DemoSessionStore.shared.currentCohort()
-        guard let request = ContentDetailRouter.recommendationRequest(itemID: itemID, contentType: contentType, config: config, cohort: cohort) else {
+        let policyAttribute = await DemoSessionStore.shared.currentStorefrontPolicyAttribute()
+        guard let request = ContentDetailRouter.recommendationRequest(
+            itemID: itemID,
+            contentType: contentType,
+            config: config,
+            cohort: cohort,
+            policyAttribute: policyAttribute
+        ) else {
             throw AppError.invalidURL
         }
 
@@ -45,7 +58,13 @@ struct ContentDetailAPIClient {
     func searchRecommendations(term: String) async throws -> SearchResponseDTO {
         let config = await configStore.current(using: networkClient)
         let cohort = await DemoSessionStore.shared.currentCohort()
-        guard let request = ContentDetailRouter.searchFallbackRequest(term: term, config: config, cohort: cohort) else {
+        let policyAttribute = await DemoSessionStore.shared.currentStorefrontPolicyAttribute()
+        guard let request = ContentDetailRouter.searchFallbackRequest(
+            term: term,
+            config: config,
+            cohort: cohort,
+            policyAttribute: policyAttribute
+        ) else {
             throw AppError.invalidURL
         }
 
@@ -59,7 +78,15 @@ struct ContentDetailAPIClient {
 
     func searchMoments(contentID: String, term: String) async throws -> SearchResponseDTO {
         let config = await configStore.current(using: networkClient)
-        guard let request = ContentDetailRouter.momentSearchRequest(contentID: contentID, term: term, config: config) else {
+        let cohort = await DemoSessionStore.shared.currentCohort()
+        let policyAttribute = await DemoSessionStore.shared.currentStorefrontPolicyAttribute()
+        guard let request = ContentDetailRouter.momentSearchRequest(
+            contentID: contentID,
+            term: term,
+            config: config,
+            cohort: cohort,
+            policyAttribute: policyAttribute
+        ) else {
             throw AppError.invalidURL
         }
 
@@ -74,7 +101,13 @@ struct ContentDetailAPIClient {
     func fetchSeasons(seriesID: String) async throws -> ContentDetailResponseDTO {
         let config = await configStore.current(using: networkClient)
         let cohort = await DemoSessionStore.shared.currentCohort()
-        guard let request = ContentDetailRouter.seasonsRequest(seriesID: seriesID, config: config, cohort: cohort) else {
+        let policyAttribute = await DemoSessionStore.shared.currentStorefrontPolicyAttribute()
+        guard let request = ContentDetailRouter.seasonsRequest(
+            seriesID: seriesID,
+            config: config,
+            cohort: cohort,
+            policyAttribute: policyAttribute
+        ) else {
             throw AppError.invalidURL
         }
 
@@ -89,7 +122,14 @@ struct ContentDetailAPIClient {
     func fetchEpisodes(seriesID: String, seasonID: String) async throws -> ContentDetailResponseDTO {
         let config = await configStore.current(using: networkClient)
         let cohort = await DemoSessionStore.shared.currentCohort()
-        guard let request = ContentDetailRouter.episodesRequest(seriesID: seriesID, seasonID: seasonID, config: config, cohort: cohort) else {
+        let policyAttribute = await DemoSessionStore.shared.currentStorefrontPolicyAttribute()
+        guard let request = ContentDetailRouter.episodesRequest(
+            seriesID: seriesID,
+            seasonID: seasonID,
+            config: config,
+            cohort: cohort,
+            policyAttribute: policyAttribute
+        ) else {
             throw AppError.invalidURL
         }
 
