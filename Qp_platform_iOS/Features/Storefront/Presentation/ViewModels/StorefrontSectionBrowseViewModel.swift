@@ -70,11 +70,7 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
         self.cohort = cohort
         let viewAllIDs = section.viewAllContentIDs ?? []
         currentIDs = viewAllIDs.isEmpty ? deduplicatedIDs(from: section.items) : viewAllIDs
-        if !viewAllIDs.isEmpty || section.viewAllSourceURL == nil {
-            source = .sectionIDs(currentIDs)
-        } else if let sourceURL = section.viewAllSourceURL {
-            source = .sourceURL(sourceURL)
-        }
+        source = .sectionIDs(currentIDs)
         currentCacheKey = "\(section.id)-\(cohort.rawValue)-\(section.ratio)"
         errorMessage = nil
 
@@ -188,8 +184,6 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
                 return StorefrontSectionPage(items: [], nextPage: pageNumber, loadedCount: 0, totalCount: 0)
             }
             return try await useCase.execute(ids: ids, pageNumber: pageNumber, pageSize: pageSize)
-        case .sourceURL(let url):
-            return try await useCase.execute(sourceURL: url, pageNumber: pageNumber, pageSize: pageSize)
         case .collectionLookup(let item):
             return try await useCase.execute(collection: item, pageNumber: pageNumber, pageSize: pageSize)
         case nil:
@@ -232,6 +226,5 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
 
 private enum BrowseSource {
     case sectionIDs([String])
-    case sourceURL(URL)
     case collectionLookup(StorefrontItem)
 }

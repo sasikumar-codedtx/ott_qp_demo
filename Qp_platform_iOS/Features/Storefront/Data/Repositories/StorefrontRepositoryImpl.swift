@@ -204,31 +204,6 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
         )
     }
 
-    func fetchSectionPage(sourceURL: URL, pageNumber: Int, pageSize: Int) async throws -> StorefrontSectionPage {
-        let pagedURL = paginatedURL(sourceURL, pageNumber: pageNumber, pageSize: pageSize)
-        let response = try await dataSource.fetchContent(from: pagedURL)
-        let config = await configStore.current()
-        let items = deduplicatedItems(response.data.map { $0.toDomain(config: config) })
-        let loadedCount: Int
-        let totalCount: Int
-        if let start = response.header.start,
-           let rows = response.header.rows,
-           let count = response.header.count {
-            loadedCount = min(start + rows, count)
-            totalCount = count
-        } else {
-            loadedCount = ((pageNumber - 1) * pageSize) + items.count
-            totalCount = items.isEmpty ? loadedCount : loadedCount + 1
-        }
-
-        return StorefrontSectionPage(
-            items: items,
-            nextPage: pageNumber + 1,
-            loadedCount: loadedCount,
-            totalCount: totalCount
-        )
-    }
-
     func fetchCollectionLookupPage(item: StorefrontItem, pageNumber: Int, pageSize: Int) async throws -> StorefrontSectionPage {
         let cohort = await DemoSessionStore.shared.currentCohort()
         StorefrontDebugLogger.log(
@@ -287,8 +262,7 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
                     sourceType: container.srcType,
                     backgroundImageURL: backgroundImageURL,
                     backgroundColorHex: backgroundImageURL == nil ? nil : container.backgroundColorHex,
-                    viewAllContentIDs: contentIDs(from: container.i),
-                    viewAllSourceURL: sourceURL(from: container.i, config: config, cohort: cohort)
+                    viewAllContentIDs: contentIDs(from: container.i)
                 )
             )
         }
@@ -306,12 +280,7 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
             return deduplicatedItems(embeddedItems.map { $0.toDomain(config: config) })
         }
 
-        guard let sourceURL = sourceURL(from: container.i, config: config, cohort: cohort) else {
-            return []
-        }
-
-        let response = try await dataSource.fetchContent(from: paginatedURL(sourceURL, pageNumber: 1, pageSize: landingPageSize))
-        return deduplicatedItems(response.data.map { $0.toDomain(config: config) })
+        return []
     }
 
     private func buildSections(from hydratedSections: [HydratedSection]) async -> [StorefrontSection] {
@@ -342,8 +311,7 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
                 isHero: section.isHero,
                 backgroundImageURL: section.backgroundImageURL,
                 backgroundColorHex: section.backgroundColorHex,
-                viewAllContentIDs: section.viewAllContentIDs,
-                viewAllSourceURL: section.viewAllSourceURL
+                viewAllContentIDs: section.viewAllContentIDs
             )
         }
     }
@@ -357,30 +325,6 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
                     .filter { !$0.isEmpty }
             } ?? []
         return ids.isEmpty ? nil : Array(NSOrderedSet(array: ids)) as? [String] ?? ids
-    }
-
-    private func sourceURL(from sources: [QuickplayContentSourceDTO]?, config: QuickplayRuntimeConfig, cohort: QuickplayCohort) -> URL? {
-        sources?
-            .sorted { ($0.priority ?? Int.max) < ($1.priority ?? Int.max) }
-            .compactMap { $0.normalizedURL(config: config, cohort: cohort) }
-            .first
-    }
-
-    private func paginatedURL(_ url: URL, pageNumber: Int, pageSize: Int) -> URL {
-        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
-            return url
-        }
-
-        var queryItems = components.queryItems ?? []
-        upsert(&queryItems, name: "pageNumber", value: String(pageNumber))
-        upsert(&queryItems, name: "pageSize", value: String(pageSize))
-        components.queryItems = queryItems
-        return components.url ?? url
-    }
-
-    private func upsert(_ queryItems: inout [URLQueryItem], name: String, value: String) {
-        queryItems.removeAll { $0.name == name }
-        queryItems.append(URLQueryItem(name: name, value: value))
     }
 
     private func deduplicatedItems(_ items: [StorefrontItem]) -> [StorefrontItem] {
@@ -415,7 +359,6 @@ private struct HydratedSection {
     let backgroundImageURL: URL?
     let backgroundColorHex: String?
     let viewAllContentIDs: [String]?
-    let viewAllSourceURL: URL?
 }
 
 private enum StorefrontDebugLogger {
