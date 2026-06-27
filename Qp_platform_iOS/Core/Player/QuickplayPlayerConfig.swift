@@ -10,9 +10,11 @@ struct QuickplayPlayerConfig {
     let xPropertyId: String
     let guestFlatEndpoint: String
     let heartbeatEndpoint: String
+    let heartBeatSyncIntervalMs: TimeInterval
     let streamConcurrencyEndpoint: String
     let imageResizerURL: String
     let defaultQpat: String
+    let bookmarkSyncIntervalMs: TimeInterval
 
     init(
         oauthEndpoint: String,
@@ -24,9 +26,11 @@ struct QuickplayPlayerConfig {
         xPropertyId: String,
         guestFlatEndpoint: String,
         heartbeatEndpoint: String,
+        heartBeatSyncIntervalMs: TimeInterval = 60000,
         streamConcurrencyEndpoint: String,
         imageResizerURL: String,
-        defaultQpat: String
+        defaultQpat: String,
+        bookmarkSyncIntervalMs: TimeInterval = 60000
     ) {
         self.oauthEndpoint = oauthEndpoint
         self.registrationEndpoint = registrationEndpoint
@@ -37,9 +41,11 @@ struct QuickplayPlayerConfig {
         self.xPropertyId = xPropertyId
         self.guestFlatEndpoint = guestFlatEndpoint
         self.heartbeatEndpoint = heartbeatEndpoint
+        self.heartBeatSyncIntervalMs = heartBeatSyncIntervalMs
         self.streamConcurrencyEndpoint = streamConcurrencyEndpoint
         self.imageResizerURL = imageResizerURL
         self.defaultQpat = defaultQpat
+        self.bookmarkSyncIntervalMs = bookmarkSyncIntervalMs
     }
 
     init(config: QuickplayRuntimeConfig) {
@@ -53,9 +59,11 @@ struct QuickplayPlayerConfig {
             xPropertyId: "",
             guestFlatEndpoint: "https://auth-gw.edge-qp.opt.quickplay.com",
             heartbeatEndpoint: config.heartBeatURL,
+            heartBeatSyncIntervalMs: config.heartBeatSyncIntervalMs,
             streamConcurrencyEndpoint: config.streamConcurrencyURL,
             imageResizerURL: config.imageResizeURL,
-            defaultQpat: config.defaultQpat
+            defaultQpat: config.defaultQpat,
+            bookmarkSyncIntervalMs: config.bookmarkSyncIntervalMs
         )
     }
 }

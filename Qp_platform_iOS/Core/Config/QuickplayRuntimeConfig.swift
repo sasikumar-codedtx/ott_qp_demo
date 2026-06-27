@@ -12,10 +12,12 @@ nonisolated struct QuickplayRuntimeConfig: Equatable, Sendable {
     let clientRegistrationURL: String
     let contentAuthURL: String
     let bookmarkURL: String
+    let bookmarkSyncIntervalMs: Double
     let streamConcurrencyURL: String
     let favoriteURL: String
     let guestFlatURL: String
     let heartBeatURL: String
+    let heartBeatSyncIntervalMs: Double
     let clientID: String
     let clientSecret: String
     let xClientID: String
@@ -34,10 +36,12 @@ nonisolated struct QuickplayRuntimeConfig: Equatable, Sendable {
         clientRegistrationURL: "",
         contentAuthURL: "",
         bookmarkURL: "",
+        bookmarkSyncIntervalMs: 60000,
         streamConcurrencyURL: "",
         favoriteURL: "",
         guestFlatURL: "",
         heartBeatURL: "",
+        heartBeatSyncIntervalMs: 60000,
         clientID: "",
         clientSecret: "",
         xClientID: "",
@@ -95,6 +99,12 @@ extension QuickplayRuntimeConfig {
             return (trimmed?.isEmpty == false ? trimmed : nil) ?? fallbackValue
         }
 
+        func resolvedDouble(for key: String, fallback fallbackValue: Double) -> Double {
+            guard let str = values[key]?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !str.isEmpty, let parsed = Double(str) else { return fallbackValue }
+            return parsed
+        }
+
         self.init(
             catalogURL: resolvedValue(for: "catalogURL", fallback: fallback.catalogURL),
             storefrontURL: resolvedValue(for: "storefrontURL", fallback: fallback.storefrontURL),
@@ -107,10 +117,12 @@ extension QuickplayRuntimeConfig {
             clientRegistrationURL: resolvedValue(for: "clientRegURL", fallback: fallback.clientRegistrationURL),
             contentAuthURL: resolvedValue(for: "contentAuthURL", fallback: fallback.contentAuthURL),
             bookmarkURL: resolvedValue(for: "bookmarkURL", fallback: fallback.bookmarkURL),
+            bookmarkSyncIntervalMs: resolvedDouble(for: "bookmarkSyncIntervalMs", fallback: fallback.bookmarkSyncIntervalMs),
             streamConcurrencyURL: resolvedValue(for: "strConcurrencyURL", fallback: fallback.streamConcurrencyURL),
             favoriteURL: resolvedValue(for: "favoriteURL", fallback: fallback.favoriteURL),
             guestFlatURL: resolvedValue(for: "guestFlatURL", fallback: fallback.guestFlatURL),
             heartBeatURL: resolvedValue(for: "heartBeatURL", fallback: fallback.heartBeatURL),
+            heartBeatSyncIntervalMs: resolvedDouble(for: "heartBeatSyncIntervalMs", fallback: fallback.heartBeatSyncIntervalMs),
             clientID: resolvedValue(for: "clientID", fallback: fallback.clientID),
             clientSecret: resolvedValue(for: "clientSecret", fallback: fallback.clientSecret),
             xClientID: resolvedValue(for: "xClientId", fallback: fallback.xClientID),
