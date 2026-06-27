@@ -496,7 +496,4 @@ final class AppFlowViewModel: ObservableObject {
         navigationPath[navigationPath.count - 1] = route
     }
 
-    private func resolvedProfileContext(for profile: Profile) async -> (cohort: QuickplayCohort, preference: ProfilePreference) {
-        (profile.cohort, profile.cohort.defaultPreference)
-    }
 }

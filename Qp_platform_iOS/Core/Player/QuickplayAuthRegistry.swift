@@ -13,8 +13,6 @@ final class QuickplayAuthRegistry {
     private(set) var contentAuthorizer: (any ContentAuthorizer)?
     private(set) var platformClient: (any PlatformClient)?
     private(set) var isReady = false
-    private var enrolledConfig: QuickplayPlayerConfig?
-
     private init() {}
 
     func enroll(config: QuickplayPlayerConfig) async throws {
@@ -77,7 +75,6 @@ final class QuickplayAuthRegistry {
         platformClient = device
         platformAuthorizer = authorizer
         contentAuthorizer = contentAuth
-        enrolledConfig = config
         isReady = true
     }
 
@@ -113,49 +110,6 @@ final class QuickplayAuthRegistry {
         isReady = false
     }
 
-    private func fetchOAuthToken(config: QuickplayPlayerConfig) async throws -> String {
-        guard let url = URL(string: config.oauthEndpoint) else {
-            throw QuickplayPlayerError.authFailed("Invalid OAuth endpoint")
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.httpBody = "grant_type=client_credentials&client_id=\(config.clientId)&client_secret=\(config.clientSecret)".data(using: .utf8)
-
-        let data = try await NetworkClient().data(for: request)
-
-        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        guard let token = json?["access_token"] as? String else {
-            throw QuickplayPlayerError.authFailed("Missing access_token")
-        }
-        return token
-    }
-
-    private func fetchOvat(oauthToken: String, config: QuickplayPlayerConfig) async throws -> String {
-        guard let url = URL(string: "\(config.guestFlatEndpoint)/platform/access/token") else {
-            throw QuickplayPlayerError.authFailed("Invalid guest flat endpoint")
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(oauthToken)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(config.xClientId, forHTTPHeaderField: "x-client-id")
-
-        let deviceId = await UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
-        let deviceName = await UIDevice.current.name
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["deviceName": deviceName, "deviceId": deviceId])
-
-        let data = try await NetworkClient().data(for: request)
-
-        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        let dataObject = json?["data"] as? [String: Any]
-        guard let token = dataObject?["token"] as? String else {
-            throw QuickplayPlayerError.authFailed("Missing OVAT token")
-        }
-        return token
-    }
 }
 
 private final class QuickplayOvatDelegate: UserAuthorizationDelegate {

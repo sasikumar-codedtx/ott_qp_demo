@@ -151,68 +151,6 @@ struct ProfileEditorView: View {
         }
     }
 
-    private var selectedAvatarPreview: some View {
-        VStack(spacing: 12) {
-            ProfileAvatarView(
-                imageName: viewModel.draft.imageName,
-                fallbackGlyph: String(profileDisplayName.prefix(1)).uppercased(),
-                size: 112
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .stroke(Color.white.opacity(0.92), lineWidth: 3)
-                    .padding(-6)
-            )
-            .shadow(color: Color(hex: "F4B000").opacity(0.24), radius: 18, x: 0, y: 10)
-
-            Text(profileDisplayName)
-                .font(.system(size: 24, weight: .black))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
-                .frame(maxWidth: .infinity)
-                .multilineTextAlignment(.center)
-
-            Text("Selected profile image")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.56))
-                .multilineTextAlignment(.center)
-
-            Button(action: handleChooseAvatar) {
-                Text("Change Avatar")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 14)
-                    .frame(height: 34)
-                    .background(LiquidGlassBackground(cornerRadius: 12, tone: .dark, isHighlighted: true))
-            }
-            .buttonStyle(LiquidButtonPressStyle())
-            .padding(.top, 2)
-        }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 20)
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.1),
-                            Color.white.opacity(0.045),
-                            Color(hex: "251022").opacity(0.62)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                )
-        )
-        .simultaneousGesture(TapGesture().onEnded(dismissKeyboard))
-    }
-
     private var avatarStrip: some View {
         GeometryReader { geometry in
             ScrollViewReader { proxy in
@@ -622,11 +560,6 @@ struct ProfileEditorView: View {
         onChooseAvatar()
     }
 
-    private func selectAvatar(_ option: AvatarOption) {
-        dismissKeyboard()
-        viewModel.selectAvatar(option)
-    }
-
     private func selectProfileForEditing(_ profile: Profile) {
         dismissKeyboard()
         dismissPickers(animated: false)
@@ -784,39 +717,6 @@ private struct ProfileGenderRowBackground: View {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .stroke(Color.white.opacity(isSelected ? 0.12 : 0.05), lineWidth: 1.2)
             )
-    }
-}
-
-private struct FigmaNavigationTextBackground: View {
-    var body: some View {
-        UnevenRoundedRectangle(
-            topLeadingRadius: 18,
-            bottomLeadingRadius: 18,
-            bottomTrailingRadius: 8,
-            topTrailingRadius: 8,
-            style: .continuous
-        )
-        .fill(.ultraThinMaterial)
-        .overlay(
-            UnevenRoundedRectangle(
-                topLeadingRadius: 18,
-                bottomLeadingRadius: 18,
-                bottomTrailingRadius: 8,
-                topTrailingRadius: 8,
-                style: .continuous
-            )
-            .fill(Color.white.opacity(0.1))
-        )
-        .overlay(
-            UnevenRoundedRectangle(
-                topLeadingRadius: 18,
-                bottomLeadingRadius: 18,
-                bottomTrailingRadius: 8,
-                topTrailingRadius: 8,
-                style: .continuous
-            )
-            .stroke(Color.white.opacity(0.1), lineWidth: 1.2)
-        )
     }
 }
 

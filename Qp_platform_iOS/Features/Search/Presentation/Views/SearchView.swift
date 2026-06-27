@@ -296,18 +296,6 @@ struct SearchView: View {
         }
     }
 
-    private func momentChip(_ title: String) -> some View {
-        Text(title)
-            .font(.system(size: 13, weight: .medium))
-            .foregroundStyle(.white.opacity(0.86))
-            .lineLimit(1)
-            .padding(.horizontal, 12)
-            .frame(height: 34)
-            .background(
-                LiquidGlassBackground(cornerRadius: 8, tone: .dark)
-            )
-    }
-
     private func openAISearch() {
         SearchHaptics.micTap()
         isSearchFocused = false
@@ -402,10 +390,6 @@ struct SearchView: View {
                     )
             )
         }
-    }
-
-    private func beginAISearch() {
-        prefersVoiceAISearch ? beginVoiceSearch() : beginTextAISearch()
     }
 
     private func beginTextAISearch() {
@@ -963,58 +947,6 @@ private struct SearchPosterCard: View {
     }
 }
 
-private struct SearchResultRail: View {
-    let title: String
-    let items: [StorefrontItem]
-    var cardSize = CGSize(width: 188, height: 106)
-    var imageRatio = "0-16x9"
-    let onSelect: (StorefrontItem) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            searchRailTitle
-                .padding(.horizontal, UIConstants.Spacing.lg)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(items) { item in
-                        VStack(alignment: .leading, spacing: 8) {
-                            SearchPosterCard(
-                                item: item,
-                                size: cardSize,
-                                imageRatio: imageRatio,
-                                showsPlayIcon: false,
-                                onSelect: onSelect
-                            )
-
-                            Text(item.title)
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(.white.opacity(0.92))
-                                .lineLimit(1)
-                                .frame(width: cardSize.width, alignment: .leading)
-                        }
-                    }
-                }
-                .padding(.horizontal, UIConstants.Spacing.lg)
-            }
-        }
-    }
-
-    private var searchRailTitle: some View {
-        HStack(spacing: 8) {
-            Text(title)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(.white)
-
-            Image(systemName: AppIcons.Navigation.next)
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(.white.opacity(0.84))
-
-            Spacer()
-        }
-    }
-}
-
 private struct SearchFilterDock: View {
     let filters: [SearchFilter]
     let selectedFilterID: String
@@ -1071,31 +1003,6 @@ private struct SearchFilterDock: View {
                 )
             )
             .overlay(shape.stroke(Color.white.opacity(0.1), lineWidth: 1))
-    }
-}
-
-private struct FlexibleMomentChipLayout<Item: Hashable, Content: View>: View {
-    let items: [Item]
-    @ViewBuilder let content: (Item) -> Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(rows, id: \.self) { row in
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(row, id: \.self) { item in
-                            content(item)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private var rows: [[Item]] {
-        stride(from: 0, to: items.count, by: 3).map { start in
-            Array(items[start..<min(start + 3, items.count)])
-        }
     }
 }
 

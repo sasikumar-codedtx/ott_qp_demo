@@ -107,12 +107,13 @@ struct ContentDetailView: View {
     let onPlay: (ContentDetail, StorefrontItem?) -> Void
     var onPlayEpisode: ((StorefrontItem) -> Void)? = nil
     let onSelectRecommendation: (StorefrontItem) -> Void
+    @StateObject private var detailPlayerEngine = QuickplayPlayerEngine()
     @State private var isDescriptionExpanded = false
     @State private var isMomentSearchOverlayPresented = false
     @State private var isMockInteractionPresented = false
+    @State private var isDetailPlayerFullscreenPresented = false
     @State private var mockInteractionSelection: String?
     @State private var mockInteractionShowsResult = false
-    @State private var mockInteractionCountdown = 4
     @State private var mockInteractionConfirmed = false
     @State private var momentSearchDraft = ""
     @State private var keyboardHeight: CGFloat = 0
@@ -147,9 +148,13 @@ struct ContentDetailView: View {
             .animation(.easeInOut(duration: 0.22), value: isMockInteractionPresented)
             .task(id: viewModel.requestKey) {
                 isDescriptionExpanded = false
+                isDetailPlayerFullscreenPresented = false
                 dismissMomentSearchOverlay()
                 dismissMockInteraction()
                 await viewModel.loadIfNeeded()
+            }
+            .onDisappear {
+                detailPlayerEngine.release()
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { notification in
                 updateKeyboardHeight(from: notification, containerHeight: proxy.size.height)
@@ -166,20 +171,26 @@ struct ContentDetailView: View {
     private func content(width: CGFloat, height: CGFloat) -> some View {
         if let detail = viewModel.detail {
             let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
+            let playerContent = detail.quickplayPlaybackContent(fallback: viewModel.seed)
+            let mediaHeight = width * 9 / 16
 
             ZStack(alignment: .top) {
                 Color(hex: "0A0A0A").ignoresSafeArea()
+                DetailInlinePlayerView(
+                    engine: detailPlayerEngine,
+                    content: playerContent,
+                    posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
+                    height: mediaHeight,
+                    isFullscreenPresented: $isDetailPlayerFullscreenPresented
+                )
+                .ignoresSafeArea(edges: .top)
+                .zIndex(3)
 
                 ScrollViewReader { scrollProxy in
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 0) {
-                            hero(detail, width: width)
-                                .frame(height: isMockInteractionPresented
-                                       ? miniHeroHeight
-                                       : heroHeight(for: width))
-                                .animation(.spring(response: 0.44, dampingFraction: 0.84),
-                                           value: isMockInteractionPresented)
-                                .clipped()
+                            Color.clear
+                                .frame(height: mediaHeight)
 
                             if isMockInteractionPresented {
                                 quizPanel(detail: detail, width: width)
@@ -229,6 +240,21 @@ struct ContentDetailView: View {
                             sportsLiveInputDock
                         }
                     }
+                }
+                .zIndex(2)
+
+                if isDetailPlayerFullscreenPresented {
+                    DetailFullscreenPlayerView(
+                        engine: detailPlayerEngine,
+                        content: playerContent,
+                        posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3))
+                    ) {
+                        withAnimation(.easeInOut(duration: 0.24)) {
+                            isDetailPlayerFullscreenPresented = false
+                        }
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                    .zIndex(50)
                 }
             }
         } else if viewModel.isLoading {
@@ -284,7 +310,6 @@ struct ContentDetailView: View {
             metaLine(detail)
             watchButton(detail, kind: kind)
             descriptionBlock(detail)
-            previewLabel(detail)
             actionButtonRow(detail, kind: kind)
             sponsorRow(detail)
             tabRow(detail)
@@ -327,7 +352,9 @@ struct ContentDetailView: View {
 
     private func watchButton(_ detail: ContentDetail, kind: DetailPresentationKind) -> some View {
         Button {
-            onPlay(detail, viewModel.seed)
+            withAnimation(.easeInOut(duration: 0.24)) {
+                isDetailPlayerFullscreenPresented = true
+            }
         } label: {
             Text(watchTitle(for: detail, kind: kind))
                 .font(.system(size: 16, weight: .semibold))
@@ -1309,7 +1336,6 @@ struct ContentDetailView: View {
     private func presentMockInteraction() {
         mockInteractionSelection = nil
         mockInteractionShowsResult = false
-        mockInteractionCountdown = 4
 
         withAnimation(.easeInOut(duration: 0.22)) {
             isMockInteractionPresented = true
@@ -1320,7 +1346,6 @@ struct ContentDetailView: View {
         isMockInteractionPresented = false
         mockInteractionSelection = nil
         mockInteractionShowsResult = false
-        mockInteractionCountdown = 4
         mockInteractionConfirmed = false
     }
 

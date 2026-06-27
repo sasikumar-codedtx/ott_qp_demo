@@ -350,28 +350,6 @@ struct ProfileHubView: View {
         .padding(.top, UIConstants.Spacing.md)
     }
 
-    private func roundedIconButton(icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: icon)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 44, height: 44)
-                .background(LiquidGlassBackground(cornerRadius: 16, tone: .dark))
-        }
-        .buttonStyle(LiquidButtonPressStyle())
-    }
-
-    private func featurePill(_ title: String) -> some View {
-        HStack(spacing: UIConstants.Spacing.sm) {
-            Image(systemName: "checkmark.seal")
-                .font(.caption.weight(.bold))
-                .foregroundStyle(Color(hex: "F4C15D"))
-            Text(title)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(Color.white.opacity(0.82))
-        }
-    }
-
     private func profileRailSection(_ section: StorefrontSection, style: StorefrontCardStyle, width: CGFloat) -> some View {
         let ratio: CGFloat = style == .short ? (9 / 16) : (2 / 3)
         let size = CGSize(width: width, height: width / ratio)

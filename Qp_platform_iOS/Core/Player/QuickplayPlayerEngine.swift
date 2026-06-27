@@ -23,6 +23,7 @@ final class QuickplayPlayerEngine: ObservableObject {
     @Published var isFinished = false
     @Published var error: QuickplayPlayerError?
     @Published var playerView: UIView?
+    @Published var isMuted = false
 
     private var flPlayer: (any FLPlayerInterface.Player)?
     private var heartbeatManager: (any QuickplayHeartbeatManagerBox)?
@@ -31,7 +32,6 @@ final class QuickplayPlayerEngine: ObservableObject {
     private var fairplayLicenseFetcher: (any FLPlayerInterface.FairplayLicenseFetcher)?
     #endif
     private var progressTimer: Timer?
-    private var itemObserver: NSKeyValueObservation?
     private var thumbnailGenerator: AVAssetImageGenerator?
     private var thumbnailCache: [Int: UIImage] = [:]
     private var memoryWarningObserver: NSObjectProtocol?
@@ -344,6 +344,12 @@ final class QuickplayPlayerEngine: ObservableObject {
         flPlayer?.rate = rate
     }
 
+    func toggleMute() {
+        guard let flPlayer else { return }
+        flPlayer.isMuted.toggle()
+        isMuted = flPlayer.isMuted
+    }
+
     func thumbnailImage(at seconds: Double) async -> UIImage? {
         if thumbnailGenerator == nil, let avAsset = flPlayer?.avURLAsset {
             let gen = AVAssetImageGenerator(asset: avAsset)
@@ -421,6 +427,7 @@ final class QuickplayPlayerEngine: ObservableObject {
             memoryWarningObserver = nil
         }
         playerView = nil
+        isMuted = false
         isReady = false
         isFinished = false
         isPlaying = false
@@ -460,6 +467,7 @@ final class QuickplayPlayerEngine: ObservableObject {
     @Published var isFinished = false
     @Published var error: QuickplayPlayerError? = .sdkUnavailable
     @Published var playerView: UIView?
+    @Published var isMuted = false
 
     func load(content: QuickplayPlaybackContent) async {
         error = .sdkUnavailable
@@ -471,6 +479,7 @@ final class QuickplayPlayerEngine: ObservableObject {
     func seek(to seconds: Double) {}
     func setPreferredBitrate(_ bitrate: Double) {}
     func setPlaybackRate(_ rate: Float) {}
+    func toggleMute() { isMuted.toggle() }
     func thumbnailImage(at seconds: Double) async -> UIImage? { nil }
     func release() {}
 }
