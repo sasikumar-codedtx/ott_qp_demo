@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import UIKit
+import os
 
 #if canImport(FLPlatformPlayer) && canImport(FLPlayerInterface) && canImport(FLHeartbeat) && canImport(FLBookmarks)
 import AVFoundation
@@ -19,6 +20,7 @@ final class QuickplayPlayerEngine: ObservableObject {
     @Published var currentTime: Double = 0
     @Published var duration: Double = 0
     @Published var isReady = false
+    @Published var isFinished = false
     @Published var error: QuickplayPlayerError?
     @Published var playerView: UIView?
 
@@ -30,10 +32,49 @@ final class QuickplayPlayerEngine: ObservableObject {
     #endif
     private var progressTimer: Timer?
     private var itemObserver: NSKeyValueObservation?
+    private var thumbnailGenerator: AVAssetImageGenerator?
+    private var thumbnailCache: [Int: UIImage] = [:]
+    private var memoryWarningObserver: NSObjectProtocol?
     private let injectedConfig: QuickplayPlayerConfig?
+
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "ott.qp",
+        category: "PlayerMemory"
+    )
+
+    // Proactive cap — 224×126px UIImage ≈ 110 KB each; 40 entries ≈ 4.4 MB
+    private let thumbnailCacheLimit = 40
 
     init(config: QuickplayPlayerConfig? = nil) {
         self.injectedConfig = config
+        subscribeToMemoryWarnings()
+    }
+
+    private func subscribeToMemoryWarnings() {
+        memoryWarningObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.handleMemoryWarning()
+            }
+        }
+    }
+
+    private func handleMemoryWarning() {
+        let evicted = thumbnailCache.count
+        thumbnailCache.removeAll()
+        thumbnailGenerator?.cancelAllCGImageGeneration()
+
+        Self.logger.warning("""
+            ⚠️ Memory warning received \
+            | evicted \(evicted) thumbnails \
+            | isReady=\(self.isReady) \
+            | isBuffering=\(self.isBuffering) \
+            | currentTime=\(String(format: "%.1f", self.currentTime))s \
+            | duration=\(String(format: "%.1f", self.duration))s
+            """)
     }
 
     func load(content: QuickplayPlaybackContent) async {
@@ -43,17 +84,7 @@ final class QuickplayPlayerEngine: ObservableObject {
             try await QuickplayAuthRegistry.shared.enroll(config: config)
             let asset = try await QuickplayAuthRegistry.shared.authorizeContent(content: content)
 
-            var fairplayCertificateData: Data?
-            #if !targetEnvironment(simulator)
-            if asset.drm == .fairplay, let certURLString = asset.fpCertificateUrl, let certURL = URL(string: certURLString) {
-                let request = URLRequest(url: certURL)
-                if let (data, _) = try? await URLSession.shared.data(for: request), !data.isEmpty {
-                    fairplayCertificateData = data
-                }
-            }
-            #endif
-
-            buildPlayer(asset: asset, content: content, config: config, fairplayCertificateData: fairplayCertificateData)
+            await buildPlayer(asset: asset, content: content, config: config)
         } catch let quickplayError as QuickplayPlayerError {
             error = quickplayError
             isBuffering = false
@@ -66,14 +97,16 @@ final class QuickplayPlayerEngine: ObservableObject {
     private func buildPlayer(
         asset: any FLContentAuthorizer.PlaybackAsset,
         content: QuickplayPlaybackContent,
-        config: QuickplayPlayerConfig,
-        fairplayCertificateData: Data?
-    ) {
+        config: QuickplayPlayerConfig
+    ) async {
         guard let url = URL(string: asset.contentUrl) else {
             error = .playbackFailed("Invalid content URL")
             isBuffering = false
             return
         }
+
+        let t0 = CFAbsoluteTimeGetCurrent()
+        Self.logger.debug("[Launch] buildPlayer start")
 
         // CDN origin servers require the QPAT in headers for authenticated access.
         let cdnHeaders: [String: String] = [
@@ -82,15 +115,24 @@ final class QuickplayPlayerEngine: ObservableObject {
         ]
         let avAsset = AVURLAsset(url: url, options: ["AVURLAssetHTTPHeaderFieldsKey": cdnHeaders])
 
+        // AVAssetImageGenerator is created lazily in thumbnailImage(at:) — no allocation until first scrub.
+
         #if !targetEnvironment(simulator)
-        setupFairPlay(asset: asset, avAsset: avAsset, fairplayCertificateData: fairplayCertificateData)
+        // Cert fetch runs on a background thread while the player is constructed below.
+        // By the time player + observer setup finishes, the cert is almost always ready.
+        async let certData = Self.fetchFairplayCert(urlString: asset.fpCertificateUrl)
         #endif
 
         let player = FLPlatformPlayerFactory.player(asset: avAsset)
         playerView = player.playbackView
 
         player.playbackState.add(self) { [weak self] _, newState in
+            let callbackT = CFAbsoluteTimeGetCurrent()
+            let elapsed = Int((callbackT - t0) * 1000)
+            let onMain = Thread.isMainThread
             Task { @MainActor in
+                let lag = Int((CFAbsoluteTimeGetCurrent() - callbackT) * 1000)
+                Self.logger.debug("[Launch] state=\(String(describing: newState)) thread=\(onMain ? "main" : "bg") elapsed=\(elapsed)ms taskLag=\(lag)ms")
                 guard let self else { return }
                 switch newState {
                 case .playing:
@@ -102,8 +144,7 @@ final class QuickplayPlayerEngine: ObservableObject {
                 case .loading:
                     self.isBuffering = true
                 case .loaded:
-                    self.isBuffering = false
-                    self.isReady = true
+                    self.isBuffering = false  // manifest ready, but DRM/frames may not be — isReady stays false
                 case .idle:
                     break
                 case .stopping:
@@ -121,11 +162,18 @@ final class QuickplayPlayerEngine: ObservableObject {
             }
         }
 
+        // Timer is scheduled on RunLoop.main (we're @MainActor here), so it fires on the main thread.
+        // assumeIsolated avoids Task queuing — prevents multiple currentTime updates per SwiftUI frame.
         progressTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self, weak player] _ in
             guard let player else { return }
-            Task { @MainActor in
-                self?.currentTime = player.currentTime
-                self?.duration = player.duration
+            MainActor.assumeIsolated { [weak self] in
+                guard let self else { return }
+                self.currentTime = player.currentTime
+                self.duration = player.duration
+                if self.isReady && !self.isFinished && self.duration > 0 && self.currentTime >= self.duration - 0.5 {
+                    self.isFinished = true
+                    self.isPlaying = false
+                }
             }
         }
 
@@ -134,32 +182,41 @@ final class QuickplayPlayerEngine: ObservableObject {
         }
 
         flPlayer = player
+
+        #if !targetEnvironment(simulator)
+        // Await cert — ran in parallel with player setup so latency is overlapped.
+        // Must be registered before play() so no FairPlay key request is missed.
+        setupFairPlay(asset: asset, avAsset: avAsset, certData: await certData)
+        Self.logger.debug("[Launch] fairplay ready — +\(Int((CFAbsoluteTimeGetCurrent() - t0) * 1000))ms")
+        #endif
+
+        // SDK requires heartbeat and bookmark blocks to be registered BEFORE play().
+        // Initialization cost here is absorbed by the loading phase (spinner visible).
+        let hbT = CFAbsoluteTimeGetCurrent()
+        startHeartbeat(asset: asset, content: content, config: config, player: player)
+        Self.logger.debug("[Launch] heartbeat ready — \(Int((CFAbsoluteTimeGetCurrent() - hbT) * 1000))ms (total +\(Int((CFAbsoluteTimeGetCurrent() - t0) * 1000))ms)")
+
+        let bmT = CFAbsoluteTimeGetCurrent()
+        startBookmarks(content: content, config: config, player: player)
+        Self.logger.debug("[Launch] bookmarks ready — \(Int((CFAbsoluteTimeGetCurrent() - bmT) * 1000))ms (total +\(Int((CFAbsoluteTimeGetCurrent() - t0) * 1000))ms)")
+
+        Self.logger.debug("[Launch] calling play() — total +\(Int((CFAbsoluteTimeGetCurrent() - t0) * 1000))ms")
         player.play()
         isPlaying = true
-        startHeartbeat(asset: asset, content: content, config: config)
-        startBookmarks(content: content, config: config)
+        Self.logger.debug("[Launch] play() returned — total +\(Int((CFAbsoluteTimeGetCurrent() - t0) * 1000))ms")
     }
 
     #if !targetEnvironment(simulator)
     private func setupFairPlay(
         asset: any FLContentAuthorizer.PlaybackAsset,
         avAsset: AVURLAsset,
-        fairplayCertificateData: Data?
+        certData: Data
     ) {
-        guard asset.drm == .fairplay else {
-            return
-        }
-        guard let licenseURLString = asset.licenseUrl, let licenseURL = URL(string: licenseURLString) else {
-            return
-        }
-        guard let authorizer = QuickplayAuthRegistry.shared.platformAuthorizer else {
-            return
-        }
+        guard asset.drm == .fairplay else { return }
+        guard let licenseURLString = asset.licenseUrl, let licenseURL = URL(string: licenseURLString) else { return }
+        guard let authorizer = QuickplayAuthRegistry.shared.platformAuthorizer else { return }
 
-        // SKD is extracted from the HLS manifest by AVFoundation during key exchange — not needed upfront.
         let skd = asset.skd ?? ""
-        let certData = fairplayCertificateData ?? Data()
-
         let fetcher = FLPlatformPlayerFactory.fairplaylicenseFetcher()
         let fetcherDelegate = FLPlatformPlayerFactory.fairplayLicenseFetcherDelegate(
             applicationCertificate: certData,
@@ -171,18 +228,34 @@ final class QuickplayPlayerEngine: ObservableObject {
         fetcher.updateLicenseFetcherDelegate(fetcherDelegate, for: avAsset)
         fairplayLicenseFetcher = fetcher
     }
+
+    private nonisolated static func fetchFairplayCert(urlString: String?) async -> Data {
+        guard let urlString, let url = URL(string: urlString) else { return Data() }
+        // returnCacheDataElseLoad: use URLSession disk cache regardless of expiry.
+        // FairPlay app certificates are long-lived — stale cache is always valid.
+        // After first fetch this returns instantly on every subsequent app launch.
+        let request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 30)
+        guard let (data, _) = try? await URLSession.shared.data(for: request),
+              !data.isEmpty else { return Data() }
+        return data
+    }
     #endif
 
-    private func startHeartbeat(asset: any FLContentAuthorizer.PlaybackAsset, content: QuickplayPlaybackContent, config: QuickplayPlayerConfig) {
+    private func startHeartbeat(
+        asset: any FLContentAuthorizer.PlaybackAsset,
+        content: QuickplayPlaybackContent,
+        config: QuickplayPlayerConfig,
+        player: any FLPlayerInterface.Player
+    ) {
         guard let heartbeatToken = asset.heartbeatToken,
               asset.heartbeatFlag == true,
               let authorizer = QuickplayAuthRegistry.shared.platformAuthorizer,
-              let device = QuickplayAuthRegistry.shared.platformClient,
-              let player = flPlayer else { return }
+              let device = QuickplayAuthRegistry.shared.platformClient else { return }
 
         let heartbeatConfig = FLHeartbeatFactory.heartbeatConfiguration(
             heartbeatEndPointUrl: config.heartbeatEndpoint,
-            streamConcurrencyEndPointUrl: config.streamConcurrencyEndpoint
+            streamConcurrencyEndPointUrl: config.streamConcurrencyEndpoint,
+            syncInterval: config.heartBeatSyncIntervalMs
         )
         let manager = FLHeartbeatFactory.heartbeatManager(
             configuration: heartbeatConfig,
@@ -194,20 +267,31 @@ final class QuickplayPlayerEngine: ObservableObject {
 
         let wrapper = QuickplayHeartbeatWrapper(manager: manager)
         player.addHeartBeatBlock { [weak wrapper] player in
+            let t = CFAbsoluteTimeGetCurrent()
+            let onMain = Thread.isMainThread
             wrapper?.manager.processPlaybackProgress(player: player)
+            let ms = Int((CFAbsoluteTimeGetCurrent() - t) * 1000)
+            Self.logger.debug("[HB] heartbeat block thread=\(onMain ? "main" : "bg") took=\(ms)ms")
         }
         player.addStateChangeBlock { [weak wrapper] player in
+            let t = CFAbsoluteTimeGetCurrent()
             wrapper?.manager.processPlaybackStateChange(player: player)
+            let ms = Int((CFAbsoluteTimeGetCurrent() - t) * 1000)
+            Self.logger.debug("[HB] heartbeat stateChange took=\(ms)ms")
         }
         heartbeatManager = wrapper
     }
 
-    private func startBookmarks(content: QuickplayPlaybackContent, config: QuickplayPlayerConfig) {
-        guard let authorizer = QuickplayAuthRegistry.shared.platformAuthorizer,
-              let player = flPlayer else { return }
+    private func startBookmarks(
+        content: QuickplayPlaybackContent,
+        config: QuickplayPlayerConfig,
+        player: any FLPlayerInterface.Player
+    ) {
+        guard let authorizer = QuickplayAuthRegistry.shared.platformAuthorizer else { return }
 
         let bookmarkConfig = FLBookmarksFactory.bookmarkSessionConfiguration(
-            endPoint: config.contentAuthEndpoint
+            endPoint: config.contentAuthEndpoint,
+            bookmarkSyncInterval: config.bookmarkSyncIntervalMs
         )
         let attributes = BookmarkAttributes(
             itemId: content.contentId,
@@ -222,11 +306,14 @@ final class QuickplayPlayerEngine: ObservableObject {
         )
 
         let wrapper = QuickplayBookmarksWrapper(manager: manager)
-        player.addStateChangeBlock { [weak wrapper] player in
-            wrapper?.manager.processPlaybackStateChange(player: player)
-        }
+        // addHeartBeatBlock drives the configured bookmarkSyncInterval — SDK uses this to pace saves.
+        // addStateChangeBlock (save on pause/stop) intentionally omitted.
         player.addHeartBeatBlock { [weak wrapper] player in
+            let t = CFAbsoluteTimeGetCurrent()
+            let onMain = Thread.isMainThread
             wrapper?.manager.processPlaybackProgress(player: player)
+            let ms = Int((CFAbsoluteTimeGetCurrent() - t) * 1000)
+            Self.logger.debug("[BM] bookmark block thread=\(onMain ? "main" : "bg") took=\(ms)ms")
         }
         bookmarksManager = wrapper
     }
@@ -251,6 +338,41 @@ final class QuickplayPlayerEngine: ObservableObject {
 
     func setPreferredBitrate(_ bitrate: Double) {
         flPlayer?.avURLAsset?.resourceLoader.preloadsEligibleContentKeys = true
+    }
+
+    func setPlaybackRate(_ rate: Float) {
+        flPlayer?.rate = rate
+    }
+
+    func thumbnailImage(at seconds: Double) async -> UIImage? {
+        if thumbnailGenerator == nil, let avAsset = flPlayer?.avURLAsset {
+            let gen = AVAssetImageGenerator(asset: avAsset)
+            gen.appliesPreferredTrackTransform = true
+            gen.maximumSize = CGSize(width: 224, height: 126)
+            gen.requestedTimeToleranceBefore = CMTime(seconds: 2, preferredTimescale: 600)
+            gen.requestedTimeToleranceAfter = CMTime(seconds: 2, preferredTimescale: 600)
+            thumbnailGenerator = gen
+        }
+        guard let generator = thumbnailGenerator else { return nil }
+        let bucket = Int(seconds / 10) * 10
+        if let cached = thumbnailCache[bucket] { return cached }
+
+        // Evict the oldest quarter of entries before the cache exceeds the cap
+        if thumbnailCache.count >= thumbnailCacheLimit {
+            let evictCount = thumbnailCacheLimit / 4
+            thumbnailCache.keys.sorted().prefix(evictCount).forEach { thumbnailCache.removeValue(forKey: $0) }
+            Self.logger.info("Thumbnail cache eviction — removed \(evictCount) oldest entries (cap: \(self.thumbnailCacheLimit))")
+        }
+
+        let image = await withCheckedContinuation { (cont: CheckedContinuation<UIImage?, Never>) in
+            DispatchQueue.global(qos: .userInitiated).async {
+                let time = CMTime(seconds: Double(bucket), preferredTimescale: 600)
+                let img = (try? generator.copyCGImage(at: time, actualTime: nil)).map { UIImage(cgImage: $0) }
+                cont.resume(returning: img)
+            }
+        }
+        thumbnailCache[bucket] = image
+        return image
     }
 
     var audioTracks: [MediaTrack] {
@@ -282,6 +404,8 @@ final class QuickplayPlayerEngine: ObservableObject {
         progressTimer = nil
         flPlayer?.playbackState.remove(self)
         flPlayer?.isBuffering.remove(self)
+        // Final bookmark save — fire-and-forget before the player stops
+        if let player = flPlayer { bookmarksManager?.saveBookmarkNow(player: player) }
         flPlayer?.stop()
         flPlayer = nil
         heartbeatManager = nil
@@ -289,15 +413,25 @@ final class QuickplayPlayerEngine: ObservableObject {
         #if !targetEnvironment(simulator)
         fairplayLicenseFetcher = nil
         #endif
+        thumbnailGenerator?.cancelAllCGImageGeneration()
+        thumbnailGenerator = nil
+        thumbnailCache.removeAll()
+        if let observer = memoryWarningObserver {
+            NotificationCenter.default.removeObserver(observer)
+            memoryWarningObserver = nil
+        }
         playerView = nil
         isReady = false
+        isFinished = false
         isPlaying = false
         isBuffering = true
     }
 }
 
 private protocol QuickplayHeartbeatManagerBox: AnyObject {}
-private protocol QuickplayBookmarksManagerBox: AnyObject {}
+private protocol QuickplayBookmarksManagerBox: AnyObject {
+    func saveBookmarkNow(player: any FLPlayerInterface.Player)
+}
 
 private final class QuickplayHeartbeatWrapper: QuickplayHeartbeatManagerBox {
     let manager: any FLHeartbeat.HeartbeatManager
@@ -311,6 +445,9 @@ private final class QuickplayBookmarksWrapper: QuickplayBookmarksManagerBox {
     init(manager: any FLBookmarks.BookmarksManager) {
         self.manager = manager
     }
+    func saveBookmarkNow(player: any FLPlayerInterface.Player) {
+        manager.processPlaybackProgress(player: player)
+    }
 }
 #else
 @MainActor
@@ -320,6 +457,7 @@ final class QuickplayPlayerEngine: ObservableObject {
     @Published var currentTime: Double = 0
     @Published var duration: Double = 0
     @Published var isReady = false
+    @Published var isFinished = false
     @Published var error: QuickplayPlayerError? = .sdkUnavailable
     @Published var playerView: UIView?
 
@@ -332,6 +470,8 @@ final class QuickplayPlayerEngine: ObservableObject {
     func pause() {}
     func seek(to seconds: Double) {}
     func setPreferredBitrate(_ bitrate: Double) {}
+    func setPlaybackRate(_ rate: Float) {}
+    func thumbnailImage(at seconds: Double) async -> UIImage? { nil }
     func release() {}
 }
 #endif

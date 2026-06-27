@@ -9,6 +9,8 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
     let seriesId: String?
     let seasonId: String?
     let episodeNumber: Int?
+    let rating: String?
+    let genre: String?
 
     enum ContentType: String, Hashable {
         case movie = "movie"
@@ -33,7 +35,9 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
         resumePosition: Double = 0,
         seriesId: String? = nil,
         seasonId: String? = nil,
-        episodeNumber: Int? = nil
+        episodeNumber: Int? = nil,
+        rating: String? = nil,
+        genre: String? = nil
     ) {
         self.id = contentId
         self.contentId = contentId
@@ -43,6 +47,8 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
         self.seriesId = seriesId
         self.seasonId = seasonId
         self.episodeNumber = episodeNumber
+        self.rating = rating
+        self.genre = genre
     }
 }
 
