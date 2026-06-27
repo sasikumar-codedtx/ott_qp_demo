@@ -9,6 +9,7 @@ actor DemoSessionStore {
         static let activeProfileID = "sony.quickplay.demo.active-profile-id"
         static let preferenceHistoryByProfile = "sony.quickplay.demo.preference-history-by-profile"
         static let storefrontPolicyClicksByProfile = "sony.quickplay.demo.storefront-policy-clicks-by-profile"
+        static let storefrontPolicyOverrideByProfile = "sony.quickplay.demo.storefront-policy-override-by-profile"
         static let prefersVoiceAISearch = "sony.quickplay.demo.prefers-voice-ai"
         static let continueWatchingByProfile = "sony.quickplay.demo.continue-watching-by-profile"
         static let favoritesByProfile = "sony.quickplay.demo.favorites-by-profile"
@@ -22,6 +23,7 @@ actor DemoSessionStore {
     private var activeProfileID: String?
     private var preferenceHistoryByProfile: [String: [String]]
     private var storefrontPolicyClicksByProfile: [String: [String: Int]]
+    private var storefrontPolicyOverrideByProfile: [String: String]
     private var prefersVoiceAISearch: Bool
     private var continueWatchingByProfile: [String: [StorefrontItem]]
     private var favoritesByProfile: [String: [StorefrontItem]]
@@ -48,6 +50,7 @@ actor DemoSessionStore {
         activeProfileID = UserDefaults.standard.string(forKey: StorageKey.activeProfileID)
         preferenceHistoryByProfile = UserDefaults.standard.dictionary(forKey: StorageKey.preferenceHistoryByProfile) as? [String: [String]] ?? [:]
         storefrontPolicyClicksByProfile = UserDefaults.standard.dictionary(forKey: StorageKey.storefrontPolicyClicksByProfile) as? [String: [String: Int]] ?? [:]
+        storefrontPolicyOverrideByProfile = UserDefaults.standard.dictionary(forKey: StorageKey.storefrontPolicyOverrideByProfile) as? [String: String] ?? [:]
         if let data = UserDefaults.standard.data(forKey: StorageKey.continueWatchingByProfile),
            let stored = try? JSONDecoder().decode([String: [StorefrontItem]].self, from: data) {
             continueWatchingByProfile = stored
@@ -82,6 +85,24 @@ actor DemoSessionStore {
         preferenceHistoryByProfile[profileID.uuidString] = []
         storefrontPolicyClicksByProfile[profileID.uuidString] = [:]
         UserDefaults.standard.set(preferenceHistoryByProfile, forKey: StorageKey.preferenceHistoryByProfile)
+        UserDefaults.standard.set(storefrontPolicyClicksByProfile, forKey: StorageKey.storefrontPolicyClicksByProfile)
+    }
+
+    func storefrontPolicy(for profileID: UUID?) -> StorefrontPolicy {
+        let key = profileID?.uuidString ?? historyKey
+        if let rawPolicy = storefrontPolicyOverrideByProfile[key],
+           let policy = StorefrontPolicy(rawValue: rawPolicy) {
+            return policy
+        }
+
+        return resolvedStorefrontPolicy(for: key)
+    }
+
+    func setStorefrontPolicyOverride(_ policy: StorefrontPolicy, for profileID: UUID?) {
+        let key = profileID?.uuidString ?? historyKey
+        storefrontPolicyOverrideByProfile[key] = policy.rawValue
+        storefrontPolicyClicksByProfile[key] = [:]
+        UserDefaults.standard.set(storefrontPolicyOverrideByProfile, forKey: StorageKey.storefrontPolicyOverrideByProfile)
         UserDefaults.standard.set(storefrontPolicyClicksByProfile, forKey: StorageKey.storefrontPolicyClicksByProfile)
     }
 
@@ -177,7 +198,7 @@ actor DemoSessionStore {
     }
 
     func currentStorefrontPolicy() -> StorefrontPolicy {
-        storefrontPolicy(for: historyKey)
+        storefrontPolicy(for: nil)
     }
 
     func currentStorefrontPolicyAttribute() -> String {
@@ -232,7 +253,7 @@ actor DemoSessionStore {
         return nil
     }
 
-    private func storefrontPolicy(for profileKey: String) -> StorefrontPolicy {
+    private func resolvedStorefrontPolicy(for profileKey: String) -> StorefrontPolicy {
         let counts = storefrontPolicyClicksByProfile[profileKey] ?? [:]
         let realityClicks = counts[StorefrontPolicySignal.reality.rawValue] ?? 0
         let sportsClicks = counts[StorefrontPolicySignal.sports.rawValue] ?? 0

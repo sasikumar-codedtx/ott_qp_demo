@@ -22,6 +22,7 @@ final class ProfileEditorViewModel: ObservableObject {
     @Published private(set) var step: ProfileEditorStep = .details
     @Published var isGenderPickerPresented = false
     @Published var isDatePickerPresented = false
+    @Published var selectedStorefrontPolicy: StorefrontPolicy = .entertainment
 
     private let repository: ProfileRepository
     private let saveProfileUseCase: SaveProfileUseCase
@@ -75,6 +76,7 @@ final class ProfileEditorViewModel: ObservableObject {
         mode = .editExisting
         step = .details
         draft = ProfileDraft(profile: profile)
+        selectedStorefrontPolicy = await DemoSessionStore.shared.storefrontPolicy(for: profile.id)
         await loadProfiles()
         await loadAvatarOptionsIfNeeded()
         applyFallbackAvatarIfNeeded()
@@ -84,6 +86,7 @@ final class ProfileEditorViewModel: ObservableObject {
         mode = .createNew
         step = .details
         draft = ProfileDraft()
+        selectedStorefrontPolicy = .entertainment
         await loadProfiles()
         await loadAvatarOptionsIfNeeded()
         applyFallbackAvatarIfNeeded()
@@ -97,6 +100,7 @@ final class ProfileEditorViewModel: ObservableObject {
 
         do {
             let profile = try await saveProfileUseCase.execute(draft: draft)
+            await DemoSessionStore.shared.setStorefrontPolicyOverride(selectedStorefrontPolicy, for: profile.id)
             isLoading = false
             return profile
         } catch {
@@ -150,6 +154,9 @@ final class ProfileEditorViewModel: ObservableObject {
         mode = .editExisting
         step = .details
         draft = ProfileDraft(profile: profile)
+        Task {
+            selectedStorefrontPolicy = await DemoSessionStore.shared.storefrontPolicy(for: profile.id)
+        }
         isGenderPickerPresented = false
         isDatePickerPresented = false
         errorMessage = nil
@@ -179,6 +186,7 @@ final class ProfileEditorViewModel: ObservableObject {
         draft.preference = preference
         draft.cohort = preference.quickplayCohort
         draft.isKidsProfile = false
+        selectedStorefrontPolicy = storefrontPolicy(for: preference.quickplayCohort)
         errorMessage = nil
     }
 
@@ -187,6 +195,26 @@ final class ProfileEditorViewModel: ObservableObject {
         draft.preference = result.preference
         draft.isKidsProfile = false
         draft.preferredLanguages = preferredLanguages(for: result.preference)
+        selectedStorefrontPolicy = storefrontPolicy(for: result.primaryCategory)
+        errorMessage = nil
+    }
+
+    func selectStorefrontPolicy(_ policy: StorefrontPolicy) {
+        selectedStorefrontPolicy = policy
+        switch policy {
+        case .sports, .sportsEntertainment:
+            draft.preference = .sports
+            draft.cohort = .sports
+            draft.isKidsProfile = false
+        case .reality, .realityEntertainment, .realitySports:
+            draft.preference = .realityShows
+            draft.cohort = .realityShows
+            draft.isKidsProfile = false
+        case .entertainment:
+            draft.preference = .entertainment
+            draft.cohort = .entertainment
+            draft.isKidsProfile = false
+        }
         errorMessage = nil
     }
 
@@ -256,5 +284,16 @@ final class ProfileEditorViewModel: ObservableObject {
     private func applyFallbackAvatarIfNeeded() {
         guard draft.imageName == nil else { return }
         draft.imageName = avatarOptions.first?.imageName
+    }
+
+    private func storefrontPolicy(for cohort: QuickplayCohort) -> StorefrontPolicy {
+        switch cohort {
+        case .sports:
+            return .sports
+        case .realityShows:
+            return .reality
+        case .kids, .entertainment:
+            return .entertainment
+        }
     }
 }

@@ -1,12 +1,14 @@
 import Foundation
 
-enum StorefrontPolicy: String, Codable, Equatable, Hashable {
+enum StorefrontPolicy: String, CaseIterable, Codable, Equatable, Hashable, Identifiable {
     case entertainment
     case realityEntertainment
     case reality
     case realitySports
     case sportsEntertainment
     case sports
+
+    nonisolated var id: String { rawValue }
 
     nonisolated var chrtValue: String {
         switch self {
@@ -39,6 +41,23 @@ enum StorefrontPolicy: String, Codable, Equatable, Hashable {
             return "Sports + Entertainment"
         case .sports:
             return "Sports"
+        }
+    }
+
+    nonisolated var subtitle: String {
+        switch self {
+        case .entertainment:
+            return "Default entertainment storefront"
+        case .realityEntertainment:
+            return "Reality rail boosted into entertainment"
+        case .reality:
+            return "Full reality storefront"
+        case .realitySports:
+            return "Reality storefront with sports boost"
+        case .sportsEntertainment:
+            return "Sports boost inside entertainment"
+        case .sports:
+            return "Full sports storefront"
         }
     }
 }

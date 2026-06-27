@@ -145,7 +145,7 @@ struct ProfileEditorView: View {
             genderField
             preferredContentField
             if viewModel.mode == .editExisting {
-                cohortPreferenceField
+                storefrontPolicyField
             }
             kidsToggleField
         }
@@ -399,27 +399,26 @@ struct ProfileEditorView: View {
         )
     }
 
-    private var cohortPreferenceField: some View {
+    private var storefrontPolicyField: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Storefront Cohort")
+                Text("Storefront Test Policy")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(.white)
 
-                Text("Changing this updates the feed after you save.")
+                Text("Choose the exact chrt value for this profile. Saving clears this profile's click data.")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(Color.white.opacity(0.5))
             }
             .padding(.horizontal, 4)
 
-            VStack(spacing: 10) {
-                ForEach(ProfilePreference.allCases) { preference in
-                    CohortPreferenceCard(
-                        preference: preference,
-                        isSelected: viewModel.draft.preference == preference,
-                        languages: viewModel.preferredLanguages(for: preference)
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                ForEach(StorefrontPolicy.allCases) { policy in
+                    StorefrontPolicyCard(
+                        policy: policy,
+                        isSelected: viewModel.selectedStorefrontPolicy == policy
                     ) {
-                        selectPreference(preference)
+                        selectStorefrontPolicy(policy)
                     }
                 }
             }
@@ -576,6 +575,11 @@ struct ProfileEditorView: View {
     private func selectPreference(_ preference: ProfilePreference) {
         dismissKeyboard()
         viewModel.selectPreference(preference)
+    }
+
+    private func selectStorefrontPolicy(_ policy: StorefrontPolicy) {
+        dismissKeyboard()
+        viewModel.selectStorefrontPolicy(policy)
     }
 
     private func presentDatePicker() {
@@ -773,51 +777,44 @@ private struct ProfileLanguageCard: View {
     }
 }
 
-private struct CohortPreferenceCard: View {
-    let preference: ProfilePreference
+private struct StorefrontPolicyCard: View {
+    let policy: StorefrontPolicy
     let isSelected: Bool
-    let languages: [ProfileLanguage]
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 12) {
-                    Image(systemName: preference.symbolName)
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(isSelected ? Color(hex: "151424") : Color(hex: "F6C759"))
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(preference.displayName)
-                            .font(.system(size: 18, weight: .bold))
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(policy.displayName)
+                            .font(.system(size: 14, weight: .bold))
                             .foregroundStyle(.white)
-                        Text(preference.subtitle)
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundStyle(Color.white.opacity(0.58))
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.86)
+
+                        Text("chrt=\(policy.chrtValue)")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(isSelected ? Color(hex: "151424") : Color(hex: "F6C759"))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
 
-                    Spacer()
+                    Spacer(minLength: 4)
 
-                    if isSelected {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundStyle(Color(hex: "4DA3FF"))
-                    }
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(isSelected ? Color(hex: "4DA3FF") : Color.white.opacity(0.42))
                 }
 
-                FlexibleChipLayout(items: languages) { language in
-                    Text(language.englishTitle)
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(isSelected ? Color(hex: "151424") : .white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
-                        .background(
-                            Capsule(style: .continuous)
-                                .fill(isSelected ? Color.white.opacity(0.92) : Color.white.opacity(0.08))
-                        )
-                }
+                Text(policy.subtitle)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(Color.white.opacity(0.55))
+                    .lineLimit(2)
             }
-            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(minHeight: 94, alignment: .top)
+            .padding(14)
             .background(
                 LiquidGlassBackground(cornerRadius: 20, tone: .accent, isHighlighted: isSelected)
             )
