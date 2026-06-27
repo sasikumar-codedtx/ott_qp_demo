@@ -126,8 +126,7 @@ final class ContentDetailViewModel: ObservableObject {
         let genres = detail.genres.prefix(2)
         var suggestions = [
             "\(title) best scenes",
-            "\(title) key moments",
-            "emotional scene"
+            "\(title) key moments"
         ]
 
         suggestions.append(contentsOf: genres.map { "\($0) moments" })
