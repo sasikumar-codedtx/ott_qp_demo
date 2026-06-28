@@ -283,7 +283,7 @@ struct ContentDetailView: View {
 
                     ScrollViewReader { scrollProxy in
                         ScrollView(.vertical, showsIndicators: false) {
-                            LazyVStack(alignment: .leading, spacing: 0) {
+                            LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
                                 if kind == .sportsInteractive {
                                     // Above-tab content (no pinned header — player is fixed above)
                                     Section {
