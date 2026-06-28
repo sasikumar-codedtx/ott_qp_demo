@@ -5,54 +5,73 @@ struct DetailInlinePlayerView: View {
     @ObservedObject var engine: QuickplayPlayerEngine
     let content: QuickplayPlaybackContent
     let posterURL: URL?
+    // Total header height = safeAreaTop + navBarHeight + videoHeight.
+    // Poster fills all of it (covers status bar + nav bar area).
+    // Video/controls sit only in the bottom portion below the nav bar.
     let height: CGFloat
+    let safeAreaTop: CGFloat
+    let navBarHeight: CGFloat
     let onFullscreen: () -> Void
     @State private var isSeeking = false
     @State private var seekPosition: Double = 0
     @State private var showControls = false
 
+    private var videoHeight: CGFloat { height - safeAreaTop - navBarHeight }
+
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
+            // Poster spans from absolute screen top through the full header height.
+            // Fades out once the video surface is ready.
             PosterImageView(
                 url: posterURL,
                 size: CGSize(width: UIScreen.main.bounds.width, height: height),
                 cornerRadius: 0
             )
+            .opacity(engine.isReady ? 0 : 1)
+            .animation(.easeInOut(duration: 0.3), value: engine.isReady)
 
-            QuickplayPlayerSurfaceView(engine: engine)
-                .opacity(engine.isReady ? 1 : 0)
-                .animation(.easeInOut(duration: 0.45), value: engine.isReady)
-                .allowsHitTesting(false)
+            // Video and controls — only in the area below the nav bar.
+            VStack(spacing: 0) {
+                Color.clear.frame(height: safeAreaTop + navBarHeight)
 
-            if engine.isReady && showControls {
-                LinearGradient(
-                    colors: [.black.opacity(0.3), .clear, .black.opacity(0.55)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .allowsHitTesting(false)
+                ZStack {
+                    QuickplayPlayerSurfaceView(engine: engine)
+                        .opacity(engine.isReady ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.45), value: engine.isReady)
+                        .allowsHitTesting(false)
 
-                controls
-                    .transition(.opacity)
-            }
+                    if engine.isReady && showControls {
+                        LinearGradient(
+                            colors: [.black.opacity(0.3), .clear, .black.opacity(0.55)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .allowsHitTesting(false)
 
-            if engine.error != nil {
-                VStack {
-                    Spacer()
-                    DetailPlayerErrorToast()
-                        .padding(.bottom, 64)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        controls
+                            .transition(.opacity)
+                    }
+
+                    if engine.error != nil {
+                        VStack {
+                            Spacer()
+                            DetailPlayerErrorToast()
+                                .padding(.bottom, 64)
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
+                        .animation(.easeInOut(duration: 0.3), value: engine.error != nil)
+                    }
                 }
-                .animation(.easeInOut(duration: 0.3), value: engine.error != nil)
+                .frame(height: videoHeight)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    guard engine.isReady else { return }
+                    withAnimation(.easeInOut(duration: 0.2)) { showControls.toggle() }
+                }
             }
         }
         .frame(height: height)
         .clipped()
-        .contentShape(Rectangle())
-        .onTapGesture {
-            guard engine.isReady else { return }
-            withAnimation(.easeInOut(duration: 0.2)) { showControls.toggle() }
-        }
         .task(id: content.id) {
             engine.release()
             await engine.load(content: content)

@@ -141,7 +141,7 @@ struct ContentDetailView: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .bottom) {
-                content(width: proxy.size.width, height: proxy.size.height)
+                content(width: proxy.size.width, height: proxy.size.height, safeAreaTop: proxy.safeAreaInsets.top)
 
                 if let detail = viewModel.detail, isMomentSearchOverlayPresented {
                     momentSearchOverlay(detail: detail, bottomInset: proxy.safeAreaInsets.bottom)
@@ -150,7 +150,7 @@ struct ContentDetailView: View {
 
                 if let detail = viewModel.detail, isMockInteractionPresented {
                     let mediaH = proxy.size.width * 9 / 16
-                    let quizH  = proxy.size.height - mediaH
+                    let quizH  = proxy.size.height - 58 - mediaH
                     quizOverlay(detail: detail, width: proxy.size.width)
                         .frame(width: proxy.size.width, height: max(200, quizH))
                         .ignoresSafeArea(edges: .bottom)
@@ -249,91 +249,106 @@ struct ContentDetailView: View {
     }
 
     @ViewBuilder
-    private func content(width: CGFloat, height: CGFloat) -> some View {
+    private func content(width: CGFloat, height: CGFloat, safeAreaTop: CGFloat) -> some View {
         if let detail = viewModel.detail {
             let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
             let playerContent = detail.quickplayPlaybackContent(fallback: viewModel.seed)
+            let navBarHeight: CGFloat = 58
             let mediaHeight = width * 9 / 16
+            let headerHeight = safeAreaTop + navBarHeight + mediaHeight
 
             ZStack(alignment: .top) {
                 Color(hex: "0A0A0A").ignoresSafeArea()
 
-                ScrollViewReader { scrollProxy in
-                    ScrollView(.vertical, showsIndicators: false) {
-                        LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
-                            if kind == .sportsInteractive {
-                                // Section 1: Player header (pinned) + title/action buttons
-                                Section {
-                                    sportsAboveTabContent(detail, width: width)
-                                        .padding(.horizontal, 16)
-                                        .padding(.top, 8)
-                                        .padding(.bottom, 4)
-                                } header: {
-                                    DetailInlinePlayerView(
-                                        engine: detailPlayerEngine,
-                                        content: playerContent,
-                                        posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
-                                        height: mediaHeight,
-                                        onFullscreen: { openFullPlayer(detail: detail) }
-                                    )
-                                }
-                                // Section 2: Tab bar (pinned) + tab content
-                                Section {
-                                    sportsTabContent(detail, width: width)
-                                        .padding(.horizontal, 16)
-                                        .padding(.top, 4)
-                                        .id(detailTabsAnchorID)
-                                } header: {
-                                    VStack(spacing: 0) {
-                                        sportsTabRow
+                // Player sits OUTSIDE the ScrollView — it is truly fixed and never moves.
+                // VStack with ignoresSafeArea(edges:.top) makes it start at absolute y=0.
+                VStack(spacing: 0) {
+                    DetailInlinePlayerView(
+                        engine: detailPlayerEngine,
+                        content: playerContent,
+                        posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
+                        height: headerHeight,
+                        safeAreaTop: safeAreaTop,
+                        navBarHeight: navBarHeight,
+                        onFullscreen: { openFullPlayer(detail: detail) }
+                    )
+
+                    ScrollViewReader { scrollProxy in
+                        ScrollView(.vertical, showsIndicators: false) {
+                            LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+                                if kind == .sportsInteractive {
+                                    // Above-tab content (no pinned header — player is fixed above)
+                                    Section {
+                                        sportsAboveTabContent(detail, width: width)
                                             .padding(.horizontal, 16)
-                                        Rectangle()
-                                            .fill(Color.white.opacity(0.12))
-                                            .frame(height: 1)
+                                            .padding(.top, 12)
+                                            .padding(.bottom, 4)
                                     }
-                                    .background(Color(hex: "0A0A0A"))
+                                    // Tab bar (pinned) + tab content
+                                    Section {
+                                        sportsTabContent(detail, width: width)
+                                            .padding(.horizontal, 16)
+                                            .padding(.top, 4)
+                                            .id(detailTabsAnchorID)
+                                    } header: {
+                                        VStack(spacing: 0) {
+                                            sportsTabRow
+                                                .padding(.horizontal, 16)
+                                            Rectangle()
+                                                .fill(Color.white.opacity(0.12))
+                                                .frame(height: 1)
+                                        }
+                                        .background(Color(hex: "0A0A0A"))
+                                    }
+                                } else {
+                                    // Above-tab content (no pinned header — player is fixed above)
+                                    Section {
+                                        detailContent(detail, kind: kind, width: width)
+                                            .padding(.horizontal, 16)
+                                            .padding(.top, 12)
+                                    }
+                                    // Tab bar (pinned) + tab content
+                                    Section {
+                                        tabContent(detail, width: width)
+                                            .padding(.horizontal, 16)
+                                            .padding(.top, 12)
+                                            .id(detailTabsAnchorID)
+                                    } header: {
+                                        VStack(spacing: 0) {
+                                            tabRow(detail)
+                                                .padding(.horizontal, 16)
+                                            Rectangle()
+                                                .fill(Color.white.opacity(0.12))
+                                                .frame(height: 1)
+                                        }
+                                        .background(Color(hex: "0A0A0A"))
+                                    }
                                 }
-                            } else {
-                                Section {
-                                    detailContent(detail, kind: kind, width: width, screenHeight: height)
-                                        .padding(.horizontal, 16)
-                                        .padding(.top, 8)
-                                } header: {
-                                    DetailInlinePlayerView(
-                                        engine: detailPlayerEngine,
-                                        content: playerContent,
-                                        posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
-                                        height: mediaHeight,
-                                        onFullscreen: { openFullPlayer(detail: detail) }
-                                    )
+                            }
+                            .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
+                            .id("scrollTop")
+                        }
+                        .onChange(of: momentAutoScrollToken) { _, _ in
+                            guard viewModel.selectedTab == AppStrings.Detail.moments else { return }
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .milliseconds(180))
+                                withAnimation(.easeInOut(duration: 0.72)) {
+                                    scrollProxy.scrollTo(detailTabsAnchorID, anchor: .top)
                                 }
                             }
                         }
-                        .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
-                        .id("scrollTop")
-                    }
-                    .onChange(of: momentAutoScrollToken) { _, _ in
-                        guard viewModel.selectedTab == AppStrings.Detail.moments else { return }
-
-                        Task { @MainActor in
-                            try? await Task.sleep(for: .milliseconds(180))
-                            withAnimation(.easeInOut(duration: 0.72)) {
-                                scrollProxy.scrollTo(detailTabsAnchorID, anchor: UnitPoint(x: 0.5, y: 0.09))
-                            }
-                        }
-                    }
-                    .onChange(of: viewModel.momentResults.count) { _, count in
-                        guard count > 0, viewModel.selectedTab == AppStrings.Detail.moments else { return }
-
-                        Task { @MainActor in
-                            try? await Task.sleep(for: .milliseconds(240))
-                            withAnimation(.easeInOut(duration: 0.82)) {
-                                scrollProxy.scrollTo(detailTabsAnchorID, anchor: UnitPoint(x: 0.5, y: 0.09))
+                        .onChange(of: viewModel.momentResults.count) { _, count in
+                            guard count > 0, viewModel.selectedTab == AppStrings.Detail.moments else { return }
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .milliseconds(240))
+                                withAnimation(.easeInOut(duration: 0.82)) {
+                                    scrollProxy.scrollTo(detailTabsAnchorID, anchor: .top)
+                                }
                             }
                         }
                     }
                 }
-                .clipped()
+                .ignoresSafeArea(edges: .top)
                 .zIndex(2)
 
             }
@@ -427,22 +442,14 @@ struct ContentDetailView: View {
 
     private var miniHeroHeight: CGFloat { 220 }
 
-    private func detailContent(_ detail: ContentDetail, kind: DetailPresentationKind, width: CGFloat, screenHeight: CGFloat) -> some View {
+    private func detailContent(_ detail: ContentDetail, kind: DetailPresentationKind, width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Extra breathing room between hero bottom and first content element
-            Spacer().frame(height: 20)
-
             titleArt(detail)
             metaLine(detail)
             watchButton(detail, kind: kind)
             descriptionBlock(detail)
             actionButtonRow(detail, kind: kind)
             sponsorRow(detail)
-            tabRow(detail)
-                .id(detailTabsAnchorID)
-            tabContent(detail, width: width)
-                // Ensure tab content fills enough of the screen so bottom isn't empty
-                .frame(minHeight: screenHeight * 0.45)
         }
     }
 
@@ -583,7 +590,7 @@ struct ContentDetailView: View {
         case "Scorecard":
             sportsScorecardTab
         case "Key Moments":
-            sportsKeyMomentsTab(width: width)
+            momentsSection(detail)
         default:
             recommendationSection(width: width)
         }
@@ -2207,7 +2214,7 @@ struct ContentDetailView: View {
 
     @ViewBuilder
     private func episodesSection(width: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             if viewModel.seasons.isEmpty == false {
                 seasonSelector
             }
@@ -2242,7 +2249,6 @@ struct ContentDetailView: View {
                 }
             }
         }
-        .padding(.top, 8)
     }
 
     private var seasonSelector: some View {
@@ -2266,7 +2272,7 @@ struct ContentDetailView: View {
                     .tracking(0.4)
                     .foregroundStyle(Color(hex: "F0F0F0"))
                     .lineLimit(1)
-                Image(systemName: "chevron.up")
+                Image(systemName: "chevron.down")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.9))
             }
@@ -2275,6 +2281,7 @@ struct ContentDetailView: View {
             .background(seasonChipBackground)
         }
         .fixedSize()
+        .transaction { $0.animation = nil }
     }
 
     private var seasonChipBackground: some View {

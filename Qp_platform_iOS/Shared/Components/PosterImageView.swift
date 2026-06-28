@@ -20,7 +20,7 @@ struct PosterImageView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .fill(Color.white.opacity(0.035))
+                .fill(hasFailed ? Color(hex: "181818") : Color.white.opacity(0.035))
                 .overlay {
                     ShimmerView()
                         .opacity(hasLoaded ? 0 : 1)
@@ -41,12 +41,16 @@ struct PosterImageView: View {
                     guard !hasLoaded else { return }
                     withAnimation(.easeInOut(duration: 0.22)) { hasLoaded = true }
                 }
-                .onFailure { _ in hasLoaded = true }
+                .onFailure { _ in
+                    guard !hasFailed else { return }
+                    hasFailed = true
+                    hasLoaded = true
+                }
                 .resizable()
                 .aspectRatio(contentMode: contentMode)
                 .opacity(hasLoaded ? 1 : 0.001)
                 .scaleEffect(hasLoaded ? 1 : 1.065)
-                .animation(.interpolatingSpring(stiffness: 165, damping: 18), value: hasLoaded)
+                .animation(hasFailed ? nil : .interpolatingSpring(stiffness: 165, damping: 18), value: hasLoaded)
         }
         .frame(width: size.width, height: size.height)
         .clipped()
