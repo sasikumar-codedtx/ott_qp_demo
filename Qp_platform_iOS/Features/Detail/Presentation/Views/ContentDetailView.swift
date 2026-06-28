@@ -280,39 +280,8 @@ struct ContentDetailView: View {
                     )
 
                     ScrollView(.vertical, showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            if kind == .sportsInteractive {
-                                sportsAboveTabContent(detail, width: width)
-                                    .padding(.horizontal, 16)
-                                    .padding(.top, 12)
-                                    .padding(.bottom, 4)
-                                VStack(spacing: 0) {
-                                    sportsTabRow
-                                        .padding(.horizontal, 16)
-                                    Rectangle()
-                                        .fill(Color.white.opacity(0.12))
-                                        .frame(height: 1)
-                                }
-                                sportsTabContent(detail, width: width)
-                                    .padding(.horizontal, 16)
-                                    .padding(.top, 4)
-                            } else {
-                                detailContent(detail, kind: kind, width: width)
-                                    .padding(.horizontal, 16)
-                                    .padding(.top, 12)
-                                VStack(spacing: 0) {
-                                    tabRow(detail)
-                                        .padding(.horizontal, 16)
-                                    Rectangle()
-                                        .fill(Color.white.opacity(0.12))
-                                        .frame(height: 1)
-                                }
-                                tabContent(detail, width: width)
-                                    .padding(.horizontal, 16)
-                                    .padding(.top, 12)
-                            }
-                        }
-                        .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
+                        scrollableBody(detail, kind: kind, width: width)
+                            .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
                     }
                 }
                 .ignoresSafeArea(edges: .top)
@@ -408,6 +377,60 @@ struct ContentDetailView: View {
     }
 
     private var miniHeroHeight: CGFloat { 220 }
+
+    private func scrollableBody(_ detail: ContentDetail, kind: DetailPresentationKind, width: CGFloat) -> some View {
+        Group {
+            if kind == .sportsInteractive {
+                sportsScrollContent(detail, width: width)
+            } else {
+                entertainmentScrollContent(detail, kind: kind, width: width)
+            }
+        }
+    }
+
+    // AnyView erasure is intentional — these functions compose multiple opaque `some View`
+    // returns from separate helpers into a single VStack, producing a generic type too deep
+    // for Swift's runtime TypeDecoder. Erasure at this boundary keeps the type flat.
+    private func sportsScrollContent(_ detail: ContentDetail, width: CGFloat) -> AnyView {
+        AnyView(
+            VStack(alignment: .leading, spacing: 0) {
+                sportsAboveTabContent(detail, width: width)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                    .padding(.bottom, 4)
+                VStack(spacing: 0) {
+                    sportsTabRow
+                        .padding(.horizontal, 16)
+                    Rectangle()
+                        .fill(Color.white.opacity(0.12))
+                        .frame(height: 1)
+                }
+                sportsTabContent(detail, width: width)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 4)
+            }
+        )
+    }
+
+    private func entertainmentScrollContent(_ detail: ContentDetail, kind: DetailPresentationKind, width: CGFloat) -> AnyView {
+        AnyView(
+            VStack(alignment: .leading, spacing: 0) {
+                detailContent(detail, kind: kind, width: width)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                VStack(spacing: 0) {
+                    tabRow(detail)
+                        .padding(.horizontal, 16)
+                    Rectangle()
+                        .fill(Color.white.opacity(0.12))
+                        .frame(height: 1)
+                }
+                tabContent(detail, width: width)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+            }
+        )
+    }
 
     private func detailContent(_ detail: ContentDetail, kind: DetailPresentationKind, width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 12) {
