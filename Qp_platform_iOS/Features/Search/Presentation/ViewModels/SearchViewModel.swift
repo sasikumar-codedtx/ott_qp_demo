@@ -26,17 +26,23 @@ final class SearchViewModel: ObservableObject {
     init(useCase: SearchContentUseCase) {
         self.useCase = useCase
 
+        // Clear results immediately when the field is emptied.
         $query
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .removeDuplicates()
-            .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
-            .sink { [weak self] term in
+            .filter { $0.isEmpty }
+            .sink { [weak self] _ in
                 Task { @MainActor in
-                    await self?.handleQueryChange(term)
+                    await self?.handleQueryChange("")
                 }
             }
             .store(in: &cancellables)
+    }
 
+    func submitSearch() {
+        Task { @MainActor in
+            await handleQueryChange(normalizedQuery)
+        }
     }
 
     var normalizedQuery: String {

@@ -244,7 +244,7 @@ struct ContentDetailView: View {
                 engine.release()
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { notification in
-                updateKeyboardHeight(from: notification, containerHeight: proxy.size.height)
+                updateKeyboardHeight(from: notification)
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
                 withAnimation(.easeOut(duration: 0.2)) {
@@ -272,7 +272,7 @@ struct ContentDetailView: View {
                     DetailInlinePlayerView(
                         engine: engine,
                         content: playerContent,
-                        posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
+                        posterURL: detail.imageURL(for: "0-2x3", width: Int(width * 3)),
                         height: headerHeight,
                         safeAreaTop: safeAreaTop,
                         navBarHeight: navBarHeight,
@@ -1705,13 +1705,13 @@ struct ContentDetailView: View {
             return
         }
 
-        presentMomentSearchOverlay(for: detail)
+        viewModel.submitMomentSearch(detail.title)
     }
 
     private func presentMomentSearchOverlay(for detail: ContentDetail) {
         guard detail.momentSearchEnabled else { return }
         viewModel.selectTab(AppStrings.Detail.moments)
-        momentSearchDraft = viewModel.momentQuery
+        momentSearchDraft = viewModel.momentResults.isEmpty ? viewModel.momentQuery : ""
 
         withAnimation(.easeInOut(duration: 0.26)) {
             isMomentSearchOverlayPresented = true
@@ -2080,13 +2080,15 @@ struct ContentDetailView: View {
         }
     }
 
-    private func updateKeyboardHeight(from notification: Notification, containerHeight: CGFloat) {
+    private func updateKeyboardHeight(from notification: Notification) {
         guard
             let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
             let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
         else { return }
 
-        let height = max(0, containerHeight - frame.minY)
+        // Use screen height (absolute coordinates) so the calculation is not
+        // affected by proxy.size.height shrinking due to keyboard insets.
+        let height = max(0, UIScreen.main.bounds.height - frame.minY)
 
         withAnimation(.easeInOut(duration: duration)) {
             keyboardHeight = height
@@ -2185,7 +2187,7 @@ struct ContentDetailView: View {
     }
 
     private func overlayBottomPadding(bottomInset: CGFloat) -> CGFloat {
-        keyboardHeight > 0 ? keyboardHeight + 8 : max(bottomInset, 10) + 8
+        keyboardHeight > 0 ? keyboardHeight : max(bottomInset, 10) + 8
     }
 
     @ViewBuilder
@@ -2279,6 +2281,7 @@ struct ContentDetailView: View {
                     .tracking(0.4)
                     .foregroundStyle(Color(hex: "F0F0F0"))
                     .lineLimit(1)
+                    .truncationMode(.tail)
                 Image(systemName: "chevron.down")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.9))
@@ -2287,7 +2290,6 @@ struct ContentDetailView: View {
             .frame(height: 36)
             .background(seasonChipBackground)
         }
-        .fixedSize()
         .buttonStyle(LiquidButtonPressStyle())
         .sheet(isPresented: $isSeasonSheetPresented) {
             seasonPickerSheet
@@ -2685,8 +2687,8 @@ private struct EpisodeCard: View {
                     Text(item.title)
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(.white)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
 
                     if let meta = item.primaryMetaText.nilIfEmpty {
                         Text(meta)

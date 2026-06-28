@@ -485,7 +485,10 @@ final class QuickplayPlayerEngine: ObservableObject {
         isPlaying = false
         isBuffering = true
         loadedContentId = nil
-        isFullscreenSurfaceActive = false
+        // isFullscreenSurfaceActive is intentionally NOT reset here.
+        // QuickplayPlayerScreen.onDisappear is the sole owner of this flag.
+        // Resetting it here would cause episode switches within an active
+        // fullscreen session to route the new playerView to the inline surface.
         preferredVideoMaxHeight = 0
     }
 }

@@ -56,6 +56,11 @@ struct StorefrontSportsHeroView: View {
                         .opacity(frontOpacity)
                         .position(x: W * frontLeading + cardWidth / 2 + dragX, y: midY)
                         .zIndex(10)
+                        .onTapGesture {
+                            guard !isAnimating, abs(dragX) < 5,
+                                  featuredItems[currentIndex].canOpenDetail else { return }
+                            onSelectItem(featuredItems[currentIndex])
+                        }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())

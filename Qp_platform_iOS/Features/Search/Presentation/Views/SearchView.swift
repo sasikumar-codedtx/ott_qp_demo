@@ -211,6 +211,7 @@ struct SearchView: View {
                         horizontalPadding: UIConstants.Spacing.lg,
                         onSelect: { suggestion in
                             viewModel.query = suggestion
+                            viewModel.submitSearch()
                             isSearchFocused = false
                         }
                     )
@@ -237,6 +238,7 @@ struct SearchView: View {
                     placeholder: "Search Movies, Shows, Sports...",
                     iconName: "magnifyingglass",
                     onSubmit: {
+                        viewModel.submitSearch()
                         isSearchFocused = false
                     }
                 )
