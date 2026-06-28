@@ -2046,7 +2046,6 @@ struct ContentDetailView: View {
 
         dismissMomentSearchOverlay()
         viewModel.submitMomentSearch(query)
-        momentAutoScrollToken += 1
 
         // For sports page: auto-switch to Key Moments tab so scroll lands visibly
         if let detail = viewModel.detail {
