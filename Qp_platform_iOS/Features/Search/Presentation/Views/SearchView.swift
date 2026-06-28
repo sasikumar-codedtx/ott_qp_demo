@@ -135,6 +135,7 @@ struct SearchView: View {
                 }
                 .padding(.top, 8)
                 .padding(.bottom, searchDockReservedHeight)
+                .animation(.easeOut(duration: 0.25), value: searchDockReservedHeight)
             }
             .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
             .scrollDismissesKeyboard(.interactively)
@@ -164,6 +165,7 @@ struct SearchView: View {
                     }
                 }
                 .padding(.bottom, searchDockReservedHeight + 20)
+                .animation(.easeOut(duration: 0.25), value: searchDockReservedHeight)
             }
             .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
             .scrollDismissesKeyboard(.interactively)
@@ -253,7 +255,7 @@ struct SearchView: View {
         .padding(.top, 8)
         .padding(.bottom, searchDockBottomPadding(bottomInset: bottomInset))
         .background(searchDockBackdrop(height: searchDockBackdropHeight, isKeyboardVisible: isKeyboardVisible))
-        .animation(.easeOut(duration: 0.18), value: shouldShowKeyboardSuggestions)
+        .animation(.spring(response: 0.32, dampingFraction: 0.88), value: shouldShowKeyboardSuggestions)
     }
 
     private var searchDockReservedHeight: CGFloat {

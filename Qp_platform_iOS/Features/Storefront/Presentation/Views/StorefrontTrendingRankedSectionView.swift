@@ -5,13 +5,16 @@ struct StorefrontTrendingRankedSectionView: View {
     let section: StorefrontSection
     let onViewAll: ((StorefrontSection) -> Void)?
     let onSelectItem: (StorefrontItem) -> Void
+    private let rankedCardHeight: CGFloat = 196
+    private let railTopPadding: CGFloat = 4
+    private let railBottomPadding: CGFloat = 18
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             header
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .bottom, spacing: 8) {
+                LazyHStack(alignment: .bottom, spacing: 8) {
                     ForEach(Array(section.items.enumerated()), id: \.element.id) { index, item in
                         StorefrontTrendingRankedCard(
                             item: item,
@@ -21,9 +24,10 @@ struct StorefrontTrendingRankedSectionView: View {
                     }
                 }
                 .padding(.horizontal, 16)
-                .padding(.top, 4)
-                .padding(.bottom, 18)
+                .padding(.top, railTopPadding)
+                .padding(.bottom, railBottomPadding)
             }
+            .frame(height: rankedCardHeight + railTopPadding + railBottomPadding)
         }
         .padding(.top, 2)
         .background(sectionGlow)

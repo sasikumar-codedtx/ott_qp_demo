@@ -338,4 +338,3 @@ Use ML/ranking to generate:
 ## Client-Facing Positioning
 
 The current cohort logic is a controlled personalization layer. It demonstrates how user behavior can influence storefront selection while keeping the system easy to explain and test. For production, the same concept should move server-side and evolve from click counters into a full profile-interest model powered by watch history, search, completion, and recommendation feedback.
-

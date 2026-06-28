@@ -163,8 +163,6 @@ struct StorefrontView: View {
                                 Task {
                                     await viewModel.loadMoreIfNeeded(currentSectionID: section.id)
                                 }
-                                // Prefetch images for upcoming sections while the user reads the current one
-                                viewModel.prefetchImages(afterSectionID: section.id)
                             }
                         }
 

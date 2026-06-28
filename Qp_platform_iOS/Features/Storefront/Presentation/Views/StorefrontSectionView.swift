@@ -49,7 +49,7 @@ struct StorefrontSectionView: View {
                 )
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: StorefrontRailMetrics.cardGap) {
+                    LazyHStack(alignment: .top, spacing: StorefrontRailMetrics.cardGap) {
                         ForEach(Array(section.items.enumerated()), id: \.element.id) { index, item in
                             StorefrontCardView(
                                 item: item,
@@ -62,6 +62,7 @@ struct StorefrontSectionView: View {
                     }
                     .padding(.horizontal, UIConstants.Spacing.lg)
                 }
+                .frame(height: layout.size.height)
             }
         }
         .background(widthReader)
@@ -129,6 +130,10 @@ private struct StorefrontBackgroundImageSectionView: View {
         Color(hex: section.backgroundColorHex ?? "1F0C00")
     }
 
+    private var cardRailHeight: CGFloat {
+        layout.size.height + StorefrontRailMetrics.cardGap + 30
+    }
+
     var body: some View {
         GeometryReader { proxy in
             let mediaSize = proxy.size.width
@@ -143,6 +148,7 @@ private struct StorefrontBackgroundImageSectionView: View {
                     )
                     .frame(width: mediaSize, height: mediaSize)
                     cardRail
+                        .frame(height: cardRailHeight)
                         .padding(.bottom,titleBandHeight + cardToTitleGap)
                     bottomHeading
                 }
@@ -157,7 +163,7 @@ private struct StorefrontBackgroundImageSectionView: View {
 
     private var cardRail: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(alignment: .top, spacing: StorefrontRailMetrics.cardGap) {
+            LazyHStack(alignment: .top, spacing: StorefrontRailMetrics.cardGap) {
                 ForEach(section.items, id: \.id) { item in
                     StorefrontBackgroundSectionCard(
                         item: item,
@@ -169,6 +175,7 @@ private struct StorefrontBackgroundImageSectionView: View {
             }
             .padding(.horizontal, UIConstants.Spacing.lg)
         }
+        .frame(height: cardRailHeight)
     }
 
     private var bottomHeading: some View {

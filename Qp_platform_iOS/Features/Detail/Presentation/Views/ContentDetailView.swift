@@ -159,6 +159,13 @@ struct ContentDetailView: View {
                             insertion: .move(edge: .bottom).combined(with: .opacity),
                             removal: .move(edge: .bottom).combined(with: .opacity)
                         ))
+
+                    // Quiz nav bar — overlaid over the player area (Figma: back | crown+score | game-controller)
+                    quizNavBarOverlay(safeAreaTop: proxy.safeAreaInsets.top)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .ignoresSafeArea(edges: .top)
+                        .zIndex(31)
+                        .transition(.opacity)
                 }
 
                 // Live Feed input dock — floats above keyboard
@@ -1728,7 +1735,9 @@ struct ContentDetailView: View {
             isMomentSearchOverlayPresented = true
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+        // Focus immediately so keyboard and search bar move up together in one motion.
+        // Using a minimal delay only for the focus state to settle after the overlay appears.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             isMomentSearchFocused = true
         }
     }
@@ -1806,41 +1815,11 @@ struct ContentDetailView: View {
 
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 0) {
-                    // Header: score + countdown
-                    HStack(alignment: .center, spacing: 0) {
-                        HStack(spacing: 8) {
-                            ZStack(alignment: .topLeading) {
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(Color(hex: "FFA576"))
-                                    .frame(width: 30, height: 30)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(Color(hex: "FFAC33"), lineWidth: 1)
-                                    )
-                                Image(systemName: "crown.fill")
-                                    .font(.system(size: 8, weight: .black))
-                                    .foregroundStyle(Color(hex: "FFAC33"))
-                                    .rotationEffect(.degrees(-35))
-                                    .offset(x: -6, y: -7)
-                            }
-                            .frame(width: 30, height: 30)
-
-                            Text("1300")
-                                .font(.system(size: 22, weight: .bold))
-                                .italic()
-                                .foregroundStyle(Color(hex: "FFAC33"))
-                        }
-
-                        Spacer()
-                        kbcCountdownCircle
-                        Spacer()
-
-                        // Placeholder to keep crown+score balanced against the centre circle
-                        Color.clear.frame(width: 34, height: 34)
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 18)
-                    .padding(.bottom, 14)
+                    // Countdown circle — standalone, centered (Figma: sits just below the video)
+                    kbcCountdownCircle
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 14)
+                        .padding(.bottom, 10)
 
                     Text("How many holes are contained in a typical golf course")
                         .font(.system(size: 17, weight: .semibold))
@@ -1880,6 +1859,60 @@ struct ContentDetailView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // ── Quiz nav bar overlay (Figma 18-56986): back | crown+score | game-controller ──
+    private func quizNavBarOverlay(safeAreaTop: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            Color.clear.frame(height: safeAreaTop)
+            HStack(spacing: 0) {
+                Button { dismissMockInteraction() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 45, height: 45)
+                        .background(.black.opacity(0.23), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.white.opacity(0.2), lineWidth: 1.2))
+                }
+                .buttonStyle(LiquidButtonPressStyle())
+
+                Spacer()
+
+                HStack(spacing: 10) {
+                    ZStack(alignment: .topLeading) {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color(hex: "FFA576"))
+                            .frame(width: 30, height: 30)
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(hex: "FFAC33"), lineWidth: 1))
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 8, weight: .black))
+                            .foregroundStyle(Color(hex: "FFAC33"))
+                            .rotationEffect(.degrees(-35))
+                            .offset(x: -6, y: -7)
+                    }
+                    .frame(width: 30, height: 30)
+
+                    Text("1300")
+                        .font(.system(size: 26, weight: .bold))
+                        .italic()
+                        .foregroundStyle(Color(hex: "FFAC33"))
+                }
+
+                Spacer()
+
+                Button {} label: {
+                    Image(systemName: "gamecontroller.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.white)
+                        .frame(width: 45, height: 45)
+                        .background(.black.opacity(0.23), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.white.opacity(0.2), lineWidth: 1.2))
+                }
+                .buttonStyle(LiquidButtonPressStyle())
+            }
+            .frame(height: 58)
+            .padding(.horizontal, 16)
+        }
     }
 
     // ── Animated countdown circle ──────────────────────────────────────────
@@ -2107,6 +2140,8 @@ struct ContentDetailView: View {
                         submitMomentSearchOverlay()
                     }
                 )
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
+                .animation(.easeOut(duration: 0.22), value: isMomentSearchFocused)
 
                 HStack(spacing: 10) {
                     Image(systemName: "magnifyingglass")
@@ -2197,6 +2232,7 @@ struct ContentDetailView: View {
                     .padding(.top, 6)
             }
             .buttonStyle(LiquidButtonPressStyle())
+            .transaction { $0.animation = nil }
         } else {
             LazyVGrid(columns: momentColumns, spacing: 10) {
                 ForEach(viewModel.momentResults) { item in

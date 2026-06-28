@@ -261,7 +261,9 @@ actor DemoSessionStore {
         let sportsClicks = counts[StorefrontPolicySignal.sports.rawValue] ?? 0
         let totalClicks = entertainmentClicks + realityClicks + sportsClicks
 
-        guard totalClicks > 0 else {
+        // Dynamic cohort selection requires at least 15 card clicks to be meaningful.
+        // Below that threshold, honour the profile's chosen cohort directly.
+        guard totalClicks > 15 else {
             return .entertainment
         }
 
