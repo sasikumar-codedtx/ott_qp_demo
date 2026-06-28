@@ -75,12 +75,12 @@ struct StorefrontSection: Identifiable, Equatable, Hashable {
         isHomeTab: Bool,
         cohort: QuickplayCohort,
         containerWidth: CGFloat,
-        visibleCountMultiplier: Int = 1
+        density: StorefrontCardDensity = .phone
     ) -> StorefrontCardLayout {
         cardStyle(isHomeTab: isHomeTab, cohort: cohort).layout(
             containerWidth: containerWidth,
             ratio: ratioAspect,
-            visibleCountMultiplier: visibleCountMultiplier
+            density: density
         )
     }
 
@@ -95,11 +95,11 @@ struct StorefrontSection: Identifiable, Equatable, Hashable {
         return aspect < 1 ? .poster : .landscape
     }
 
-    func browseGridLayout(containerWidth: CGFloat, visibleCountMultiplier: Int = 1) -> StorefrontCardLayout {
+    func browseGridLayout(containerWidth: CGFloat, density: StorefrontCardDensity = .phone) -> StorefrontCardLayout {
         browseGridStyle().layout(
             containerWidth: containerWidth,
             ratio: ratioAspect,
-            visibleCountMultiplier: visibleCountMultiplier
+            density: density
         )
     }
 
@@ -130,9 +130,7 @@ enum StorefrontCardStyle {
         }
     }
 
-    func layout(containerWidth: CGFloat, ratio: CGFloat, visibleCountMultiplier: Int = 1) -> StorefrontCardLayout {
-        let multiplier = max(1, visibleCountMultiplier)
-
+    func layout(containerWidth: CGFloat, ratio: CGFloat, density: StorefrontCardDensity = .phone) -> StorefrontCardLayout {
         switch self {
         case .homeHero:
             let width = max(containerWidth - 14, 320)
@@ -143,7 +141,7 @@ enum StorefrontCardStyle {
         case .sportsHero:
             return StorefrontCardLayout(size: CGSize(width: 349, height: 420), overlayHeight: 0, visibleCount: 1)
         case .landscape:
-            let visibleCount = 2 * multiplier
+            let visibleCount = density.landscapeVisibleCount
             let totalSpacing = StorefrontRailMetrics.cardGap * CGFloat(visibleCount - 1)
             let width = max((containerWidth - totalSpacing) / CGFloat(visibleCount), 86)
             return StorefrontCardLayout(
@@ -152,7 +150,7 @@ enum StorefrontCardStyle {
                 visibleCount: visibleCount
             )
         case .poster:
-            let visibleCount = 3 * multiplier
+            let visibleCount = density.portraitVisibleCount
             let totalSpacing = StorefrontRailMetrics.cardGap * CGFloat(visibleCount - 1)
             let width = max((containerWidth - totalSpacing) / CGFloat(visibleCount), 72)
             return StorefrontCardLayout(
@@ -161,15 +159,54 @@ enum StorefrontCardStyle {
                 visibleCount: visibleCount
             )
         case .square:
-            let visibleCount = 3 * multiplier
+            let visibleCount = density.portraitVisibleCount
             let totalSpacing = StorefrontRailMetrics.cardGap * CGFloat(visibleCount - 1)
             let width = max((containerWidth - totalSpacing) / CGFloat(visibleCount), 72)
             return StorefrontCardLayout(size: CGSize(width: width, height: width), overlayHeight: 0, visibleCount: visibleCount)
         case .short:
-            let visibleCount = 2 * multiplier
+            let visibleCount = density.shortVisibleCount
             let totalSpacing = StorefrontRailMetrics.cardGap * CGFloat(visibleCount - 1)
             let width = max((containerWidth - totalSpacing) / CGFloat(visibleCount), 84)
             return StorefrontCardLayout(size: CGSize(width: width, height: width / max(ratio, 0.01)), overlayHeight: 0, visibleCount: visibleCount)
+        }
+    }
+}
+
+enum StorefrontCardDensity {
+    case phone
+    case tabletPortrait
+    case expanded
+
+    var landscapeVisibleCount: Int {
+        switch self {
+        case .phone:
+            return 2
+        case .tabletPortrait:
+            return 4
+        case .expanded:
+            return 6
+        }
+    }
+
+    var portraitVisibleCount: Int {
+        switch self {
+        case .phone:
+            return 3
+        case .tabletPortrait:
+            return 4
+        case .expanded:
+            return 6
+        }
+    }
+
+    var shortVisibleCount: Int {
+        switch self {
+        case .phone:
+            return 2
+        case .tabletPortrait:
+            return 4
+        case .expanded:
+            return 6
         }
     }
 }
