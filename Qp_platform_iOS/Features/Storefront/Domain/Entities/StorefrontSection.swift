@@ -172,7 +172,7 @@ enum StorefrontCardStyle {
     }
 }
 
-enum StorefrontCardDensity {
+enum StorefrontCardDensity: Equatable {
     case phone
     case tabletPortrait
     case expanded

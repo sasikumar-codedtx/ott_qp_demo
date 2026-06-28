@@ -106,6 +106,7 @@ struct StorefrontSectionView: View {
                 StorefrontEntertainmentHeroView(
                     items: section.items,
                     cohort: cohort,
+                    density: cardDensity,
                     favoriteIDs: favoriteIDs,
                     onToggleFavorite: onToggleFavorite,
                     onSelectItem: onSelectItem

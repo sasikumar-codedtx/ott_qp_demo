@@ -27,37 +27,48 @@ struct StorefrontEntertainmentHeroView: View {
 
     var body: some View {
         VStack(spacing: 15) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 10) {
-                    ForEach(featuredItems) { item in
-                        heroCard(item: item)
-                            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                            .onTapGesture {
-                                onSelectItem(item)
-                            }
-                            .id(item.id)
+            GeometryReader { proxy in
+                let cardSize = heroCardSize(availableWidth: proxy.size.width)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: 10) {
+                        ForEach(featuredItems) { item in
+                            heroCard(item: item, size: cardSize)
+                                .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                .onTapGesture {
+                                    onSelectItem(item)
+                                }
+                                .id(item.id)
+                        }
+                    }
+                    .scrollTargetLayout()
+                    .padding(.horizontal, 27)
+                    .frame(height: StorefrontHeroMetrics.mediaHeight)
+                    .frame(maxHeight: .infinity, alignment: .center)
+                }
+                .scrollTargetBehavior(.viewAligned)
+                .scrollPosition(id: $currentItemID, anchor: .center)
+                .onAppear {
+                    guard !featuredItems.isEmpty else { return }
+                    if currentItemID == nil {
+                        currentItemID = featuredItems.first?.id
                     }
                 }
-                .scrollTargetLayout()
-                .padding(.horizontal, 27)
             }
             .frame(height: StorefrontHeroMetrics.mediaHeight)
-            .scrollTargetBehavior(.viewAligned)
-            .scrollPosition(id: $currentItemID, anchor: .center)
-            .onAppear {
-                guard !featuredItems.isEmpty else { return }
-                if currentItemID == nil {
-                    currentItemID = featuredItems.first?.id
-                }
-            }
 
             pageIndicator
         }
     }
 
-    private func heroCard(item: StorefrontItem) -> some View {
+    private func heroCard(item: StorefrontItem, size: CGSize) -> some View {
         ZStack(alignment: .bottom) {
-            heroMedia(item: item, size: CGSize(width: 358, height: 537), ratio: "0-2x3", cornerRadius: 16)
+            heroMedia(
+                item: item,
+                size: size,
+                ratio: density == .expanded ? "0-16x9" : "0-2x3",
+                cornerRadius: 16
+            )
             .overlay(
                 LinearGradient(
                     colors: [
@@ -120,7 +131,20 @@ struct StorefrontEntertainmentHeroView: View {
             .padding(.horizontal, 18)
             .frame(maxWidth: .infinity)
         }
-        .frame(width: 358, height: 537)
+        .frame(width: size.width, height: size.height)
+    }
+
+    private func heroCardSize(availableWidth: CGFloat) -> CGSize {
+        switch density {
+        case .expanded:
+            let width = min(max(availableWidth - 54, 560), 900)
+            return CGSize(width: width, height: width * 9 / 16)
+        case .tabletPortrait:
+            let width = min(max(availableWidth * 0.62, 358), 460)
+            return CGSize(width: width, height: width * 1.5)
+        case .phone:
+            return CGSize(width: 358, height: 537)
+        }
     }
 
     @ViewBuilder

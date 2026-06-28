@@ -115,7 +115,6 @@ struct ContentDetailView: View {
     @State private var mockInteractionShowsResult = false
     @State private var momentSearchDraft = ""
     @State private var keyboardHeight: CGFloat = 0
-    @State private var momentAutoScrollToken = 0
     @FocusState private var isMomentSearchFocused: Bool
     // Sports interactive
     @State private var selectedSportsTab = "Live Feed"
@@ -132,7 +131,6 @@ struct ContentDetailView: View {
 
     private let recommendationColumns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
     private let momentColumns = [GridItem(.flexible(), spacing: 10)]
-    private let detailTabsAnchorID = "detail-tabs-anchor"
     private var isShowingLiveFeedDock: Bool {
         guard let detail = viewModel.detail else { return false }
         let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
@@ -281,86 +279,40 @@ struct ContentDetailView: View {
                         onFullscreen: { openFullPlayer(detail: detail) }
                     )
 
-                    ScrollViewReader { scrollProxy in
-                        ScrollView(.vertical, showsIndicators: false) {
-                            LazyVStack(alignment: .leading, spacing: 0) {
-                                if kind == .sportsInteractive {
-                                    // Above-tab content (no pinned header — player is fixed above)
-                                    Section {
-                                        sportsAboveTabContent(detail, width: width)
-                                            .padding(.horizontal, 16)
-                                            .padding(.top, 12)
-                                            .padding(.bottom, 4)
-                                    }
-                                    // Tab bar (pinned) + tab content
-                                    Section {
-                                        sportsTabContent(detail, width: width)
-                                            .padding(.horizontal, 16)
-                                            .padding(.top, 4)
-                                            .id(detailTabsAnchorID)
-                                    } header: {
-                                        VStack(spacing: 0) {
-                                            sportsTabRow
-                                                .padding(.horizontal, 16)
-                                            Rectangle()
-                                                .fill(Color.white.opacity(0.12))
-                                                .frame(height: 1)
-                                        }
-                                        .background(Color(hex: "0A0A0A"))
-                                    }
-                                } else {
-                                    // Above-tab content (no pinned header — player is fixed above)
-                                    Section {
-                                        detailContent(detail, kind: kind, width: width)
-                                            .padding(.horizontal, 16)
-                                            .padding(.top, 12)
-                                    }
-                                    // Tab bar (pinned) + tab content
-                                    Section {
-                                        tabContent(detail, width: width)
-                                            .padding(.horizontal, 16)
-                                            .padding(.top, 12)
-                                            .id(detailTabsAnchorID)
-                                    } header: {
-                                        VStack(spacing: 0) {
-                                            tabRow(detail)
-                                                .padding(.horizontal, 16)
-                                            Rectangle()
-                                                .fill(Color.white.opacity(0.12))
-                                                .frame(height: 1)
-                                        }
-                                        .background(Color(hex: "0A0A0A"))
-                                    }
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            if kind == .sportsInteractive {
+                                sportsAboveTabContent(detail, width: width)
+                                    .padding(.horizontal, 16)
+                                    .padding(.top, 12)
+                                    .padding(.bottom, 4)
+                                VStack(spacing: 0) {
+                                    sportsTabRow
+                                        .padding(.horizontal, 16)
+                                    Rectangle()
+                                        .fill(Color.white.opacity(0.12))
+                                        .frame(height: 1)
                                 }
-                            }
-                            .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
-                            .id("scrollTop")
-                        }
-                        // Snap to top of tab content on every tab switch — first card always visible.
-                        .onChange(of: viewModel.selectedTab) { _, _ in
-                            scrollProxy.scrollTo(detailTabsAnchorID, anchor: .top)
-                        }
-                        .onChange(of: selectedSportsTab) { _, _ in
-                            scrollProxy.scrollTo(detailTabsAnchorID, anchor: .top)
-                        }
-                        .onChange(of: momentAutoScrollToken) { _, _ in
-                            guard viewModel.selectedTab == AppStrings.Detail.moments else { return }
-                            Task { @MainActor in
-                                try? await Task.sleep(for: .milliseconds(180))
-                                withAnimation(.easeInOut(duration: 0.72)) {
-                                    scrollProxy.scrollTo(detailTabsAnchorID, anchor: .top)
+                                sportsTabContent(detail, width: width)
+                                    .padding(.horizontal, 16)
+                                    .padding(.top, 4)
+                            } else {
+                                detailContent(detail, kind: kind, width: width)
+                                    .padding(.horizontal, 16)
+                                    .padding(.top, 12)
+                                VStack(spacing: 0) {
+                                    tabRow(detail)
+                                        .padding(.horizontal, 16)
+                                    Rectangle()
+                                        .fill(Color.white.opacity(0.12))
+                                        .frame(height: 1)
                                 }
+                                tabContent(detail, width: width)
+                                    .padding(.horizontal, 16)
+                                    .padding(.top, 12)
                             }
                         }
-                        .onChange(of: viewModel.momentResults.count) { _, count in
-                            guard count > 0, viewModel.selectedTab == AppStrings.Detail.moments else { return }
-                            Task { @MainActor in
-                                try? await Task.sleep(for: .milliseconds(240))
-                                withAnimation(.easeInOut(duration: 0.82)) {
-                                    scrollProxy.scrollTo(detailTabsAnchorID, anchor: .top)
-                                }
-                            }
-                        }
+                        .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
                     }
                 }
                 .ignoresSafeArea(edges: .top)
