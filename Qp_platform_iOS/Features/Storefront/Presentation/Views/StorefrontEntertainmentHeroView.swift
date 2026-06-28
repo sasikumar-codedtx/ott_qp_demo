@@ -3,6 +3,7 @@ import SwiftUI
 struct StorefrontEntertainmentHeroView: View {
     let items: [StorefrontItem]
     let cohort: QuickplayCohort
+    let density: StorefrontCardDensity
     let favoriteIDs: Set<String>
     let onToggleFavorite: (StorefrontItem) -> Void
     let onSelectItem: (StorefrontItem) -> Void

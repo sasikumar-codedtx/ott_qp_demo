@@ -11,6 +11,7 @@ struct StorefrontSectionView: View {
     let onSelectItem: (StorefrontItem) -> Void
     let onToggleFavorite: (StorefrontItem) -> Void
     @State private var measuredWidth: CGFloat = 390
+    @State private var measuredHeight: CGFloat = 844
 
     var body: some View {
         let style = section.cardStyle(isHomeTab: isHomeTab, cohort: cohort)
@@ -19,7 +20,7 @@ struct StorefrontSectionView: View {
             isHomeTab: isHomeTab,
             cohort: cohort,
             containerWidth: containerWidth,
-            visibleCountMultiplier: visibleCountMultiplier
+            density: cardDensity
         )
 
         VStack(alignment: .leading, spacing: StorefrontRailMetrics.headerToCardsGap) {
@@ -78,15 +79,21 @@ struct StorefrontSectionView: View {
             Color.clear
                 .onAppear {
                     measuredWidth = proxy.size.width
+                    measuredHeight = proxy.size.height
                 }
                 .onChange(of: proxy.size.width) { _, newValue in
                     measuredWidth = newValue
                 }
+                .onChange(of: proxy.size.height) { _, newValue in
+                    measuredHeight = newValue
+                }
         }
     }
 
-    private var visibleCountMultiplier: Int {
-        UIDevice.current.userInterfaceIdiom == .phone ? 1 : 2
+    private var cardDensity: StorefrontCardDensity {
+        let idiom = UIDevice.current.userInterfaceIdiom
+        guard idiom != .phone else { return .phone }
+        return measuredWidth > measuredHeight ? .expanded : .tabletPortrait
     }
 
     @ViewBuilder

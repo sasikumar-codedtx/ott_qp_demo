@@ -8,13 +8,14 @@ struct StorefrontSectionBrowseView: View {
     var body: some View {
         GeometryReader { proxy in
             let containerWidth = proxy.size.width - 32
+            let density = cardDensity(for: proxy.size)
             let layout = viewModel.section?.browseGridLayout(
                 containerWidth: containerWidth,
-                visibleCountMultiplier: visibleCountMultiplier
+                density: density
             ) ?? StorefrontCardLayout(
                 size: CGSize(width: 124, height: 186),
                 overlayHeight: 0,
-                visibleCount: 3 * visibleCountMultiplier
+                visibleCount: density.portraitVisibleCount
             )
             let style = viewModel.section?.browseGridStyle() ?? .poster
             let columns = Array(
@@ -94,16 +95,19 @@ struct StorefrontSectionBrowseView: View {
         .routeNavigationOverlay(title: viewModel.title, onBack: onBack)
     }
 
-    private var visibleCountMultiplier: Int {
-        UIDevice.current.userInterfaceIdiom == .phone ? 1 : 2
+    private func cardDensity(for size: CGSize) -> StorefrontCardDensity {
+        let idiom = UIDevice.current.userInterfaceIdiom
+        guard idiom != .phone else { return .phone }
+        return size.width > size.height ? .expanded : .tabletPortrait
     }
 
     private var recommendedBrowsePage: some View {
         GeometryReader { proxy in
+            let density = cardDensity(for: proxy.size)
             let horizontalPadding: CGFloat = 18
             let containerWidth = proxy.size.width - (horizontalPadding * 2)
             let featureHeight = containerWidth * 9 / 16
-            let columnCount = 2 * visibleCountMultiplier
+            let columnCount = density.landscapeVisibleCount
             let totalSpacing = CGFloat(columnCount - 1) * 10
             let gridWidth = (containerWidth - totalSpacing) / CGFloat(columnCount)
             let layout = StorefrontCardLayout(
