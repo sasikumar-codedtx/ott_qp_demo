@@ -14,6 +14,7 @@ struct StorefrontItem: Identifiable, Equatable, Hashable, Codable {
     let slug: String?
     let resourceURN: String?
     let year: String?
+    let releaseDate: String?
     let genres: [String]
     let rating: String?
     let isPremium: Bool
@@ -112,6 +113,7 @@ struct StorefrontItem: Identifiable, Equatable, Hashable, Codable {
             slug: slug,
             resourceURN: resourceURN,
             year: year,
+            releaseDate: releaseDate,
             genres: genres,
             rating: rating,
             isPremium: isPremium,

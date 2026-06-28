@@ -82,7 +82,7 @@ struct BottomNavigationBar: View {
                     .opacity(isSelected ? 1.0 : 0.55)
 
                 Text(label)
-                    .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
+                    .font(.system(size: 12, weight: .regular))
                     .tracking(0.48)
                     .foregroundStyle(isSelected ? selectedColor : inactiveColor)
                     .lineLimit(1)

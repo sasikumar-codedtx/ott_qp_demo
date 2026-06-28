@@ -11,6 +11,8 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
     let episodeNumber: Int?
     let rating: String?
     let genre: String?
+    let releaseDate: String?
+    let contentLanguage: String?
     let playbackMode: PlaybackMode
 
     enum PlaybackMode: Hashable {
@@ -44,6 +46,8 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
         episodeNumber: Int? = nil,
         rating: String? = nil,
         genre: String? = nil,
+        releaseDate: String? = nil,
+        contentLanguage: String? = nil,
         playbackMode: PlaybackMode = .inline
     ) {
         self.id = contentId
@@ -56,6 +60,8 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
         self.episodeNumber = episodeNumber
         self.rating = rating
         self.genre = genre
+        self.releaseDate = releaseDate
+        self.contentLanguage = contentLanguage
         self.playbackMode = playbackMode
     }
 
@@ -70,6 +76,8 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
             episodeNumber: episodeNumber,
             rating: rating,
             genre: genre,
+            releaseDate: releaseDate,
+            contentLanguage: contentLanguage,
             playbackMode: .fullscreen
         )
     }
@@ -110,7 +118,9 @@ extension StorefrontItem {
             contentId: id,
             contentType: QuickplayPlaybackContent.contentType(from: contentType),
             title: title,
-            resumePosition: (progress ?? 0) * Double(runtimeSeconds ?? 0)
+            resumePosition: (progress ?? 0) * Double(runtimeSeconds ?? 0),
+            seriesId: seriesId,
+            releaseDate: releaseDate
         )
     }
 }
@@ -128,7 +138,8 @@ extension ContentDetail {
             contentId: id,
             contentType: QuickplayPlaybackContent.contentType(from: contentType),
             title: title,
-            resumePosition: resumeSeconds
+            resumePosition: resumeSeconds,
+            seriesId: seriesId?.nilIfEmpty ?? id
         )
     }
 }
