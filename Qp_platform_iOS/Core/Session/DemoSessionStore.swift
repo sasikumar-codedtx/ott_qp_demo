@@ -93,6 +93,7 @@ actor DemoSessionStore {
         UserDefaults.standard.set(cohort.rawValue, forKey: StorageKey.activeCohort)
         UserDefaults.standard.set(storefrontPolicy.rawValue, forKey: StorageKey.activeStorefrontPolicy)
         UserDefaults.standard.set(preference.rawValue, forKey: StorageKey.activePreference)
+        logActiveProfileTapCounts(reason: "profile context selected")
     }
 
     func resetPreferenceHistory(for profileID: UUID?) {
@@ -309,6 +310,29 @@ actor DemoSessionStore {
         }
 
         return .sportsEntertainment
+    }
+
+    private func logActiveProfileTapCounts(reason: String) {
+        let key = historyKey
+        let counts = storefrontPolicyClicksByProfile[key] ?? [:]
+        let entertainmentClicks = counts[StorefrontPolicySignal.entertainment.rawValue] ?? 0
+        let realityClicks = counts[StorefrontPolicySignal.reality.rawValue] ?? 0
+        let sportsClicks = counts[StorefrontPolicySignal.sports.rawValue] ?? 0
+        let totalClicks = entertainmentClicks + realityClicks + sportsClicks
+        let effectivePolicy = resolvedStorefrontPolicy(for: key, baselinePolicy: activeStorefrontPolicy)
+
+        print("""
+        [StorefrontPolicy][TapCounts]
+        reason: \(reason)
+        profileID: \(activeProfileID ?? "guest")
+        baselinePolicy: \(activeStorefrontPolicy.rawValue) chrt=\(activeStorefrontPolicy.chrtValue)
+        effectivePolicy: \(effectivePolicy.rawValue) chrt=\(effectivePolicy.chrtValue)
+        dynamicEnabled: \(totalClicks > 15)
+        entertainment: \(entertainmentClicks)
+        reality: \(realityClicks)
+        sports: \(sportsClicks)
+        total: \(totalClicks)
+        """)
     }
 
     private func persistContinueWatching() {
