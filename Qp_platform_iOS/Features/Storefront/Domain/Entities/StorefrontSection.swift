@@ -71,8 +71,17 @@ struct StorefrontSection: Identifiable, Equatable, Hashable {
         return aspect < 1 ? .poster : .landscape
     }
 
-    func cardLayout(isHomeTab: Bool, cohort: QuickplayCohort, containerWidth: CGFloat) -> StorefrontCardLayout {
-        cardStyle(isHomeTab: isHomeTab, cohort: cohort).layout(containerWidth: containerWidth, ratio: ratioAspect)
+    func cardLayout(
+        isHomeTab: Bool,
+        cohort: QuickplayCohort,
+        containerWidth: CGFloat,
+        visibleCountMultiplier: Int = 1
+    ) -> StorefrontCardLayout {
+        cardStyle(isHomeTab: isHomeTab, cohort: cohort).layout(
+            containerWidth: containerWidth,
+            ratio: ratioAspect,
+            visibleCountMultiplier: visibleCountMultiplier
+        )
     }
 
     func browseGridStyle() -> StorefrontCardStyle {
@@ -86,8 +95,12 @@ struct StorefrontSection: Identifiable, Equatable, Hashable {
         return aspect < 1 ? .poster : .landscape
     }
 
-    func browseGridLayout(containerWidth: CGFloat) -> StorefrontCardLayout {
-        browseGridStyle().layout(containerWidth: containerWidth, ratio: ratioAspect)
+    func browseGridLayout(containerWidth: CGFloat, visibleCountMultiplier: Int = 1) -> StorefrontCardLayout {
+        browseGridStyle().layout(
+            containerWidth: containerWidth,
+            ratio: ratioAspect,
+            visibleCountMultiplier: visibleCountMultiplier
+        )
     }
 
     private var ratioAspect: CGFloat {
@@ -117,7 +130,9 @@ enum StorefrontCardStyle {
         }
     }
 
-    func layout(containerWidth: CGFloat, ratio: CGFloat) -> StorefrontCardLayout {
+    func layout(containerWidth: CGFloat, ratio: CGFloat, visibleCountMultiplier: Int = 1) -> StorefrontCardLayout {
+        let multiplier = max(1, visibleCountMultiplier)
+
         switch self {
         case .homeHero:
             let width = max(containerWidth - 14, 320)
@@ -128,28 +143,33 @@ enum StorefrontCardStyle {
         case .sportsHero:
             return StorefrontCardLayout(size: CGSize(width: 349, height: 420), overlayHeight: 0, visibleCount: 1)
         case .landscape:
-            let visibleCount = 2
-            let width = max((containerWidth - StorefrontRailMetrics.cardGap) / CGFloat(visibleCount), 172)
+            let visibleCount = 2 * multiplier
+            let totalSpacing = StorefrontRailMetrics.cardGap * CGFloat(visibleCount - 1)
+            let width = max((containerWidth - totalSpacing) / CGFloat(visibleCount), 86)
             return StorefrontCardLayout(
                 size: CGSize(width: width, height: width / max(ratio, 1.0)),
                 overlayHeight: max(42, width * 0.3),
                 visibleCount: visibleCount
             )
         case .poster:
-            let visibleCount = 3
+            let visibleCount = 3 * multiplier
             let totalSpacing = StorefrontRailMetrics.cardGap * CGFloat(visibleCount - 1)
-            let width = max((containerWidth - totalSpacing) / CGFloat(visibleCount), 108)
+            let width = max((containerWidth - totalSpacing) / CGFloat(visibleCount), 72)
             return StorefrontCardLayout(
                 size: CGSize(width: width, height: width / max(ratio, 0.01)),
                 overlayHeight: 0,
                 visibleCount: visibleCount
             )
         case .square:
-            let width = max((containerWidth - (StorefrontRailMetrics.cardGap * 2)) / 3, 108)
-            return StorefrontCardLayout(size: CGSize(width: width, height: width), overlayHeight: 0, visibleCount: 3)
+            let visibleCount = 3 * multiplier
+            let totalSpacing = StorefrontRailMetrics.cardGap * CGFloat(visibleCount - 1)
+            let width = max((containerWidth - totalSpacing) / CGFloat(visibleCount), 72)
+            return StorefrontCardLayout(size: CGSize(width: width, height: width), overlayHeight: 0, visibleCount: visibleCount)
         case .short:
-            let width = max((containerWidth - StorefrontRailMetrics.cardGap) / 2, 168)
-            return StorefrontCardLayout(size: CGSize(width: width, height: width / max(ratio, 0.01)), overlayHeight: 0, visibleCount: 2)
+            let visibleCount = 2 * multiplier
+            let totalSpacing = StorefrontRailMetrics.cardGap * CGFloat(visibleCount - 1)
+            let width = max((containerWidth - totalSpacing) / CGFloat(visibleCount), 84)
+            return StorefrontCardLayout(size: CGSize(width: width, height: width / max(ratio, 0.01)), overlayHeight: 0, visibleCount: visibleCount)
         }
     }
 }

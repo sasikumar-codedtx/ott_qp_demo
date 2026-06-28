@@ -150,7 +150,7 @@ struct Profile: Identifiable, Equatable, Codable, Hashable {
     let id: UUID
     var name: String
     var imageName: String?
-    var cohort: QuickplayCohort
+    var storefrontPolicy: StorefrontPolicy
     var preference: ProfilePreference
     var preferredLanguages: [ProfileLanguage]
     var dateOfBirth: Date?
@@ -163,7 +163,11 @@ struct Profile: Identifiable, Equatable, Codable, Hashable {
     }
 
     var quickplayCohort: QuickplayCohort {
-        cohort
+        isKidsProfile ? .kids : storefrontPolicy.defaultQuickplayCohort
+    }
+
+    var cohort: QuickplayCohort {
+        quickplayCohort
     }
 
     func withPreference(_ preference: ProfilePreference) -> Profile {
@@ -174,7 +178,7 @@ struct Profile: Identifiable, Equatable, Codable, Hashable {
 
     func withCohort(_ cohort: QuickplayCohort) -> Profile {
         var copy = self
-        copy.cohort = cohort
+        copy.storefrontPolicy = .defaultPolicy(for: cohort)
         copy.preference = cohort.defaultPreference
         copy.isKidsProfile = cohort == .kids
         return copy
@@ -191,18 +195,28 @@ struct ProfileDraft: Equatable {
     var sourceID: UUID?
     var name: String
     var imageName: String?
-    var cohort: QuickplayCohort
+    var storefrontPolicy: StorefrontPolicy
     var preference: ProfilePreference
     var preferredLanguages: [ProfileLanguage]
     var dateOfBirth: Date
     var gender: ProfileGender?
     var isKidsProfile: Bool
 
+    var cohort: QuickplayCohort {
+        get {
+            isKidsProfile ? .kids : storefrontPolicy.defaultQuickplayCohort
+        }
+        set {
+            isKidsProfile = newValue == .kids
+            storefrontPolicy = .defaultPolicy(for: newValue)
+        }
+    }
+
     init(profile: Profile) {
         sourceID = profile.id
         name = profile.name
         imageName = profile.imageName
-        cohort = profile.cohort
+        storefrontPolicy = profile.storefrontPolicy
         preference = profile.preference
         preferredLanguages = profile.preferredLanguages
         dateOfBirth = profile.dateOfBirth ?? Calendar.current.date(byAdding: .year, value: -21, to: Date()) ?? Date()
@@ -214,7 +228,7 @@ struct ProfileDraft: Equatable {
         sourceID = nil
         name = ""
         imageName = nil
-        cohort = .entertainment
+        storefrontPolicy = .entertainment
         preference = .entertainment
         preferredLanguages = [.hindi, .english]
         dateOfBirth = Calendar.current.date(byAdding: .year, value: -21, to: Date()) ?? Date()

@@ -128,6 +128,7 @@ struct ContentDetailView: View {
     @State private var quizCountdown = 20
     @State private var quizIsLocked = false   // true after user answers OR timer expires
     @State private var showQuizConfetti = false
+    @State private var isSeasonSheetPresented = false
 
     private let recommendationColumns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
     private let momentColumns = [GridItem(.flexible(), spacing: 10)]
@@ -334,6 +335,13 @@ struct ContentDetailView: View {
                             }
                             .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
                             .id("scrollTop")
+                        }
+                        // Snap to top of tab content on every tab switch — first card always visible.
+                        .onChange(of: viewModel.selectedTab) { _, _ in
+                            scrollProxy.scrollTo(detailTabsAnchorID, anchor: .top)
+                        }
+                        .onChange(of: selectedSportsTab) { _, _ in
+                            scrollProxy.scrollTo(detailTabsAnchorID, anchor: .top)
                         }
                         .onChange(of: momentAutoScrollToken) { _, _ in
                             guard viewModel.selectedTab == AppStrings.Detail.moments else { return }
@@ -2289,18 +2297,8 @@ struct ContentDetailView: View {
 
     private var seasonSelector: some View {
         let title = viewModel.seasons.first(where: { $0.id == viewModel.selectedSeasonID })?.title ?? "Season 1"
-        return Menu {
-            ForEach(viewModel.seasons) { season in
-                Button {
-                    viewModel.selectSeason(season)
-                } label: {
-                    if viewModel.selectedSeasonID == season.id {
-                        Label(season.title, systemImage: "checkmark")
-                    } else {
-                        Text(season.title)
-                    }
-                }
-            }
+        return Button {
+            isSeasonSheetPresented = true
         } label: {
             HStack(spacing: 8) {
                 Text(title)
@@ -2317,7 +2315,67 @@ struct ContentDetailView: View {
             .background(seasonChipBackground)
         }
         .fixedSize()
-        .transaction { $0.animation = nil }
+        .buttonStyle(LiquidButtonPressStyle())
+        .sheet(isPresented: $isSeasonSheetPresented) {
+            seasonPickerSheet
+        }
+    }
+
+    private var seasonPickerSheet: some View {
+        VStack(spacing: 0) {
+            // Handle
+            RoundedRectangle(cornerRadius: 3)
+                .fill(Color.white.opacity(0.3))
+                .frame(width: 40, height: 4)
+                .padding(.top, 12)
+                .padding(.bottom, 20)
+
+            Text("Select Season")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 12)
+
+            Divider().overlay(Color.white.opacity(0.12))
+
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: 0) {
+                    ForEach(viewModel.seasons) { season in
+                        Button {
+                            viewModel.selectSeason(season)
+                            isSeasonSheetPresented = false
+                        } label: {
+                            HStack {
+                                Text(season.title)
+                                    .font(.system(size: 16, weight: viewModel.selectedSeasonID == season.id ? .semibold : .regular))
+                                    .foregroundStyle(.white)
+
+                                Spacer()
+
+                                if viewModel.selectedSeasonID == season.id {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(Color(hex: "F5A623"))
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .frame(height: 54)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(LiquidButtonPressStyle())
+
+                        Divider().overlay(Color.white.opacity(0.08)).padding(.horizontal, 20)
+                    }
+                }
+                .padding(.bottom, 20)
+            }
+        }
+        .background(Color(hex: "1A1A1A"))
+        .presentationDetents([.height(CGFloat(min(viewModel.seasons.count, 6)) * 54 + 120)])
+        .presentationDragIndicator(.hidden)
+        .presentationCornerRadius(20)
+        .presentationBackground(Color(hex: "1A1A1A"))
     }
 
     private var seasonChipBackground: some View {

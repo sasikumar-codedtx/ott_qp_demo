@@ -15,7 +15,12 @@ struct StorefrontSectionView: View {
     var body: some View {
         let style = section.cardStyle(isHomeTab: isHomeTab, cohort: cohort)
         let containerWidth = measuredWidth - (UIConstants.Spacing.lg * 2)
-        let layout = section.cardLayout(isHomeTab: isHomeTab, cohort: cohort, containerWidth: containerWidth)
+        let layout = section.cardLayout(
+            isHomeTab: isHomeTab,
+            cohort: cohort,
+            containerWidth: containerWidth,
+            visibleCountMultiplier: visibleCountMultiplier
+        )
 
         VStack(alignment: .leading, spacing: StorefrontRailMetrics.headerToCardsGap) {
             if !section.isHero && !section.usesRankedArtwork && section.backgroundImageURL == nil {
@@ -78,6 +83,10 @@ struct StorefrontSectionView: View {
                     measuredWidth = newValue
                 }
         }
+    }
+
+    private var visibleCountMultiplier: Int {
+        UIDevice.current.userInterfaceIdiom == .phone ? 1 : 2
     }
 
     @ViewBuilder

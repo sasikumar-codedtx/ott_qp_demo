@@ -42,12 +42,11 @@ final class ProfileMockDataSource: ProfileDataSourceProtocol {
         let finalName = trimmedName.nilIfEmpty ?? (draft.isKidsProfile ? "Kids" : "New Profile")
 
         if let sourceID = draft.sourceID, let index = profiles.firstIndex(where: { $0.id == sourceID }) {
-            let resolvedCohort: QuickplayCohort = draft.isKidsProfile ? .kids : draft.cohort
             profiles[index] = ProfileDTO(
                 id: sourceID,
                 name: finalName,
                 imageName: draft.imageName,
-                cohort: resolvedCohort,
+                storefrontPolicy: draft.storefrontPolicy,
                 preference: draft.preference,
                 preferredLanguages: draft.preferredLanguages,
                 dateOfBirth: draft.dateOfBirth,
@@ -63,12 +62,11 @@ final class ProfileMockDataSource: ProfileDataSourceProtocol {
             throw AppError.profileLimitReached
         }
 
-        let resolvedCohort: QuickplayCohort = draft.isKidsProfile ? .kids : draft.cohort
         let newProfile = ProfileDTO(
             id: UUID(),
             name: finalName,
             imageName: draft.imageName,
-            cohort: resolvedCohort,
+            storefrontPolicy: draft.storefrontPolicy,
             preference: draft.preference,
             preferredLanguages: draft.preferredLanguages,
             dateOfBirth: draft.dateOfBirth,
@@ -91,7 +89,7 @@ final class ProfileMockDataSource: ProfileDataSourceProtocol {
             id: existing.id,
             name: existing.name,
             imageName: existing.imageName,
-            cohort: cohort,
+            storefrontPolicy: .defaultPolicy(for: cohort),
             preference: cohort.defaultPreference,
             preferredLanguages: existing.preferredLanguages,
             dateOfBirth: existing.dateOfBirth,

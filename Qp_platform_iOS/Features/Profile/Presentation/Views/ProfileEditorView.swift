@@ -206,7 +206,7 @@ struct ProfileEditorView: View {
             id: viewModel.draft.sourceID ?? UUID(),
             name: profileDisplayName,
             imageName: viewModel.draft.imageName,
-            cohort: viewModel.draft.isKidsProfile ? .kids : viewModel.draft.cohort,
+            storefrontPolicy: viewModel.draft.storefrontPolicy,
             preference: viewModel.draft.preference,
             preferredLanguages: viewModel.draft.preferredLanguages,
             dateOfBirth: viewModel.draft.dateOfBirth,

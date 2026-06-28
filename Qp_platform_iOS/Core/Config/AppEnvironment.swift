@@ -7,7 +7,6 @@ nonisolated enum AppEnvironment {
     enum Quickplay {
         static let client = "sony-sony-androidmobile"
         static let deviceType = "androidmobile"
-        static let cohort = "Sony1"
         static let region = "IN"
         static let storefrontProbeRegion = "all"
         static let searchPageSize = "50"

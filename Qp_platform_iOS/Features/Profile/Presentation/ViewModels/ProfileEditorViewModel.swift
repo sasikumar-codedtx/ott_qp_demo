@@ -76,7 +76,7 @@ final class ProfileEditorViewModel: ObservableObject {
         mode = .editExisting
         step = .details
         draft = ProfileDraft(profile: profile)
-        selectedStorefrontPolicy = await DemoSessionStore.shared.storefrontPolicy(for: profile.id)
+        selectedStorefrontPolicy = profile.storefrontPolicy
         await loadProfiles()
         await loadAvatarOptionsIfNeeded()
         applyFallbackAvatarIfNeeded()
@@ -100,9 +100,7 @@ final class ProfileEditorViewModel: ObservableObject {
 
         do {
             let profile = try await saveProfileUseCase.execute(draft: draft)
-            if mode == .editExisting {
-                await DemoSessionStore.shared.setStorefrontPolicyOverride(selectedStorefrontPolicy, for: profile.id)
-            }
+            await DemoSessionStore.shared.resetStorefrontPolicyClicks(for: profile.id)
             isLoading = false
             return profile
         } catch {
@@ -157,7 +155,7 @@ final class ProfileEditorViewModel: ObservableObject {
         step = .details
         draft = ProfileDraft(profile: profile)
         Task {
-            selectedStorefrontPolicy = await DemoSessionStore.shared.storefrontPolicy(for: profile.id)
+            selectedStorefrontPolicy = profile.storefrontPolicy
         }
         isGenderPickerPresented = false
         isDatePickerPresented = false
@@ -203,20 +201,20 @@ final class ProfileEditorViewModel: ObservableObject {
 
     func selectStorefrontPolicy(_ policy: StorefrontPolicy) {
         selectedStorefrontPolicy = policy
+        draft.storefrontPolicy = policy
+        draft.preference = policy.defaultProfilePreference
         switch policy {
         case .sports, .sportsEntertainment:
-            draft.preference = .sports
             draft.cohort = .sports
             draft.isKidsProfile = false
         case .reality, .realityEntertainment, .realitySports:
-            draft.preference = .realityShows
             draft.cohort = .realityShows
             draft.isKidsProfile = false
         case .entertainment:
-            draft.preference = .entertainment
             draft.cohort = .entertainment
             draft.isKidsProfile = false
         }
+        draft.storefrontPolicy = policy
         errorMessage = nil
     }
 
@@ -289,13 +287,6 @@ final class ProfileEditorViewModel: ObservableObject {
     }
 
     private func storefrontPolicy(for cohort: QuickplayCohort) -> StorefrontPolicy {
-        switch cohort {
-        case .sports:
-            return .sports
-        case .realityShows:
-            return .reality
-        case .kids, .entertainment:
-            return .entertainment
-        }
+        .defaultPolicy(for: cohort)
     }
 }

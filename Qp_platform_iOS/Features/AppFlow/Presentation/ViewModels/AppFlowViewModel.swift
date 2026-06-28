@@ -165,7 +165,8 @@ final class AppFlowViewModel: ObservableObject {
             await DemoSessionStore.shared.setActiveProfileContext(
                 profileID: profile.id,
                 cohort: selectedCohort,
-                preference: selectedPreference
+                preference: selectedPreference,
+                storefrontPolicy: profile.storefrontPolicy
             )
             navigationPath.removeAll()
             mainTab = .storefront
@@ -340,7 +341,8 @@ final class AppFlowViewModel: ObservableObject {
             await DemoSessionStore.shared.setActiveProfileContext(
                 profileID: profile.id,
                 cohort: selectedCohort,
-                preference: selectedPreference
+                preference: selectedPreference,
+                storefrontPolicy: profile.storefrontPolicy
             )
             storefrontViewModel.applyProfile(profile, forceReset: true)
             hotStorefrontViewModel.applyProfile(profile, forceReset: true)
@@ -361,7 +363,8 @@ final class AppFlowViewModel: ObservableObject {
             await DemoSessionStore.shared.setActiveProfileContext(
                 profileID: profile.id,
                 cohort: selectedCohort,
-                preference: selectedPreference
+                preference: selectedPreference,
+                storefrontPolicy: profile.storefrontPolicy
             )
             navigationPath.removeAll()
             mainTab = .storefront

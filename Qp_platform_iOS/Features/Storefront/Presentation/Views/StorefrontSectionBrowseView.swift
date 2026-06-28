@@ -8,10 +8,13 @@ struct StorefrontSectionBrowseView: View {
     var body: some View {
         GeometryReader { proxy in
             let containerWidth = proxy.size.width - 32
-            let layout = viewModel.section?.browseGridLayout(containerWidth: containerWidth) ?? StorefrontCardLayout(
+            let layout = viewModel.section?.browseGridLayout(
+                containerWidth: containerWidth,
+                visibleCountMultiplier: visibleCountMultiplier
+            ) ?? StorefrontCardLayout(
                 size: CGSize(width: 124, height: 186),
                 overlayHeight: 0,
-                visibleCount: 3
+                visibleCount: 3 * visibleCountMultiplier
             )
             let style = viewModel.section?.browseGridStyle() ?? .poster
             let columns = Array(
@@ -91,16 +94,22 @@ struct StorefrontSectionBrowseView: View {
         .routeNavigationOverlay(title: viewModel.title, onBack: onBack)
     }
 
+    private var visibleCountMultiplier: Int {
+        UIDevice.current.userInterfaceIdiom == .phone ? 1 : 2
+    }
+
     private var recommendedBrowsePage: some View {
         GeometryReader { proxy in
             let horizontalPadding: CGFloat = 18
             let containerWidth = proxy.size.width - (horizontalPadding * 2)
             let featureHeight = containerWidth * 9 / 16
-            let gridWidth = (containerWidth - 10) / 2
+            let columnCount = 2 * visibleCountMultiplier
+            let totalSpacing = CGFloat(columnCount - 1) * 10
+            let gridWidth = (containerWidth - totalSpacing) / CGFloat(columnCount)
             let layout = StorefrontCardLayout(
                 size: CGSize(width: gridWidth, height: gridWidth * 9 / 16),
                 overlayHeight: 54,
-                visibleCount: 2
+                visibleCount: columnCount
             )
             let featureItem = viewModel.items.first
             let gridItems = featureItem.map { first in viewModel.items.filter { $0.id != first.id } } ?? viewModel.items
@@ -120,10 +129,10 @@ struct StorefrontSectionBrowseView: View {
                     recommendedChipRow
 
                     LazyVGrid(
-                        columns: [
-                            GridItem(.fixed(gridWidth), spacing: 10, alignment: .top),
-                            GridItem(.fixed(gridWidth), spacing: 10, alignment: .top)
-                        ],
+                        columns: Array(
+                            repeating: GridItem(.fixed(gridWidth), spacing: 10, alignment: .top),
+                            count: columnCount
+                        ),
                         alignment: .center,
                         spacing: 14
                     ) {

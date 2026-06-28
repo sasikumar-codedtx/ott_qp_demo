@@ -4,7 +4,7 @@ struct ProfileDTO: Codable {
     let id: UUID
     let name: String
     let imageName: String?
-    let cohort: QuickplayCohort
+    let storefrontPolicy: StorefrontPolicy
     let preference: ProfilePreference
     let preferredLanguages: [ProfileLanguage]?
     let dateOfBirth: Date?
@@ -17,6 +17,7 @@ struct ProfileDTO: Codable {
         case name
         case imageName
         case cohort
+        case storefrontPolicy
         case preference
         case preferredLanguages
         case dateOfBirth
@@ -29,7 +30,7 @@ struct ProfileDTO: Codable {
         id: UUID,
         name: String,
         imageName: String?,
-        cohort: QuickplayCohort,
+        storefrontPolicy: StorefrontPolicy,
         preference: ProfilePreference,
         preferredLanguages: [ProfileLanguage]?,
         dateOfBirth: Date?,
@@ -40,7 +41,7 @@ struct ProfileDTO: Codable {
         self.id = id
         self.name = name
         self.imageName = imageName
-        self.cohort = cohort
+        self.storefrontPolicy = storefrontPolicy
         self.preference = preference
         self.preferredLanguages = preferredLanguages
         self.dateOfBirth = dateOfBirth
@@ -60,8 +61,24 @@ struct ProfileDTO: Codable {
         gender = try container.decodeIfPresent(ProfileGender.self, forKey: .gender)
         isKidsProfile = try container.decodeIfPresent(Bool.self, forKey: .isKidsProfile) ?? false
         showOnSelection = try container.decodeIfPresent(Bool.self, forKey: .showOnSelection) ?? true
-        cohort = try container.decodeIfPresent(QuickplayCohort.self, forKey: .cohort) ??
+        let legacyCohort = try container.decodeIfPresent(QuickplayCohort.self, forKey: .cohort) ??
             (isKidsProfile ? .kids : preference.quickplayCohort)
+        storefrontPolicy = try container.decodeIfPresent(StorefrontPolicy.self, forKey: .storefrontPolicy) ??
+            .defaultPolicy(for: legacyCohort)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(imageName, forKey: .imageName)
+        try container.encode(storefrontPolicy, forKey: .storefrontPolicy)
+        try container.encode(preference, forKey: .preference)
+        try container.encodeIfPresent(preferredLanguages, forKey: .preferredLanguages)
+        try container.encodeIfPresent(dateOfBirth, forKey: .dateOfBirth)
+        try container.encodeIfPresent(gender, forKey: .gender)
+        try container.encode(isKidsProfile, forKey: .isKidsProfile)
+        try container.encode(showOnSelection, forKey: .showOnSelection)
     }
 
     func toDomain() -> Profile {
@@ -69,7 +86,7 @@ struct ProfileDTO: Codable {
             id: id,
             name: name,
             imageName: imageName,
-            cohort: cohort,
+            storefrontPolicy: storefrontPolicy,
             preference: preference,
             preferredLanguages: preferredLanguages ?? [],
             dateOfBirth: dateOfBirth,
@@ -84,7 +101,7 @@ struct ProfileDTO: Codable {
             id: profile.id,
             name: profile.name,
             imageName: profile.imageName,
-            cohort: profile.cohort,
+            storefrontPolicy: profile.storefrontPolicy,
             preference: profile.preference,
             preferredLanguages: profile.preferredLanguages,
             dateOfBirth: profile.dateOfBirth,

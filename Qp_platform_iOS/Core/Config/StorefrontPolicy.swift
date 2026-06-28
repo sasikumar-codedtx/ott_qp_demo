@@ -60,4 +60,37 @@ enum StorefrontPolicy: String, CaseIterable, Codable, Equatable, Hashable, Ident
             return "Full sports storefront"
         }
     }
+
+    nonisolated var defaultProfilePreference: ProfilePreference {
+        switch self {
+        case .sports, .sportsEntertainment:
+            return .sports
+        case .reality, .realityEntertainment, .realitySports:
+            return .realityShows
+        case .entertainment:
+            return .entertainment
+        }
+    }
+
+    nonisolated var defaultQuickplayCohort: QuickplayCohort {
+        switch self {
+        case .sports, .sportsEntertainment:
+            return .sports
+        case .reality, .realityEntertainment, .realitySports:
+            return .realityShows
+        case .entertainment:
+            return .entertainment
+        }
+    }
+
+    nonisolated static func defaultPolicy(for cohort: QuickplayCohort) -> StorefrontPolicy {
+        switch cohort {
+        case .sports:
+            return .sports
+        case .realityShows:
+            return .reality
+        case .kids, .entertainment:
+            return .entertainment
+        }
+    }
 }

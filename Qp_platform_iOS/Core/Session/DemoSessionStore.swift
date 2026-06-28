@@ -5,11 +5,11 @@ actor DemoSessionStore {
 
     private enum StorageKey {
         static let activeCohort = "sony.quickplay.demo.active-cohort"
+        static let activeStorefrontPolicy = "sony.quickplay.demo.active-storefront-policy"
         static let activePreference = "sony.quickplay.demo.active-preference"
         static let activeProfileID = "sony.quickplay.demo.active-profile-id"
         static let preferenceHistoryByProfile = "sony.quickplay.demo.preference-history-by-profile"
         static let storefrontPolicyClicksByProfile = "sony.quickplay.demo.storefront-policy-clicks-by-profile"
-        static let storefrontPolicyOverrideByProfile = "sony.quickplay.demo.storefront-policy-override-by-profile"
         static let prefersVoiceAISearch = "sony.quickplay.demo.prefers-voice-ai"
         static let continueWatchingByProfile = "sony.quickplay.demo.continue-watching-by-profile"
         static let favoritesByProfile = "sony.quickplay.demo.favorites-by-profile"
@@ -19,11 +19,11 @@ actor DemoSessionStore {
     private let maxHistoryCount = 24
 
     private var activeCohort: QuickplayCohort
+    private var activeStorefrontPolicy: StorefrontPolicy
     private var activePreference: ProfilePreference
     private var activeProfileID: String?
     private var preferenceHistoryByProfile: [String: [String]]
     private var storefrontPolicyClicksByProfile: [String: [String: Int]]
-    private var storefrontPolicyOverrideByProfile: [String: String]
     private var prefersVoiceAISearch: Bool
     private var continueWatchingByProfile: [String: [StorefrontItem]]
     private var favoritesByProfile: [String: [StorefrontItem]]
@@ -39,6 +39,15 @@ actor DemoSessionStore {
         }
 
         if
+            let rawPolicy = UserDefaults.standard.string(forKey: StorageKey.activeStorefrontPolicy),
+            let storedPolicy = StorefrontPolicy(rawValue: rawPolicy)
+        {
+            activeStorefrontPolicy = storedPolicy
+        } else {
+            activeStorefrontPolicy = .defaultPolicy(for: activeCohort)
+        }
+
+        if
             let rawPreference = UserDefaults.standard.string(forKey: StorageKey.activePreference),
             let storedPreference = ProfilePreference(rawValue: rawPreference)
         {
@@ -50,7 +59,6 @@ actor DemoSessionStore {
         activeProfileID = UserDefaults.standard.string(forKey: StorageKey.activeProfileID)
         preferenceHistoryByProfile = UserDefaults.standard.dictionary(forKey: StorageKey.preferenceHistoryByProfile) as? [String: [String]] ?? [:]
         storefrontPolicyClicksByProfile = UserDefaults.standard.dictionary(forKey: StorageKey.storefrontPolicyClicksByProfile) as? [String: [String: Int]] ?? [:]
-        storefrontPolicyOverrideByProfile = UserDefaults.standard.dictionary(forKey: StorageKey.storefrontPolicyOverrideByProfile) as? [String: String] ?? [:]
         if let data = UserDefaults.standard.data(forKey: StorageKey.continueWatchingByProfile),
            let stored = try? JSONDecoder().decode([String: [StorefrontItem]].self, from: data) {
             continueWatchingByProfile = stored
@@ -71,12 +79,19 @@ actor DemoSessionStore {
         }
     }
 
-    func setActiveProfileContext(profileID: UUID?, cohort: QuickplayCohort, preference: ProfilePreference) {
+    func setActiveProfileContext(
+        profileID: UUID?,
+        cohort: QuickplayCohort,
+        preference: ProfilePreference,
+        storefrontPolicy: StorefrontPolicy
+    ) {
         activeProfileID = profileID?.uuidString
         activeCohort = cohort
+        activeStorefrontPolicy = storefrontPolicy
         activePreference = preference
         UserDefaults.standard.set(activeProfileID, forKey: StorageKey.activeProfileID)
         UserDefaults.standard.set(cohort.rawValue, forKey: StorageKey.activeCohort)
+        UserDefaults.standard.set(storefrontPolicy.rawValue, forKey: StorageKey.activeStorefrontPolicy)
         UserDefaults.standard.set(preference.rawValue, forKey: StorageKey.activePreference)
     }
 
@@ -88,31 +103,26 @@ actor DemoSessionStore {
         UserDefaults.standard.set(storefrontPolicyClicksByProfile, forKey: StorageKey.storefrontPolicyClicksByProfile)
     }
 
-    func storefrontPolicy(for profileID: UUID?) -> StorefrontPolicy {
-        let key = profileID?.uuidString ?? historyKey
-        if let rawPolicy = storefrontPolicyOverrideByProfile[key],
-           let policy = StorefrontPolicy(rawValue: rawPolicy) {
-            return policy
-        }
-
-        return resolvedStorefrontPolicy(for: key)
+    func resetStorefrontPolicyClicks(for profileID: UUID?) {
+        guard let profileID else { return }
+        storefrontPolicyClicksByProfile[profileID.uuidString] = [:]
+        UserDefaults.standard.set(storefrontPolicyClicksByProfile, forKey: StorageKey.storefrontPolicyClicksByProfile)
     }
 
-    func setStorefrontPolicyOverride(_ policy: StorefrontPolicy, for profileID: UUID?) {
+    func storefrontPolicy(for profileID: UUID?) -> StorefrontPolicy {
         let key = profileID?.uuidString ?? historyKey
-        storefrontPolicyOverrideByProfile[key] = policy.rawValue
-        storefrontPolicyClicksByProfile[key] = [:]
-        UserDefaults.standard.set(storefrontPolicyOverrideByProfile, forKey: StorageKey.storefrontPolicyOverrideByProfile)
-        UserDefaults.standard.set(storefrontPolicyClicksByProfile, forKey: StorageKey.storefrontPolicyClicksByProfile)
+        return resolvedStorefrontPolicy(for: key, baselinePolicy: activeStorefrontPolicy)
     }
 
     func clearActiveProfileContext() {
         activeProfileID = nil
         activeCohort = .entertainment
+        activeStorefrontPolicy = .entertainment
         activePreference = .entertainment
         UserDefaults.standard.set(false, forKey: StorageKey.hasCompletedLogin)
         UserDefaults.standard.removeObject(forKey: StorageKey.activeProfileID)
         UserDefaults.standard.set(activeCohort.rawValue, forKey: StorageKey.activeCohort)
+        UserDefaults.standard.set(activeStorefrontPolicy.rawValue, forKey: StorageKey.activeStorefrontPolicy)
         UserDefaults.standard.set(activePreference.rawValue, forKey: StorageKey.activePreference)
     }
 
@@ -126,7 +136,9 @@ actor DemoSessionStore {
 
     func setActiveCohort(_ cohort: QuickplayCohort) {
         activeCohort = cohort
+        activeStorefrontPolicy = .defaultPolicy(for: cohort)
         UserDefaults.standard.set(cohort.rawValue, forKey: StorageKey.activeCohort)
+        UserDefaults.standard.set(activeStorefrontPolicy.rawValue, forKey: StorageKey.activeStorefrontPolicy)
     }
 
     func setActivePreference(_ preference: ProfilePreference) {
@@ -254,17 +266,17 @@ actor DemoSessionStore {
         return .entertainment
     }
 
-    private func resolvedStorefrontPolicy(for profileKey: String) -> StorefrontPolicy {
+    private func resolvedStorefrontPolicy(for profileKey: String, baselinePolicy: StorefrontPolicy) -> StorefrontPolicy {
         let counts = storefrontPolicyClicksByProfile[profileKey] ?? [:]
         let entertainmentClicks = counts[StorefrontPolicySignal.entertainment.rawValue] ?? 0
         let realityClicks = counts[StorefrontPolicySignal.reality.rawValue] ?? 0
         let sportsClicks = counts[StorefrontPolicySignal.sports.rawValue] ?? 0
         let totalClicks = entertainmentClicks + realityClicks + sportsClicks
 
-        // Dynamic cohort selection requires at least 15 card clicks to be meaningful.
-        // Below that threshold, honour the profile's chosen cohort directly.
+        // Dynamic cohort selection requires more than 15 card clicks to be meaningful.
+        // Below that threshold, honour the profile's stored storefront policy directly.
         guard totalClicks > 15 else {
-            return .entertainment
+            return baselinePolicy
         }
 
         let entertainmentShare = Double(entertainmentClicks) / Double(totalClicks)
