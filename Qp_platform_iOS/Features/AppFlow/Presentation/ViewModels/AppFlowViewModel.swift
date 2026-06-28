@@ -47,7 +47,10 @@ final class AppFlowViewModel: ObservableObject {
     @Published private(set) var activeProfile: Profile?
     @Published var prefersVoiceAISearch = true
     @Published var activePlaybackContent: QuickplayPlaybackContent?
+    @Published var playerEpisodes: [StorefrontItem] = []
+    @Published var playerSeasons: [ContentSeason] = []
     @Published var cohortOverrideToast: String?
+    let playerEngine = QuickplayPlayerEngine()
 
     let authViewModel: AuthViewModel
     let profileSelectionViewModel: ProfileSelectionViewModel
@@ -426,11 +429,25 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func play(detail: ContentDetail, fallback item: StorefrontItem?) {
-        activePlaybackContent = detail.quickplayPlaybackContent(fallback: item)
+        playerEpisodes = detailViewModel.episodes
+        playerSeasons = detailViewModel.seasons
+
+        // If the engine is already playing a different episode (e.g. user switched
+        // episodes in the inline player), use that episode instead of the original
+        // detail so the fullscreen player doesn't reload from the beginning.
+        if let loadedId = playerEngine.loadedContentId,
+           loadedId != detail.id,
+           let playingEpisode = playerEpisodes.first(where: { $0.id == loadedId }) {
+            activePlaybackContent = playingEpisode.quickplayPlaybackContent()
+        } else {
+            activePlaybackContent = detail.quickplayPlaybackContent(fallback: item)
+        }
     }
 
     func closePlayer() {
         activePlaybackContent = nil
+        playerEpisodes = []
+        playerSeasons = []
     }
 
     func openSectionBrowse(section: StorefrontSection, cohort: QuickplayCohort) {

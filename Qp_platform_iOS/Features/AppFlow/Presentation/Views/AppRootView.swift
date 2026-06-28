@@ -21,10 +21,17 @@ struct AppRootView: View {
             .animation(.spring(response: 0.28, dampingFraction: 0.82), value: viewModel.cohortOverrideToast)
 
             if let content = viewModel.activePlaybackContent {
-                QuickplayPlayerScreen(content: content, onDismiss: viewModel.closePlayer)
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-                    .zIndex(100)
+                QuickplayPlayerScreen(
+                    content: content,
+                    engine: viewModel.playerEngine,
+                    episodes: viewModel.playerEpisodes,
+                    seasons: viewModel.playerSeasons,
+                    onPlayEpisode: { item in viewModel.play(item: item) },
+                    onDismiss: viewModel.closePlayer
+                )
+                .ignoresSafeArea()
+                .transition(.opacity)
+                .zIndex(100)
             }
         }
         .animation(.spring(response: 0.46, dampingFraction: 0.9), value: viewModel.activePlaybackContent != nil)
@@ -359,6 +366,7 @@ struct AppRootView: View {
             surface(style: .storefront) {
                 ContentDetailView(
                     viewModel: viewModel.detailViewModel,
+                    engine: viewModel.playerEngine,
                     onBack: {
                         viewModel.backFromDetail()
                     },

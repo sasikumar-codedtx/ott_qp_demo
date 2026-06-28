@@ -11,6 +11,8 @@ struct QuickplayPlayerControlsOverlay: View {
     @Binding var showQualityDialog: Bool
     @Binding var showSubtitleDialog: Bool
     @Binding var showSpeedSheet: Bool
+    @Binding var showEpisodesPanel: Bool
+    let onPlayNextEpisode: (() -> Void)?
     let safeTop: CGFloat
     let safeLeading: CGFloat
     let safeTrailing: CGFloat
@@ -28,7 +30,7 @@ struct QuickplayPlayerControlsOverlay: View {
             VStack(spacing: 0) {
                 if !isSeeking { topBar }
                 Spacer()
-                if !isSeeking { centerControls }
+                if !isSeeking && engine.isReady && !engine.isBuffering { centerControls }
                 Spacer()
                 bottomArea
             }
@@ -89,9 +91,9 @@ struct QuickplayPlayerControlsOverlay: View {
 
             Spacer()
         }
-        .padding(.leading, safeLeading + 18)
-        .padding(.trailing, safeTrailing + 16)
-        .padding(.top, safeTop + 12)
+        .padding(.leading, 24)
+        .padding(.trailing, 16)
+        .padding(.top, 20)
     }
 
     // MARK: Center — skip ±15s + play/pause
@@ -99,10 +101,12 @@ struct QuickplayPlayerControlsOverlay: View {
     private var centerControls: some View {
         HStack(spacing: 52) {
             Button { engine.seek(to: max(0, engine.currentTime - 15)) } label: {
-                Image(systemName: "gobackward.15")
-                    .font(.system(size: 30, weight: .medium))
+                Image("Icon_Rewind15")
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
                     .foregroundStyle(.white.opacity(0.9))
-                    .frame(width: 52, height: 52)
+                    .frame(width: 40, height: 40)
             }
             .buttonStyle(LiquidButtonPressStyle())
 
@@ -111,10 +115,12 @@ struct QuickplayPlayerControlsOverlay: View {
             }
 
             Button { engine.seek(to: min(engine.duration, engine.currentTime + 15)) } label: {
-                Image(systemName: "goforward.15")
-                    .font(.system(size: 30, weight: .medium))
+                Image("Icon_Forward15")
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
                     .foregroundStyle(.white.opacity(0.9))
-                    .frame(width: 52, height: 52)
+                    .frame(width: 40, height: 40)
             }
             .buttonStyle(LiquidButtonPressStyle())
         }
@@ -199,8 +205,9 @@ struct QuickplayPlayerControlsOverlay: View {
                 .foregroundStyle(.white)
                 .monospacedDigit()
                 .frame(minWidth: 52, alignment: .trailing)
-                .padding(.trailing, safeTrailing + 16)
         }
+        .padding(.leading, 24)
+        .padding(.trailing, 24)
     }
 
     // MARK: Bottom action pills
@@ -213,34 +220,36 @@ struct QuickplayPlayerControlsOverlay: View {
     }
 
     private var actionPills: some View {
-        HStack(spacing: 16) {
-            actionItem(icon: "gauge.medium", label: "Speed") { showSpeedSheet = true }
-            actionItem(icon: "video.badge.ellipsis", label: "Video Quality") { showQualityDialog = true }
+        HStack(spacing: 4) {
+            actionItem(assetIcon: "Icon_PlaybackSpeed", label: "Speed") { showSpeedSheet = true }
+            actionItem(assetIcon: "Icon_VideoQuality", label: "Video Quality") { showQualityDialog = true }
             if showsEpisodeOptions {
-                actionItem(icon: "list.bullet.rectangle", label: "Episodes") { }
+                actionItem(assetIcon: "Icon_Episodes", label: "Episodes") { showEpisodesPanel = true }
             }
-            actionItem(icon: "captions.bubble", label: "Audio & Subtitle") { showSubtitleDialog = true }
-            if showsEpisodeOptions {
-                actionItem(icon: "forward.end.fill", label: "Play Next") { }
+            actionItem(assetIcon: "Icon_AudioTrack", label: "Audio & Subtitle") { showSubtitleDialog = true }
+            if showsEpisodeOptions, let onPlayNextEpisode {
+                actionItem(assetIcon: "Icon_PlayNext", label: "Play Next") { onPlayNextEpisode() }
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
         .padding(.top, 4)
     }
 
-    private func actionItem(icon: String, label: String, action: @escaping () -> Void) -> some View {
+    private func actionItem(assetIcon: String, label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.system(size: 15, weight: .medium))
+                Image(assetIcon)
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 18, height: 18)
                 Text(label)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 14, weight: .medium))
                     .lineLimit(1)
             }
             .foregroundStyle(.white.opacity(0.9))
-            .padding(.horizontal, 14)
+            .padding(.horizontal, 10)
             .frame(height: 36)
-            .background(Color.white.opacity(0.12), in: Capsule())
         }
         .buttonStyle(LiquidButtonPressStyle())
     }

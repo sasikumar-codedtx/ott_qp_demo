@@ -103,11 +103,11 @@ private enum DetailPresentationKind: Equatable {
 
 struct ContentDetailView: View {
     @ObservedObject var viewModel: ContentDetailViewModel
+    let engine: QuickplayPlayerEngine
     let onBack: () -> Void
     let onPlay: (ContentDetail, StorefrontItem?) -> Void
     var onPlayEpisode: ((StorefrontItem) -> Void)? = nil
     let onSelectRecommendation: (StorefrontItem) -> Void
-    @StateObject private var detailPlayerEngine = QuickplayPlayerEngine()
     @State private var isDescriptionExpanded = false
     @State private var isMomentSearchOverlayPresented = false
     @State private var isMockInteractionPresented = false
@@ -243,7 +243,7 @@ struct ContentDetailView: View {
                 await viewModel.loadIfNeeded()
             }
             .onDisappear {
-                detailPlayerEngine.release()
+                engine.release()
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { notification in
                 updateKeyboardHeight(from: notification, containerHeight: proxy.size.height)
@@ -272,7 +272,7 @@ struct ContentDetailView: View {
                 // VStack with ignoresSafeArea(edges:.top) makes it start at absolute y=0.
                 VStack(spacing: 0) {
                     DetailInlinePlayerView(
-                        engine: detailPlayerEngine,
+                        engine: engine,
                         content: playerContent,
                         posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
                         height: headerHeight,
@@ -499,7 +499,6 @@ struct ContentDetailView: View {
     }
 
     private func openFullPlayer(detail: ContentDetail) {
-        detailPlayerEngine.release()
         onPlay(detail, viewModel.seed)
     }
 

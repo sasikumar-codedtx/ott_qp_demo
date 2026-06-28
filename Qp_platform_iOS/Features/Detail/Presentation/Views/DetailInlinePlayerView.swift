@@ -21,14 +21,15 @@ struct DetailInlinePlayerView: View {
     var body: some View {
         ZStack(alignment: .top) {
             // Poster spans from absolute screen top through the full header height.
-            // Fades out once the video surface is ready.
+            // Fades out once the video surface is ready; reappears when finished.
             PosterImageView(
                 url: posterURL,
                 size: CGSize(width: UIScreen.main.bounds.width, height: height),
                 cornerRadius: 0
             )
-            .opacity(engine.isReady ? 0 : 1)
+            .opacity(engine.isReady && !engine.isFinished ? 0 : 1)
             .animation(.easeInOut(duration: 0.3), value: engine.isReady)
+            .animation(.easeInOut(duration: 0.35), value: engine.isFinished)
 
             // Video and controls — only in the area below the nav bar.
             VStack(spacing: 0) {
@@ -36,11 +37,12 @@ struct DetailInlinePlayerView: View {
 
                 ZStack {
                     QuickplayPlayerSurfaceView(engine: engine)
-                        .opacity(engine.isReady ? 1 : 0)
+                        .opacity(engine.isReady && !engine.isFinished ? 1 : 0)
                         .animation(.easeInOut(duration: 0.45), value: engine.isReady)
+                        .animation(.easeInOut(duration: 0.35), value: engine.isFinished)
                         .allowsHitTesting(false)
 
-                    if engine.isReady && showControls {
+                    if engine.isReady && showControls && !engine.isFinished {
                         LinearGradient(
                             colors: [.black.opacity(0.3), .clear, .black.opacity(0.55)],
                             startPoint: .top,
@@ -52,20 +54,33 @@ struct DetailInlinePlayerView: View {
                             .transition(.opacity)
                     }
 
-                    if engine.error != nil {
-                        VStack {
-                            Spacer()
-                            DetailPlayerErrorToast()
-                                .padding(.bottom, 64)
-                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                    if engine.isFinished {
+                        ZStack {
+                            Button {
+                                engine.isFinished = false
+                                engine.seek(to: 0)
+                                engine.play()
+                            } label: {
+                                ZStack {
+                                    Circle()
+                                        .fill(.ultraThinMaterial)
+                                        .overlay(Circle().fill(Color.black.opacity(0x3B / 255.0)))
+                                        .overlay(Circle().stroke(Color.white.opacity(0x33 / 255.0), lineWidth: 1.21))
+                                        .frame(width: 56, height: 56)
+                                    Image(systemName: "arrow.counterclockwise")
+                                        .font(.system(size: 22, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                }
+                            }
+                            .buttonStyle(LiquidButtonPressStyle())
                         }
-                        .animation(.easeInOut(duration: 0.3), value: engine.error != nil)
+                        .transition(.opacity.animation(.easeInOut(duration: 0.35)))
                     }
                 }
                 .frame(height: videoHeight)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    guard engine.isReady else { return }
+                    guard engine.isReady && !engine.isFinished else { return }
                     withAnimation(.easeInOut(duration: 0.2)) { showControls.toggle() }
                 }
             }
@@ -73,6 +88,7 @@ struct DetailInlinePlayerView: View {
         .frame(height: height)
         .clipped()
         .task(id: content.id) {
+            guard engine.loadedContentId != content.contentId else { return }
             engine.release()
             await engine.load(content: content)
         }
@@ -81,10 +97,6 @@ struct DetailInlinePlayerView: View {
         }
         .onChange(of: isSeeking) { _, seeking in
             if !seeking { engine.seek(to: seekPosition) }
-        }
-        .onChange(of: engine.error) { _, error in
-            guard error != nil else { return }
-            UINotificationFeedbackGenerator().notificationOccurred(.error)
         }
     }
 
@@ -107,7 +119,7 @@ struct DetailInlinePlayerView: View {
                 Spacer()
                 HStack {
                     PlayerChromeIconButton(
-                        systemImage: engine.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill",
+                        assetImage: engine.isMuted ? "volume-off" : "volume-high",
                         action: engine.toggleMute
                     )
                     Spacer()
@@ -191,37 +203,30 @@ private struct DetailSeekBar: View {
 // MARK: - Chrome icon button
 
 private struct PlayerChromeIconButton: View {
-    let systemImage: String
+    var systemImage: String? = nil
+    var assetImage: String? = nil
     let action: () -> Void
+
+    private let bg = Color(red: 0, green: 0, blue: 0, opacity: 0x3B / 255.0)
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.system(size: 15, weight: .bold))
-                .foregroundStyle(.white)
-                .frame(width: 34, height: 34)
-                .background(.black.opacity(0.34), in: Circle())
-                .overlay(Circle().stroke(.white.opacity(0.16), lineWidth: 1))
+            Group {
+                if let asset = assetImage {
+                    Image(asset)
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                } else if let sys = systemImage {
+                    Image(systemName: sys)
+                        .font(.system(size: 15, weight: .bold))
+                }
+            }
+            .foregroundStyle(.white)
+            .frame(width: 34, height: 34)
+            .background(bg, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
         .buttonStyle(LiquidButtonPressStyle())
-    }
-}
-
-// MARK: - Error toast
-
-private struct DetailPlayerErrorToast: View {
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.red)
-            Text("Unable to load video")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.white)
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 40)
-        .background(.black.opacity(0.82), in: Capsule())
-        .overlay(Capsule().stroke(.red.opacity(0.55), lineWidth: 1))
-        .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
     }
 }

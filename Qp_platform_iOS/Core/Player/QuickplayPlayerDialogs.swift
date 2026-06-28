@@ -1,29 +1,14 @@
 import SwiftUI
 import UIKit
-// MARK: - Video Quality (full-screen fade overlay)
+
+// MARK: - Video Quality
 
 struct QuickplayQualityDialog: View {
     @ObservedObject var engine: QuickplayPlayerEngine
     @Binding var isPresented: Bool
-    @State private var selected: Quality = .auto
 
-    enum Quality: String, CaseIterable {
-        case auto     = "Auto"
-        case sd       = "SD (480p)"
-        case hd       = "HD (720p)"
-        case fullHD   = "Full HD (1080p)"
-        case ultraHD  = "4K UHD (2160p)"
-
-        var bitrate: Double {
-            switch self {
-            case .auto:    return 0
-            case .sd:      return 1_500_000
-            case .hd:      return 4_000_000
-            case .fullHD:  return 8_000_000
-            case .ultraHD: return 20_000_000
-            }
-        }
-    }
+    @State private var variants: [VideoVariant] = []
+    @State private var isLoading = true
 
     var body: some View {
         ZStack {
@@ -41,31 +26,37 @@ struct QuickplayQualityDialog: View {
                         .padding(.top, 16)
                         .padding(.bottom, 20)
 
-                    VStack(spacing: 0) {
-                        ForEach(Quality.allCases, id: \.self) { quality in
-                            Button {
-                                selected = quality
-                                engine.setPreferredBitrate(quality.bitrate)
-                            } label: {
-                                HStack(spacing: 16) {
-                                    Image(systemName: "checkmark")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundStyle(.white)
-                                        .opacity(quality == selected ? 1 : 0)
-                                        .frame(width: 20)
-
-                                    Text(quality.rawValue)
-                                        .font(.system(size: 16, weight: quality == selected ? .semibold : .regular))
-                                        .foregroundStyle(quality == selected ? .white : .white.opacity(0.55))
+                    if isLoading {
+                        ProgressView()
+                            .tint(.white)
+                            .padding(.horizontal, 56)
+                    } else {
+                        VStack(spacing: 0) {
+                            ForEach(variants) { variant in
+                                let isSelected = engine.preferredVideoMaxHeight == variant.maxHeight
+                                Button {
+                                    engine.setVideoQuality(variant)
+                                    isPresented = false
+                                } label: {
+                                    HStack(spacing: 16) {
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundStyle(.white)
+                                            .opacity(isSelected ? 1 : 0)
+                                            .frame(width: 20)
+                                        Text(variant.displayName)
+                                            .font(.system(size: 16, weight: isSelected ? .semibold : .regular))
+                                            .foregroundStyle(isSelected ? .white : .white.opacity(0.55))
+                                    }
+                                    .frame(height: 48)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .contentShape(Rectangle())
                                 }
-                                .frame(height: 48)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .contentShape(Rectangle())
+                                .buttonStyle(LiquidButtonPressStyle())
                             }
-                            .buttonStyle(LiquidButtonPressStyle())
                         }
+                        .padding(.horizontal, 56)
                     }
-                    .padding(.horizontal, 56)
 
                     Spacer()
                 }
@@ -83,6 +74,10 @@ struct QuickplayQualityDialog: View {
                 .padding(.trailing, 16)
             }
         }
+        .task {
+            variants = await engine.fetchVideoVariants()
+            isLoading = false
+        }
     }
 }
 
@@ -91,13 +86,30 @@ struct QuickplayQualityDialog: View {
 #if canImport(FLPlayerInterface)
 import FLPlayerInterface
 
+private extension MediaTrack {
+    var resolvedDisplayName: String {
+        // If displayName looks like a real label (more than a bare code), use it
+        if let name = displayName, name.count > 3, !name.allSatisfy({ $0.isLetter }) {
+            return name
+        }
+        // Resolve from locale
+        if let locale,
+           let name = Locale.current.localizedString(forIdentifier: locale.identifier), !name.isEmpty {
+            return name
+        }
+        // Resolve from isoLanguageCode
+        if let code = isoLanguageCode, !code.isEmpty,
+           let name = Locale.current.localizedString(forLanguageCode: code), !name.isEmpty {
+            return name
+        }
+        return displayName ?? "Unknown"
+    }
+}
+
 struct QuickplaySubtitleDialog: View {
     @ObservedObject var engine: QuickplayPlayerEngine
     @Binding var isPresented: Bool
-
-    @State private var selectedSubtitle: SubtitleOption = .off
-
-    private enum SubtitleOption { case off, english }
+    var contentLanguage: String? = nil
 
     var body: some View {
         ZStack {
@@ -129,6 +141,8 @@ struct QuickplaySubtitleDialog: View {
         }
     }
 
+    // MARK: Audio
+
     private var audioColumn: some View {
         VStack(alignment: .leading, spacing: 0) {
             columnHeader("Audio")
@@ -138,27 +152,51 @@ struct QuickplaySubtitleDialog: View {
             } else {
                 ForEach(Array(tracks.enumerated()), id: \.offset) { _, track in
                     trackRow(
-                        title: track.displayName ?? "Audio",
+                        title: audioDisplayName(for: track),
                         isSelected: engine.selectedAudioTrack() == track
-                    ) { engine.selectAudioTrack(track) }
+                    ) {
+                        engine.selectAudioTrack(track)
+                    }
                 }
             }
         }
     }
 
+    private func audioDisplayName(for track: MediaTrack) -> String {
+        // When the track is tagged "en" but the content has an original language,
+        // use the content's language code instead (mirrors Android ACL logic).
+        if let code = track.isoLanguageCode, code.lowercased() == "en",
+           let acl = contentLanguage, !acl.isEmpty, acl.lowercased() != "en" {
+            return Locale.current.localizedString(forLanguageCode: acl) ?? acl
+        }
+        return track.resolvedDisplayName
+    }
+
+    // MARK: Subtitles
+
     private var subtitleColumn: some View {
         VStack(alignment: .leading, spacing: 0) {
             columnHeader("Subtitles")
-            trackRow(title: "Off", isSelected: selectedSubtitle == .off) {
-                selectedSubtitle = .off
+
+            trackRow(
+                title: "Off",
+                isSelected: engine.selectedSubtitleTrack() == nil
+            ) {
                 engine.selectSubtitleTrack(nil)
             }
-            trackRow(title: "English", isSelected: selectedSubtitle == .english) {
-                selectedSubtitle = .english
-                engine.selectSubtitleTrack(engine.subtitleTracks.first)
+
+            ForEach(Array(engine.subtitleTracks.enumerated()), id: \.offset) { _, track in
+                trackRow(
+                    title: track.resolvedDisplayName,
+                    isSelected: engine.selectedSubtitleTrack() == track
+                ) {
+                    engine.selectSubtitleTrack(track)
+                }
             }
         }
     }
+
+    // MARK: Helpers
 
     private func columnHeader(_ title: String) -> some View {
         Text(title)
@@ -192,6 +230,5 @@ struct QuickplaySubtitleDialog: View {
             .foregroundStyle(.white.opacity(0.3))
             .padding(.vertical, 12)
     }
-    
 }
 #endif

@@ -31,17 +31,27 @@ struct NavigationChromeButton: View {
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: icon)
-                .font(.system(size: 19, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 45.5, height: 45.5)
-                .background(navigationChromeBackground)
-                .contentShape(navigationChromeShape)
+            Group {
+                if icon == AppIcons.Navigation.back {
+                    Image("back")
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                } else {
+                    Image(systemName: icon)
+                        .font(.system(size: 19, weight: .semibold))
+                }
+            }
+            .foregroundStyle(.white)
+            .frame(width: 45.5, height: 45.5)
+                .background(background)
+                .contentShape(AnyShape(shape))
         }
         .buttonStyle(.plain)
     }
 
-    private var navigationChromeShape: some Shape {
+    private var shape: some Shape {
         let isBackButton = icon == AppIcons.Navigation.back
         return UnevenRoundedRectangle(
             topLeadingRadius: isBackButton ? 18 : 8,
@@ -52,10 +62,11 @@ struct NavigationChromeButton: View {
         )
     }
 
-    private var navigationChromeBackground: some View {
-        navigationChromeShape
-            .fill(Color(hex: "CFCFCF").opacity(0.1))
-            .overlay(navigationChromeShape.stroke(Color.white.opacity(0.1), lineWidth: 1.211))
+    private var background: some View {
+        shape
+            .fill(.ultraThinMaterial)
+            .overlay(shape.fill(Color(red: 0, green: 0, blue: 0, opacity: 0x3B / 255.0)))
+            .overlay(shape.stroke(Color.white.opacity(0x33 / 255.0), lineWidth: 1.21))
     }
 }
 

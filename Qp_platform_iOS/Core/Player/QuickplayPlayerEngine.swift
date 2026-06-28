@@ -3,6 +3,13 @@ import Foundation
 import UIKit
 import os
 
+struct VideoVariant: Identifiable, Equatable {
+    let id: Int          // maxHeight as key; 0 = Auto
+    let displayName: String
+    let maxHeight: Int   // 0 = unconstrained
+    let maxBitrate: Double
+}
+
 #if canImport(FLPlatformPlayer) && canImport(FLPlayerInterface) && canImport(FLHeartbeat) && canImport(FLBookmarks)
 import AVFoundation
 import FLBookmarks
@@ -24,6 +31,9 @@ final class QuickplayPlayerEngine: ObservableObject {
     @Published var error: QuickplayPlayerError?
     @Published var playerView: UIView?
     @Published var isMuted = false
+    @Published private(set) var loadedContentId: String?
+    @Published var isFullscreenSurfaceActive: Bool = false
+    @Published var preferredVideoMaxHeight: Int = 0
 
     private var flPlayer: (any FLPlayerInterface.Player)?
     private var heartbeatManager: (any QuickplayHeartbeatManagerBox)?
@@ -78,6 +88,7 @@ final class QuickplayPlayerEngine: ObservableObject {
     }
 
     func load(content: QuickplayPlaybackContent) async {
+        loadedContentId = content.contentId
         do {
             let runtimeConfig = await QuickplayConfigurationStore.shared.current()
             let config = injectedConfig ?? QuickplayPlayerConfig(config: runtimeConfig)
@@ -395,6 +406,7 @@ final class QuickplayPlayerEngine: ObservableObject {
 
     func selectSubtitleTrack(_ track: MediaTrack?) {
         flPlayer?.selectTrack(track, for: .subtitle)
+        flPlayer?.selectTrack(track, for: .closedCaption)
     }
 
     func selectedAudioTrack() -> MediaTrack? {
@@ -403,6 +415,46 @@ final class QuickplayPlayerEngine: ObservableObject {
 
     func selectedSubtitleTrack() -> MediaTrack? {
         flPlayer?.selectedTrack(for: .subtitle) ?? flPlayer?.selectedTrack(for: .closedCaption)
+    }
+
+    func fetchVideoVariants() async -> [VideoVariant] {
+        let auto = VideoVariant(id: 0, displayName: "Auto", maxHeight: 0, maxBitrate: 0)
+        guard #available(iOS 15.0, *), let flPlayer else { return [auto] }
+        return await withCheckedContinuation { cont in
+            flPlayer.getAllVariantTracks { variants in
+                let videoData = (variants ?? []).compactMap { v -> (height: Int, bitrate: Double)? in
+                    guard let attr = v.videoAttributes,
+                          attr.presentationSize.height > 0 else { return nil }
+                    let bitrate = v.peakBitRate ?? v.averageBitRate ?? 0
+                    return (Int(attr.presentationSize.height), bitrate)
+                }
+                guard !videoData.isEmpty else { cont.resume(returning: [auto]); return }
+
+                let buckets: [(String, Int, Int)] = [
+                    ("SD", 480, 1),
+                    ("HD", 720, 481),
+                    ("Full HD", 1080, 721),
+                    ("4K UHD", 2160, 1081)
+                ]
+                var result: [VideoVariant] = [auto]
+                for (label, maxH, minH) in buckets {
+                    let inBucket = videoData.filter { $0.height >= minH && $0.height <= maxH }
+                    if let best = inBucket.max(by: { $0.bitrate < $1.bitrate }) {
+                        result.append(VideoVariant(id: maxH, displayName: label, maxHeight: maxH, maxBitrate: best.bitrate))
+                    }
+                }
+                cont.resume(returning: result)
+            }
+        }
+    }
+
+    func setVideoQuality(_ variant: VideoVariant) {
+        preferredVideoMaxHeight = variant.maxHeight
+        let size = variant.maxHeight > 0 ? CGSize(width: 0, height: CGFloat(variant.maxHeight)) : .zero
+        flPlayer?.set(preferences: [
+            .preferredMaximumResolution(size: size),
+            .preferredPeakBitRate(bitrate: variant.maxBitrate)
+        ])
     }
 
     func release() {
@@ -432,6 +484,9 @@ final class QuickplayPlayerEngine: ObservableObject {
         isFinished = false
         isPlaying = false
         isBuffering = true
+        loadedContentId = nil
+        isFullscreenSurfaceActive = false
+        preferredVideoMaxHeight = 0
     }
 }
 
@@ -473,6 +528,10 @@ final class QuickplayPlayerEngine: ObservableObject {
         error = .sdkUnavailable
     }
 
+    @Published var preferredVideoMaxHeight: Int = 0
+    var loadedContentId: String? { nil }
+    var isFullscreenSurfaceActive: Bool = false
+
     func togglePlayPause() {}
     func play() {}
     func pause() {}
@@ -482,5 +541,7 @@ final class QuickplayPlayerEngine: ObservableObject {
     func toggleMute() { isMuted.toggle() }
     func thumbnailImage(at seconds: Double) async -> UIImage? { nil }
     func release() {}
+    func fetchVideoVariants() async -> [VideoVariant] { [] }
+    func setVideoQuality(_ variant: VideoVariant) {}
 }
 #endif

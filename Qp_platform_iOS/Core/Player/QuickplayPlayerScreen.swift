@@ -5,9 +5,20 @@ import UIKit
 struct QuickplayPlayerScreen: View {
     private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "ott.qp", category: "PlayerScreen")
     let content: QuickplayPlaybackContent
+    let episodes: [StorefrontItem]
+    let seasons: [ContentSeason]
+    let onPlayEpisode: ((StorefrontItem) -> Void)?
     let onDismiss: () -> Void
+    @ObservedObject var engine: QuickplayPlayerEngine
 
-    @StateObject private var engine = QuickplayPlayerEngine()
+    init(content: QuickplayPlaybackContent, engine: QuickplayPlayerEngine, episodes: [StorefrontItem] = [], seasons: [ContentSeason] = [], onPlayEpisode: ((StorefrontItem) -> Void)? = nil, onDismiss: @escaping () -> Void) {
+        self.content = content
+        self.engine = engine
+        self.episodes = episodes
+        self.seasons = seasons
+        self.onPlayEpisode = onPlayEpisode
+        self.onDismiss = onDismiss
+    }
     @State private var screenOpenTime: Double = CFAbsoluteTimeGetCurrent()
     @State private var controlsVisible = false
     @State private var hideTask: Task<Void, Never>?
@@ -18,13 +29,57 @@ struct QuickplayPlayerScreen: View {
     @State private var showQualityDialog = false
     @State private var showSubtitleDialog = false
     @State private var showSpeedSheet = false
+    @State private var showEpisodesPanel = false
+    @State private var loadedEpisodes: [StorefrontItem] = []
+    @State private var loadedSeasons: [ContentSeason] = []
+    @State private var isLoadingEpisodes = false
+    @State private var selectedSeason: ContentSeason?
     @State private var seekFeedback: SeekFeedback? = nil
     @State private var seekDismissTask: Task<Void, Never>? = nil
-    @State private var activeQuizPrompt: PlayerQuizPrompt?
-    @State private var activeSportsPrompt: PlayerSportsPrompt?
-    @State private var lastQuizBucket = -1
-    @State private var lastSportsBucket = -1
-    @State private var quizDemoTask: Task<Void, Never>?
+    @State private var showNextEpisodeCard = false
+    @State private var nextEpisodeTask: Task<Void, Never>? = nil
+
+    private var effectiveEpisodes: [StorefrontItem] { episodes.isEmpty ? loadedEpisodes : episodes }
+    private var effectiveSeasons: [ContentSeason] { seasons.isEmpty ? loadedSeasons : seasons }
+
+    private var nextEpisode: StorefrontItem? {
+        guard let idx = effectiveEpisodes.firstIndex(where: { $0.id == content.contentId }),
+              idx + 1 < effectiveEpisodes.count else { return nil }
+        return effectiveEpisodes[idx + 1]
+    }
+
+    private func loadEpisodesIfNeeded() async {
+        guard effectiveEpisodes.isEmpty,
+              content.contentType != .movie,
+              content.contentType != .channel,
+              let seriesId = content.seriesId?.nilIfEmpty else { return }
+        isLoadingEpisodes = true
+        defer { isLoadingEpisodes = false }
+        do {
+            let bundle = try await GetContentEpisodesUseCase(
+                repository: AppContainer.shared.contentDetailRepository
+            ).execute(seriesID: seriesId)
+            loadedEpisodes = bundle.episodes
+            loadedSeasons = bundle.seasons
+            if selectedSeason == nil {
+                selectedSeason = bundle.selectedSeason ?? bundle.seasons.first
+            }
+        } catch {}
+    }
+
+    private func selectSeason(_ season: ContentSeason) async {
+        guard season.id != selectedSeason?.id,
+              let seriesId = content.seriesId?.nilIfEmpty else { return }
+        selectedSeason = season
+        isLoadingEpisodes = true
+        defer { isLoadingEpisodes = false }
+        do {
+            let fetched = try await GetContentEpisodesUseCase(
+                repository: AppContainer.shared.contentDetailRepository
+            ).execute(seriesID: seriesId, seasonID: season.id)
+            loadedEpisodes = fetched
+        } catch {}
+    }
 
     private var windowSafeArea: UIEdgeInsets {
         UIApplication.shared.connectedScenes
@@ -36,13 +91,11 @@ struct QuickplayPlayerScreen: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            QuickplayPlayerSurfaceView(engine: engine)
+            QuickplayPlayerSurfaceView(engine: engine, isPrimary: true)
                 .ignoresSafeArea()
 
             // Double-tap seek zones — under controls, over video
-            if activeQuizPrompt == nil && activeSportsPrompt == nil {
-                doubleTapLayer
-            }
+            doubleTapLayer
 
             if (!engine.isReady || engine.isBuffering) && !isSeeking {
                 QuickplayPlayerLoadingView()
@@ -63,18 +116,20 @@ struct QuickplayPlayerScreen: View {
                 .zIndex(60)
             }
 
-            if controlsVisible || isSeeking {
+            if (controlsVisible || isSeeking) && !showEpisodesPanel {
                 let insets = windowSafeArea
                 QuickplayPlayerControlsOverlay(
                     engine: engine,
                     title: content.title,
-                    subtitle: content.playerSubtitle,
+                    subtitle: content.episodeSubtitle(episodes: effectiveEpisodes, seasons: effectiveSeasons) ?? content.playerSubtitle,
                     contentType: content.contentType,
                     isSeeking: $isSeeking,
                     seekPosition: $seekPosition,
                     showQualityDialog: $showQualityDialog,
                     showSubtitleDialog: $showSubtitleDialog,
                     showSpeedSheet: $showSpeedSheet,
+                    showEpisodesPanel: $showEpisodesPanel,
+                    onPlayNextEpisode: nextEpisode.map { next in { onPlayEpisode?(next) } },
                     safeTop: insets.top,
                     safeLeading: insets.left,
                     safeTrailing: insets.right,
@@ -98,7 +153,7 @@ struct QuickplayPlayerScreen: View {
 
                 #if canImport(FLPlayerInterface)
                 if showSubtitleDialog {
-                    QuickplaySubtitleDialog(engine: engine, isPresented: $showSubtitleDialog)
+                    QuickplaySubtitleDialog(engine: engine, isPresented: $showSubtitleDialog, contentLanguage: content.contentLanguage)
                         .transition(.opacity)
                         .zIndex(20)
                 }
@@ -106,26 +161,53 @@ struct QuickplayPlayerScreen: View {
 
                 if showSpeedSheet {
                     SpeedSelectorView(engine: engine, isPresented: $showSpeedSheet)
-                        .transition(.opacity)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                         .zIndex(20)
                 }
 
-                if let activeQuizPrompt {
-                    PlayerQuizOverlayView(prompt: activeQuizPrompt) {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) { self.activeQuizPrompt = nil }
-                        scheduleHide()
-                    }
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .zIndex(40)
+                if showEpisodesPanel {
+                    PlayerEpisodesPanel(
+                        episodes: effectiveEpisodes,
+                        seasons: effectiveSeasons,
+                        selectedSeason: selectedSeason,
+                        currentContentId: content.contentId,
+                        isLoading: isLoadingEpisodes,
+                        isPresented: $showEpisodesPanel,
+                        onSelectSeason: { season in Task { await selectSeason(season) } },
+                        onSelectEpisode: { item in
+                            showEpisodesPanel = false
+                            onPlayEpisode?(item)
+                        }
+                    )
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(25)
                 }
 
-                if let activeSportsPrompt {
-                    PlayerSportsOverlayView(prompt: activeSportsPrompt) {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) { self.activeSportsPrompt = nil }
-                        scheduleHide()
+                if showNextEpisodeCard, let next = nextEpisode {
+                    let insets = windowSafeArea
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            NextEpisodeCard(
+                                next: next,
+                                onTap: {
+                                    nextEpisodeTask?.cancel()
+                                    showNextEpisodeCard = false
+                                    onPlayEpisode?(next)
+                                },
+                                onDismiss: {
+                                    nextEpisodeTask?.cancel()
+                                    withAnimation(.easeInOut(duration: 0.2)) { showNextEpisodeCard = false }
+                                }
+                            )
+                            .padding(.trailing, insets.right + 16)
+                        }
+                        .padding(.bottom, insets.bottom + 90)
                     }
                     .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .zIndex(40)
+                    .zIndex(35)
                 }
         }
         .ignoresSafeArea()
@@ -138,15 +220,23 @@ struct QuickplayPlayerScreen: View {
         .animation(.easeInOut(duration: 0.22), value: showSubtitleDialog)
         .animation(.easeInOut(duration: 0.22), value: showSpeedSheet)
         .animation(.easeInOut(duration: 0.18), value: seekFeedback)
-        .animation(.spring(response: 0.4, dampingFraction: 0.9), value: activeQuizPrompt)
-        .animation(.spring(response: 0.4, dampingFraction: 0.9), value: activeSportsPrompt)
-        .task { await engine.load(content: content); scheduleDemoQuizIfNeeded() }
-        .onAppear { lockLandscape() }
+        .animation(.spring(response: 0.4, dampingFraction: 0.88), value: showNextEpisodeCard)
+        .task {
+            if engine.loadedContentId != content.contentId {
+                await engine.load(content: content)
+            }
+            await loadEpisodesIfNeeded()
+            if selectedSeason == nil { selectedSeason = effectiveSeasons.first }
+        }
+        .onAppear {
+            lockLandscape()
+            engine.isFullscreenSurfaceActive = true
+        }
         .onDisappear {
             lockPortrait()
+            engine.isFullscreenSurfaceActive = false
             hideTask?.cancel()
-            quizDemoTask?.cancel()
-            engine.release()
+            nextEpisodeTask?.cancel()
         }
         .onChange(of: engine.isReady) { _, ready in
             guard ready else { return }
@@ -199,7 +289,55 @@ struct QuickplayPlayerScreen: View {
                 }
             }
         }
-        .onChange(of: engine.currentTime) { _, t in triggerQuizIfNeeded(at: t) }
+        .onChange(of: showEpisodesPanel) { _, showing in
+            if showing {
+                wasPlayingBeforeDialog = engine.isPlaying
+                engine.pause()
+                hideTask?.cancel()
+                controlsVisible = false
+            } else {
+                scheduleHide()
+                guard wasPlayingBeforeDialog else { return }
+                Task {
+                    try? await Task.sleep(for: .milliseconds(200))
+                    engine.play()
+                }
+            }
+        }
+        .onChange(of: engine.currentTime) { _, t in
+            guard !showNextEpisodeCard,
+                  engine.duration > 0,
+                  nextEpisode != nil,
+                  engine.duration - t <= 15 else { return }
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.88)) { showNextEpisodeCard = true }
+            nextEpisodeTask?.cancel()
+            nextEpisodeTask = Task {
+                try? await Task.sleep(for: .seconds(5))
+                guard !Task.isCancelled else { return }
+                await MainActor.run {
+                    guard let next = nextEpisode else { return }
+                    showNextEpisodeCard = false
+                    onPlayEpisode?(next)
+                }
+            }
+        }
+        .onChange(of: engine.isFinished) { _, finished in
+            guard finished, nextEpisode == nil else { return }
+            Task {
+                try? await Task.sleep(for: .seconds(1))
+                guard !Task.isCancelled else { return }
+                await MainActor.run { dismissPlayer() }
+            }
+        }
+        .onChange(of: content.contentId) { _, _ in
+            engine.release()
+            showNextEpisodeCard = false
+            nextEpisodeTask?.cancel()
+            loadedEpisodes = []
+            loadedSeasons = []
+            selectedSeason = nil
+            Task { await engine.load(content: content); await loadEpisodesIfNeeded() }
+        }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
             Self.logger.warning("⚠️ Memory warning — screen level | isReady=\(engine.isReady) isBuffering=\(engine.isBuffering) currentTime=\(String(format: "%.1f", engine.currentTime))s")
         }
@@ -333,7 +471,8 @@ struct QuickplayPlayerScreen: View {
                   !isSeeking,
                   !showQualityDialog,
                   !showSubtitleDialog,
-                  !showSpeedSheet else { return }
+                  !showSpeedSheet,
+                  !showEpisodesPanel else { return }
             await MainActor.run {
                 Self.logger.debug("[Controls] auto-hide fired")
                 withAnimation(.easeInOut(duration: 0.22)) { controlsVisible = false }
@@ -361,47 +500,6 @@ struct QuickplayPlayerScreen: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
-    // MARK: Quiz / Sports
-
-    private func scheduleDemoQuizIfNeeded() {
-        quizDemoTask?.cancel()
-        guard content.supportsTimedQuizOverlay || content.supportsSportsLiveOverlay else { return }
-        quizDemoTask = Task {
-            try? await Task.sleep(for: .seconds(5))
-            guard !Task.isCancelled else { return }
-            await MainActor.run {
-                if content.supportsTimedQuizOverlay { presentQuiz(bucket: 0) }
-                else if content.supportsSportsLiveOverlay { presentSportsPrompt(bucket: 0) }
-            }
-        }
-    }
-
-    private func triggerQuizIfNeeded(at t: Double) {
-        guard t >= 300 else { return }
-        let bucket = Int(t / 300)
-        guard bucket > 0 else { return }
-        if content.supportsTimedQuizOverlay, bucket != lastQuizBucket, activeQuizPrompt == nil, activeSportsPrompt == nil {
-            presentQuiz(bucket: bucket)
-        } else if content.supportsSportsLiveOverlay, bucket != lastSportsBucket, activeQuizPrompt == nil, activeSportsPrompt == nil {
-            presentSportsPrompt(bucket: bucket)
-        }
-    }
-
-    private func presentQuiz(bucket: Int) {
-        guard content.supportsTimedQuizOverlay, activeQuizPrompt == nil else { return }
-        lastQuizBucket = bucket; hideTask?.cancel()
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) {
-            controlsVisible = false; activeQuizPrompt = .golfDemo
-        }
-    }
-
-    private func presentSportsPrompt(bucket: Int) {
-        guard content.supportsSportsLiveOverlay, activeSportsPrompt == nil else { return }
-        lastSportsBucket = bucket; hideTask?.cancel()
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) {
-            controlsVisible = false; activeSportsPrompt = .matchDemo
-        }
-    }
 }
 
 // MARK: - Speed selector (full-screen snapping rail)
@@ -439,33 +537,39 @@ struct SpeedSelectorView: View {
     }
 
     var body: some View {
-        ZStack {
-            Rectangle()
-                .fill(.regularMaterial)
-                .overlay(Color.black.opacity(0.70))
-                .ignoresSafeArea()
+        let insets = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first(where: { $0.isKeyWindow })?.safeAreaInsets ?? .zero
 
-            ZStack(alignment: .topTrailing) {
-                // Rail — centered vertically, same horizontal insets as subtitle dialog
-                VStack(spacing: 0) {
-                    Spacer()
+        VStack(spacing: 0) {
+            Spacer()
+            VStack(spacing: 0) {
+                HStack(alignment: .center, spacing: 16) {
                     rail
-                    Spacer()
-                }
-                .padding(.leading, 56)
-                .padding(.trailing, 80)
+                        .padding(.leading, insets.left + 56)
 
-                Button { isPresented = false } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 56, height: 56)
-                        .contentShape(Rectangle())
+                    Button { isPresented = false } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 32, height: 32)
+                            .background(.white.opacity(0.12), in: Circle())
+                    }
+                    .buttonStyle(LiquidButtonPressStyle())
+                    .padding(.trailing, insets.right + 20)
                 }
-                .buttonStyle(LiquidButtonPressStyle())
-                .padding(.top, 16)
-                .padding(.trailing, 16)
+                .padding(.top, 20)
+
+                labels
+                    .padding(.leading, insets.left + 56)
+                    .padding(.trailing, insets.right + 80)
+                    .padding(.top, 14)
+                    .padding(.bottom, insets.bottom)
             }
+            .background(
+                Color(hex: "1A1A1A")
+                    .ignoresSafeArea(edges: .bottom)
+            )
         }
         .onAppear { selected = 1.0 }
     }
@@ -473,10 +577,7 @@ struct SpeedSelectorView: View {
     // MARK: Rail
 
     private var rail: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            track
-            labels
-        }
+        track
     }
 
     private var track: some View {
@@ -655,11 +756,42 @@ private struct QuickplayPlayerLoadingView: View {
 extension QuickplayPlaybackContent {
     var playerSubtitle: String? {
         var parts: [String] = []
-        if let seasonId { parts.append("S\(seasonId)") }
-        if let ep = episodeNumber { parts.append("E\(ep)") }
         if let genre { parts.append(genre) }
         if let rating { parts.append(rating) }
         return parts.isEmpty ? nil : parts.joined(separator: " • ")
+    }
+
+    func episodeSubtitle(episodes: [StorefrontItem], seasons: [ContentSeason]) -> String? {
+        guard contentType == .episode || contentType == .series || contentType == .show else { return nil }
+        var parts: [String] = []
+        if seasons.count > 1,
+           let seasonIdx = seasons.firstIndex(where: { $0.id == seasonId }) {
+            parts.append("S\(seasonIdx + 1)")
+        } else if !seasons.isEmpty {
+            parts.append("S1")
+        }
+        if let epIdx = episodes.firstIndex(where: { $0.id == contentId }) {
+            parts.append("E\(epIdx + 1)")
+        }
+        if let date = releaseDate, let formatted = Self.formatReleaseDate(date) {
+            parts.append(formatted)
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " • ")
+    }
+
+    private static func formatReleaseDate(_ raw: String) -> String? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        for format in ["yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd"] {
+            formatter.dateFormat = format
+            if let date = formatter.date(from: raw) {
+                let out = DateFormatter()
+                out.dateFormat = "MMM d, yyyy"
+                out.locale = Locale(identifier: "en_US")
+                return out.string(from: date)
+            }
+        }
+        return nil
     }
 
     var supportsTimedQuizOverlay: Bool {
@@ -795,6 +927,324 @@ private struct PlayerQuizOptionRow: View {
         if isLocked && isCorrect { return Color(hex: "62F59B") }
         if isLocked && isSelected { return Color(hex: "FF6A4B") }
         return .white.opacity(0.28)
+    }
+}
+
+// MARK: - Episodes Panel
+
+private struct PlayerEpisodesPanel: View {
+    let episodes: [StorefrontItem]
+    let seasons: [ContentSeason]
+    let selectedSeason: ContentSeason?
+    let currentContentId: String
+    let isLoading: Bool
+    @Binding var isPresented: Bool
+    let onSelectSeason: (ContentSeason) -> Void
+    let onSelectEpisode: (StorefrontItem) -> Void
+
+    private var safeInsets: UIEdgeInsets {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first(where: { $0.isKeyWindow })?.safeAreaInsets ?? .zero
+    }
+
+    var body: some View {
+        let insets = safeInsets
+        ZStack {
+            Color(hex: "141414")
+                .ignoresSafeArea()
+            
+            VStack(spacing: 12) {
+                // Header
+                HStack(alignment: .center) {
+                    if seasons.isEmpty {
+                        Text("Episodes")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.white)
+                    } else {
+                        Menu {
+                            ForEach(seasons) { season in
+                                Button {
+                                    onSelectSeason(season)
+                                } label: {
+                                    HStack {
+                                        Text(season.title)
+                                        if season.id == selectedSeason?.id {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Text(selectedSeason?.title ?? seasons.first?.title ?? "Episodes")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.white)
+                                if isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(.circular)
+                                        .scaleEffect(0.7)
+                                        .tint(.white)
+                                } else {
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                }
+                            }
+                            .padding(.horizontal, 14)
+                            .frame(height: 36)
+                            .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+                        }
+                    }
+                    Spacer()
+                    Button { isPresented = false } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 36, height: 36)
+                    }
+                    .buttonStyle(LiquidButtonPressStyle())
+                }
+                .padding(.leading, insets.left + 20)
+                .padding(.trailing, insets.right + 20)
+                .padding(.top, 20)
+                .padding(.bottom, 4)
+
+                // Episode list fills all remaining height
+                GeometryReader { geo in
+                    let hPad = insets.left + insets.right + 40
+                    let tileWidth = max(160, (geo.size.width - hPad - 3 * 16) / 4.0)
+                    if isLoading {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(alignment: .top, spacing: 16) {
+                                ForEach(0..<5, id: \.self) { _ in
+                                    EpisodeTileShimmer(tileWidth: tileWidth)
+                                }
+                            }
+                            .padding(.leading, insets.left + 20)
+                            .padding(.trailing, insets.right + 20)
+                            .padding(.bottom, insets.bottom + 16)
+                        }
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        ScrollViewReader { proxy in
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(alignment: .top, spacing: 16) {
+                                    ForEach(Array(episodes.enumerated()), id: \.element.id) { index, episode in
+                                        EpisodeTile(
+                                            episode: episode,
+                                            episodeNumber: index + 1,
+                                            isCurrent: episode.id == currentContentId,
+                                            tileWidth: tileWidth,
+                                            onTap: { onSelectEpisode(episode) }
+                                        )
+                                        .id(episode.id)
+                                    }
+                                }
+                                .padding(.leading, insets.left + 20)
+                                .padding(.trailing, insets.right + 20)
+                                .padding(.bottom, insets.bottom + 16)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .onAppear {
+                                if let id = episodes.first(where: { $0.id == currentContentId })?.id {
+                                    proxy.scrollTo(id, anchor: .leading)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+        }
+    }
+}
+
+// MARK: - Next Episode Card
+
+private struct NextEpisodeCard: View {
+    let next: StorefrontItem
+    let onTap: () -> Void
+    let onDismiss: () -> Void
+
+    @State private var fillProgress: CGFloat = 0
+
+    var body: some View {
+        Button(action: onTap) {
+            ZStack(alignment: .leading) {
+                // Background fill progress
+                GeometryReader { proxy in
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color.white.opacity(0.12))
+                        .frame(width: proxy.size.width * fillProgress)
+                }
+
+                HStack(spacing: 10) {
+                    // Thumbnail
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(Color.white.opacity(0.1))
+                        if let url = next.imageURL(for: "0-16x9", width: 160) {
+                            AsyncImage(url: url) { phase in
+                                if let img = phase.image {
+                                    img.resizable().scaledToFill()
+                                }
+                            }
+                            .clipped()
+                        }
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.85))
+                    }
+                    .frame(width: 68, height: 38)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Up Next")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.55))
+                        Text(next.title)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                    }
+
+                    Spacer(minLength: 8)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 10)
+            }
+            .frame(width: 260, height: 58)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color.white.opacity(0.18), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .onAppear {
+            withAnimation(.linear(duration: 5)) { fillProgress = 1.0 }
+        }
+    }
+}
+
+// MARK: - Episode Tile
+
+private struct EpisodeTile: View {
+    let episode: StorefrontItem
+    let episodeNumber: Int
+    let isCurrent: Bool
+    let tileWidth: CGFloat
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Thumbnail
+                ZStack {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color(hex: "2A2A2A"))
+                    if let url = episode.imageURL(for: "0-16x9", width: 320) {
+                        AsyncImage(url: url) { phase in
+                            if let img = phase.image {
+                                img.resizable().scaledToFill()
+                            }
+                        }
+                        .clipped()
+                    }
+                    if !isCurrent {
+                        ZStack {
+                            Circle()
+                                .fill(Color.black.opacity(0.55))
+                                .frame(width: 36, height: 36)
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(.white)
+                                .offset(x: 1)
+                        }
+                    }
+                    if let progress = episode.progress, progress > 0.01 {
+                        VStack {
+                            Spacer()
+                            GeometryReader { geo in
+                                ZStack(alignment: .leading) {
+                                    Rectangle().fill(Color.white.opacity(0.3)).frame(height: 3)
+                                    Rectangle().fill(Color.red).frame(width: geo.size.width * CGFloat(progress), height: 3)
+                                }
+                            }
+                            .frame(height: 3)
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                }
+                .frame(width: tileWidth, height: tileWidth * 9 / 16)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                Text("\(episodeNumber). \(episode.title)")
+                    .font(.system(size: 12, weight: isCurrent ? .semibold : .regular))
+                    .foregroundStyle(isCurrent ? .white : .white.opacity(0.55))
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 10)
+
+                Rectangle()
+                    .fill(Color.white.opacity(0.12))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 1)
+                    .padding(.top, 10)
+
+                if let runtime = episode.runtimeSeconds {
+                    Text("\(runtime / 60)m")
+                        .font(.system(size: 11))
+                        .foregroundStyle(isCurrent ? .white : .white.opacity(0.55))
+                        .padding(.top, 4)
+                }
+
+                Text(episode.description)
+                    .font(.system(size: 11))
+                    .foregroundStyle(isCurrent ? .white : .white.opacity(0.55))
+                    .lineLimit(6)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 4)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+            }
+            .frame(width: tileWidth)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct EpisodeTileShimmer: View {
+    let tileWidth: CGFloat
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ShimmerView()
+                .frame(width: tileWidth, height: tileWidth * 9 / 16)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+            ShimmerView()
+                .frame(width: tileWidth * 0.7, height: 12)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .padding(.top, 8)
+
+            ShimmerView()
+                .frame(width: tileWidth * 0.25, height: 11)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .padding(.top, 4)
+
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(0..<3, id: \.self) { i in
+                    ShimmerView()
+                        .frame(width: i == 2 ? tileWidth * 0.5 : tileWidth, height: 11)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
+            }
+            .padding(.top, 4)
+            .frame(minHeight: 48, alignment: .top)
+        }
+        .frame(width: tileWidth)
     }
 }
 
