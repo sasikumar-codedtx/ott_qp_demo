@@ -12,12 +12,11 @@ private struct SportsLiveChatMessage: Identifiable {
 }
 
 private let sportsLiveChatMessages: [SportsLiveChatMessage] = [
-    .init(id: "1", username: "cricket_fan99", text: "Bumrah on fire 🔥 hat-trick incoming??", avatarLetter: "C", colorHex: "E53935"),
-    .init(id: "2", username: "sports_live", text: "SL top order struggling badly 😬", avatarLetter: "S", colorHex: "1E88E5"),
-    .init(id: "3", username: "IND_supporter", text: "IND 210/5 in 20 overs, great target 💯 what a knock from Rohit!", avatarLetter: "I", colorHex: "43A047"),
-    .init(id: "4", username: "maxwellfan_", text: "Maxwell batting like a god rn!", avatarLetter: "M", colorHex: "FB8C00"),
-    .init(id: "5", username: "rohit_official", text: "Rohit anchored brilliantly today 🏏 captain's knock 💙", avatarLetter: "R", colorHex: "8E24AA"),
-    .init(id: "6", username: "cricket_world", text: "Close match! SL can still chase this 🤞", avatarLetter: "W", colorHex: "00897B"),
+    .init(id: "1", username: "Wisley",  text: "\"What a stunning six!\"", avatarLetter: "W", colorHex: "E53935"),
+    .init(id: "2", username: "Abhi",    text: "Fans are buzzing with excitement as India takes on Sri Lanka! \"What a match!\"", avatarLetter: "A", colorHex: "1E88E5"),
+    .init(id: "3", username: "Samson",  text: "Sri Lanka is putting up a good fight!", avatarLetter: "S", colorHex: "43A047"),
+    .init(id: "4", username: "Rohit",   text: "\"That was a brilliant boundary!\" one fan noted, while another added, \"I love the way our bowlers are performing today!\"", avatarLetter: "R", colorHex: "FB8C00"),
+    .init(id: "5", username: "James",   text: "\"What a stunning six!\"", avatarLetter: "J", colorHex: "8E24AA"),
 ]
 
 private struct ScorecardBatter: Identifiable {
@@ -119,18 +118,26 @@ struct ContentDetailView: View {
     @State private var momentAutoScrollToken = 0
     @FocusState private var isMomentSearchFocused: Bool
     // Sports interactive
-    @State private var selectedSportsTab = "Scorecard"
+    @State private var selectedSportsTab = "Live Feed"
     @State private var liveChatInput = ""
     @State private var liveChatDemoMessages: [SportsLiveChatMessage] = []
     @State private var sportsPollAnswer: String? = nil
     @State private var scorecardTeamTab = "India"
+    @State private var isTimeStampPresented = false
     @FocusState private var isChatInputFocused: Bool
     @State private var quizCountdown = 20
+    @State private var quizIsLocked = false   // true after user answers OR timer expires
     @State private var showQuizConfetti = false
 
     private let recommendationColumns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
     private let momentColumns = [GridItem(.flexible(), spacing: 10)]
     private let detailTabsAnchorID = "detail-tabs-anchor"
+    private var isShowingLiveFeedDock: Bool {
+        guard let detail = viewModel.detail else { return false }
+        let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
+        return kind == .sportsInteractive && selectedSportsTab == "Live Feed"
+    }
+
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .bottom) {
@@ -142,10 +149,8 @@ struct ContentDetailView: View {
                 }
 
                 if let detail = viewModel.detail, isMockInteractionPresented {
-                    let safeTop = proxy.safeAreaInsets.top
-                    let heroH = safeTop + 58 + proxy.size.width * 9 / 16
-                    let quizH = proxy.size.height - heroH
-                    // Bottom-pinned in the ZStack so it sits exactly below the hero
+                    let mediaH = proxy.size.width * 9 / 16
+                    let quizH  = proxy.size.height - mediaH
                     quizOverlay(detail: detail, width: proxy.size.width)
                         .frame(width: proxy.size.width, height: max(200, quizH))
                         .ignoresSafeArea(edges: .bottom)
@@ -155,37 +160,71 @@ struct ContentDetailView: View {
                             removal: .move(edge: .bottom).combined(with: .opacity)
                         ))
                 }
+
+                // Live Feed input dock — floats above keyboard
+                if isShowingLiveFeedDock {
+                    sportsLiveInputDock
+                        .padding(.bottom, max(keyboardHeight - proxy.safeAreaInsets.bottom, 0))
+                        .zIndex(10)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+
+                // Time Stamp panel
+                if isTimeStampPresented {
+                    timeStampOverlay
+                        .ignoresSafeArea(edges: .bottom)
+                        .zIndex(25)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .animation(.easeInOut(duration: 0.22), value: isMomentSearchOverlayPresented)
             .animation(.spring(response: 0.38, dampingFraction: 0.88), value: isMockInteractionPresented)
+            .animation(.spring(response: 0.38, dampingFraction: 0.88), value: isTimeStampPresented)
+            .animation(.easeInOut(duration: 0.18), value: isShowingLiveFeedDock)
+            // 3-phase quiz timer:
+            //   Phase 1 — Answer (20 s): quizCountdown 20→0, user may tap.
+            //   Phase 2 — Hold   (5 s):  quizIsLocked=true, quizCountdown 5→0, no input.
+            //   Phase 3 — Reveal (5 s):  mockInteractionShowsResult=true, quizCountdown 5→0, then dismiss.
             .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
-                guard isMockInteractionPresented, mockInteractionSelection == nil, !mockInteractionShowsResult else { return }
-                if quizCountdown > 0 {
-                    quizCountdown -= 1
-                } else {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        mockInteractionShowsResult = true
+                guard isMockInteractionPresented else { return }
+
+                if !quizIsLocked {
+                    // Answer phase
+                    if quizCountdown > 0 {
+                        quizCountdown -= 1
+                        let style: UIImpactFeedbackGenerator.FeedbackStyle = quizCountdown <= 5 ? .medium : .light
+                        UIImpactFeedbackGenerator(style: style).impactOccurred(intensity: quizCountdown <= 5 ? 0.85 : 0.4)
+                    } else {
+                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        withAnimation(.easeInOut(duration: 0.2)) { quizIsLocked = true }
+                        quizCountdown = 5
                     }
-                }
-            }
-            .onChange(of: isMockInteractionPresented) { _, isOn in
-                if isOn {
-                    quizCountdown = 20
-                    showQuizConfetti = false
-                }
-            }
-            .onChange(of: mockInteractionShowsResult) { _, shows in
-                guard shows else { return }
-                let correct = mockInteractionSelection.map { letter in
-                    Self.kbcQuizOptions.first(where: { $0.letter == letter })?.isCorrect ?? false
-                } ?? false
-                if correct { withAnimation { showQuizConfetti = true } }
-                Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(3))
-                    guard isMockInteractionPresented else { return }
-                    withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
-                        dismissMockInteraction()
+                } else if !mockInteractionShowsResult {
+                    // Hold phase
+                    if quizCountdown > 0 {
+                        quizCountdown -= 1
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred(intensity: 0.5)
+                    } else {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        let correct = mockInteractionSelection.map { l in
+                            Self.kbcQuizOptions.first(where: { $0.letter == l })?.isCorrect ?? false
+                        } ?? false
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            mockInteractionShowsResult = true
+                            if correct { showQuizConfetti = true }
+                        }
+                        quizCountdown = 5
+                    }
+                } else {
+                    // Reveal phase
+                    if quizCountdown > 0 {
+                        quizCountdown -= 1
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred(intensity: 0.3)
+                    } else {
+                        withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
+                            dismissMockInteraction()
+                        }
                     }
                 }
             }
@@ -222,28 +261,55 @@ struct ContentDetailView: View {
                 ScrollViewReader { scrollProxy in
                     ScrollView(.vertical, showsIndicators: false) {
                         LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
-                            Section {
-                                if kind == .sportsInteractive {
-                                    sportsDetailContent(detail, width: width)
+                            if kind == .sportsInteractive {
+                                // Section 1: Player header (pinned) + title/action buttons
+                                Section {
+                                    sportsAboveTabContent(detail, width: width)
                                         .padding(.horizontal, 16)
                                         .padding(.top, 8)
-                                } else {
+                                        .padding(.bottom, 4)
+                                } header: {
+                                    DetailInlinePlayerView(
+                                        engine: detailPlayerEngine,
+                                        content: playerContent,
+                                        posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
+                                        height: mediaHeight,
+                                        onFullscreen: { openFullPlayer(detail: detail) }
+                                    )
+                                }
+                                // Section 2: Tab bar (pinned) + tab content
+                                Section {
+                                    sportsTabContent(detail, width: width)
+                                        .padding(.horizontal, 16)
+                                        .padding(.top, 4)
+                                        .id(detailTabsAnchorID)
+                                } header: {
+                                    VStack(spacing: 0) {
+                                        sportsTabRow
+                                            .padding(.horizontal, 16)
+                                        Rectangle()
+                                            .fill(Color.white.opacity(0.12))
+                                            .frame(height: 1)
+                                    }
+                                    .background(Color(hex: "0A0A0A"))
+                                }
+                            } else {
+                                Section {
                                     detailContent(detail, kind: kind, width: width, screenHeight: height)
                                         .padding(.horizontal, 16)
                                         .padding(.top, 8)
+                                } header: {
+                                    DetailInlinePlayerView(
+                                        engine: detailPlayerEngine,
+                                        content: playerContent,
+                                        posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
+                                        height: mediaHeight,
+                                        onFullscreen: { openFullPlayer(detail: detail) }
+                                    )
                                 }
-                            } header: {
-                                DetailInlinePlayerView(
-                                    engine: detailPlayerEngine,
-                                    content: playerContent,
-                                    posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
-                                    height: mediaHeight,
-                                    onFullscreen: { openFullPlayer(detail: detail) }
-                                )
                             }
                         }
-                        .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 120 : 0)
-                        .padding(.bottom, 80)
+                        .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
                         .id("scrollTop")
                     }
                     .onChange(of: momentAutoScrollToken) { _, _ in
@@ -266,18 +332,13 @@ struct ContentDetailView: View {
                             }
                         }
                     }
-                    .safeAreaInset(edge: .bottom, spacing: 0) {
-                        if kind == .sportsInteractive && selectedSportsTab == "Live Feed" {
-                            sportsLiveInputDock
-                        }
-                    }
                 }
                 .clipped()
                 .zIndex(2)
 
             }
         } else if viewModel.isLoading {
-            LoadingView()
+            detailLoadingShimmer(width: width)
         } else {
             ErrorView(
                 title: AppStrings.Detail.unavailableTitle,
@@ -286,6 +347,52 @@ struct ContentDetailView: View {
                     Task { await viewModel.load() }
                 }
             )
+        }
+    }
+
+    // Skeleton shimmer that mirrors the real layout — hero block at top, then content rows.
+    // Keeps the eye anchored to where actual content will appear instead of floating at y=0.
+    private func detailLoadingShimmer(width: CGFloat) -> some View {
+        let heroH = heroHeight(for: width)
+        return ZStack(alignment: .top) {
+            Color(hex: "0A0A0A").ignoresSafeArea()
+            VStack(alignment: .leading, spacing: 0) {
+                // Hero-sized shimmer block — matches the tall poster area
+                ShimmerView()
+                    .frame(width: width, height: heroH)
+
+                // Content shimmer — below the hero, same vertical start as regular detailContent
+                VStack(alignment: .leading, spacing: 14) {
+                    // Title shimmer
+                    ShimmerView()
+                        .frame(height: 34)
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    ShimmerView()
+                        .frame(width: width * 0.55, height: 34)
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+
+                    // Meta line shimmer
+                    ShimmerView()
+                        .frame(width: width * 0.4, height: 14)
+                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+
+                    // Watch button shimmer
+                    ShimmerView()
+                        .frame(height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+                    // Description shimmer lines
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach([1.0, 0.88, 0.72] as [CGFloat], id: \.self) { fraction in
+                            ShimmerView()
+                                .frame(width: width * fraction, height: 12)
+                                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 28)
+            }
         }
     }
 
@@ -403,11 +510,11 @@ struct ContentDetailView: View {
         }
     }
 
-    // MARK: - Sports Detail (tab-based, Figma-accurate)
+    // MARK: - Sports Detail
 
-    private func sportsDetailContent(_ detail: ContentDetail, width: CGFloat) -> some View {
+    // Title + action buttons only — the tab bar is a separate pinned Section header
+    private func sportsAboveTabContent(_ detail: ContentDetail, width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Series description
             VStack(alignment: .leading, spacing: 6) {
                 Text(detail.title)
                     .font(.system(size: 20, weight: .bold))
@@ -421,28 +528,19 @@ struct ContentDetailView: View {
                     .lineLimit(2)
             }
 
-            // 3 action buttons (notification, schedule, AI search)
+            // 3 action buttons: alert | time stamp | AI sparkles
             HStack(spacing: 8) {
                 DetailActionButton(systemImage: "bell.fill", cornerStyle: .leading, action: {})
-                DetailActionButton(systemImage: "list.bullet.rectangle", action: {})
+                DetailActionButton(systemImage: "list.bullet.rectangle") {
+                    withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
+                        isTimeStampPresented = true
+                    }
+                }
                 DetailActionButton(systemImage: AppIcons.Action.sparkles, cornerStyle: .trailing, isHighlighted: true) {
                     presentMomentSearchOverlay(for: detail)
                 }
             }
             .padding(.top, 14)
-
-            // Tab bar
-            sportsTabRow
-                .id(detailTabsAnchorID)
-                .padding(.top, 20)
-
-            Rectangle()
-                .fill(Color.white.opacity(0.12))
-                .frame(height: 1)
-
-            // Tab content
-            sportsTabContent(detail, width: width)
-                .padding(.top, 4)
         }
     }
 
@@ -485,7 +583,7 @@ struct ContentDetailView: View {
         case "Scorecard":
             sportsScorecardTab
         case "Key Moments":
-            momentsSection(detail)
+            sportsKeyMomentsTab(width: width)
         default:
             recommendationSection(width: width)
         }
@@ -525,7 +623,7 @@ struct ContentDetailView: View {
         }
     }
 
-    // Fixed input dock (pinned to bottom via safeAreaInset on the ScrollView)
+    // Live Feed input dock — floats above keyboard in the outer ZStack
     private var sportsLiveInputDock: some View {
         VStack(spacing: 0) {
             Rectangle()
@@ -637,7 +735,7 @@ struct ContentDetailView: View {
                     .foregroundStyle(Color(hex: "FFD166"))
             }
 
-            Text("Will SL cross 150 in this innings?")
+            Text("Will S Gill hit a six in next over?")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.white)
 
@@ -697,6 +795,230 @@ struct ContentDetailView: View {
         }
         .disabled(isLocked)
         .buttonStyle(LiquidButtonPressStyle())
+    }
+
+    // MARK: Key Moments tab
+
+    private struct KeyMoment: Identifiable {
+        let id: String
+        let title: String
+        let caption: String
+    }
+
+    private let sportsKeyMoments: [KeyMoment] = [
+        .init(id: "1", title: "Six Of The Day",          caption: "S Gill hits a massive six"),
+        .init(id: "2", title: "75 Meter Six",             caption: "Jaw-dropping hit by S Gill"),
+        .init(id: "3", title: "Bumrah's Wicket",          caption: "D Wellalage caught behind"),
+        .init(id: "4", title: "Rohit Fifty",              caption: "Captain's knock in 42 balls"),
+    ]
+
+    private func sportsKeyMomentsTab(width: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Featured moment chip
+            Button {
+                withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
+                    isTimeStampPresented = true
+                }
+            } label: {
+                HStack(spacing: 10) {
+                    Text("S Gill six")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.white)
+                    Spacer(minLength: 0)
+                    ZStack {
+                        Circle()
+                            .fill(LinearGradient(
+                                colors: [Color(hex: "A855F7"), Color(hex: "7C3AED")],
+                                startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 32, height: 32)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .frame(height: 52)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.white.opacity(0.07))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .stroke(Color(hex: "A855F7").opacity(0.4), lineWidth: 1)
+                        )
+                )
+            }
+            .buttonStyle(LiquidButtonPressStyle())
+            .padding(.top, 8)
+
+            // Full-width video moment cards
+            ForEach(sportsKeyMoments) { moment in
+                keyMomentCard(moment, width: width)
+            }
+        }
+        .padding(.bottom, 20)
+    }
+
+    private func keyMomentCard(_ moment: KeyMoment, width: CGFloat) -> some View {
+        let cardHeight = (width - 32) * 9 / 16
+        return ZStack(alignment: .bottomLeading) {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(hex: "1A1A2E"))
+
+            LinearGradient(
+                colors: [Color.black.opacity(0), Color.black.opacity(0.72)],
+                startPoint: .center,
+                endPoint: .bottom
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            // Play button
+            ZStack {
+                Circle()
+                    .fill(Color.white.opacity(0.88))
+                    .frame(width: 48, height: 48)
+                Image(systemName: "play.fill")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Color.black.opacity(0.8))
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(moment.title)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(.white)
+                Text(moment.caption)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.72))
+            }
+            .padding(12)
+        }
+        .frame(height: cardHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+        )
+    }
+
+    // MARK: Time Stamp overlay (node 18-60305)
+
+    private struct TimeStampItem: Identifiable {
+        let id: String
+        let title: String
+        let time: String
+    }
+
+    private let timeStampItems: [TimeStampItem] = [
+        .init(id: "1", title: "Virat Hits 4",                    time: "2:30"),
+        .init(id: "2", title: "Vaiabhav suriyavanshi hits 6",    time: "4:50"),
+        .init(id: "3", title: "Rohit Sharma scores a boundary",  time: "5:30"),
+        .init(id: "4", title: "Kohli takes a six",               time: "6:00"),
+        .init(id: "5", title: "Virat took 2 runs",               time: "7:15"),
+    ]
+
+    private var timeStampOverlay: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: 0) {
+                // Handle
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .fill(Color.white.opacity(0.3))
+                    .frame(width: 36, height: 4)
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
+
+                // Header
+                HStack {
+                    Text("Time Stamp")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(.white)
+                    Spacer()
+                    Button {
+                        withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
+                            isTimeStampPresented = false
+                        }
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.12))
+                                .frame(width: 32, height: 32)
+                            Image(systemName: "xmark")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(.white.opacity(0.72))
+                        }
+                    }
+                    .buttonStyle(LiquidButtonPressStyle())
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 16)
+
+                // Moment list
+                ForEach(timeStampItems) { item in
+                    timeStampRow(item)
+                    if item.id != timeStampItems.last?.id {
+                        Rectangle()
+                            .fill(Color.white.opacity(0.06))
+                            .frame(height: 1)
+                            .padding(.horizontal, 20)
+                    }
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color(hex: "111111"))
+                    .ignoresSafeArea(edges: .bottom)
+            )
+            .onTapGesture { } // block tap-through
+        }
+        .background(
+            Color.black.opacity(0.5)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
+                        isTimeStampPresented = false
+                    }
+                }
+        )
+    }
+
+    private func timeStampRow(_ item: TimeStampItem) -> some View {
+        HStack(spacing: 14) {
+            // Thumbnail placeholder
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color(hex: "1A2A3A"))
+                Image(systemName: "play.fill")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.6))
+            }
+            .frame(width: 100, height: 70)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                // Time badge
+                Text(item.time)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(
+                        Capsule()
+                            .fill(Color(hex: "0EA5E9"))
+                    )
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+        .onTapGesture { }
     }
 
     // MARK: Scorecard tab
@@ -1412,9 +1734,11 @@ struct ContentDetailView: View {
     }
 
     private func presentMockInteraction() {
+        quizIsLocked = false
+        quizCountdown = 20
         mockInteractionSelection = nil
         mockInteractionShowsResult = false
-
+        showQuizConfetti = false
         withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
             isMockInteractionPresented = true
         }
@@ -1422,21 +1746,19 @@ struct ContentDetailView: View {
 
     private func dismissMockInteraction() {
         isMockInteractionPresented = false
+        quizIsLocked = false
+        quizCountdown = 20
         mockInteractionSelection = nil
         mockInteractionShowsResult = false
+        showQuizConfetti = false
     }
 
     private func answerMockInteraction(_ letter: String) {
-        guard mockInteractionSelection == nil, !mockInteractionShowsResult else { return }
+        guard !quizIsLocked else { return }
         withAnimation(.easeInOut(duration: 0.18)) {
             mockInteractionSelection = letter
-        }
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(3))
-            guard isMockInteractionPresented else { return }
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                mockInteractionShowsResult = true
-            }
+            quizIsLocked = true   // lock immediately; timer takes over for 5-s hold
+            quizCountdown = 5
         }
     }
 
@@ -1477,7 +1799,7 @@ struct ContentDetailView: View {
 
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 0) {
-                    // Header: score + countdown + dismiss
+                    // Header: score + countdown
                     HStack(alignment: .center, spacing: 0) {
                         HStack(spacing: 8) {
                             ZStack(alignment: .topLeading) {
@@ -1506,14 +1828,8 @@ struct ContentDetailView: View {
                         kbcCountdownCircle
                         Spacer()
 
-                        Button { dismissMockInteraction() } label: {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(.white)
-                                .frame(width: 34, height: 34)
-                                .background(Circle().fill(Color.white.opacity(0.12)))
-                        }
-                        .buttonStyle(LiquidButtonPressStyle())
+                        // Placeholder to keep crown+score balanced against the centre circle
+                        Color.clear.frame(width: 34, height: 34)
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 18)
@@ -1560,6 +1876,9 @@ struct ContentDetailView: View {
     }
 
     // ── Animated countdown circle ──────────────────────────────────────────
+    // Phase 1 (answer, !quizIsLocked): arc 20→0, orange→red number.
+    // Phase 2 (hold,   quizIsLocked && !showsResult): lock icon, white arc draining 5→0.
+    // Phase 3 (reveal, showsResult): hidden — results speak for themselves.
     private var kbcCountdownCircle: some View {
         ZStack {
             Circle()
@@ -1572,20 +1891,46 @@ struct ContentDetailView: View {
                 .frame(width: 52, height: 52)
                 .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 2))
 
-            Circle()
-                .trim(from: 0, to: CGFloat(quizCountdown) / 20.0)
-                .stroke(
-                    quizCountdown > 5 ? Color(hex: "FFAC33") : Color(hex: "FF3B30"),
-                    style: StrokeStyle(lineWidth: 3, lineCap: .round)
-                )
-                .frame(width: 46, height: 46)
-                .rotationEffect(.degrees(-90))
-                .animation(.linear(duration: 1), value: quizCountdown)
+            if mockInteractionShowsResult {
+                // Reveal phase — blank circle, no arc
+                EmptyView()
+            } else if quizIsLocked {
+                // Hold phase — white draining arc + lock icon
+                Circle()
+                    .trim(from: 0, to: CGFloat(quizCountdown) / 5.0)
+                    .stroke(Color.white.opacity(0.7), style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .frame(width: 46, height: 46)
+                    .rotationEffect(.degrees(-90))
+                    .animation(.linear(duration: 1), value: quizCountdown)
 
-            Text("\(quizCountdown)")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(quizCountdown > 5 ? .white : Color(hex: "FF3B30"))
-                .animation(.none, value: quizCountdown)
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.8))
+            } else {
+                // Answer phase — orange/red arc + countdown number
+                Circle()
+                    .trim(from: 0, to: CGFloat(quizCountdown) / 20.0)
+                    .stroke(
+                        quizCountdown > 5 ? Color(hex: "FFAC33") : Color(hex: "FF3B30"),
+                        style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                    )
+                    .frame(width: 46, height: 46)
+                    .rotationEffect(.degrees(-90))
+                    .animation(.linear(duration: 1), value: quizCountdown)
+
+                // New identity each second → transition fires a pop-scale animation
+                Text("\(quizCountdown)")
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundStyle(quizCountdown > 5 ? .white : Color(hex: "FF3B30"))
+                    .id(quizCountdown)
+                    .transition(
+                        .asymmetric(
+                            insertion: .scale(scale: 1.5).combined(with: .opacity),
+                            removal: .scale(scale: 0.6).combined(with: .opacity)
+                        )
+                    )
+                    .animation(.spring(response: 0.28, dampingFraction: 0.62), value: quizCountdown)
+            }
         }
         .frame(width: 52, height: 52)
     }
@@ -1594,25 +1939,24 @@ struct ContentDetailView: View {
     private func kbcOptionRow(_ letter: String, text: String, isCorrect: Bool,
                                screenWidth: CGFloat, hexW: CGFloat) -> some View {
         let isSelected = mockInteractionSelection == letter
-        let isLocked   = mockInteractionSelection != nil
+        let isLocked   = quizIsLocked   // true when timer expires OR user taps
         let showResult = mockInteractionShowsResult
 
         let hexFill: Color = {
             if showResult {
                 if isCorrect { return Color(hex: "22C55E") }
                 if isSelected { return Color(hex: "EF4444") }
-            } else if isSelected && !isLocked {
+            } else if isSelected {
+                // Keep the selection highlight through the hold phase
                 return Color(hex: "E48820")
-            } else if isSelected && isLocked {
-                return Color(hex: "555566")
             }
             return Color(hex: "000001").opacity(0.95)
         }()
 
         let hexStroke: Color = {
-            if isSelected && !isLocked { return Color(hex: "E48820") }
             if showResult && isCorrect  { return Color(hex: "22C55E") }
             if showResult && isSelected { return Color(hex: "EF4444") }
+            if isSelected { return Color(hex: "E48820") }
             return Color.white.opacity(0.25)
         }()
 

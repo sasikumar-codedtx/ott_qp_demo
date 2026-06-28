@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import Kingfisher
 import UIKit
 
 @MainActor
@@ -140,11 +141,14 @@ final class StorefrontViewModel: ObservableObject {
             let selectedTabID,
             let cache = tabCache[selectedTabID],
             !isLoadingMore,
-            cache.hasMore,
-            cache.sections.last?.id == currentSectionID
-        else {
-            return
-        }
+            cache.hasMore
+        else { return }
+
+        // Trigger next-page fetch when the user reaches any of the last 3 sections,
+        // not just the very last one — avoids the visible gap/spinner at the end.
+        guard let currentIndex = cache.sections.firstIndex(where: { $0.id == currentSectionID }) else { return }
+        let remaining = cache.sections.distance(from: currentIndex, to: cache.sections.endIndex)
+        guard remaining <= 3 else { return }
 
         await load(
             storefrontID: storefrontID,
@@ -152,6 +156,23 @@ final class StorefrontViewModel: ObservableObject {
             pageNumber: cache.nextPage,
             append: true
         )
+    }
+
+    // Prefetch card images for the sections just ahead of the visible one so they are
+    // already in memory when the cells scroll into view.
+    func prefetchImages(afterSectionID sectionID: String) {
+        guard let currentIndex = sections.firstIndex(where: { $0.id == sectionID }) else { return }
+        let upcoming = sections.dropFirst(currentIndex + 1).prefix(3)
+        let urls = upcoming.flatMap(\.items).compactMap { item in
+            item.imageURL(for: "0-16x9", width: 960)
+        }
+        guard !urls.isEmpty else { return }
+        let prefetcher = ImagePrefetcher(
+            urls: urls,
+            options: [.scaleFactor(UIScreen.main.scale), .backgroundDecode]
+        )
+        prefetcher.maxConcurrentDownloads = 3
+        prefetcher.start()
     }
 
     private func load(storefrontID: String?, tabID: String?, pageNumber: Int, append: Bool) async {

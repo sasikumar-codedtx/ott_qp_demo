@@ -11,6 +11,12 @@ enum ImageCacheManager {
         cache.memoryStorage.config.expiration = .seconds(600)
         cache.diskStorage.config.sizeLimit = diskLimitBytes
         cache.diskStorage.config.expiration = .days(30)
+
+        // Cap concurrent image downloads per host so fast scrolling doesn't saturate
+        // bandwidth and make every visible card appear to load simultaneously.
+        let sessionConfig = URLSessionConfiguration.default
+        sessionConfig.httpMaximumConnectionsPerHost = 4
+        KingfisherManager.shared.downloader.sessionConfiguration = sessionConfig
     }
 
     static func clear(completion: @escaping () -> Void = {}) {

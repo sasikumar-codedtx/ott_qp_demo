@@ -159,11 +159,13 @@ struct StorefrontView: View {
                                     }
                                 }
                             )
-                                .onAppear {
-                                    Task {
-                                        await viewModel.loadMoreIfNeeded(currentSectionID: section.id)
-                                    }
+                            .onAppear {
+                                Task {
+                                    await viewModel.loadMoreIfNeeded(currentSectionID: section.id)
                                 }
+                                // Prefetch images for upcoming sections while the user reads the current one
+                                viewModel.prefetchImages(afterSectionID: section.id)
+                            }
                         }
 
                         if viewModel.isLoadingMore {
