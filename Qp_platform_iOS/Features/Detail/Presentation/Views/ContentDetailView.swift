@@ -284,7 +284,11 @@ struct ContentDetailView: View {
     private func content(width: CGFloat, height: CGFloat, safeAreaTop: CGFloat) -> some View {
         if let detail = viewModel.detail {
             let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
-            let playerContent = detail.quickplayPlaybackContent(fallback: viewModel.seed)
+            // For series/season types the series ID is not a valid playable content ID —
+            // wait until the first episode is available and use its ID instead.
+            let resolvedPlayerContent: QuickplayPlaybackContent? = detail.supportsEpisodes
+                ? viewModel.episodes.first?.quickplayPlaybackContent()
+                : detail.quickplayPlaybackContent(fallback: viewModel.seed)
             let navBarHeight: CGFloat = 58
             let headerHeight: CGFloat = isVideoReady
                 ? safeAreaTop + navBarHeight + width * 9 / 16
@@ -296,6 +300,7 @@ struct ContentDetailView: View {
                 // Player sits OUTSIDE the ScrollView — it is truly fixed and never moves.
                 // VStack with ignoresSafeArea(edges:.top) makes it start at absolute y=0.
                 VStack(spacing: 0) {
+                    if let playerContent = resolvedPlayerContent {
                     DetailInlinePlayerView(
                         engine: engine,
                         content: playerContent,
@@ -305,6 +310,15 @@ struct ContentDetailView: View {
                         navBarHeight: navBarHeight,
                         onFullscreen: { openFullPlayer(detail: detail) }
                     )
+                    } else {
+                        // Episodes not yet loaded — show static poster until first episode is ready
+                        PosterImageView(
+                            url: detail.imageURL(for: "0-2x3", width: Int(width * 3)),
+                            size: CGSize(width: width, height: headerHeight),
+                            cornerRadius: 0
+                        )
+                        .frame(height: headerHeight)
+                    }
 
                     ScrollView(.vertical, showsIndicators: false) {
                         scrollableBody(detail, kind: kind, width: width)

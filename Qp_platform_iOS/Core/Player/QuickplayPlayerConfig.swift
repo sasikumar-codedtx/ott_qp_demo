@@ -14,6 +14,7 @@ struct QuickplayPlayerConfig {
     let streamConcurrencyEndpoint: String
     let imageResizerURL: String
     let defaultQpat: String
+    let bookmarkURL: String
     let bookmarkSyncIntervalMs: TimeInterval
 
     init(
@@ -30,6 +31,7 @@ struct QuickplayPlayerConfig {
         streamConcurrencyEndpoint: String,
         imageResizerURL: String,
         defaultQpat: String,
+        bookmarkURL: String = "",
         bookmarkSyncIntervalMs: TimeInterval = 60000
     ) {
         self.oauthEndpoint = oauthEndpoint
@@ -45,6 +47,7 @@ struct QuickplayPlayerConfig {
         self.streamConcurrencyEndpoint = streamConcurrencyEndpoint
         self.imageResizerURL = imageResizerURL
         self.defaultQpat = defaultQpat
+        self.bookmarkURL = bookmarkURL
         self.bookmarkSyncIntervalMs = bookmarkSyncIntervalMs
     }
 
@@ -63,6 +66,7 @@ struct QuickplayPlayerConfig {
             streamConcurrencyEndpoint: config.streamConcurrencyURL,
             imageResizerURL: config.imageResizeURL,
             defaultQpat: config.defaultQpat,
+            bookmarkURL: config.bookmarkURL,
             bookmarkSyncIntervalMs: config.bookmarkSyncIntervalMs
         )
     }

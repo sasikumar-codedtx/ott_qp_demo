@@ -20,9 +20,17 @@ struct Qp_platform_iOSApp: App {
 
     init() {
         ImageCacheManager.configure()
+        configureAppearance()
         Task {
             _ = await QuickplayConfigurationStore.shared.current()
         }
+    }
+
+    private func configureAppearance() {
+        let toolbar = UIToolbar.appearance()
+        toolbar.barTintColor = UIColor(red: 17/255, green: 17/255, blue: 17/255, alpha: 1)
+        toolbar.tintColor = .white
+        toolbar.isTranslucent = false
     }
 
     var body: some Scene {

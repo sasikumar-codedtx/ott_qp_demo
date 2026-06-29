@@ -72,7 +72,8 @@ struct ContentDetail: Equatable {
     }
 
     var supportsEpisodes: Bool {
-        ["webepisode", "webseries", "tvepisode", "tvseries", "series"].contains(contentType.lowercased())
+        ["webepisode", "webseries", "tvepisode", "tvseries", "series",
+         "tvseason", "webseason", "season", "seasons"].contains(contentType.lowercased())
     }
 
     var episodeSeriesId: String {

@@ -89,7 +89,6 @@ struct StorefrontImmersiveHeroView: View {
                     .font(.system(size: 34, weight: .black))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.white)
-                    .lineLimit(2)
                     .minimumScaleFactor(0.7)
                     .padding(.horizontal, 30)
 

@@ -298,17 +298,28 @@ final class QuickplayPlayerEngine: ObservableObject {
         config: QuickplayPlayerConfig,
         player: any FLPlayerInterface.Player
     ) {
-        guard let authorizer = QuickplayAuthRegistry.shared.platformAuthorizer else { return }
+        guard let authorizer = QuickplayAuthRegistry.shared.platformAuthorizer else {
+            print("[Bookmarks] skipped — no platform authorizer")
+            return
+        }
+
+        let endPoint = config.bookmarkURL
+        guard !endPoint.isEmpty else {
+            print("[Bookmarks] skipped — bookmarkURL is empty (check remote config 'bookmarkURL')")
+            return
+        }
+
+        print("[Bookmarks] starting — endPoint=\(endPoint) syncInterval=\(config.bookmarkSyncIntervalMs)ms contentId=\(content.contentId)")
 
         let bookmarkConfig = FLBookmarksFactory.bookmarkSessionConfiguration(
-            endPoint: config.contentAuthEndpoint,
+            endPoint: endPoint,
             bookmarkSyncInterval: config.bookmarkSyncIntervalMs
         )
         let attributes = BookmarkAttributes(
             itemId: content.contentId,
             seasonId: content.seasonId,
             episodeId: content.contentType == .episode ? content.contentId : nil,
-            contentType: content.contentType.catalogType
+            contentType: content.rawContentType
         )
         let manager = FLBookmarksFactory.bookmarksManager(
             configuration: bookmarkConfig,

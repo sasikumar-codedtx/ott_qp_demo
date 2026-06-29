@@ -181,6 +181,11 @@ actor DemoSessionStore {
         Array((continueWatchingByProfile[historyKey] ?? []).prefix(limit))
     }
 
+    func continueWatchingItems(for profileID: UUID?, limit: Int = 20) -> [StorefrontItem] {
+        let key = profileID?.uuidString ?? "guest"
+        return Array((continueWatchingByProfile[key] ?? []).prefix(limit))
+    }
+
     func favoriteItems(limit: Int = 20) -> [StorefrontItem] {
         Array((favoritesByProfile[historyKey] ?? []).prefix(limit))
     }

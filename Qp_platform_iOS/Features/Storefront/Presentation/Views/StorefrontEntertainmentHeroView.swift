@@ -164,7 +164,6 @@ struct StorefrontEntertainmentHeroView: View {
                 .tracking(5.8)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.white)
-                .lineLimit(2)
                 .minimumScaleFactor(0.65)
                 .padding(.horizontal, 18)
         }

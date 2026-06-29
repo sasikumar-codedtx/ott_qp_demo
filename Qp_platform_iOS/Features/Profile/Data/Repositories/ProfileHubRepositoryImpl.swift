@@ -2,7 +2,7 @@ import Foundation
 
 final class ProfileHubRepositoryImpl: ProfileHubRepository {
     func fetchHome(profile: Profile?, seedItems: [StorefrontItem]) async throws -> ProfileHomeData {
-        let continueWatchingItems = await DemoSessionStore.shared.continueWatchingItems(limit: 10)
+        let continueWatchingItems = await DemoSessionStore.shared.continueWatchingItems(for: profile?.id, limit: 10)
         let persistedFavorites = await DemoSessionStore.shared.favoriteItems(limit: 10)
         let sourceItems: [StorefrontItem]
         if profile?.isKidsProfile == true {

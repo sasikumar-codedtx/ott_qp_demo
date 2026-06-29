@@ -83,12 +83,23 @@ final class QuickplayAuthRegistry {
             throw QuickplayPlayerError.authFailed("Content authorizer is not enrolled")
         }
 
-        let asset = FLContentAuthorizerFactory.vodPlatformAsset(
-            contentId: content.contentId,
-            catalogType: content.contentType.catalogType,
-            mediaFormat: .hls,
-            drm: .fairplay
-        )
+        let asset: any PlatformAsset
+        if content.contentType == .channel {
+            asset = FLContentAuthorizerFactory.livePlatformAsset(
+                contentId: content.contentId,
+                catalogType: content.rawContentType,
+                mediaFormat: .hls,
+                drm: .fairplay,
+                custom: ["enableSsai": "true"]
+            )
+        } else {
+            asset = FLContentAuthorizerFactory.vodPlatformAsset(
+                contentId: content.contentId,
+                catalogType: content.rawContentType,
+                mediaFormat: .hls,
+                drm: .fairplay
+            )
+        }
 
         return try await withCheckedThrowingContinuation { continuation in
             contentAuthorizer.authorizeContent(asset: asset, delivery: .streaming) { result in

@@ -228,7 +228,6 @@ struct StorefrontSportsHeroView: View {
                 Text(item.title)
                     .font(.system(size: 20, weight: .bold))
                     .foregroundStyle(.white)
-                    .lineLimit(2)
 
                 if let meta = item.primaryMetaText.nilIfEmpty {
                     Text(meta)

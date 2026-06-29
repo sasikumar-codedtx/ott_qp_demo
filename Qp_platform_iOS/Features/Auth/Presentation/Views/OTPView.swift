@@ -215,6 +215,14 @@ struct OTPView: View {
         .keyboardType(.numberPad)
         .textContentType(.oneTimeCode)
         .focused($isOTPFieldFocused)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { isOTPFieldFocused = false }
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+        }
         .opacity(0.01)
         .frame(width: 1, height: 1)
         .position(x: 1, y: 1)

@@ -12,6 +12,7 @@ struct QuickplayPlayerControlsOverlay: View {
     @Binding var showSubtitleDialog: Bool
     @Binding var showSpeedSheet: Bool
     @Binding var showEpisodesPanel: Bool
+    let seekFeedback: SeekFeedback?
     let onPlayNextEpisode: (() -> Void)?
     let safeTop: CGFloat
     let safeLeading: CGFloat
@@ -30,7 +31,10 @@ struct QuickplayPlayerControlsOverlay: View {
             VStack(spacing: 0) {
                 if !isSeeking { topBar }
                 Spacer()
-                if !isSeeking && engine.isReady && !engine.isBuffering { centerControls }
+                ZStack {
+                    if !isSeeking && engine.isReady && !engine.isBuffering { centerControls }
+                    if let feedback = seekFeedback { seekFeedbackRow(feedback) }
+                }
                 Spacer()
                 bottomArea
             }
@@ -96,33 +100,52 @@ struct QuickplayPlayerControlsOverlay: View {
         .padding(.top, 20)
     }
 
+    // MARK: Seek feedback (text only, aligned with center controls)
+
+    private func seekFeedbackRow(_ feedback: SeekFeedback) -> some View {
+        HStack {
+            if feedback.side == .forward { Spacer() }
+            Text(feedback.side == .backward ? "-\(feedback.amount)s" : "+\(feedback.amount)s")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 52)
+            if feedback.side == .backward { Spacer() }
+        }
+    }
+
+    private var isLive: Bool { contentType == .channel }
+
     // MARK: Center — skip ±15s + play/pause
 
     private var centerControls: some View {
         HStack(spacing: 52) {
-            Button { engine.seek(to: max(0, engine.currentTime - 15)) } label: {
-                Image("Icon_Rewind15")
-                    .renderingMode(.template)
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundStyle(.white.opacity(0.9))
-                    .frame(width: 40, height: 40)
+            if !isLive {
+                Button { engine.seek(to: max(0, engine.currentTime - 15)) } label: {
+                    Image("Icon_Rewind15")
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundStyle(.white.opacity(0.9))
+                        .frame(width: 40, height: 40)
+                }
+                .buttonStyle(LiquidButtonPressStyle())
             }
-            .buttonStyle(LiquidButtonPressStyle())
 
             PlayPauseMorphButton(isPlaying: engine.isPlaying, size: 72) {
                 engine.togglePlayPause()
             }
 
-            Button { engine.seek(to: min(engine.duration, engine.currentTime + 15)) } label: {
-                Image("Icon_Forward15")
-                    .renderingMode(.template)
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundStyle(.white.opacity(0.9))
-                    .frame(width: 40, height: 40)
+            if !isLive {
+                Button { engine.seek(to: min(engine.duration, engine.currentTime + 15)) } label: {
+                    Image("Icon_Forward15")
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundStyle(.white.opacity(0.9))
+                        .frame(width: 40, height: 40)
+                }
+                .buttonStyle(LiquidButtonPressStyle())
             }
-            .buttonStyle(LiquidButtonPressStyle())
         }
     }
 
@@ -196,15 +219,28 @@ struct QuickplayPlayerControlsOverlay: View {
                 duration: engine.duration,
                 isSeeking: $isSeeking,
                 seekPosition: $seekPosition,
-                accentColor: .white
+                accentColor: .white,
+                isLive: isLive
             )
 
-            let remaining = engine.duration - (isSeeking ? seekPosition : engine.currentTime)
-            Text("-\(formatTime(max(0, remaining)))")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.white)
-                .monospacedDigit()
+            if isLive {
+                HStack(spacing: 5) {
+                    Circle()
+                        .fill(Color.red)
+                        .frame(width: 7, height: 7)
+                    Text("LIVE")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.white)
+                }
                 .frame(minWidth: 52, alignment: .trailing)
+            } else {
+                let remaining = engine.duration - (isSeeking ? seekPosition : engine.currentTime)
+                Text("-\(formatTime(max(0, remaining)))")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .monospacedDigit()
+                    .frame(minWidth: 52, alignment: .trailing)
+            }
         }
         .padding(.leading, 24)
         .padding(.trailing, 24)
@@ -270,11 +306,13 @@ private struct QuickplaySeekBar: View {
     @Binding var isSeeking: Bool
     @Binding var seekPosition: Double
     let accentColor: Color
+    var isLive: Bool = false
 
     @State private var lockedPosition: Double? = nil
     @State private var trackWidth: CGFloat = 0
 
     private var displayFraction: CGFloat {
+        if isLive { return 1.0 }
         guard duration > 0 else { return 0 }
         let base: Double
         if isSeeking { base = seekPosition }
@@ -312,7 +350,7 @@ private struct QuickplaySeekBar: View {
                 .onChange(of: proxy.size.width) { _, w in trackWidth = w }
         })
         .gesture(
-            DragGesture(minimumDistance: 0)
+            isLive ? nil : DragGesture(minimumDistance: 0)
                 .onChanged { value in
                     guard duration > 0, trackWidth > 0 else { return }
 
