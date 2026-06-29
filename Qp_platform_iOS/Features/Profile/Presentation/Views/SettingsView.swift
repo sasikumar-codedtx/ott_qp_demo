@@ -85,6 +85,12 @@ struct SettingsView: View {
         .demoAlert(isPresented: $showDemoAlert)
     }
 
+    private func loadActivePhoneNumber() async {
+        if let phone = await DemoSessionStore.shared.activePhoneNumber(), !phone.isEmpty {
+            activePhoneNumber = phone
+        }
+    }
+
     private func settingsPage(for screen: SettingsScreen, topInset: CGFloat) -> some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: UIConstants.Spacing.xl) {
