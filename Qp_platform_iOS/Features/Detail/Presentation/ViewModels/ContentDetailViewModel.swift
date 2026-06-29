@@ -18,6 +18,8 @@ final class ContentDetailViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
     @Published var selectedTab: String = AppStrings.Detail.moreLikeThis
+    @Published private(set) var isFavorite: Bool = false
+    @Published private(set) var likeState: LikeState = .none
 
     private let detailUseCase: GetContentDetailUseCase
     private let recommendationsUseCase: GetRecommendationsUseCase
@@ -49,6 +51,9 @@ final class ContentDetailViewModel: ObservableObject {
 
         seed = item
         selectedTab = item.seriesId?.nilIfEmpty == nil ? AppStrings.Detail.moreLikeThis : AppStrings.Detail.episodes
+        isFavorite = false
+        likeState = .none
+        Task { await loadInteractionState() }
 
         guard nextPath != currentPath else { return }
 
@@ -98,6 +103,27 @@ final class ContentDetailViewModel: ObservableObject {
         }
     }
 
+    func loadInteractionState() async {
+        let itemID = seed?.id ?? ""
+        guard !itemID.isEmpty else { return }
+        let favIDs = await DemoSessionStore.shared.favoriteIDs()
+        let like = await DemoSessionStore.shared.likeState(for: itemID)
+        isFavorite = favIDs.contains(itemID)
+        likeState = like
+    }
+
+    func toggleFavorite() async {
+        guard let item = seed else { return }
+        let nowFavorite = await DemoSessionStore.shared.toggleFavorite(item)
+        isFavorite = nowFavorite
+    }
+
+    func cycleLike() async {
+        guard let item = seed else { return }
+        let newState = await DemoSessionStore.shared.cycleLike(for: item)
+        likeState = newState
+    }
+
     func selectTab(_ tab: String) {
         selectedTab = tab
     }
@@ -125,11 +151,8 @@ final class ContentDetailViewModel: ObservableObject {
         let title = detail.title.trimmingCharacters(in: .whitespacesAndNewlines)
         let genres = detail.genres.prefix(2)
         var suggestions = [
-            "\(title) best scenes",
             "\(title) key moments"
         ]
-
-        suggestions.append(contentsOf: genres.map { "\($0) moments" })
         return Array(suggestions.filter { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false }.prefix(5))
     }
 

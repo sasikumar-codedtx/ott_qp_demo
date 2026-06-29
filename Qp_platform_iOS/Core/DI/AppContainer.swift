@@ -47,4 +47,15 @@ final class AppContainer {
         UserDefaults.standard.set(phoneNumber, forKey: "sony.quickplay.demo.active-phone-number")
         profileDataSource.reloadForCurrentPhone()
     }
+
+    /// Reloads profiles from the phone number already stored in UserDefaults.
+    /// Call after app launch when the user is already logged in.
+    func reloadProfilesForStoredPhone() {
+        profileDataSource.reloadForCurrentPhone()
+    }
+
+    /// Clears in-memory profiles on sign-out so stale data isn't visible before re-login.
+    func clearInMemoryProfiles() {
+        profileDataSource.clearInMemoryProfiles()
+    }
 }

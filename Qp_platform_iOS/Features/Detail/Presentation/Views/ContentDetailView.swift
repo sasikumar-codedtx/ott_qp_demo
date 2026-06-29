@@ -295,6 +295,13 @@ struct ContentDetailView: View {
 
                 // Player sits OUTSIDE the ScrollView — it is truly fixed and never moves.
                 // VStack with ignoresSafeArea(edges:.top) makes it start at absolute y=0.
+                // When showing the poster (not video), content overlaps the image from the bottom.
+                // overlapHeight: how far the scroll view is pulled up into the image.
+                // gradientHeight: 40% of image height — solid black at bottom, fading to clear.
+                let imageHeight: CGFloat  = width * 3 / 2
+                let overlapHeight: CGFloat = isVideoReady ? 0 : width * 0.55
+                let gradientHeight: CGFloat = isVideoReady ? 0 : imageHeight * 0.4
+
                 VStack(spacing: 0) {
                     DetailInlinePlayerView(
                         engine: engine,
@@ -305,11 +312,27 @@ struct ContentDetailView: View {
                         navBarHeight: navBarHeight,
                         onFullscreen: { openFullPlayer(detail: detail) }
                     )
+                    .overlay(alignment: .bottom) {
+                        if !isVideoReady {
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .clear, location: 0),
+                                    .init(color: Color.black.opacity(0.6), location: 0.5),
+                                    .init(color: Color.black, location: 1)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                            .frame(height: gradientHeight)
+                            .allowsHitTesting(false)
+                        }
+                    }
 
                     ScrollView(.vertical, showsIndicators: false) {
                         scrollableBody(detail, kind: kind, width: width)
                             .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
                     }
+                    .padding(.top, -overlapHeight)
                 }
                 .ignoresSafeArea(edges: .top)
                 .zIndex(2)
@@ -489,13 +512,22 @@ struct ContentDetailView: View {
     }
 
     private func metaLine(_ detail: ContentDetail) -> some View {
-        Text(detail.metaLine)
-            .font(.system(size: 14, weight: .bold))
-            .foregroundStyle(Color(hex: "BBBBBB"))
-            .multilineTextAlignment(.center)
+        // Prefer detail's own fields; fall back to seed when detail API omits them.
+        let year    = detail.year ?? viewModel.seed?.year
+        let genres  = detail.genres.isEmpty ? (viewModel.seed?.genres ?? []) : detail.genres
+        let runtime = detail.runtimeSeconds ?? viewModel.seed?.runtimeSeconds
+        let runtimeText = runtime.map(ContentDetail.formatRuntime(seconds:))
+        let parts   = [year, genres.prefix(3).joined(separator: " · ").nilIfEmpty, runtimeText].compactMap { $0 }
+        let text    = parts.joined(separator: " · ").uppercased()
+
+        return Text(text)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(Color.white)
+            .shadow(color: .black.opacity(0.6), radius: 4, x: 0, y: 1)
+            .multilineTextAlignment(.leading)
             .lineLimit(1)
             .minimumScaleFactor(0.72)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func openFullPlayer(detail: ContentDetail) {
@@ -1557,10 +1589,29 @@ struct ContentDetailView: View {
         HStack(spacing: 8) {
             DetailActionButton(assetImage: "clapperboard", cornerStyle: .leading, action: { showDemoAlert = true })
             DetailActionButton(assetImage: "download", action: { showDemoAlert = true })
-            DetailActionButton(assetImage: "bookmark-plus", action: { showDemoAlert = true })
-            DetailActionButton(assetImage: "thumbs-up-down") {
-                if detail.supportsEpisodes || kind == .showInteractive {
-                    presentMockInteraction()
+            // Favourite toggle — bookmark-plus asset when not saved, SF bookmark.fill when saved
+            if viewModel.isFavorite {
+                DetailActionButton(systemImage: "bookmark.fill", isHighlighted: true) {
+                    Task { await viewModel.toggleFavorite() }
+                }
+            } else {
+                DetailActionButton(assetImage: "bookmark-plus") {
+                    Task { await viewModel.toggleFavorite() }
+                }
+            }
+            // Like / Dislike — cycles: none → liked → disliked → none
+            switch viewModel.likeState {
+            case .liked:
+                DetailActionButton(systemImage: "hand.thumbsup.fill", isHighlighted: true) {
+                    Task { await viewModel.cycleLike() }
+                }
+            case .disliked:
+                DetailActionButton(systemImage: "hand.thumbsdown.fill", isHighlighted: true) {
+                    Task { await viewModel.cycleLike() }
+                }
+            case .none:
+                DetailActionButton(assetImage: "thumbs-up-down") {
+                    Task { await viewModel.cycleLike() }
                 }
             }
             DetailActionButton(assetImage: "share", iconSize: 22, action: { showDemoAlert = true })

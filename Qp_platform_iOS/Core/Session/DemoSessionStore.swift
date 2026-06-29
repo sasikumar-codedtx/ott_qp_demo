@@ -14,6 +14,8 @@ actor DemoSessionStore {
         static let prefersVoiceAISearch = "sony.quickplay.demo.prefers-voice-ai"
         static let continueWatchingByProfile = "sony.quickplay.demo.continue-watching-by-profile"
         static let favoritesByProfile = "sony.quickplay.demo.favorites-by-profile"
+        static let likesByProfile = "sony.quickplay.demo.likes-by-profile"
+        static let dislikesByProfile = "sony.quickplay.demo.dislikes-by-profile"
         static let hasCompletedLogin = "sony.quickplay.demo.has-completed-login"
     }
 
@@ -28,6 +30,8 @@ actor DemoSessionStore {
     private var prefersVoiceAISearch: Bool
     private var continueWatchingByProfile: [String: [StorefrontItem]]
     private var favoritesByProfile: [String: [StorefrontItem]]
+    private var likesByProfile: [String: [String]]     // profileID → [itemID]
+    private var dislikesByProfile: [String: [String]]  // profileID → [itemID]
 
     init() {
         if
@@ -72,6 +76,18 @@ actor DemoSessionStore {
         } else {
             favoritesByProfile = [:]
         }
+        if let data = UserDefaults.standard.data(forKey: StorageKey.likesByProfile),
+           let stored = try? JSONDecoder().decode([String: [String]].self, from: data) {
+            likesByProfile = stored
+        } else {
+            likesByProfile = [:]
+        }
+        if let data = UserDefaults.standard.data(forKey: StorageKey.dislikesByProfile),
+           let stored = try? JSONDecoder().decode([String: [String]].self, from: data) {
+            dislikesByProfile = stored
+        } else {
+            dislikesByProfile = [:]
+        }
 
         if UserDefaults.standard.object(forKey: StorageKey.prefersVoiceAISearch) != nil {
             prefersVoiceAISearch = UserDefaults.standard.bool(forKey: StorageKey.prefersVoiceAISearch)
@@ -84,16 +100,21 @@ actor DemoSessionStore {
         profileID: UUID?,
         cohort: QuickplayCohort,
         preference: ProfilePreference,
-        storefrontPolicy: StorefrontPolicy
+        storefrontPolicy: StorefrontPolicy,
+        isKidsProfile: Bool = false
     ) {
+        let resolvedCohort: QuickplayCohort = isKidsProfile ? .kids : cohort
+        let resolvedPolicy: StorefrontPolicy = isKidsProfile ? .defaultPolicy(for: .kids) : storefrontPolicy
+        let resolvedPreference: ProfilePreference = isKidsProfile ? QuickplayCohort.kids.defaultPreference : preference
+
         activeProfileID = profileID?.uuidString
-        activeCohort = cohort
-        activeStorefrontPolicy = storefrontPolicy
-        activePreference = preference
+        activeCohort = resolvedCohort
+        activeStorefrontPolicy = resolvedPolicy
+        activePreference = resolvedPreference
         UserDefaults.standard.set(activeProfileID, forKey: StorageKey.activeProfileID)
-        UserDefaults.standard.set(cohort.rawValue, forKey: StorageKey.activeCohort)
-        UserDefaults.standard.set(storefrontPolicy.rawValue, forKey: StorageKey.activeStorefrontPolicy)
-        UserDefaults.standard.set(preference.rawValue, forKey: StorageKey.activePreference)
+        UserDefaults.standard.set(resolvedCohort.rawValue, forKey: StorageKey.activeCohort)
+        UserDefaults.standard.set(resolvedPolicy.rawValue, forKey: StorageKey.activeStorefrontPolicy)
+        UserDefaults.standard.set(resolvedPreference.rawValue, forKey: StorageKey.activePreference)
         logActiveProfileTapCounts(reason: "profile context selected")
     }
 
@@ -205,6 +226,43 @@ actor DemoSessionStore {
         favoritesByProfile[historyKey] = items
         persistFavorites()
         return true
+    }
+
+    func likeState(for itemID: String) -> LikeState {
+        let key = historyKey
+        if (likesByProfile[key] ?? []).contains(itemID) { return .liked }
+        if (dislikesByProfile[key] ?? []).contains(itemID) { return .disliked }
+        return .none
+    }
+
+    /// Cycles: none → liked → disliked → none. Returns new state.
+    func cycleLike(for item: StorefrontItem) -> LikeState {
+        let key = historyKey
+        let current = likeState(for: item.id)
+        var likes = likesByProfile[key] ?? []
+        var dislikes = dislikesByProfile[key] ?? []
+        switch current {
+        case .none:
+            likes.removeAll { $0 == item.id }
+            likes.insert(item.id, at: 0)
+            likesByProfile[key] = likes
+            persistLikes()
+            return .liked
+        case .liked:
+            likes.removeAll { $0 == item.id }
+            dislikes.removeAll { $0 == item.id }
+            dislikes.insert(item.id, at: 0)
+            likesByProfile[key] = likes
+            dislikesByProfile[key] = dislikes
+            persistLikes()
+            persistDislikes()
+            return .disliked
+        case .disliked:
+            dislikes.removeAll { $0 == item.id }
+            dislikesByProfile[key] = dislikes
+            persistDislikes()
+            return .none
+        }
     }
 
     func currentCohort() -> QuickplayCohort {
@@ -352,5 +410,15 @@ actor DemoSessionStore {
     private func persistFavorites() {
         guard let data = try? JSONEncoder().encode(favoritesByProfile) else { return }
         UserDefaults.standard.set(data, forKey: StorageKey.favoritesByProfile)
+    }
+
+    private func persistLikes() {
+        guard let data = try? JSONEncoder().encode(likesByProfile) else { return }
+        UserDefaults.standard.set(data, forKey: StorageKey.likesByProfile)
+    }
+
+    private func persistDislikes() {
+        guard let data = try? JSONEncoder().encode(dislikesByProfile) else { return }
+        UserDefaults.standard.set(data, forKey: StorageKey.dislikesByProfile)
     }
 }

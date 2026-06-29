@@ -226,7 +226,7 @@ struct ProfileEditorView: View {
             showOnSelection: true
         )
 
-        return [temporaryProfile] + Array(viewModel.profiles.prefix(4))
+        return [temporaryProfile]
     }
 
     private func editorProfileTile(_ profile: Profile) -> some View {

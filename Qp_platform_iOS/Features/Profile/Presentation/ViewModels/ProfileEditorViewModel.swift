@@ -183,36 +183,34 @@ final class ProfileEditorViewModel: ObservableObject {
     }
 
     func selectPreference(_ preference: ProfilePreference) {
+        guard !draft.isKidsProfile else { return }
         draft.preference = preference
         draft.cohort = preference.quickplayCohort
-        draft.isKidsProfile = false
         selectedStorefrontPolicy = storefrontPolicy(for: preference.quickplayCohort)
         errorMessage = nil
     }
 
     func applyCohortQuestionnaireResult(_ result: CohortQuestionnaireResult) {
+        guard !draft.isKidsProfile else { return }
         draft.cohort = result.primaryCategory
         draft.preference = result.preference
-        draft.isKidsProfile = false
         draft.preferredLanguages = preferredLanguages(for: result.preference)
         selectedStorefrontPolicy = storefrontPolicy(for: result.primaryCategory)
         errorMessage = nil
     }
 
     func selectStorefrontPolicy(_ policy: StorefrontPolicy) {
+        guard !draft.isKidsProfile else { return }
         selectedStorefrontPolicy = policy
         draft.storefrontPolicy = policy
         draft.preference = policy.defaultProfilePreference
         switch policy {
         case .sports, .sportsEntertainment:
             draft.cohort = .sports
-            draft.isKidsProfile = false
         case .reality, .realityEntertainment, .realitySports:
             draft.cohort = .realityShows
-            draft.isKidsProfile = false
         case .entertainment:
             draft.cohort = .entertainment
-            draft.isKidsProfile = false
         }
         draft.storefrontPolicy = policy
         errorMessage = nil

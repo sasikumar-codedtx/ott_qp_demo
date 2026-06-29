@@ -88,6 +88,7 @@ enum AppStrings {
         static let unavailableTitle = "Search unavailable"
         static let noResults = "No results found"
         static let emptyPopular = "Popular search will appear here once the storefront titles load."
+        static let moments = "Moments"
     }
 
     enum Detail {

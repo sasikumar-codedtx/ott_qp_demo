@@ -12,13 +12,14 @@ struct SearchAPIClient {
         self.configStore = configStore
     }
 
-    func search(term: String, facetTerm: String?) async throws -> SearchResponseDTO {
+    func search(term: String, facetTerm: String?, moment: Bool) async throws -> SearchResponseDTO {
         let config = await configStore.current(using: networkClient)
         let cohort = await DemoSessionStore.shared.currentCohort()
         let policyAttribute = await DemoSessionStore.shared.currentStorefrontPolicyAttribute()
         guard let request = SearchRouter.makeRequest(
             term: term,
             facetTerm: facetTerm,
+            moment: moment,
             config: config,
             cohort: cohort,
             policyAttribute: policyAttribute

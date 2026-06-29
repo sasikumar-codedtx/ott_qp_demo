@@ -124,9 +124,9 @@ struct SearchView: View {
 
     @ViewBuilder
     private var content: some View {
-        if viewModel.isLoading && viewModel.results.isEmpty {
+        if viewModel.isLoading && viewModel.results.isEmpty && viewModel.momentResults.isEmpty {
             SearchLoadingStateView()
-        } else if viewModel.normalizedQuery.isEmpty && viewModel.results.isEmpty {
+        } else if viewModel.normalizedQuery.isEmpty && viewModel.results.isEmpty && viewModel.momentResults.isEmpty {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     SearchPlaceholderView()
@@ -146,21 +146,48 @@ struct SearchView: View {
                         ErrorView(title: AppStrings.Search.unavailableTitle, message: errorMessage, onRetry: nil)
                             .padding(.horizontal, UIConstants.Spacing.lg)
                             .padding(.top, 60)
-                    } else if viewModel.displayedResults.isEmpty {
+                    } else if viewModel.displayedResults.isEmpty && viewModel.momentResults.isEmpty {
                         EmptyStateView(title: AppStrings.Search.noResults, message: viewModel.normalizedQuery, systemImage: AppIcons.Navigation.search)
                             .padding(.horizontal, UIConstants.Spacing.lg)
                             .padding(.top, 60)
                     } else {
-                        VStack(alignment: .leading, spacing: 22) {
-                            searchSectionHeader(title: searchContentTitle, showsChevron: false)
-                                .padding(.horizontal, UIConstants.Spacing.lg)
-                                .padding(.top, 8)
+                        VStack(alignment: .leading, spacing: 28) {
+                            // Rail 1 — content (moment=false): horizontal scroll
+                            if !viewModel.displayedResults.isEmpty {
+                                VStack(alignment: .leading, spacing: 14) {
+                                    searchSectionHeader(title: searchContentsTitle, showsChevron: false)
+                                        .padding(.horizontal, UIConstants.Spacing.lg)
+                                        .padding(.top, 8)
 
-                            SearchRecommendedClipGrid(
-                                items: viewModel.displayedResults,
-                                onSelect: onSelectItem
-                            )
-                            .padding(.horizontal, UIConstants.Spacing.lg)
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 10) {
+                                            ForEach(viewModel.displayedResults) { item in
+                                                SearchPosterCard(
+                                                    item: item,
+                                                    size: CGSize(width: 124, height: 186),
+                                                    showsPlayIcon: false,
+                                                    onSelect: onSelectItem
+                                                )
+                                            }
+                                        }
+                                        .padding(.horizontal, UIConstants.Spacing.lg)
+                                    }
+                                }
+                            }
+
+                            // Rail 2 — moments (moment=true): vertical grid
+                            if !viewModel.momentResults.isEmpty {
+                                VStack(alignment: .leading, spacing: 14) {
+                                    searchSectionHeader(title: searchMomentsTitle, showsChevron: false)
+                                        .padding(.horizontal, UIConstants.Spacing.lg)
+
+                                    SearchRecommendedClipGrid(
+                                        items: viewModel.momentResults,
+                                        onSelect: onSelectItem
+                                    )
+                                    .padding(.horizontal, UIConstants.Spacing.lg)
+                                }
+                            }
                         }
                     }
                 }
@@ -170,6 +197,16 @@ struct SearchView: View {
             .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
             .scrollDismissesKeyboard(.interactively)
         }
+    }
+
+    private var searchContentsTitle: String {
+        let query = viewModel.normalizedQuery
+        return query.isEmpty ? "Popular Searches" : "\(query.capitalized) Contents"
+    }
+
+    private var searchMomentsTitle: String {
+        let query = viewModel.normalizedQuery
+        return query.isEmpty ? AppStrings.Search.moments : "\(query.capitalized) Moments"
     }
 
     private var searchContentTitle: String {

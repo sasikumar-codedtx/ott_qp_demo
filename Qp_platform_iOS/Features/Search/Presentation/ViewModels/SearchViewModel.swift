@@ -11,6 +11,7 @@ final class SearchViewModel: ObservableObject {
     @Published var query = ""
     @Published var selectedFilterID: String = SearchViewModel.allFilter.id
     @Published private(set) var results: [StorefrontItem] = []
+    @Published private(set) var momentResults: [StorefrontItem] = []
     @Published private(set) var facetFilters: [SearchFilter] = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
@@ -37,6 +38,7 @@ final class SearchViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+        query = Self.defaultSearchQuery
     }
 
     func submitSearch() {
@@ -59,6 +61,7 @@ final class SearchViewModel: ObservableObject {
 
     func present() {
         results = []
+        momentResults = []
         facetFilters = []
         selectedFilterID = Self.allFilter.id
         errorMessage = nil
@@ -143,12 +146,14 @@ final class SearchViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         results = []
+        momentResults = []
         currentSearchTerm = term
 
         do {
             let page = try await useCase.execute(term: term, facetTerm: facetTerm)
             if normalizedQuery.caseInsensitiveCompare(displayQuery) == .orderedSame {
                 results = page.items
+                momentResults = page.momentItems
                 if shouldUpdateFilters {
                     facetFilters = deduplicatedFilters(page.filters)
                 }
@@ -158,6 +163,7 @@ final class SearchViewModel: ObservableObject {
             if normalizedQuery.caseInsensitiveCompare(displayQuery) == .orderedSame {
                 if error.localizedDescription.localizedCaseInsensitiveContains("no data match") {
                     results = []
+                    momentResults = []
                     errorMessage = nil
                 } else {
                     errorMessage = error.localizedDescription

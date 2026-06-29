@@ -37,6 +37,10 @@ final class ProfileMockDataSource: ProfileDataSourceProtocol {
         profiles = Self.loadPersistedProfiles(key: storageKey) ?? []
     }
 
+    func clearInMemoryProfiles() {
+        profiles = []
+    }
+
     func fetchProfiles() async throws -> [ProfileDTO] {
         profiles
     }

@@ -1,7 +1,7 @@
 import Foundation
 
 protocol SearchDataSourceProtocol {
-    func search(term: String, facetTerm: String?) async throws -> SearchResponseDTO
+    func search(term: String, facetTerm: String?, moment: Bool) async throws -> SearchResponseDTO
 }
 
 final class SearchRemoteDataSource: SearchDataSourceProtocol {
@@ -11,8 +11,8 @@ final class SearchRemoteDataSource: SearchDataSourceProtocol {
         self.apiClient = apiClient
     }
 
-    func search(term: String, facetTerm: String?) async throws -> SearchResponseDTO {
-        try await apiClient.search(term: term, facetTerm: facetTerm)
+    func search(term: String, facetTerm: String?, moment: Bool) async throws -> SearchResponseDTO {
+        try await apiClient.search(term: term, facetTerm: facetTerm, moment: moment)
     }
 
 }

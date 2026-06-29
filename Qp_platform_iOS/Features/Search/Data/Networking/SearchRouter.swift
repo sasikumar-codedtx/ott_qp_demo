@@ -4,6 +4,7 @@ enum SearchRouter {
     static func makeRequest(
         term: String,
         facetTerm: String?,
+        moment: Bool,
         config: QuickplayRuntimeConfig,
         cohort: QuickplayCohort,
         policyAttribute: String
@@ -18,7 +19,7 @@ enum SearchRouter {
             URLQueryItem(name: "term", value: term),
             URLQueryItem(name: "reg", value: AppEnvironment.Quickplay.region.lowercased()),
             URLQueryItem(name: "info", value: "detail"),
-            URLQueryItem(name: "moment", value: "true"),
+            URLQueryItem(name: "moment", value: moment ? "true" : "false"),
             URLQueryItem(name: "pf", value: cohort.profileFlag),
             URLQueryItem(name: "chrt", value: policyAttribute)
         ]

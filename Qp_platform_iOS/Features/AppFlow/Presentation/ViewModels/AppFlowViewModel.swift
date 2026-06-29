@@ -127,6 +127,8 @@ final class AppFlowViewModel: ObservableObject {
         prefersVoiceAISearch = await DemoSessionStore.shared.currentPrefersVoiceAISearch()
         try? await Task.sleep(for: .seconds(1.2))
         if await DemoSessionStore.shared.hasCompletedLogin() {
+            // Ensure profiles for the stored phone number are in memory before loading.
+            AppContainer.shared.reloadProfilesForStoredPhone()
             await profileSelectionViewModel.load()
             rootScreen = .profileSelection
         } else {
@@ -170,7 +172,8 @@ final class AppFlowViewModel: ObservableObject {
                 profileID: profile.id,
                 cohort: selectedCohort,
                 preference: selectedPreference,
-                storefrontPolicy: profile.storefrontPolicy
+                storefrontPolicy: profile.storefrontPolicy,
+                isKidsProfile: profile.isKidsProfile
             )
             navigationPath.removeAll()
             mainTab = .storefront
@@ -323,6 +326,9 @@ final class AppFlowViewModel: ObservableObject {
         navigationPath.removeAll()
         mainTab = .storefront
         rootScreen = .login
+        // Clear in-memory profiles so a different user doesn't see them
+        // before reloadForCurrentPhone() is called on next sign-in.
+        AppContainer.shared.clearInMemoryProfiles()
     }
 
     func setPrefersVoiceAISearch(_ prefersVoice: Bool) {
@@ -346,7 +352,8 @@ final class AppFlowViewModel: ObservableObject {
                 profileID: profile.id,
                 cohort: selectedCohort,
                 preference: selectedPreference,
-                storefrontPolicy: profile.storefrontPolicy
+                storefrontPolicy: profile.storefrontPolicy,
+                isKidsProfile: profile.isKidsProfile
             )
             storefrontViewModel.applyProfile(profile, forceReset: true)
             hotStorefrontViewModel.applyProfile(profile, forceReset: true)
@@ -368,7 +375,8 @@ final class AppFlowViewModel: ObservableObject {
                 profileID: profile.id,
                 cohort: selectedCohort,
                 preference: selectedPreference,
-                storefrontPolicy: profile.storefrontPolicy
+                storefrontPolicy: profile.storefrontPolicy,
+                isKidsProfile: profile.isKidsProfile
             )
             navigationPath.removeAll()
             mainTab = .storefront
