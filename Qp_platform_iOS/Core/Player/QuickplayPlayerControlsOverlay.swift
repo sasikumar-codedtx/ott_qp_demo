@@ -115,6 +115,11 @@ struct QuickplayPlayerControlsOverlay: View {
 
     private var isLive: Bool { contentType == .channel }
 
+    private var isAtLive: Bool {
+        guard engine.duration > 0 else { return true }
+        return engine.duration - engine.currentTime < 10
+    }
+
     // MARK: Center — skip ±15s + play/pause
 
     private var centerControls: some View {
@@ -224,15 +229,26 @@ struct QuickplayPlayerControlsOverlay: View {
             )
 
             if isLive {
-                HStack(spacing: 5) {
-                    Circle()
-                        .fill(Color.red)
-                        .frame(width: 7, height: 7)
-                    Text("LIVE")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(.white)
+                Button {
+                    if !isAtLive { engine.seek(to: engine.duration) }
+                } label: {
+                    HStack(spacing: 5) {
+                        Circle()
+                            .fill(isAtLive ? Color.red : Color.white.opacity(0.5))
+                            .frame(width: 7, height: 7)
+                        Text("LIVE")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(isAtLive ? .white : .white.opacity(0.5))
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(isAtLive ? Color.clear : Color.white.opacity(0.15))
+                    )
                 }
-                .frame(minWidth: 52, alignment: .trailing)
+                .buttonStyle(.plain)
+                .animation(.easeInOut(duration: 0.2), value: isAtLive)
             } else {
                 let remaining = engine.duration - (isSeeking ? seekPosition : engine.currentTime)
                 Text("-\(formatTime(max(0, remaining)))")
@@ -312,8 +328,7 @@ private struct QuickplaySeekBar: View {
     @State private var trackWidth: CGFloat = 0
 
     private var displayFraction: CGFloat {
-        if isLive { return 1.0 }
-        guard duration > 0 else { return 0 }
+        guard duration > 0 else { return isLive ? 1.0 : 0 }
         let base: Double
         if isSeeking { base = seekPosition }
         else if let locked = lockedPosition { base = locked }
@@ -350,7 +365,7 @@ private struct QuickplaySeekBar: View {
                 .onChange(of: proxy.size.width) { _, w in trackWidth = w }
         })
         .gesture(
-            isLive ? nil : DragGesture(minimumDistance: 0)
+            DragGesture(minimumDistance: 0)
                 .onChanged { value in
                     guard duration > 0, trackWidth > 0 else { return }
 

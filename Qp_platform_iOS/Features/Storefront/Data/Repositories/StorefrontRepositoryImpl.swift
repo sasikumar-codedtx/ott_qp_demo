@@ -317,11 +317,12 @@ final class StorefrontRepositoryImpl: StorefrontRepository {
     }
 
     private func contentIDs(from sources: [QuickplayContentSourceDTO]?) -> [String]? {
+        let stripSet = CharacterSet.whitespacesAndNewlines.union(.init(charactersIn: "\"'"))
         let ids = sources?
             .flatMap { source in
                 (source.q ?? "")
                     .split(separator: ",")
-                    .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .map { String($0).trimmingCharacters(in: stripSet) }
                     .filter { !$0.isEmpty }
             } ?? []
         return ids.isEmpty ? nil : Array(NSOrderedSet(array: ids)) as? [String] ?? ids

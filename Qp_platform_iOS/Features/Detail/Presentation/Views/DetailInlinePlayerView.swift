@@ -147,9 +147,14 @@ private struct DetailSeekBar: View {
     @Binding var isSeeking: Bool
     @Binding var seekPosition: Double
 
+    @State private var lockedPosition: Double? = nil
+
     private var progress: Double {
         guard duration > 0 else { return 0 }
-        let t = isSeeking ? seekPosition : currentTime
+        let t: Double
+        if isSeeking { t = seekPosition }
+        else if let locked = lockedPosition { t = locked }
+        else { t = currentTime }
         return min(max(t / duration, 0), 1)
     }
 
@@ -193,8 +198,15 @@ private struct DetailSeekBar: View {
                         }
                         seekPosition = min(max(Double(value.location.x / w) * duration, 0), duration)
                     }
-                    .onEnded { _ in isSeeking = false }
+                    .onEnded { _ in
+                        lockedPosition = seekPosition
+                        isSeeking = false
+                    }
             )
+            .onChange(of: currentTime) { _, t in
+                guard let locked = lockedPosition, abs(t - locked) < 3.0 else { return }
+                lockedPosition = nil
+            }
         }
         .frame(height: 44)
     }
