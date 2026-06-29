@@ -773,6 +773,16 @@ struct SettingsView: View {
         return items.isEmpty ? "English" : items.joined(separator: ", ")
     }
 
+    private func loadActivePhoneNumber() async {
+        guard let phone = await DemoSessionStore.shared.activePhoneNumber(), !phone.isEmpty else { return }
+        let digits = phone.filter(\.isNumber)
+        if digits.count == 10 {
+            activePhoneNumber = "+91 \(digits)"
+        } else {
+            activePhoneNumber = phone
+        }
+    }
+
     private func handleBack() {
         if activeAudioSheet != nil {
             activeAudioSheet = nil

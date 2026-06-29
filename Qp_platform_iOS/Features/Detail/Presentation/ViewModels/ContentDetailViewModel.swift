@@ -149,8 +149,7 @@ final class ContentDetailViewModel: ObservableObject {
 
     func momentSuggestions(for detail: ContentDetail) -> [String] {
         let title = detail.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        let genres = detail.genres.prefix(2)
-        var suggestions = [
+        let suggestions = [
             "\(title) moments"
         ]
         return Array(suggestions.filter { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false }.prefix(5))

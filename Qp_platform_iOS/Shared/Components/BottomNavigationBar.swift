@@ -13,7 +13,7 @@ struct BottomNavigationBar: View {
         static let horizontalInset: CGFloat = 16
         static let height: CGFloat = 61
         static let rowHeight: CGFloat = 42
-        static let itemWidth: CGFloat = 48
+        static let itemWidth: CGFloat = 56
         static let iconSize: CGFloat = 24
         static let selectedGlowWidth: CGFloat = 33
         static let selectedGlowHeight: CGFloat = 16
@@ -149,7 +149,7 @@ private struct BottomNavigationSurface: View {
             .fill(.ultraThinMaterial)
             .overlay(
                 Capsule(style: .continuous)
-                    .fill(Color.black.opacity(0.6))
+                    .fill(Color.black.opacity(0.82))
             )
             .overlay(
                 LinearGradient(
