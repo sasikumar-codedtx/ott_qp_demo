@@ -85,11 +85,16 @@ final class SearchViewModel: ObservableObject {
         normalizedQuery.isEmpty ? currentSearchTerm : normalizedQuery
     }
 
-    var popularSuggestions: [String] {
-        guard normalizedQuery.isEmpty else { return [] }
-        let titles = results.prefix(8).map { $0.title }.filter { !$0.isEmpty }
-        return titles.isEmpty ? [] : Array(titles)
-    }
+    let popularSuggestions: [String] = [
+        "Trending Shows",
+        "Action Movies",
+        "Cricket Live",
+        "South Films",
+        "Thriller Series",
+        "Comedy Movies",
+        "Horror Shows",
+        "Reality TV"
+    ]
 
     func present() {
         clearResults()
