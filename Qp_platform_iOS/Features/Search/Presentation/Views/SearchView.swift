@@ -199,7 +199,7 @@ struct SearchView: View {
 
     private func bottomSearchDock(bottomInset: CGFloat) -> some View {
         VStack(spacing: 14) {
-            if !viewModel.popularSuggestions.isEmpty && searchInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if isSearchFocused && !viewModel.popularSuggestions.isEmpty && !searchInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(AppStrings.Search.popular)
                         .font(.system(size: 13, weight: .semibold))
@@ -289,7 +289,7 @@ struct SearchView: View {
     }
 
     private var showsSuggestions: Bool {
-        !viewModel.popularSuggestions.isEmpty && searchInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        isSearchFocused && !viewModel.popularSuggestions.isEmpty && !searchInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private var searchDockReservedHeight: CGFloat {

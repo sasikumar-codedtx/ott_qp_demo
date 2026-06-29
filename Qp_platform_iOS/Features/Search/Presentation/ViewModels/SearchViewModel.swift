@@ -172,6 +172,10 @@ final class SearchViewModel: ObservableObject {
         errorMessage = nil
         results = []
         momentResults = []
+        if shouldUpdateFilters {
+            facetFilters = []
+            selectedFilterID = Self.allFilter.id
+        }
         currentSearchTerm = term
 
         do {
@@ -179,13 +183,16 @@ final class SearchViewModel: ObservableObject {
             if normalizedQuery.caseInsensitiveCompare(displayQuery) == .orderedSame {
                 results = page.items
                 momentResults = page.momentItems
-                if shouldUpdateFilters {
+                if page.items.isEmpty && page.momentItems.isEmpty {
+                    facetFilters = []
+                } else if shouldUpdateFilters {
                     facetFilters = deduplicatedFilters(page.filters)
                 }
                 isLoading = false
             }
         } catch {
             if normalizedQuery.caseInsensitiveCompare(displayQuery) == .orderedSame {
+                facetFilters = []
                 if error.localizedDescription.localizedCaseInsensitiveContains("no data match") {
                     results = []
                     momentResults = []
