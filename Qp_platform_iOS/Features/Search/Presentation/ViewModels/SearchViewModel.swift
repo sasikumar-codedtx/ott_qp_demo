@@ -196,8 +196,10 @@ final class SearchViewModel: ObservableObject {
         errorMessage = nil
         results = []
         momentResults = []
-        facetFilters = []
-        if shouldUpdateFilters { selectedFilterID = Self.allFilter.id }
+        if shouldUpdateFilters {
+            facetFilters = []
+            selectedFilterID = Self.allFilter.id
+        }
         currentSearchTerm = term
 
         do {
@@ -214,6 +216,7 @@ final class SearchViewModel: ObservableObject {
             }
         } catch {
             if normalizedQuery.caseInsensitiveCompare(displayQuery) == .orderedSame {
+                facetFilters = []
                 if error.localizedDescription.localizedCaseInsensitiveContains("no data match") {
                     results = []
                     momentResults = []

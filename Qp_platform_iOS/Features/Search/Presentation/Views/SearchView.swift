@@ -199,7 +199,7 @@ struct SearchView: View {
 
     private func bottomSearchDock(bottomInset: CGFloat) -> some View {
         VStack(spacing: 14) {
-            if isSearchFocused {
+            if isSearchFocused && !viewModel.popularSuggestions.isEmpty {
                 let suggestions = viewModel.recentSearches.isEmpty ? viewModel.popularSuggestions : viewModel.recentSearches
                 let label = viewModel.recentSearches.isEmpty ? "Popular" : "Recent"
                 VStack(alignment: .leading, spacing: 8) {
@@ -291,7 +291,7 @@ struct SearchView: View {
     }
 
     private var showsSuggestions: Bool {
-        isSearchFocused
+        isSearchFocused && !viewModel.popularSuggestions.isEmpty
     }
 
     private var searchDockReservedHeight: CGFloat {
