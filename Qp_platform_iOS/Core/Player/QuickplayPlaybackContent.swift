@@ -4,6 +4,7 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
     let id: String
     let contentId: String
     let contentType: ContentType
+    let rawContentType: String
     let title: String
     let resumePosition: Double
     let seriesId: String?
@@ -39,6 +40,7 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
     init(
         contentId: String,
         contentType: ContentType,
+        rawContentType: String,
         title: String,
         resumePosition: Double = 0,
         seriesId: String? = nil,
@@ -53,6 +55,7 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
         self.id = contentId
         self.contentId = contentId
         self.contentType = contentType
+        self.rawContentType = rawContentType
         self.title = title
         self.resumePosition = resumePosition
         self.seriesId = seriesId
@@ -69,6 +72,7 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
         QuickplayPlaybackContent(
             contentId: contentId,
             contentType: contentType,
+            rawContentType: rawContentType,
             title: title,
             resumePosition: resumePosition,
             seriesId: seriesId,
@@ -117,6 +121,7 @@ extension StorefrontItem {
         QuickplayPlaybackContent(
             contentId: id,
             contentType: QuickplayPlaybackContent.contentType(from: contentType),
+            rawContentType: contentType,
             title: title,
             resumePosition: (progress ?? 0) * Double(runtimeSeconds ?? 0),
             seriesId: seriesId,
@@ -137,6 +142,7 @@ extension ContentDetail {
         return QuickplayPlaybackContent(
             contentId: id,
             contentType: QuickplayPlaybackContent.contentType(from: contentType),
+            rawContentType: contentType,
             title: title,
             resumePosition: resumeSeconds,
             seriesId: seriesId?.nilIfEmpty ?? id

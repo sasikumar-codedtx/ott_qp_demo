@@ -58,6 +58,7 @@ struct StorefrontAPIClient {
             throw AppError.invalidURL
         }
 
+        print("[ViewAll] sectionContent request URL: \(request.url?.absoluteString ?? "<nil>")")
         let data = try await networkClient.data(for: request)
         do {
             return try JSONDecoder().decode(QuickplayContentResponseDTO.self, from: data)
@@ -80,6 +81,7 @@ struct StorefrontAPIClient {
             throw AppError.invalidURL
         }
 
+        print("[ViewAll] collectionLookup request URL: \(request.url?.absoluteString ?? "<nil>")")
         let data = try await networkClient.data(for: request)
         do {
             return try JSONDecoder().decode(QuickplayContentResponseDTO.self, from: data)

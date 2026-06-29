@@ -87,6 +87,31 @@ struct QuickplayPlayerScreen: View {
             .first?.windows.first(where: { $0.isKeyWindow })?.safeAreaInsets ?? .zero
     }
 
+    @ViewBuilder private var controlsOverlay: some View {
+        let insets = windowSafeArea
+        let subtitle: String? = content.episodeSubtitle(episodes: effectiveEpisodes, seasons: effectiveSeasons) ?? content.playerSubtitle
+        let nextAction: (() -> Void)? = nextEpisode.map { next in { onPlayEpisode?(next) } }
+        QuickplayPlayerControlsOverlay(
+            engine: engine,
+            title: content.title,
+            subtitle: subtitle,
+            contentType: content.contentType,
+            isSeeking: $isSeeking,
+            seekPosition: $seekPosition,
+            showQualityDialog: $showQualityDialog,
+            showSubtitleDialog: $showSubtitleDialog,
+            showSpeedSheet: $showSpeedSheet,
+            showEpisodesPanel: $showEpisodesPanel,
+            seekFeedback: seekFeedback,
+            onPlayNextEpisode: nextAction,
+            safeTop: insets.top,
+            safeLeading: insets.left,
+            safeTrailing: insets.right,
+            safeBottom: insets.bottom,
+            onDismiss: dismissPlayer
+        )
+    }
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -117,33 +142,9 @@ struct QuickplayPlayerScreen: View {
             }
 
             if (controlsVisible || isSeeking) && !showEpisodesPanel {
-                let insets = windowSafeArea
-                QuickplayPlayerControlsOverlay(
-                    engine: engine,
-                    title: content.title,
-                    subtitle: content.episodeSubtitle(episodes: effectiveEpisodes, seasons: effectiveSeasons) ?? content.playerSubtitle,
-                    contentType: content.contentType,
-                    isSeeking: $isSeeking,
-                    seekPosition: $seekPosition,
-                    showQualityDialog: $showQualityDialog,
-                    showSubtitleDialog: $showSubtitleDialog,
-                    showSpeedSheet: $showSpeedSheet,
-                    showEpisodesPanel: $showEpisodesPanel,
-                    onPlayNextEpisode: nextEpisode.map { next in { onPlayEpisode?(next) } },
-                    safeTop: insets.top,
-                    safeLeading: insets.left,
-                    safeTrailing: insets.right,
-                    safeBottom: insets.bottom,
-                    onDismiss: dismissPlayer
-                )
-                .transition(.opacity)
+                controlsOverlay.transition(.opacity)
             }
 
-                if let feedback = seekFeedback {
-                    SeekFeedbackView(feedback: feedback)
-                        .transition(.opacity)
-                        .zIndex(30)
-                }
 
                 if showQualityDialog {
                     QuickplayQualityDialog(engine: engine, isPresented: $showQualityDialog)
@@ -244,13 +245,7 @@ struct QuickplayPlayerScreen: View {
             controlsVisible = true
             scheduleHide()
         }
-        .onChange(of: engine.isPlaying) { _, playing in
-            Self.logger.debug("[Controls] isPlaying → \(playing) | isReady=\(engine.isReady) t=+\(elapsed())ms")
-        }
-        .onChange(of: engine.isBuffering) { _, buffering in
-            Self.logger.debug("[Controls] isBuffering → \(buffering) | isReady=\(engine.isReady) t=+\(elapsed())ms")
-        }
-        .onChange(of: isSeeking) { _, seeking in
+        .onChange(of: isSeeking) { (_: Bool, seeking: Bool) in
             if seeking {
                 wasPlayingBeforeSeek = engine.isPlaying
                 engine.pause()
@@ -688,49 +683,12 @@ struct SpeedSelectorView: View {
 
 // MARK: - Seek feedback
 
-private struct SeekFeedback: Equatable {
+struct SeekFeedback: Equatable {
     enum Side { case forward, backward }
     let side: Side
     let amount: Int
 }
 
-private struct SeekFeedbackView: View {
-    let feedback: SeekFeedback
-
-    var body: some View {
-        HStack(alignment: .center) {
-            if feedback.side == .forward { Spacer() }
-
-            Group {
-                if feedback.side == .backward {
-                    // Backward: "-Xs" number text + plain circular-arrow icon side by side
-                    HStack(alignment: .center, spacing: 10) {
-                        Text("-\(feedback.amount)")
-                            .font(.system(size: 26, weight: .bold))
-                            .foregroundStyle(.white)
-                        Image(systemName: "gobackward")
-                            .font(.system(size: 44, weight: .regular))
-                            .foregroundStyle(.white)
-                    }
-                } else {
-                    // Forward: number overlaid inside the circular-arrow icon
-                    ZStack {
-                        Image(systemName: "goforward")
-                            .font(.system(size: 44, weight: .regular))
-                            .foregroundStyle(.white)
-                        Text("\(feedback.amount)")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(.white)
-                    }
-                }
-            }
-            .padding(.horizontal, 44)
-
-            if feedback.side == .backward { Spacer() }
-        }
-        .ignoresSafeArea()
-    }
-}
 
 // MARK: - Loading view
 

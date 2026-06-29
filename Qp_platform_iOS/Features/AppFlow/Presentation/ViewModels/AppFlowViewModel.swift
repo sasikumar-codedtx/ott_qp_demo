@@ -448,12 +448,22 @@ final class AppFlowViewModel: ObservableObject {
            loadedId != detail.id,
            let playingEpisode = playerEpisodes.first(where: { $0.id == loadedId }) {
             activePlaybackContent = playingEpisode.quickplayPlaybackContent()
+        } else if detail.supportsEpisodes, let firstEpisode = playerEpisodes.first {
+            // Series/season types must auth with an episode ID, not the series ID.
+            activePlaybackContent = firstEpisode.quickplayPlaybackContent()
         } else {
             activePlaybackContent = detail.quickplayPlaybackContent(fallback: item)
         }
     }
 
     func closePlayer() {
+        let hasDetailBehindPlayer = navigationPath.contains {
+            if case .detail = $0 { return true }
+            return false
+        }
+        if !hasDetailBehindPlayer {
+            playerEngine.pause()
+        }
         activePlaybackContent = nil
         playerEpisodes = []
         playerSeasons = []
