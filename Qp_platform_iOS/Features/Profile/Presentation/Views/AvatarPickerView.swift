@@ -19,7 +19,6 @@ struct AvatarPickerView: View {
                         ForEach(viewModel.displayAvatarOptions) { option in
                             Button {
                                 viewModel.selectAvatar(option)
-                                onContinue()
                             } label: {
                                 ProfileAvatarTile(
                                     imageName: option.imageName,

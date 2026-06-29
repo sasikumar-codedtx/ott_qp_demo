@@ -9,8 +9,8 @@ nonisolated enum AppEnvironment {
         static let deviceType = "androidmobile"
         static let region = "IN"
         static let storefrontProbeRegion = "all"
-        static let searchPageSize = "50"
-        static let storefrontPageSize = "20"
+        static let searchPageSize = "10"
+        static let storefrontPageSize = "10"
     }
     
     enum Demo {

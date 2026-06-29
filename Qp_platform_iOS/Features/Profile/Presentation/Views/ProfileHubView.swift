@@ -157,7 +157,7 @@ struct ProfileHubView: View {
                             .padding(.vertical, 40)
                     } else {
                         if let leadingSection = viewModel.leadingSection {
-                            profileRailSection(leadingSection, style: .poster, width: 188)
+                            profileRailSection(leadingSection, style: .landscape, width: 275)
                         }
 
                         downloadsCard
@@ -168,22 +168,12 @@ struct ProfileHubView: View {
                                 .padding(.horizontal, UIConstants.Spacing.lg)
                                 .padding(.vertical, UIConstants.Spacing.xl)
                         } else {
-                            if let likesSection = viewModel.sections.first(where: { $0.id == "likes" }) {
-                                likesRailSection(likesSection)
-                            }
-
-                            ForEach(viewModel.trailingSections.filter { $0.id != "likes" }) { section in
-                                StorefrontSectionView(
-                                    section: section,
-                                    isHomeTab: false,
-                                    cohort: viewModel.selectedProfile?.quickplayCohort ?? .entertainment,
-                                    heroVariant: .carousel,
-                                    topChromeHeight: 0,
-                                    favoriteIDs: [],
-                                    onViewAll: nil,
-                                    onSelectItem: onSelectItem,
-                                    onToggleFavorite: { _ in }
-                                )
+                            ForEach(viewModel.trailingSections) { section in
+                                if section.id == "likes" {
+                                    profilePortraitRailSection(section, showsPlayOverlay: true)
+                                } else {
+                                    profilePortraitRailSection(section, showsPlayOverlay: false)
+                                }
                             }
                         }
 
@@ -395,9 +385,18 @@ struct ProfileHubView: View {
     }
 
     private func profileRailSection(_ section: StorefrontSection, style: StorefrontCardStyle, width: CGFloat) -> some View {
-        let ratio: CGFloat = style == .short ? (9 / 16) : (2 / 3)
+        let ratio: CGFloat
+        switch style {
+        case .landscape:
+            ratio = 16 / 9
+        case .short:
+            ratio = 9 / 16
+        default:
+            ratio = 2 / 3
+        }
         let size = CGSize(width: width, height: width / ratio)
-        let layout = StorefrontCardLayout(size: size, overlayHeight: style == .short ? 0 : 64, visibleCount: 2)
+        let overlayHeight: CGFloat = style == .landscape ? 50 : (style == .short ? 0 : 56)
+        let layout = StorefrontCardLayout(size: size, overlayHeight: overlayHeight, visibleCount: 2)
 
         return VStack(alignment: .leading, spacing: 11) {
             SectionHeaderView(title: section.title)
@@ -414,31 +413,36 @@ struct ProfileHubView: View {
         }
     }
 
-    private func likesRailSection(_ section: StorefrontSection) -> some View {
-        let cardWidth: CGFloat = 275
-        let cardHeight: CGFloat = cardWidth * 16 / 9
+    private func profilePortraitRailSection(_ section: StorefrontSection, showsPlayOverlay: Bool) -> some View {
+        let screenWidth = UIScreen.main.bounds.width
+        let horizontalPadding = UIConstants.Spacing.lg * 2
+        let spacing: CGFloat = 8
+        let cardWidth = max((screenWidth - horizontalPadding - (spacing * 1.5)) / 2.5, 118)
+        let cardHeight: CGFloat = cardWidth * 3 / 2
         let size = CGSize(width: cardWidth, height: cardHeight)
-        let layout = StorefrontCardLayout(size: size, overlayHeight: 0, visibleCount: 2)
+        let layout = StorefrontCardLayout(size: size, overlayHeight: 52, visibleCount: 2)
 
         return VStack(alignment: .leading, spacing: 11) {
             SectionHeaderView(title: section.title)
                 .padding(.horizontal, UIConstants.Spacing.lg)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 8) {
+                HStack(alignment: .top, spacing: spacing) {
                     ForEach(section.items) { item in
                         ZStack {
-                            StorefrontCardView(item: item, style: .short, layout: layout, rank: nil, onSelect: onSelectItem)
+                            StorefrontCardView(item: item, style: .poster, layout: layout, rank: nil, onSelect: onSelectItem)
 
-                            RoundedRectangle(cornerRadius: StorefrontRailMetrics.cardCornerRadius, style: .continuous)
-                                .fill(Color.black.opacity(0.36))
-                                .overlay {
-                                    Image(systemName: AppIcons.Action.playCircle)
-                                        .font(.system(size: 48, weight: .bold))
-                                        .foregroundStyle(.white.opacity(0.92), .white.opacity(0.18))
-                                }
-                                .frame(width: cardWidth, height: cardHeight)
-                                .allowsHitTesting(false)
+                            if showsPlayOverlay {
+                                RoundedRectangle(cornerRadius: StorefrontRailMetrics.cardCornerRadius, style: .continuous)
+                                    .fill(Color.black.opacity(0.36))
+                                    .overlay {
+                                        Image(systemName: AppIcons.Action.playCircle)
+                                            .font(.system(size: 32, weight: .bold))
+                                            .foregroundStyle(.white.opacity(0.92), .white.opacity(0.18))
+                                    }
+                                    .frame(width: cardWidth, height: cardHeight)
+                                    .allowsHitTesting(false)
+                            }
                         }
                     }
                 }

@@ -123,11 +123,17 @@ struct StorefrontView: View {
                 isRefreshing: viewModel.isRefreshing,
                 isLoadingMore: viewModel.isLoadingMore,
                 scrollToTopToken: viewModel.scrollToTopToken,
+                cohort: viewModel.heroPresentationCohort,
+                heroVariant: viewModel.demoHeroVariant,
+                favoriteIDs: viewModel.favoriteIDs,
                 onSelectItem: onSelectItem,
                 onLoadMore: { sectionID in
                     Task {
                         await viewModel.loadMoreIfNeeded(currentSectionID: sectionID)
                     }
+                },
+                onToggleFavorite: { item in
+                    Task { await viewModel.toggleFavorite(item) }
                 }
             )
         } else {
@@ -200,14 +206,21 @@ private struct StorefrontHotAndNewView: View {
     let isRefreshing: Bool
     let isLoadingMore: Bool
     let scrollToTopToken: UUID
+    let cohort: QuickplayCohort
+    let heroVariant: StorefrontHeroVariant
+    let favoriteIDs: Set<String>
     let onSelectItem: (StorefrontItem) -> Void
     let onLoadMore: (String) -> Void
+    let onToggleFavorite: (StorefrontItem) -> Void
     @State private var activeSectionID: String?
     private static let scrollTopID = "hot-and-new-scroll-top"
 
+    private var heroSections: [StorefrontSection] {
+        sections.filter { $0.isHero && !$0.items.isEmpty }
+    }
+
     private var displaySections: [StorefrontSection] {
-        let editorialSections = sections.filter { !$0.items.isEmpty && !$0.isHero }
-        return editorialSections.isEmpty ? sections.filter { !$0.items.isEmpty } : editorialSections
+        sections.filter { !$0.isHero && !$0.items.isEmpty }
     }
 
     var body: some View {
@@ -223,6 +236,20 @@ private struct StorefrontHotAndNewView: View {
                             StorefrontRefreshIndicator()
                                 .padding(.top, 4)
                                 .frame(maxWidth: .infinity)
+                        }
+
+                        ForEach(heroSections) { section in
+                            StorefrontSectionView(
+                                section: section,
+                                isHomeTab: false,
+                                cohort: cohort,
+                                heroVariant: heroVariant,
+                                topChromeHeight: StorefrontHeroMetrics.topChromeHeight(topInset: topInset),
+                                favoriteIDs: favoriteIDs,
+                                onViewAll: nil,
+                                onSelectItem: onSelectItem,
+                                onToggleFavorite: onToggleFavorite
+                            )
                         }
 
                         ForEach(displaySections) { section in

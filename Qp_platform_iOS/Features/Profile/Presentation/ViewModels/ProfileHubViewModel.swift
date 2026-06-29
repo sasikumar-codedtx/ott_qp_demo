@@ -58,10 +58,10 @@ final class ProfileHubViewModel: ObservableObject {
             let home = try await useCase.execute(profile: selectedProfile, seedItems: seedItems)
 
             sections = [
-                makeSection(id: "continue-watching", title: AppStrings.Profile.continueWatching, ratio: "0-2x3", items: home.continueWatching),
+                makeSection(id: "continue-watching", title: AppStrings.Profile.continueWatching, ratio: "0-16x9", items: home.continueWatching),
+                makeSection(id: "clips", title: AppStrings.Profile.clips, ratio: "0-2x3", items: home.clips),
                 makeSection(id: "likes", title: AppStrings.Profile.likes, ratio: "0-2x3", items: home.likedItems),
-                makeSection(id: "favorites", title: AppStrings.Profile.favorites, ratio: "0-2x3", items: home.favorites),
-                makeSection(id: "clips", title: AppStrings.Profile.clips, ratio: "0-2x3", items: home.clips)
+                makeSection(id: "favorites", title: AppStrings.Profile.favorites, ratio: "0-2x3", items: home.favorites)
             ]
             .compactMap { $0 }
 

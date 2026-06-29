@@ -60,6 +60,13 @@ private let scorecardBowlingData: [ScorecardBowler] = [
     .init(id: "7", name: "C Asalanka",   o: "9.0",  m: "1", r: "18", w: "4", er: "2.00"),
 ]
 
+private struct DetailTabRowOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = .greatestFiniteMagnitude
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = min(value, nextValue())
+    }
+}
+
 private enum DetailPresentationKind: Equatable {
     case regular
     case showInteractive
@@ -131,6 +138,7 @@ struct ContentDetailView: View {
     @State private var timerShakeOffset: CGFloat = 0
     @State private var showQuizConfetti = false
     @State private var isSeasonSheetPresented = false
+    @State private var tabRowGlobalY: CGFloat = .greatestFiniteMagnitude
 
     private let recommendationColumns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
     private let momentColumns = [GridItem(.flexible(), spacing: 10)]
@@ -366,6 +374,27 @@ struct ContentDetailView: View {
                 .ignoresSafeArea(edges: .top)
                 .zIndex(2)
 
+                // Sticky tab row — pins below the card once the original scrolls past the card bottom
+                let showStickyTabs = kind != .sportsInteractive && tabRowGlobalY < headerHeight
+                if showStickyTabs {
+                    VStack(spacing: 0) {
+                        tabRow(detail)
+                            .padding(.horizontal, 16)
+                        Rectangle()
+                            .fill(Color.white.opacity(0.12))
+                            .frame(height: 1)
+                    }
+                    .background(Color(hex: "0A0A0A"))
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, headerHeight - safeAreaTop)
+                    .zIndex(5)
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 0.15), value: showStickyTabs)
+                }
+
+            }
+            .onPreferenceChange(DetailTabRowOffsetKey.self) { y in
+                tabRowGlobalY = y
             }
         } else if viewModel.isLoading {
             detailLoadingShimmer(width: width)
@@ -503,6 +532,14 @@ struct ContentDetailView: View {
                         .fill(Color.white.opacity(0.12))
                         .frame(height: 1)
                 }
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.preference(
+                            key: DetailTabRowOffsetKey.self,
+                            value: geo.frame(in: .global).minY
+                        )
+                    }
+                )
                 tabContent(detail, width: width)
                     .padding(.horizontal, 16)
                     .padding(.top, 12)
@@ -2327,9 +2364,8 @@ struct ContentDetailView: View {
             }
             .frame(maxWidth: .infinity, minHeight: 96)
             .background(LiquidGlassBackground(cornerRadius: UIConstants.CornerRadius.lg, tone: .dark))
-        } else if let message = viewModel.momentsErrorMessage {
-            EmptyStateView(title: AppStrings.Detail.moments, message: message, systemImage: "sparkles")
-                .padding(.top, 6)
+        } else if viewModel.momentsErrorMessage != nil {
+            noMomentsDataView
         } else if viewModel.momentResults.isEmpty {
             Button {
                 if let detail = viewModel.detail {
@@ -2354,6 +2390,19 @@ struct ContentDetailView: View {
             }
             .padding(.top, 2)
         }
+    }
+
+    private var noMomentsDataView: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 28, weight: .regular))
+                .foregroundStyle(Color.white.opacity(0.28))
+            Text("No relevant data available")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.white.opacity(0.54))
+        }
+        .frame(maxWidth: .infinity, minHeight: 110)
+        .padding(.top, 6)
     }
 
     @ViewBuilder

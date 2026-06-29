@@ -48,7 +48,7 @@ struct SearchView: View {
     }
 
     private var showsSearchDockFilters: Bool {
-        searchDockFilters.count > 1
+        !isSearchFocused && searchDockFilters.count > 1
     }
 
     private var inlineVoiceStatusText: String {
@@ -199,15 +199,17 @@ struct SearchView: View {
 
     private func bottomSearchDock(bottomInset: CGFloat) -> some View {
         VStack(spacing: 14) {
-            if !viewModel.popularSuggestions.isEmpty && searchInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if isSearchFocused {
+                let suggestions = viewModel.recentSearches.isEmpty ? viewModel.popularSuggestions : viewModel.recentSearches
+                let label = viewModel.recentSearches.isEmpty ? "Popular" : "Recent"
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(AppStrings.Search.popular)
+                    Text(label)
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(Color.white.opacity(0.54))
                         .padding(.horizontal, UIConstants.Spacing.lg)
 
                     SuggestionChipFlow(
-                        suggestions: viewModel.popularSuggestions,
+                        suggestions: suggestions,
                         maxRows: 2,
                         maxItemsPerRow: 3,
                         horizontalPadding: UIConstants.Spacing.lg
@@ -289,7 +291,7 @@ struct SearchView: View {
     }
 
     private var showsSuggestions: Bool {
-        !viewModel.popularSuggestions.isEmpty && searchInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        isSearchFocused
     }
 
     private var searchDockReservedHeight: CGFloat {

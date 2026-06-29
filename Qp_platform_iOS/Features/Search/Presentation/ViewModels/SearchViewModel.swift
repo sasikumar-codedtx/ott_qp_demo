@@ -15,17 +15,33 @@ final class SearchViewModel: ObservableObject {
     @Published private(set) var facetFilters: [SearchFilter] = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
+    @Published private(set) var recentSearches: [String] = []
 
     private let useCase: SearchContentUseCase
     private var cancellables = Set<AnyCancellable>()
     private var pendingManualDisplayQuery: String?
     private var currentSearchTerm = ""
 
+    private static let recentSearchesKey = "search.recentQueries"
+    private static let maxRecentSearches = 8
+
     static let allFilter = SearchFilter(id: "all", title: "All")
     private static let defaultSearchQuery = "Trending Search"
 
+    let popularSuggestions: [String] = [
+        "Trending Shows",
+        "Action Movies",
+        "Cricket Live",
+        "South Films",
+        "Thriller Series",
+        "Comedy Movies",
+        "Horror Shows",
+        "Reality TV"
+    ]
+
     init(useCase: SearchContentUseCase) {
         self.useCase = useCase
+        recentSearches = (UserDefaults.standard.array(forKey: Self.recentSearchesKey) as? [String]) ?? []
 
         // .dropFirst() prevents the initial "" value from firing on app start.
         // Only fires when the user explicitly clears the field after entering the screen.
@@ -48,9 +64,22 @@ final class SearchViewModel: ObservableObject {
     func submitSearch() {
         let term = normalizedQuery
         guard !term.isEmpty else { return }
+        saveRecentSearch(term)
         Task { @MainActor in
             await handleQueryChange(term)
         }
+    }
+
+    func removeRecentSearch(_ term: String) {
+        recentSearches.removeAll { $0 == term }
+        UserDefaults.standard.set(recentSearches, forKey: Self.recentSearchesKey)
+    }
+
+    private func saveRecentSearch(_ term: String) {
+        var updated = recentSearches.filter { $0.lowercased() != term.lowercased() }
+        updated.insert(term, at: 0)
+        recentSearches = Array(updated.prefix(Self.maxRecentSearches))
+        UserDefaults.standard.set(recentSearches, forKey: Self.recentSearchesKey)
     }
 
     private func clearResults() {
@@ -65,8 +94,8 @@ final class SearchViewModel: ObservableObject {
 
     private func loadInitialContent() async {
         // displayQuery: "" matches normalizedQuery "" so results are applied.
-        // term: "Recent Movies" is what the API receives.
-        await performSearch(term: "Recent Movies", facetTerm: nil, shouldUpdateFilters: false, displayQuery: "")
+        // term: "Recent" is what the API receives.
+        await performSearch(term: "Recent", facetTerm: nil, shouldUpdateFilters: false, displayQuery: "")
     }
 
     var normalizedQuery: String {
@@ -83,12 +112,6 @@ final class SearchViewModel: ObservableObject {
 
     var displaySearchTerm: String {
         normalizedQuery.isEmpty ? currentSearchTerm : normalizedQuery
-    }
-
-    var popularSuggestions: [String] {
-        guard normalizedQuery.isEmpty else { return [] }
-        let titles = results.prefix(8).map { $0.title }.filter { !$0.isEmpty }
-        return titles.isEmpty ? [] : Array(titles)
     }
 
     func present() {
@@ -110,6 +133,7 @@ final class SearchViewModel: ObservableObject {
         let queryToSearch = apiQuery.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !displayText.isEmpty, !queryToSearch.isEmpty else { return }
 
+        saveRecentSearch(displayText)
         pendingManualDisplayQuery = displayText
         self.query = displayText
         selectedFilterID = Self.allFilter.id
@@ -172,6 +196,8 @@ final class SearchViewModel: ObservableObject {
         errorMessage = nil
         results = []
         momentResults = []
+        facetFilters = []
+        if shouldUpdateFilters { selectedFilterID = Self.allFilter.id }
         currentSearchTerm = term
 
         do {
@@ -179,7 +205,9 @@ final class SearchViewModel: ObservableObject {
             if normalizedQuery.caseInsensitiveCompare(displayQuery) == .orderedSame {
                 results = page.items
                 momentResults = page.momentItems
-                if shouldUpdateFilters {
+                if page.items.isEmpty && page.momentItems.isEmpty {
+                    facetFilters = []
+                } else if shouldUpdateFilters {
                     facetFilters = deduplicatedFilters(page.filters)
                 }
                 isLoading = false
