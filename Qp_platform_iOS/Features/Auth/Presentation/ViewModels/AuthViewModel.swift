@@ -5,14 +5,7 @@ import Foundation
 final class AuthViewModel: ObservableObject {
     private static let phoneMaxDigits = 10
 
-    @Published var phoneNumber = "" {
-        didSet {
-            let normalized = Self.normalizeIndianPhone(phoneNumber)
-            if phoneNumber != normalized {
-                phoneNumber = normalized
-            }
-        }
-    }
+    @Published var phoneNumber = ""
     @Published var otpCode = ""
     @Published private(set) var otpLength = 6
     @Published private(set) var isLoading = false

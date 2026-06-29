@@ -92,6 +92,10 @@ struct LoginView: View {
                 }
             }
             .onChange(of: viewModel.phoneNumber) { _, newValue in
+                let normalized = AuthViewModel.normalizeIndianPhone(newValue)
+                if normalized != newValue {
+                    viewModel.phoneNumber = normalized
+                }
                 if newValue.count > 0 { hasInteractedWithPhone = true }
             }
             .onChange(of: isPhoneFocused) { _, focused in
@@ -143,10 +147,7 @@ struct LoginView: View {
             AuthFigmaField(width: nil, hasError: showPhoneError) {
                 TextField(
                     "",
-                    text: Binding(
-                        get: { viewModel.phoneNumber },
-                        set: { viewModel.phoneNumber = AuthViewModel.normalizeIndianPhone($0) }
-                    ),
+                    text: $viewModel.phoneNumber,
                     prompt: Text(AppStrings.Auth.phonePlaceholder).foregroundStyle(Color.white.opacity(0.5))
                 )
                 .keyboardType(.numberPad)
