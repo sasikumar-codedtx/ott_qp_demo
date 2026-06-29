@@ -37,13 +37,9 @@ struct BottomNavigationBar: View {
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             navButton(assetName: TabbarAsset.home, label: AppStrings.Common.home, isSelected: selection == .home, action: onHomeTap)
-            Spacer(minLength: 0)
             navButton(assetName: TabbarAsset.search, label: AppStrings.Common.search, isSelected: selection == .search, action: onSearchTap)
-            Spacer(minLength: 0)
             navButton(assetName: TabbarAsset.shorts, label: AppStrings.Common.library, isSelected: selection == .shorts, action: onShortsTap)
-            Spacer(minLength: 0)
             navButton(assetName: TabbarAsset.fire, label: AppStrings.Common.hot, isSelected: selection == .hot, action: onHotTap)
-            Spacer(minLength: 0)
             profileButton
         }
         .frame(height: Metrics.rowHeight)
@@ -65,7 +61,7 @@ struct BottomNavigationBar: View {
         }
         .contentShape(Rectangle())
         .buttonStyle(LiquidButtonPressStyle())
-        .frame(width: Metrics.itemWidth, height: Metrics.rowHeight)
+        .frame(maxWidth: .infinity, minHeight: Metrics.rowHeight)
     }
 
     private func navItem(assetName: String, label: String, isSelected: Bool) -> some View {
@@ -89,7 +85,7 @@ struct BottomNavigationBar: View {
                     .frame(height: 12)
             }
         }
-        .frame(width: Metrics.itemWidth, height: Metrics.rowHeight, alignment: .top)
+        .frame(maxWidth: .infinity, minHeight: Metrics.rowHeight, alignment: .top)
         .contentShape(Rectangle())
     }
 
@@ -116,13 +112,13 @@ struct BottomNavigationBar: View {
                         .frame(height: 12)
                 }
             }
-            .frame(width: Metrics.itemWidth, height: Metrics.rowHeight, alignment: .top)
+            .frame(maxWidth: .infinity, minHeight: Metrics.rowHeight, alignment: .top)
             .contentShape(Rectangle())
             .opacity(0.95)
         }
         .contentShape(Rectangle())
         .buttonStyle(LiquidButtonPressStyle())
-        .frame(width: Metrics.itemWidth, height: Metrics.rowHeight)
+        .frame(maxWidth: .infinity, minHeight: Metrics.rowHeight)
     }
 
     private func selectedIndicator(isSelected: Bool) -> some View {
