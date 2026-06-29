@@ -64,7 +64,7 @@ struct CohortQuestionnaireView: View {
                 background
 
                 VStack(spacing: 0) {
-                    header(topInset: proxy.safeAreaInsets.top)
+                    header(topInset: proxy.safeAreaInsets.top + 60)
 
                     progressBar
                         .padding(.top, 18)
@@ -72,10 +72,36 @@ struct CohortQuestionnaireView: View {
                     swipeStack(maxWidth: proxy.size.width)
                         .padding(.top, 26)
 
-                    Spacer(minLength: 20)
+                    Spacer()
+                        .frame(maxHeight: 56)
 
                     swipeControls
-                        .padding(.bottom, proxy.safeAreaInsets.bottom + 18)
+                        .padding(.bottom, proxy.safeAreaInsets.bottom + 32)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+
+                // Skip button — top right
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button(action: skipToDefault) {
+                            Text("Skip")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.72))
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.white.opacity(0.12))
+                                        .overlay(Capsule().stroke(Color.white.opacity(0.18), lineWidth: 1))
+                                )
+                        }
+                        .buttonStyle(LiquidButtonPressStyle())
+                        .padding(.top, proxy.safeAreaInsets.top + 14)
+                        .padding(.trailing, 22)
+                        .disabled(isFinishing)
+                    }
+                    Spacer()
                 }
 
                 if isFinishing, let selectedResult {
@@ -86,7 +112,8 @@ struct CohortQuestionnaireView: View {
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
         }
-        .navigationBarBackButtonHidden(true)
+        .ignoresSafeArea()
+    .navigationBarBackButtonHidden(true)
     }
 
     private var background: some View {
@@ -118,7 +145,7 @@ struct CohortQuestionnaireView: View {
                 .foregroundStyle(.white)
                 .padding(.top, 3)
         }
-        .padding(.top, topInset + 8)
+        .padding(.top, topInset + 20)
     }
 
     private var progressBar: some View {
@@ -183,7 +210,7 @@ struct CohortQuestionnaireView: View {
                 backgroundName: backgroundName,
                 width: topWidth,
                 height: topHeight,
-                borderColor: dragOffset.width < -24 ? Color(hex: "74B7FF") : Color(hex: "FF7B7B"),
+                borderColor: dragOffset.width > 24 ? Color(hex: "34C759") : dragOffset.width < -24 ? Color(hex: "FF3B30") : Color(hex: "FF7B7B"),
                 borderWidth: 4,
                 cornerRadius: 30,
                 textSize: 19.889,
@@ -312,6 +339,27 @@ struct CohortQuestionnaireView: View {
     private func finish() {
         isFinishing = true
         let result = CohortQuestionnaireScorer.score(answers: scoredAnswers)
+        selectedResult = result
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
+            isPromotingNextCard = false
+        }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(1250))
+            onComplete(result)
+        }
+    }
+
+    private func skipToDefault() {
+        guard !isFinishing else { return }
+        let result = CohortQuestionnaireResult(
+            entertainmentScore: 1,
+            sportsScore: 0,
+            realityScore: 0,
+            primaryCategory: .entertainment,
+            preference: .entertainment,
+            confidence: 100
+        )
+        isFinishing = true
         selectedResult = result
         withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
             isPromotingNextCard = false
@@ -452,12 +500,12 @@ private struct CohortSwipeCard: View {
             if let verdict {
                 Text(verdict)
                     .font(.system(size: 34, weight: .black))
-                    .foregroundStyle(verdict == "YES" ? Color(hex: "7AFFB8") : Color(hex: "74B7FF"))
+                    .foregroundStyle(verdict == "YES" ? Color(hex: "7AFFB8") : Color(hex: "FF3B30"))
                     .padding(.horizontal, 18)
                     .padding(.vertical, 8)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(verdict == "YES" ? Color(hex: "7AFFB8") : Color(hex: "74B7FF"), lineWidth: 3)
+                            .stroke(verdict == "YES" ? Color(hex: "7AFFB8") : Color(hex: "FF3B30"), lineWidth: 3)
                     )
                     .rotationEffect(.degrees(verdict == "YES" ? 12 : -12))
                     .offset(x: verdict == "YES" ? 66 : -66, y: -92)

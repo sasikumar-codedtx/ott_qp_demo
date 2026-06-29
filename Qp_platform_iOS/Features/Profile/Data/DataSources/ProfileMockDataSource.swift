@@ -10,8 +10,11 @@ protocol ProfileDataSourceProtocol {
 
 @MainActor
 final class ProfileMockDataSource: ProfileDataSourceProtocol {
-    private enum StorageKey {
-        static let profiles = "sony.quickplay.demo.profiles.v7"
+    private static let phoneNumberKey = "sony.quickplay.demo.active-phone-number"
+
+    private var storageKey: String {
+        let phone = UserDefaults.standard.string(forKey: Self.phoneNumberKey) ?? "default"
+        return "sony.quickplay.demo.profiles.v8.\(phone)"
     }
 
     private var profiles: [ProfileDTO]
@@ -25,8 +28,13 @@ final class ProfileMockDataSource: ProfileDataSourceProtocol {
     }
 
     init() {
-        profiles = Self.loadPersistedProfiles() ?? Self.seedProfiles
-        persistProfiles()
+        let phone = UserDefaults.standard.string(forKey: Self.phoneNumberKey) ?? "default"
+        let key = "sony.quickplay.demo.profiles.v8.\(phone)"
+        profiles = Self.loadPersistedProfiles(key: key) ?? []
+    }
+
+    func reloadForCurrentPhone() {
+        profiles = Self.loadPersistedProfiles(key: storageKey) ?? []
     }
 
     func fetchProfiles() async throws -> [ProfileDTO] {
@@ -112,13 +120,11 @@ final class ProfileMockDataSource: ProfileDataSourceProtocol {
 
     private func persistProfiles() {
         guard let data = try? JSONEncoder().encode(profiles) else { return }
-        UserDefaults.standard.set(data, forKey: StorageKey.profiles)
+        UserDefaults.standard.set(data, forKey: storageKey)
     }
 
-    private static func loadPersistedProfiles() -> [ProfileDTO]? {
-        guard let data = UserDefaults.standard.data(forKey: StorageKey.profiles) else { return nil }
+    private static func loadPersistedProfiles(key: String) -> [ProfileDTO]? {
+        guard let data = UserDefaults.standard.data(forKey: key) else { return nil }
         return try? JSONDecoder().decode([ProfileDTO].self, from: data)
     }
-
-    private static let seedProfiles: [ProfileDTO] = []
 }

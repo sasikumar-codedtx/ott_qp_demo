@@ -8,6 +8,7 @@ struct StorefrontHeaderView: View {
 
     let topInset: CGFloat
     var mode: Mode = .standard
+    @State private var showDemoAlert = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,7 +27,7 @@ struct StorefrontHeaderView: View {
                     }
 
                     if mode == .standard {
-                        Button(action: {}) {
+                        Button(action: { showDemoAlert = true }) {
                             HStack(spacing: 8) {
                                 Image(systemName: AppIcons.Action.crown)
                                     .font(.system(size: 11, weight: .bold))
@@ -59,6 +60,7 @@ struct StorefrontHeaderView: View {
             .padding(.bottom, 10)
             .background(headerScrim)
         }
+        .demoAlert(isPresented: $showDemoAlert)
     }
 
     private var headerScrim: some View {

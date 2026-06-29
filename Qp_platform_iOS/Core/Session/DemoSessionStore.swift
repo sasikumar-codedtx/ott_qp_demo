@@ -8,6 +8,7 @@ actor DemoSessionStore {
         static let activeStorefrontPolicy = "sony.quickplay.demo.active-storefront-policy"
         static let activePreference = "sony.quickplay.demo.active-preference"
         static let activeProfileID = "sony.quickplay.demo.active-profile-id"
+        static let activePhoneNumber = "sony.quickplay.demo.active-phone-number"
         static let preferenceHistoryByProfile = "sony.quickplay.demo.preference-history-by-profile"
         static let storefrontPolicyClicksByProfile = "sony.quickplay.demo.storefront-policy-clicks-by-profile"
         static let prefersVoiceAISearch = "sony.quickplay.demo.prefers-voice-ai"
@@ -125,6 +126,14 @@ actor DemoSessionStore {
         UserDefaults.standard.set(activeCohort.rawValue, forKey: StorageKey.activeCohort)
         UserDefaults.standard.set(activeStorefrontPolicy.rawValue, forKey: StorageKey.activeStorefrontPolicy)
         UserDefaults.standard.set(activePreference.rawValue, forKey: StorageKey.activePreference)
+    }
+
+    func setActivePhoneNumber(_ phone: String) {
+        UserDefaults.standard.set(phone, forKey: StorageKey.activePhoneNumber)
+    }
+
+    func activePhoneNumber() -> String? {
+        UserDefaults.standard.string(forKey: StorageKey.activePhoneNumber)
     }
 
     func setHasCompletedLogin(_ hasCompletedLogin: Bool) {

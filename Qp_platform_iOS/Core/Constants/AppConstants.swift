@@ -19,7 +19,7 @@ enum AppStrings {
         static let verifyLabel = "Verify OTP"
         static let resendPrefix = "Resend OTP in "
         static let resendTimer = "01:59"
-        static let legalPrefix = "By proceeding you confirm that you are of 18 years or above and accept the "
+        static let legalPrefix = ""
         static let termsOfUse = "Terms of Use"
         static let privacyPolicy = "Privacy Policy"
         static let subscriptionActive = "Subscription Active"

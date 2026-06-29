@@ -13,6 +13,7 @@ struct SettingsView: View {
 
     @State private var navigationPath: [SettingsScreen] = []
     @State private var showsProfileSwitch = false
+    @State private var showDemoAlert = false
     @State private var activeAudioSheet: AudioSelectionSheet?
     @State private var hasActiveSubscription: Bool
     @State private var selectedAudioQuality = "Dolby 5.1 ( Default )"
@@ -63,13 +64,14 @@ struct SettingsView: View {
             }
             .routeNavigationOverlay(title: currentScreen.title, onBack: handleBack) {
                 if currentScreen == .root {
-                    RouteNavigationIconButton(icon: AppIcons.Action.headphones, action: {})
+                    RouteNavigationIconButton(icon: AppIcons.Action.headphones, action: { showDemoAlert = true })
                 }
             }
             .animation(.easeInOut(duration: 0.22), value: currentScreen)
             .animation(.easeInOut(duration: 0.22), value: showsProfileSwitch)
             .animation(.easeInOut(duration: 0.22), value: activeAudioSheet)
         }
+        .demoAlert(isPresented: $showDemoAlert)
     }
 
     private func settingsPage(for screen: SettingsScreen, topInset: CGFloat) -> some View {
@@ -294,7 +296,7 @@ struct SettingsView: View {
             planCard(title: "Promo Code", subtitle: "Apply a subscription voucher or campaign code", price: "Redeem", featured: true)
             planCard(title: "Partner Offer", subtitle: "Preview bundled or campaign-based subscription benefits", price: "Coming Soon", featured: false)
 
-            Button(action: {}) {
+            Button(action: { showDemoAlert = true }) {
                 Text("Apply Mock Offer")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(Color(hex: "151424"))

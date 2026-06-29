@@ -6,7 +6,12 @@ struct LoginView: View {
     let onContinue: () -> Void
 
     @FocusState private var isPhoneFocused: Bool
-    @State private var submittedPhoneNumber: String?
+    @State private var hasInteractedWithPhone = false
+    @State private var showDemoAlert = false
+
+    private var showPhoneError: Bool {
+        hasInteractedWithPhone && !isPhoneFocused && viewModel.phoneValidationError != nil
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -23,8 +28,21 @@ struct LoginView: View {
                 LogoGlowView(size: 94, glowScale: 1)
                     .position(x: geometry.size.width / 2, y: designY(198, scale: scale))
 
-                VStack(spacing: 46) {
-                    phoneInput
+                VStack(spacing: 24) {
+                    VStack(spacing: 8) {
+                        phoneInput
+
+                        if showPhoneError, let errorMsg = viewModel.phoneValidationError {
+                            Text(errorMsg)
+                                .font(.system(size: 13, weight: .regular))
+                                .foregroundStyle(Color(hex: "D40202"))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .transition(.opacity.combined(with: .move(edge: .top)))
+                        }
+                    }
+                    .animation(.easeInOut(duration: 0.18), value: showPhoneError)
+
+                    continueButton
 
                     VStack(spacing: 12) {
                         Text("Already have an account?")
@@ -32,7 +50,7 @@ struct LoginView: View {
                             .foregroundStyle(Color(hex: "6D6D6D"))
                             .frame(maxWidth: .infinity)
 
-                        Button(action: {}) {
+                        Button(action: { showDemoAlert = true }) {
                             HStack(spacing: 6) {
                                 Text("Sign in via Email ID or Social Media")
                                     .font(.system(size: 16, weight: .semibold))
@@ -51,9 +69,6 @@ struct LoginView: View {
                 .frame(width: min(380, geometry.size.width - 44))
                 .position(x: geometry.size.width / 2, y: designY(493, scale: scale))
 
-                legalCopy
-                    .frame(width: min(364, geometry.size.width - 48))
-                    .position(x: geometry.size.width / 2, y: designY(811, scale: scale))
 
                 if viewModel.isLoading {
                     VStack {
@@ -68,9 +83,7 @@ struct LoginView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
             .onTapGesture {
-                if !viewModel.isLoading {
-                    isPhoneFocused = true
-                }
+                isPhoneFocused = false
             }
             .task {
                 try? await Task.sleep(for: .milliseconds(250))
@@ -79,15 +92,12 @@ struct LoginView: View {
                 }
             }
             .onChange(of: viewModel.phoneNumber) { _, newValue in
-                guard newValue.count == 10 else {
-                    submittedPhoneNumber = nil
-                    return
+                if newValue.count > 0 { hasInteractedWithPhone = true }
+            }
+            .onChange(of: isPhoneFocused) { _, focused in
+                if !focused && viewModel.phoneNumber.count > 0 {
+                    hasInteractedWithPhone = true
                 }
-
-                guard submittedPhoneNumber != newValue else { return }
-                submittedPhoneNumber = newValue
-                isPhoneFocused = false
-                onContinue()
             }
             .onChange(of: viewModel.isLoading) { _, isLoading in
                 if isLoading {
@@ -96,23 +106,46 @@ struct LoginView: View {
             }
             .ignoresSafeArea(.keyboard, edges: .bottom)
         }
+        .demoAlert(isPresented: $showDemoAlert)
         .navigationBarBackButtonHidden(true)
+    }
+
+    private var continueButton: some View {
+        Button(action: {
+            guard viewModel.isPhoneValid else { return }
+            hasInteractedWithPhone = true
+            isPhoneFocused = false
+            onContinue()
+        }) {
+            Text("Continue")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(viewModel.isPhoneValid ? Color.black : Color.white.opacity(0.4))
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(viewModel.isPhoneValid ? Color(hex: "DAB316") : Color.white.opacity(0.1))
+                )
+        }
+        .buttonStyle(.plain)
+        .disabled(!viewModel.isPhoneValid)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.isPhoneValid)
     }
 
     private var phoneInput: some View {
         HStack(spacing: 4) {
-            AuthFigmaField(width: 64) {
+            AuthFigmaField(width: 64, hasError: showPhoneError) {
                 Text("+91")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(.white)
             }
 
-            AuthFigmaField(width: nil) {
+            AuthFigmaField(width: nil, hasError: showPhoneError) {
                 TextField(
                     "",
                     text: Binding(
                         get: { viewModel.phoneNumber },
-                        set: { viewModel.phoneNumber = String($0.filter(\.isNumber).prefix(10)) }
+                        set: { viewModel.phoneNumber = AuthViewModel.normalizeIndianPhone($0) }
                     ),
                     prompt: Text(AppStrings.Auth.phonePlaceholder).foregroundStyle(Color.white.opacity(0.5))
                 )
@@ -283,10 +316,12 @@ struct AuthNavigationBackButton: View {
 
 struct AuthFigmaField<Content: View>: View {
     let width: CGFloat?
+    var hasError: Bool = false
     let content: Content
 
-    init(width: CGFloat?, @ViewBuilder content: () -> Content) {
+    init(width: CGFloat?, hasError: Bool = false, @ViewBuilder content: () -> Content) {
         self.width = width
+        self.hasError = hasError
         self.content = content()
     }
 
@@ -298,13 +333,14 @@ struct AuthFigmaField<Content: View>: View {
             .frame(width: width)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.white.opacity(0.1))
+                    .fill(hasError ? Color(hex: "D40202").opacity(0.08) : Color.white.opacity(0.1))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .stroke(Color.white.opacity(0.05), lineWidth: 1.2)
+                            .stroke(hasError ? Color(hex: "D40202").opacity(0.7) : Color.white.opacity(0.05), lineWidth: 1.2)
                     )
                     .shadow(color: Color.white.opacity(0.05), radius: 3)
             )
+            .animation(.easeInOut(duration: 0.18), value: hasError)
     }
 }
 

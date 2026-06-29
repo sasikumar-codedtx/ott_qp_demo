@@ -11,6 +11,7 @@ struct ProfileHubView: View {
     let onSelectProfile: (Profile) -> Void
     let onSelectItem: (StorefrontItem) -> Void
     @State private var showsProfileSwitch = false
+    @State private var showDemoAlert = false
 
     var body: some View {
         GeometryReader { proxy in
@@ -64,6 +65,7 @@ struct ProfileHubView: View {
             }
         }
         .animation(.spring(response: 0.36, dampingFraction: 0.82), value: showsProfileSwitch)
+        .demoAlert(isPresented: $showDemoAlert)
         .task {
             await viewModel.loadIfNeeded()
         }
@@ -137,48 +139,55 @@ struct ProfileHubView: View {
 
     @ViewBuilder
     private func content(topInset: CGFloat) -> some View {
-        if viewModel.isLoading && viewModel.sections.isEmpty {
-            LoadingView()
-        } else if let errorMessage = viewModel.errorMessage, viewModel.sections.isEmpty {
+        if let errorMessage = viewModel.errorMessage, viewModel.sections.isEmpty {
             ErrorView(title: AppStrings.Profile.yourProfiles, message: errorMessage, onRetry: {
                 Task { await viewModel.loadIfNeeded() }
             })
         } else {
+            // Always keep the ScrollView alive — switching to LoadingView on data load
+            // causes a view identity change that makes the page jump/animate in.
             ScrollView(.vertical, showsIndicators: false) {
                 LazyVStack(alignment: .leading, spacing: UIConstants.Spacing.xl) {
                     header(topInset: topInset)
 
-                    if let leadingSection = viewModel.leadingSection {
-                        profileRailSection(leadingSection, style: .poster, width: 188)
-                    }
+                    if viewModel.isLoading && viewModel.sections.isEmpty {
+                        ProgressView()
+                            .tint(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 40)
+                    } else {
+                        if let leadingSection = viewModel.leadingSection {
+                            profileRailSection(leadingSection, style: .poster, width: 188)
+                        }
 
-                    downloadsCard
-                        .padding(.horizontal, UIConstants.Spacing.lg)
-
-                    if let clipsSection = viewModel.sections.first(where: { $0.id == "clips" }) {
-                        clipsRailSection(clipsSection)
-                    }
-
-                    ForEach(viewModel.trailingSections.filter { $0.id != "clips" }) { section in
-                        StorefrontSectionView(
-                            section: section,
-                            isHomeTab: false,
-                            cohort: viewModel.selectedProfile?.quickplayCohort ?? .entertainment,
-                            heroVariant: .carousel,
-                            topChromeHeight: 0,
-                            favoriteIDs: [],
-                            onViewAll: nil,
-                            onSelectItem: onSelectItem,
-                            onToggleFavorite: { _ in }
-                        )
-                    }
-
-                    if !AppEnvironment.Demo.hasActiveSubscription {
-                        upgradeCard
+                        downloadsCard
                             .padding(.horizontal, UIConstants.Spacing.lg)
-                    }
 
-                    footer
+                        if let clipsSection = viewModel.sections.first(where: { $0.id == "clips" }) {
+                            clipsRailSection(clipsSection)
+                        }
+
+                        ForEach(viewModel.trailingSections.filter { $0.id != "clips" }) { section in
+                            StorefrontSectionView(
+                                section: section,
+                                isHomeTab: false,
+                                cohort: viewModel.selectedProfile?.quickplayCohort ?? .entertainment,
+                                heroVariant: .carousel,
+                                topChromeHeight: 0,
+                                favoriteIDs: [],
+                                onViewAll: nil,
+                                onSelectItem: onSelectItem,
+                                onToggleFavorite: { _ in }
+                            )
+                        }
+
+                        if !AppEnvironment.Demo.hasActiveSubscription {
+                            upgradeCard
+                                .padding(.horizontal, UIConstants.Spacing.lg)
+                        }
+
+                        footer
+                    }
                 }
                 .padding(.bottom, UIConstants.Spacing.xxl)
             }
@@ -188,7 +197,7 @@ struct ProfileHubView: View {
     }
 
     private var downloadsCard: some View {
-        Button(action: {}) {
+        Button(action: { showDemoAlert = true }) {
             HStack(spacing: 14) {
                 Image(systemName: AppIcons.Action.download)
                     .font(.system(size: 17, weight: .semibold))
@@ -227,7 +236,7 @@ struct ProfileHubView: View {
     }
 
     private var upgradeCard: some View {
-        Button(action: {}) {
+        Button(action: { showDemoAlert = true }) {
             ZStack(alignment: .topLeading) {
                 Image("upgradebg")
                     .resizable()
@@ -255,7 +264,7 @@ struct ProfileHubView: View {
                     upgradeCTAButton
                         .padding(.horizontal, UIConstants.Spacing.xl)
 
-                    Button(action: {}) {
+                    Button(action: { showDemoAlert = true }) {
                         HStack(spacing: 5) {
                             Text("Subscribe to Basic plan")
                                 .font(.system(size: 12, weight: .regular))

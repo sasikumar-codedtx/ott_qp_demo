@@ -145,6 +145,7 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func finishVerifiedSignIn() async {
+        AppContainer.shared.switchAccount(phoneNumber: authViewModel.phoneNumber)
         await DemoSessionStore.shared.setHasCompletedLogin(true)
         await profileSelectionViewModel.load()
         navigationPath.removeAll()

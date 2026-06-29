@@ -109,6 +109,8 @@ struct ContentDetailView: View {
     var onPlayEpisode: ((StorefrontItem) -> Void)? = nil
     let onSelectRecommendation: (StorefrontItem) -> Void
     @State private var isDescriptionExpanded = false
+    @State private var isVideoReady = false
+    @State private var showDemoAlert = false
     @State private var isMomentSearchOverlayPresented = false
     @State private var isMockInteractionPresented = false
     @State private var mockInteractionSelection: String?
@@ -125,7 +127,8 @@ struct ContentDetailView: View {
     @State private var isTimeStampPresented = false
     @FocusState private var isChatInputFocused: Bool
     @State private var quizCountdown = 20
-    @State private var quizIsLocked = false   // true after user answers OR timer expires
+    @State private var quizIsLocked = false   // true when timer expires (NOT on tap)
+    @State private var timerShakeOffset: CGFloat = 0
     @State private var showQuizConfetti = false
     @State private var isSeasonSheetPresented = false
 
@@ -196,11 +199,30 @@ struct ContentDetailView: View {
                 guard isMockInteractionPresented else { return }
 
                 if !quizIsLocked {
-                    // Answer phase
+                    // Answer phase — user can still change selection while timer runs
                     if quizCountdown > 0 {
                         quizCountdown -= 1
-                        let style: UIImpactFeedbackGenerator.FeedbackStyle = quizCountdown <= 5 ? .medium : .light
-                        UIImpactFeedbackGenerator(style: style).impactOccurred(intensity: quizCountdown <= 5 ? 0.85 : 0.4)
+                        // Escalating haptics: light→medium→heavy as time runs out
+                        let hapticStyle: UIImpactFeedbackGenerator.FeedbackStyle
+                        let hapticIntensity: CGFloat
+                        if quizCountdown > 10 {
+                            hapticStyle = .light; hapticIntensity = 0.35
+                        } else if quizCountdown > 5 {
+                            hapticStyle = .medium; hapticIntensity = 0.6
+                        } else {
+                            hapticStyle = .heavy; hapticIntensity = 0.9
+                        }
+                        UIImpactFeedbackGenerator(style: hapticStyle).impactOccurred(intensity: hapticIntensity)
+                        // Shake/jitter the countdown number — more aggressive in the last 5 seconds
+                        let shakeAmp: CGFloat = quizCountdown <= 5 ? 5 : 2
+                        withAnimation(.spring(response: 0.06, dampingFraction: 0.2)) {
+                            timerShakeOffset = shakeAmp
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            withAnimation(.spring(response: 0.14, dampingFraction: 0.55)) {
+                                timerShakeOffset = 0
+                            }
+                        }
                     } else {
                         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                         withAnimation(.easeInOut(duration: 0.2)) { quizIsLocked = true }
@@ -252,6 +274,10 @@ struct ContentDetailView: View {
                 }
             }
         }
+        .onReceive(engine.$isReady) { ready in
+            withAnimation(.easeInOut(duration: 0.3)) { isVideoReady = ready }
+        }
+        .demoAlert(isPresented: $showDemoAlert)
     }
 
     @ViewBuilder
@@ -260,8 +286,9 @@ struct ContentDetailView: View {
             let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
             let playerContent = detail.quickplayPlaybackContent(fallback: viewModel.seed)
             let navBarHeight: CGFloat = 58
-            let mediaHeight = width * 9 / 16
-            let headerHeight = safeAreaTop + navBarHeight + mediaHeight
+            let headerHeight: CGFloat = isVideoReady
+                ? safeAreaTop + navBarHeight + width * 9 / 16
+                : UIScreen.main.bounds.width * 3 / 2
 
             ZStack(alignment: .top) {
                 Color(hex: "0A0A0A").ignoresSafeArea()
@@ -350,7 +377,7 @@ struct ContentDetailView: View {
     private func hero(_ detail: ContentDetail, width: CGFloat) -> some View {
         ZStack(alignment: .top) {
             PosterImageView(
-                url: detail.imageURL(for: "0-2x3", width: Int(width * 3)),
+                url: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
                 size: CGSize(width: width, height: heroHeight(for: width)),
                 cornerRadius: 0
             )
@@ -372,8 +399,7 @@ struct ContentDetailView: View {
     }
 
     private func heroHeight(for width: CGFloat) -> CGFloat {
-        // Reduced from max(413,width) — less scroll travel, hero fills ~84% of typical screen width
-        min(width * 0.88, 340)
+        width/16 * 9
     }
 
     private var miniHeroHeight: CGFloat { 220 }
@@ -434,7 +460,6 @@ struct ContentDetailView: View {
 
     private func detailContent(_ detail: ContentDetail, kind: DetailPresentationKind, width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            titleArt(detail)
             metaLine(detail)
             watchButton(detail, kind: kind)
             descriptionBlock(detail)
@@ -526,7 +551,7 @@ struct ContentDetailView: View {
 
             // 3 action buttons: alert | time stamp | AI sparkles
             HStack(spacing: 8) {
-                DetailActionButton(systemImage: "bell.fill", cornerStyle: .leading, action: {})
+                DetailActionButton(systemImage: "bell.fill", cornerStyle: .leading, action: { showDemoAlert = true })
                 DetailActionButton(systemImage: "list.bullet.rectangle") {
                     withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
                         isTimeStampPresented = true
@@ -630,7 +655,7 @@ struct ContentDetailView: View {
             HStack(spacing: 0) {
                 ForEach(["😅", "😮", "😤", "💀", "👏", "❤️", "🤍", "😂"], id: \.self) { emoji in
                     Button {
-                        // reaction
+                        showDemoAlert = true
                     } label: {
                         Text(emoji)
                             .font(.system(size: 22))
@@ -653,7 +678,7 @@ struct ContentDetailView: View {
                     .frame(height: 54)
                     .onSubmit { sendLiveChatMessage() }
 
-                Button(action: {}) {
+                Button(action: { showDemoAlert = true }) {
                     Image(systemName: "face.smiling")
                         .font(.system(size: 20, weight: .medium))
                         .foregroundStyle(.white.opacity(0.52))
@@ -1014,7 +1039,7 @@ struct ContentDetailView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
         .contentShape(Rectangle())
-        .onTapGesture { }
+        .onTapGesture { showDemoAlert = true }
     }
 
     // MARK: Scorecard tab
@@ -1530,15 +1555,15 @@ struct ContentDetailView: View {
 
     private func actionButtonRow(_ detail: ContentDetail, kind: DetailPresentationKind) -> some View {
         HStack(spacing: 8) {
-            DetailActionButton(assetImage: "clapperboard", cornerStyle: .leading, action: {})
-            DetailActionButton(assetImage: "download", action: {})
-            DetailActionButton(assetImage: "bookmark-plus", action: {})
+            DetailActionButton(assetImage: "clapperboard", cornerStyle: .leading, action: { showDemoAlert = true })
+            DetailActionButton(assetImage: "download", action: { showDemoAlert = true })
+            DetailActionButton(assetImage: "bookmark-plus", action: { showDemoAlert = true })
             DetailActionButton(assetImage: "thumbs-up-down") {
                 if detail.supportsEpisodes || kind == .showInteractive {
                     presentMockInteraction()
                 }
             }
-            DetailActionButton(assetImage: "share", iconSize: 22, action: {})
+            DetailActionButton(assetImage: "share", iconSize: 22, action: { showDemoAlert = true })
             DetailActionButton(systemImage: AppIcons.Action.sparkles, cornerStyle: .trailing, isHighlighted: true) {
                 presentMomentSearchOverlay(for: detail)
             }
@@ -1753,10 +1778,10 @@ struct ContentDetailView: View {
 
     private func answerMockInteraction(_ letter: String) {
         guard !quizIsLocked else { return }
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 0.75)
         withAnimation(.easeInOut(duration: 0.18)) {
             mockInteractionSelection = letter
-            quizIsLocked = true   // lock immediately; timer takes over for 5-s hold
-            quizCountdown = 5
+            // Timer keeps running — user can still change answer until countdown hits 0
         }
     }
 
@@ -1945,6 +1970,7 @@ struct ContentDetailView: View {
                     .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundStyle(quizCountdown > 5 ? .white : Color(hex: "FF3B30"))
                     .id(quizCountdown)
+                    .offset(y: timerShakeOffset)
                     .transition(
                         .asymmetric(
                             insertion: .scale(scale: 1.5).combined(with: .opacity),

@@ -202,6 +202,17 @@ struct ProfileEditorView: View {
     }
 
     private var editorCarouselProfiles: [Profile] {
+        if viewModel.mode == .editExisting {
+            // Reflect the draft's current imageName on the active profile so
+            // avatar changes are visible before the user taps Save.
+            return viewModel.profiles.map { profile in
+                guard profile.id == viewModel.draft.sourceID else { return profile }
+                var updated = profile
+                updated.imageName = viewModel.draft.imageName
+                return updated
+            }
+        }
+
         let temporaryProfile = Profile(
             id: viewModel.draft.sourceID ?? UUID(),
             name: profileDisplayName,
@@ -214,10 +225,6 @@ struct ProfileEditorView: View {
             isKidsProfile: viewModel.draft.isKidsProfile,
             showOnSelection: true
         )
-
-        if viewModel.mode == .editExisting {
-            return viewModel.profiles
-        }
 
         return [temporaryProfile] + Array(viewModel.profiles.prefix(4))
     }

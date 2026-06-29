@@ -12,13 +12,15 @@ final class AppContainer {
     let shortsRepository: ShortsRepository
     let contentDetailRepository: ContentDetailRepository
 
+    private let profileDataSource: ProfileMockDataSource
+
     private init() {
         let networkClient = NetworkClient()
 
         let authDataSource = AuthMockDataSource()
         authRepository = AuthRepositoryImpl(dataSource: authDataSource)
 
-        let profileDataSource = ProfileMockDataSource()
+        profileDataSource = ProfileMockDataSource()
         profileRepository = ProfileRepositoryImpl(dataSource: profileDataSource)
 
         profileHubRepository = ProfileHubRepositoryImpl()
@@ -39,5 +41,10 @@ final class AppContainer {
             apiClient: ContentDetailAPIClient(networkClient: networkClient)
         )
         contentDetailRepository = ContentDetailRepositoryImpl(dataSource: detailRemoteDataSource)
+    }
+
+    func switchAccount(phoneNumber: String) {
+        UserDefaults.standard.set(phoneNumber, forKey: "sony.quickplay.demo.active-phone-number")
+        profileDataSource.reloadForCurrentPhone()
     }
 }

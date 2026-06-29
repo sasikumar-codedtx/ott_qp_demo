@@ -13,37 +13,48 @@ struct OTPView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let scale = min(geometry.size.width / 412, 1)
-
             ZStack(alignment: .top) {
-                LogoGlowView(size: 94, glowScale: 1)
-                    .position(x: geometry.size.width / 2, y: designY(198, scale: scale))
+                // ── Main content — adaptive to keyboard ─────────────────
+                VStack(spacing: 0) {
+                    // reserve space for the top bar
+                    Color.clear.frame(height: geometry.safeAreaInsets.top + 64)
 
-                VStack(spacing: 46) {
-                    recipientBlock
+                    LogoGlowView(size: 94, glowScale: 1)
+                        .padding(.top, 24)
+                        .padding(.bottom, 28)
 
-                    VStack(spacing: 10) {
-                        otpInput
+                    VStack(spacing: 46) {
+                        recipientBlock
 
-                        if viewModel.errorMessage != nil {
-                            Text(AppStrings.Auth.invalidOTPShort)
-                                .font(.system(size: 16, weight: .regular))
-                                .foregroundStyle(Color(hex: "D40202"))
-                                .frame(maxWidth: .infinity)
+                        VStack(spacing: 10) {
+                            otpInput
+
+                            if viewModel.errorMessage != nil {
+                                Text(AppStrings.Auth.invalidOTPShort)
+                                    .font(.system(size: 16, weight: .regular))
+                                    .foregroundStyle(Color(hex: "D40202"))
+                                    .frame(maxWidth: .infinity)
+                                    .transition(.opacity.combined(with: .move(edge: .top)))
+                            }
                         }
+                        .animation(.easeInOut(duration: 0.18), value: viewModel.errorMessage != nil)
+
+                        resendRow
                     }
+                    .frame(width: min(380, geometry.size.width - 44))
+                    .frame(maxWidth: .infinity)
 
-                    resendRow
+                    Spacer(minLength: 0)
                 }
-                .frame(width: min(380, geometry.size.width - 44))
-                .position(x: geometry.size.width / 2, y: designY(viewModel.errorMessage == nil ? 430 : 439, scale: scale))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                legalCopy
-                    .frame(width: min(364, geometry.size.width - 48))
-                    .position(x: geometry.size.width / 2, y: designY(811, scale: scale))
+                // ── Top bar always on top ────────────────────────────────
+                authTopBar(topInset: geometry.safeAreaInsets.top)
 
+                // ── Hidden input ─────────────────────────────────────────
                 hiddenOTPField
 
+                // ── Verifying toast ──────────────────────────────────────
                 if isVerifying {
                     VStack {
                         Spacer()
@@ -53,15 +64,11 @@ struct OTPView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-
-                authTopBar(topInset: geometry.safeAreaInsets.top)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
             .onTapGesture {
-                if !isVerifying {
-                    isOTPFieldFocused = true
-                }
+                if !isVerifying { isOTPFieldFocused = false }
             }
             .task {
                 try? await Task.sleep(for: .milliseconds(250))
@@ -72,8 +79,8 @@ struct OTPView: View {
             }
             .allowsHitTesting(!isVerifying)
             .animation(.easeInOut(duration: 0.22), value: isVerifying)
-            .ignoresSafeArea(.keyboard, edges: .bottom)
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .navigationBarBackButtonHidden(true)
     }
 
@@ -94,7 +101,7 @@ struct OTPView: View {
                 Color.clear
                     .frame(width: 46, height: 46)
             }
-            .padding(.horizontal, 48)
+            .padding(.horizontal, 22)
             .padding(.top, topInset + 8)
 
             Spacer()
@@ -171,16 +178,29 @@ struct OTPView: View {
     }
 
     private var resendRow: some View {
-        HStack(spacing: 0) {
-            Text(AppStrings.Auth.resendPrefix)
-                .foregroundStyle(Color(hex: "6D6D6D"))
+        Group {
+            if viewModel.canResend {
+                Button(action: { Task { await viewModel.resendOTP() } }) {
+                    Text("Resend OTP")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Color(hex: "3595DE"))
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.plain)
+            } else {
+                HStack(spacing: 0) {
+                    Text(AppStrings.Auth.resendPrefix)
+                        .foregroundStyle(Color(hex: "6D6D6D"))
 
-            Text(AppStrings.Auth.resendTimer)
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(Color(hex: "3595DE"))
+                    Text(viewModel.resendTimerString)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Color(hex: "3595DE"))
+                }
+                .font(.system(size: 14, weight: .regular))
+                .frame(maxWidth: .infinity)
+            }
         }
-        .font(.system(size: 14, weight: .regular))
-        .frame(maxWidth: .infinity)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.canResend)
     }
 
     private var hiddenOTPField: some View {
@@ -282,9 +302,6 @@ struct OTPView: View {
         await onContinueAfterSuccess()
     }
 
-    private func designY(_ y: CGFloat, scale: CGFloat) -> CGFloat {
-        y * scale
-    }
 }
 
 #Preview {

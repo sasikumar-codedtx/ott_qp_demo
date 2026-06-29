@@ -187,6 +187,9 @@ struct StorefrontSportsHeroView: View {
         let height = StorefrontHeroMetrics.mediaHeight
 
         return ZStack(alignment: .bottom) {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(hex: "1E1E1E"))
+
             PosterImageView(
                 url: item.imageURL(for: "0-2x3", width: 980),
                 size: CGSize(width: width, height: height),
