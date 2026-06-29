@@ -54,7 +54,7 @@ final class StorefrontViewModel: ObservableObject {
             return .stackedSports
         }
 
-        if normalizedTitle.contains("enter") {
+        if normalizedTitle.contains("easdaDasdnter") {
             return .immersive
         }
 

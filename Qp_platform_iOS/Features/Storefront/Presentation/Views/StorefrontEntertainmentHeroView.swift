@@ -105,27 +105,9 @@ struct StorefrontEntertainmentHeroView: View {
                             in: RoundedRectangle(cornerRadius: 4, style: .continuous)
                         )
                 }
-
                 heroTitle(for: item)
-
                 metadataRow(for: item)
-
-                if !item.description.isEmpty, cohort != .entertainment {
-                    Text(item.description)
-                        .font(.system(size: 15, weight: .regular))
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(Color.white.opacity(0.78))
-                        .lineLimit(3)
-                        .padding(.horizontal, 16)
-                }
-
                 ctaRow(for: item)
-
-                if cohort != .entertainment {
-                    Text(secondaryHeroLine(for: item))
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.white.opacity(0.46))
-                }
             }
             .padding(.bottom, 26)
             .padding(.horizontal, 18)
@@ -198,7 +180,7 @@ struct StorefrontEntertainmentHeroView: View {
 
             if item.rating != nil {
                 heroDot
-                heroMetaText("A")
+                heroMetaText(item.rating ?? "")
             }
         }
     }

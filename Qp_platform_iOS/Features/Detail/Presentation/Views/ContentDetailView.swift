@@ -386,7 +386,7 @@ struct ContentDetailView: View {
                     }
                     .background(Color(hex: "0A0A0A"))
                     .frame(maxWidth: .infinity)
-                    .padding(.top, headerHeight - safeAreaTop)
+                    .padding(.top, headerHeight)
                     .zIndex(5)
                     .transition(.opacity)
                     .animation(.easeInOut(duration: 0.15), value: showStickyTabs)
