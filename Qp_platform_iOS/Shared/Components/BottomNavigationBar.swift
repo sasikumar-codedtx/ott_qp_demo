@@ -21,9 +21,12 @@ struct BottomNavigationBar: View {
 
     private enum TabbarAsset {
         static let home = "home"
+        static let homeSelected = "homeselected"
         static let search = "search"
         static let shorts = "shorts"
+        static let shortsSelected = "shortsselected"
         static let fire = "fire"
+        static let fireSelected = "fireselected"
     }
 
     let selection: BottomNavigationSelection
@@ -36,10 +39,10 @@ struct BottomNavigationBar: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
-            navButton(assetName: TabbarAsset.home, label: AppStrings.Common.home, isSelected: selection == .home, action: onHomeTap)
-            navButton(assetName: TabbarAsset.search, label: AppStrings.Common.search, isSelected: selection == .search, action: onSearchTap)
-            navButton(assetName: TabbarAsset.shorts, label: AppStrings.Common.library, isSelected: selection == .shorts, action: onShortsTap)
-            navButton(assetName: TabbarAsset.fire, label: AppStrings.Common.hot, isSelected: selection == .hot, action: onHotTap)
+            navButton(assetName: TabbarAsset.home, selectedAssetName: TabbarAsset.homeSelected, label: AppStrings.Common.home, isSelected: selection == .home, action: onHomeTap)
+            navButton(assetName: TabbarAsset.search, selectedAssetName: nil, label: AppStrings.Common.search, isSelected: selection == .search, action: onSearchTap)
+            navButton(assetName: TabbarAsset.shorts, selectedAssetName: TabbarAsset.shortsSelected, label: AppStrings.Common.library, isSelected: selection == .shorts, action: onShortsTap)
+            navButton(assetName: TabbarAsset.fire, selectedAssetName: TabbarAsset.fireSelected, label: AppStrings.Common.hot, isSelected: selection == .hot, action: onHotTap)
             profileButton
         }
         .frame(height: Metrics.rowHeight)
@@ -55,22 +58,23 @@ struct BottomNavigationBar: View {
         BottomNavigationSurface()
     }
 
-    private func navButton(assetName: String, label: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+    private func navButton(assetName: String, selectedAssetName: String?, label: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            navItem(assetName: assetName, label: label, isSelected: isSelected)
+            navItem(assetName: assetName, selectedAssetName: selectedAssetName, label: label, isSelected: isSelected)
         }
         .contentShape(Rectangle())
         .buttonStyle(LiquidButtonPressStyle())
         .frame(maxWidth: .infinity, minHeight: Metrics.rowHeight)
     }
 
-    private func navItem(assetName: String, label: String, isSelected: Bool) -> some View {
-        ZStack(alignment: .top) {
+    private func navItem(assetName: String, selectedAssetName: String?, label: String, isSelected: Bool) -> some View {
+        let effectiveAsset = isSelected ? (selectedAssetName ?? assetName) : assetName
+        return ZStack(alignment: .top) {
             selectedIndicator(isSelected: isSelected)
                 .offset(y: 36)
 
             VStack(spacing: 6) {
-                Image(assetName)
+                Image(effectiveAsset)
                     .renderingMode(.original)
                     .resizable()
                     .scaledToFit()
