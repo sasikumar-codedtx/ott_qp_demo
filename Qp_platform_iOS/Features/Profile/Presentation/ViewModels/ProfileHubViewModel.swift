@@ -61,11 +61,11 @@ final class ProfileHubViewModel: ObservableObject {
                 makeSection(id: "continue-watching", title: AppStrings.Profile.continueWatching, ratio: "0-2x3", items: home.continueWatching),
                 makeSection(id: "likes", title: AppStrings.Profile.likes, ratio: "0-2x3", items: home.likedItems),
                 makeSection(id: "favorites", title: AppStrings.Profile.favorites, ratio: "0-2x3", items: home.favorites),
-                makeSection(id: "recommendations", title: AppStrings.Profile.liked, ratio: "0-2x3", items: home.recommendations)
+                makeSection(id: "clips", title: AppStrings.Profile.clips, ratio: "0-2x3", items: home.clips)
             ]
             .compactMap { $0 }
 
-            heroItem = home.continueWatching.first ?? home.likedItems.first ?? home.favorites.first ?? home.recommendations.first
+            heroItem = home.continueWatching.first ?? home.likedItems.first ?? home.favorites.first
         } catch {
             errorMessage = error.localizedDescription
             sections = []

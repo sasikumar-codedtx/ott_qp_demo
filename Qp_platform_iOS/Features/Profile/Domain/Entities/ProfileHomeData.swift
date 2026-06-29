@@ -4,5 +4,5 @@ struct ProfileHomeData {
     let continueWatching: [StorefrontItem]
     let likedItems: [StorefrontItem]
     let favorites: [StorefrontItem]
-    let recommendations: [StorefrontItem]
+    let clips: [StorefrontItem]   // API recommendations — not user-generated
 }

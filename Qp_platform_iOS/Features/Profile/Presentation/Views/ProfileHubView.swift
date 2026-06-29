@@ -163,22 +163,28 @@ struct ProfileHubView: View {
                         downloadsCard
                             .padding(.horizontal, UIConstants.Spacing.lg)
 
-                        if let likesSection = viewModel.sections.first(where: { $0.id == "likes" }) {
-                            likesRailSection(likesSection)
-                        }
+                        if viewModel.sections.isEmpty {
+                            profileEmptyState
+                                .padding(.horizontal, UIConstants.Spacing.lg)
+                                .padding(.vertical, UIConstants.Spacing.xl)
+                        } else {
+                            if let likesSection = viewModel.sections.first(where: { $0.id == "likes" }) {
+                                likesRailSection(likesSection)
+                            }
 
-                        ForEach(viewModel.trailingSections.filter { $0.id != "likes" }) { section in
-                            StorefrontSectionView(
-                                section: section,
-                                isHomeTab: false,
-                                cohort: viewModel.selectedProfile?.quickplayCohort ?? .entertainment,
-                                heroVariant: .carousel,
-                                topChromeHeight: 0,
-                                favoriteIDs: [],
-                                onViewAll: nil,
-                                onSelectItem: onSelectItem,
-                                onToggleFavorite: { _ in }
-                            )
+                            ForEach(viewModel.trailingSections.filter { $0.id != "likes" }) { section in
+                                StorefrontSectionView(
+                                    section: section,
+                                    isHomeTab: false,
+                                    cohort: viewModel.selectedProfile?.quickplayCohort ?? .entertainment,
+                                    heroVariant: .carousel,
+                                    topChromeHeight: 0,
+                                    favoriteIDs: [],
+                                    onViewAll: nil,
+                                    onSelectItem: onSelectItem,
+                                    onToggleFavorite: { _ in }
+                                )
+                            }
                         }
 
                         if !AppEnvironment.Demo.hasActiveSubscription {
@@ -194,6 +200,35 @@ struct ProfileHubView: View {
             .coordinateSpace(name: "profileHubScroll")
             .background(Color.black.ignoresSafeArea())
         }
+    }
+
+    private var profileEmptyState: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "play.square.stack")
+                .font(.system(size: 38, weight: .regular))
+                .foregroundStyle(Color.white.opacity(0.28))
+
+            Text("No activity yet")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Color.white.opacity(0.54))
+
+            Text("Start watching, liking and saving titles — they'll appear here.")
+                .font(.system(size: 13, weight: .regular))
+                .foregroundStyle(Color.white.opacity(0.34))
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 28)
+        .padding(.horizontal, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.white.opacity(0.04))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Color.white.opacity(0.07), lineWidth: 1)
+                )
+        )
     }
 
     private var downloadsCard: some View {

@@ -9,6 +9,7 @@ struct SearchView: View {
     let onOpenAISearch: (() -> Void)?
     let onSelectItem: (StorefrontItem) -> Void
     @FocusState private var isSearchFocused: Bool
+    @State private var searchInput = ""   // local — never bound to viewModel.query during typing
     @State private var aiOverlayMode: AISearchOverlayMode?
     @State private var aiQuery = ""
     @State private var aiSearchQuery = ""
@@ -38,10 +39,11 @@ struct SearchView: View {
     }
 
     private var searchDockFilters: [SearchFilter] {
+        // Show filters only after a search has been submitted (viewModel.normalizedQuery),
+        // not while the user is still typing (searchInput may differ).
         if !viewModel.normalizedQuery.isEmpty {
             return Array(viewModel.availableFilters.prefix(4))
         }
-
         return []
     }
 
@@ -93,6 +95,10 @@ struct SearchView: View {
                     .transition(.opacity)
                     .zIndex(10)
             }
+        }
+        .onAppear {
+            // Sync local field to the viewModel's current query (handles screen re-entry)
+            searchInput = viewModel.query
         }
         .onDisappear {
             voiceSubmitTask?.cancel()
@@ -161,8 +167,18 @@ struct SearchView: View {
             }
             .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
             .scrollDismissesKeyboard(.interactively)
+        } else if !viewModel.isLoading && !viewModel.normalizedQuery.isEmpty {
+            VStack(spacing: 12) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 38, weight: .regular))
+                    .foregroundStyle(Color.white.opacity(0.28))
+                Text("No relevant data available")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.54))
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.bottom, searchDockReservedHeight)
         }
-        // No placeholder, no empty-state — blank when no results yet
     }
 
     private var searchBackground: some View {
@@ -183,7 +199,7 @@ struct SearchView: View {
 
     private func bottomSearchDock(bottomInset: CGFloat) -> some View {
         VStack(spacing: 14) {
-            if !viewModel.popularSuggestions.isEmpty && viewModel.normalizedQuery.isEmpty {
+            if !viewModel.popularSuggestions.isEmpty && searchInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(AppStrings.Search.popular)
                         .font(.system(size: 13, weight: .semibold))
@@ -196,9 +212,8 @@ struct SearchView: View {
                         maxItemsPerRow: 3,
                         horizontalPadding: UIConstants.Spacing.lg
                     ) { suggestion in
-                        viewModel.query = suggestion
-                        viewModel.submitSearch()
-                        isSearchFocused = false
+                        searchInput = suggestion
+                        submitSearchInput()
                     }
                 }
             }
@@ -217,25 +232,55 @@ struct SearchView: View {
 
             HStack(spacing: 12) {
                 SearchFieldView(
-                    text: $viewModel.query,
+                    text: $searchInput,
                     isFocused: $isSearchFocused,
                     placeholder: "Search Movies, Shows, Sports...",
                     iconName: "magnifyingglass",
                     onSubmit: {
-                        viewModel.submitSearch()
-                        isSearchFocused = false
+                        submitSearchInput()
                     }
                 )
                 .frame(height: 54)
 
-                Button(action: openAISearch) {
-                    Image("mic")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 54, height: 54)
+                if isSearchFocused {
+                    let hasText = !searchInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    Button(action: submitSearchInput) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: UIConstants.CornerRadius.capsule, style: .continuous)
+                                .fill(
+                                    hasText
+                                        ? LinearGradient(
+                                            colors: [Color(hex: "FF6105"), Color(hex: "D05AFF"), Color(hex: "7B2CFF")],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                          )
+                                        : LinearGradient(
+                                            colors: [Color.white.opacity(0.12), Color.white.opacity(0.12)],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                          )
+                                )
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(.white)
+                        }
+                        .frame(width: UIConstants.Size.textFieldHeight, height: UIConstants.Size.textFieldHeight)
+                    }
+                    .buttonStyle(LiquidButtonPressStyle())
+                    .disabled(!hasText)
+                    .transition(.scale.combined(with: .opacity))
+                } else {
+                    Button(action: openAISearch) {
+                        Image("mic")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 54, height: 54)
+                    }
+                    .buttonStyle(LiquidButtonPressStyle())
+                    .transition(.scale.combined(with: .opacity))
                 }
-                .buttonStyle(LiquidButtonPressStyle())
             }
+            .animation(.easeInOut(duration: 0.18), value: isSearchFocused)
             .padding(.horizontal, UIConstants.Spacing.lg)
         }
         .padding(.top, 8)
@@ -244,7 +289,7 @@ struct SearchView: View {
     }
 
     private var showsSuggestions: Bool {
-        !viewModel.popularSuggestions.isEmpty && viewModel.normalizedQuery.isEmpty
+        !viewModel.popularSuggestions.isEmpty && searchInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private var searchDockReservedHeight: CGFloat {
@@ -262,6 +307,14 @@ struct SearchView: View {
 
     private func searchDockBottomPadding(bottomInset: CGFloat) -> CGFloat {
         isKeyboardVisible ? 8 : max(bottomInset, 12) + 12
+    }
+
+    private func submitSearchInput() {
+        let trimmed = searchInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        viewModel.query = trimmed
+        viewModel.submitSearch()
+        isSearchFocused = false
     }
 
     private func openAISearch() {

@@ -54,6 +54,7 @@ enum AppStrings {
         static let continueWatching = "Continue Watching"
         static let likes = "Likes"
         static let liked = "Shows & Movies you have liked"
+        static let clips = "Clips"
         static let favorites = "Favorites"
         static let downloads = "Downloads"
         static let downloadsSubtitle = "Movies and shows that you download appears here."

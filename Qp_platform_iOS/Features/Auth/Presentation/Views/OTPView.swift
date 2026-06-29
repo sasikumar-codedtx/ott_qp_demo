@@ -209,21 +209,12 @@ struct OTPView: View {
             text: Binding(
                 get: { viewModel.otpCode },
                 set: { viewModel.updateOTPCode($0) }
-            ),
-            prompt: Text(AppStrings.Auth.otpPlaceholder).foregroundStyle(.clear)
+            )
         )
         .keyboardType(.numberPad)
         .textContentType(.oneTimeCode)
         .focused($isOTPFieldFocused)
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") { isOTPFieldFocused = false }
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white)
-            }
-        }
-        .opacity(0.01)
+        .opacity(0)
         .frame(width: 1, height: 1)
         .position(x: 1, y: 1)
     }

@@ -73,21 +73,23 @@ struct ProfileSwitchSheetView: View {
 
                 Spacer(minLength: 18)
 
-                Button(action: onEditProfiles) {
-                    HStack(spacing: 6) {
-                        Text(AppStrings.Profile.editProfilesCTA)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.white)
+                if !profiles.isEmpty {
+                    Button(action: onEditProfiles) {
+                        HStack(spacing: 6) {
+                            Text(AppStrings.Profile.editProfilesCTA)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.white)
 
-                        Image(systemName: "pencil.line")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(.white)
-                            .frame(width: 16, height: 16)
+                            Image(systemName: "pencil.line")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(.white)
+                                .frame(width: 16, height: 16)
+                        }
+                        .frame(height: 22)
                     }
-                    .frame(height: 22)
+                    .buttonStyle(LiquidButtonPressStyle())
+                    .padding(.bottom, 48)
                 }
-                .buttonStyle(LiquidButtonPressStyle())
-                .padding(.bottom, 48)
             }
             .frame(width: width, height: height)
 

@@ -41,7 +41,7 @@ final class ProfileEditorViewModel: ObservableObject {
     }
 
     var canDeleteProfile: Bool {
-        mode == .editExisting && draft.sourceID != nil
+        mode == .editExisting && draft.sourceID != nil && profiles.count > 1
     }
 
     var callToActionTitle: String {

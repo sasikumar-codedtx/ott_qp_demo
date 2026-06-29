@@ -49,8 +49,10 @@ struct ProfileSelectionView: View {
                     profileBlock(scale: scale, canvasWidth: canvasWidth)
                         .position(x: fullWidth / 2, y: 640 * scale)
 
-                    editProfilesButton(scale: scale)
-                        .position(x: fullWidth / 2, y: 861 * scale)
+                    if !viewModel.profiles.isEmpty {
+                        editProfilesButton(scale: scale)
+                            .position(x: fullWidth / 2, y: 861 * scale)
+                    }
                 }
                 .frame(width: fullWidth, height: canvasHeight)
                 .opacity(isExitingToStorefront ? 0.28 : 1)

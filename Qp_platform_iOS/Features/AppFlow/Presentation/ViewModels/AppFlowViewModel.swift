@@ -398,10 +398,6 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func openContent(item: StorefrontItem) {
-        Task {
-            await DemoSessionStore.shared.recordContentSelection(item)
-        }
-
         switch ContentNavigationPolicy.destination(for: item) {
         case .detail:
             openDetail(item: item)
@@ -435,16 +431,22 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func play(item: StorefrontItem) {
+        Task { await DemoSessionStore.shared.recordContentSelection(item) }
         activePlaybackContent = item.quickplayPlaybackContent()
     }
 
     func play(detail: ContentDetail) {
+        if let seed = viewModel(for: detail) { Task { await DemoSessionStore.shared.recordContentSelection(seed) } }
         activePlaybackContent = detail.quickplayPlaybackContent(fallback: nil)
     }
 
     func play(detail: ContentDetail, fallback item: StorefrontItem?) {
         playerEpisodes = detailViewModel.episodes
         playerSeasons = detailViewModel.seasons
+
+        // Record for continue watching — use the seed item so progress is preserved.
+        let seedToRecord = item ?? viewModel(for: detail)
+        if let seedToRecord { Task { await DemoSessionStore.shared.recordContentSelection(seedToRecord) } }
 
         // If the engine is already playing a different episode (e.g. user switched
         // episodes in the inline player), use that episode instead of the original
@@ -459,6 +461,10 @@ final class AppFlowViewModel: ObservableObject {
         } else {
             activePlaybackContent = detail.quickplayPlaybackContent(fallback: item)
         }
+    }
+
+    private func viewModel(for detail: ContentDetail) -> StorefrontItem? {
+        detailViewModel.seed
     }
 
     func closePlayer() {

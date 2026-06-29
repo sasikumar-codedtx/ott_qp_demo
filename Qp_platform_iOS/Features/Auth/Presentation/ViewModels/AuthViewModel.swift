@@ -3,7 +3,16 @@ import Foundation
 
 @MainActor
 final class AuthViewModel: ObservableObject {
-    @Published var phoneNumber = ""
+    private static let phoneMaxDigits = 10
+
+    @Published var phoneNumber = "" {
+        didSet {
+            let normalized = Self.normalizeIndianPhone(phoneNumber)
+            if phoneNumber != normalized {
+                phoneNumber = normalized
+            }
+        }
+    }
     @Published var otpCode = ""
     @Published private(set) var otpLength = 6
     @Published private(set) var isLoading = false
@@ -36,14 +45,15 @@ final class AuthViewModel: ObservableObject {
 
     // Strips country code (+91 / 0) and filters non-digits, returns clean 10-digit string
     static func normalizeIndianPhone(_ raw: String) -> String {
-        let digits = raw.filter(\.isNumber)
-        if digits.hasPrefix("91") && digits.count == 12 {
-            return String(digits.dropFirst(2))
+        var digits = raw.filter(\.isNumber)
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasPrefix("+91") && digits.hasPrefix("91") && digits.count > phoneMaxDigits {
+            digits = String(digits.dropFirst(2))
         }
-        if digits.hasPrefix("0") && digits.count == 11 {
-            return String(digits.dropFirst())
+        if trimmed.hasPrefix("0") && digits.hasPrefix("0") && digits.count > phoneMaxDigits {
+            digits = String(digits.dropFirst())
         }
-        return String(digits.prefix(10))
+        return String(digits.prefix(phoneMaxDigits))
     }
 
     var canResend: Bool { resendSecondsRemaining == 0 }

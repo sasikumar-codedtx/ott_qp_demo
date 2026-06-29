@@ -23,6 +23,7 @@ struct SettingsView: View {
     @State private var pipEnabled = true
     @State private var streamOverWiFiOnly = false
     @State private var imageCacheStatus = "Poster cache capped at 500 MB"
+    @State private var activePhoneNumber = AppEnvironment.Demo.supportPhoneNumber
 
     init(
         activeProfile: Profile?,
@@ -58,7 +59,14 @@ struct SettingsView: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack {
-                settingsPage(for: currentScreen, topInset: proxy.safeAreaInsets.top)
+                NavigationStack(path: $navigationPath) {
+                    settingsPage(for: .root, topInset: proxy.safeAreaInsets.top)
+                        .navigationDestination(for: SettingsScreen.self) { screen in
+                            settingsPage(for: screen, topInset: proxy.safeAreaInsets.top)
+                                .toolbar(.hidden, for: .navigationBar)
+                        }
+                        .toolbar(.hidden, for: .navigationBar)
+                }
 
                 overlayLayer
             }
@@ -70,6 +78,9 @@ struct SettingsView: View {
             .animation(.easeInOut(duration: 0.22), value: currentScreen)
             .animation(.easeInOut(duration: 0.22), value: showsProfileSwitch)
             .animation(.easeInOut(duration: 0.22), value: activeAudioSheet)
+            .task {
+                await loadActivePhoneNumber()
+            }
         }
         .demoAlert(isPresented: $showDemoAlert)
     }
@@ -169,7 +180,7 @@ struct SettingsView: View {
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(.white)
 
-                    Text(AppEnvironment.Demo.supportPhoneNumber)
+                    Text(activePhoneNumber)
                         .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(Color.white.opacity(0.56))
 
@@ -491,7 +502,7 @@ struct SettingsView: View {
                             .font(.system(size: 19, weight: .bold))
                             .foregroundStyle(.white)
 
-                        Text(hasActiveSubscription ? "\(AppEnvironment.Demo.supportPhoneNumber) | Valid upto: 01 Jan 2027" : AppEnvironment.Demo.supportPhoneNumber)
+                        Text(hasActiveSubscription ? "\(activePhoneNumber) | Valid upto: 01 Jan 2027" : activePhoneNumber)
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(Color.white.opacity(0.68))
                     }
@@ -552,7 +563,7 @@ struct SettingsView: View {
                     Text(hasActiveSubscription ? "Premium Subscription" : "No Active Subscription")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(.white)
-                    Text(hasActiveSubscription ? "\(AppEnvironment.Demo.supportPhoneNumber) | Valid upto: 01 Jan 2027" : AppEnvironment.Demo.supportPhoneNumber)
+                    Text(hasActiveSubscription ? "\(activePhoneNumber) | Valid upto: 01 Jan 2027" : activePhoneNumber)
                         .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(Color.white.opacity(0.62))
                 }

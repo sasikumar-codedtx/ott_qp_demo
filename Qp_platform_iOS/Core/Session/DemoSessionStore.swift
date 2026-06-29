@@ -211,6 +211,11 @@ actor DemoSessionStore {
         Array((favoritesByProfile[historyKey] ?? []).prefix(limit))
     }
 
+    func favoriteItems(for profileID: UUID?, limit: Int = 20) -> [StorefrontItem] {
+        let key = profileID?.uuidString ?? "guest"
+        return Array((favoritesByProfile[key] ?? []).prefix(limit))
+    }
+
     func favoriteIDs() -> Set<String> {
         Set((favoritesByProfile[historyKey] ?? []).map(\.id))
     }
@@ -235,6 +240,11 @@ actor DemoSessionStore {
 
     func likedItems(limit: Int = 20) -> [StorefrontItem] {
         Array((likesByProfile[historyKey] ?? []).prefix(limit))
+    }
+
+    func likedItems(for profileID: UUID?, limit: Int = 20) -> [StorefrontItem] {
+        let key = profileID?.uuidString ?? "guest"
+        return Array((likesByProfile[key] ?? []).prefix(limit))
     }
 
     func likeState(for itemID: String) -> LikeState {
