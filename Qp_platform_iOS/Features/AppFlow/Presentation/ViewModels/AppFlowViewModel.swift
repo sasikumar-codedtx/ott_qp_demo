@@ -35,6 +35,7 @@ final class AppFlowViewModel: ObservableObject {
         case avatarPicker(AvatarPickerRoute)
         case profileHome
         case settings
+        case settingsScreen(SettingsScreen)
         case storefrontTab(StorefrontTab)
         case detail(StorefrontItem)
         case sectionBrowse(StorefrontSection, QuickplayCohort)
@@ -179,7 +180,6 @@ final class AppFlowViewModel: ObservableObject {
             mainTab = .storefront
             rootScreen = .main
             await storefrontViewModel.reloadInitial(force: true)
-            await hotStorefrontViewModel.reloadInitial(force: true)
         }
     }
 
@@ -301,6 +301,10 @@ final class AppFlowViewModel: ObservableObject {
         push(.settings)
     }
 
+    func openSettingsScreen(_ screen: SettingsScreen) {
+        push(.settingsScreen(screen))
+    }
+
     func backFromSettings() {
         popRoute()
     }
@@ -358,7 +362,6 @@ final class AppFlowViewModel: ObservableObject {
             storefrontViewModel.applyProfile(profile, forceReset: true)
             hotStorefrontViewModel.applyProfile(profile, forceReset: true)
             await storefrontViewModel.reloadInitial(force: true)
-            await hotStorefrontViewModel.reloadInitial(force: true)
             profileHubViewModel.present(profile: profile, seedItems: storefrontViewModel.searchSeedItems)
         }
     }
@@ -382,7 +385,6 @@ final class AppFlowViewModel: ObservableObject {
             mainTab = .storefront
             rootScreen = .main
             await storefrontViewModel.reloadInitial(force: true)
-            await hotStorefrontViewModel.reloadInitial(force: true)
             profileHubViewModel.present(profile: profile, seedItems: storefrontViewModel.searchSeedItems)
         }
     }

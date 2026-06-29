@@ -53,6 +53,36 @@ struct AppRootView: View {
         .padding(.bottom, 40)
     }
 
+    private func settingsView(screen: SettingsScreen) -> some View {
+        SettingsView(
+            screen: screen,
+            activeProfile: viewModel.activeProfile,
+            profiles: viewModel.profileSelectionViewModel.selectionProfiles,
+            isVoiceAISearchEnabled: viewModel.prefersVoiceAISearch,
+            onBack: {
+                viewModel.popRoute()
+            },
+            onOpenScreen: { screen in
+                viewModel.openSettingsScreen(screen)
+            },
+            onSignOut: {
+                viewModel.signOut()
+            },
+            onSelectProfile: { profile in
+                viewModel.switchActiveProfileAndOpenStorefront(profile)
+            },
+            onVoiceAISearchChange: { isEnabled in
+                viewModel.setPrefersVoiceAISearch(isEnabled)
+            },
+            onAddProfile: {
+                viewModel.openProfileEditor(nil)
+            },
+            onEditProfiles: {
+                viewModel.openProfileEditor(viewModel.profileSelectionViewModel.defaultEditableProfile)
+            }
+        )
+    }
+
     @ViewBuilder
     private var rootScene: some View {
         switch viewModel.rootScreen {
@@ -304,29 +334,12 @@ struct AppRootView: View {
             }
         case .settings:
             surface(style: .storefront) {
-                SettingsView(
-                    activeProfile: viewModel.activeProfile,
-                    profiles: viewModel.profileSelectionViewModel.selectionProfiles,
-                    isVoiceAISearchEnabled: viewModel.prefersVoiceAISearch,
-                    onBack: {
-                        viewModel.backFromSettings()
-                    },
-                    onSignOut: {
-                        viewModel.signOut()
-                    },
-                    onSelectProfile: { profile in
-                        viewModel.switchActiveProfileAndOpenStorefront(profile)
-                    },
-                    onVoiceAISearchChange: { isEnabled in
-                        viewModel.setPrefersVoiceAISearch(isEnabled)
-                    },
-                    onAddProfile: {
-                        viewModel.openProfileEditor(nil)
-                    },
-                    onEditProfiles: {
-                        viewModel.openProfileEditor(viewModel.profileSelectionViewModel.defaultEditableProfile)
-                    }
-                )
+                settingsView(screen: .root)
+            }
+            .routeNavigationChrome(showsNavigationBar: false)
+        case .settingsScreen(let screen):
+            surface(style: .storefront) {
+                settingsView(screen: screen)
             }
             .routeNavigationChrome(showsNavigationBar: false)
         case .storefrontTab(let tab):

@@ -1,17 +1,18 @@
 import SwiftUI
 
 struct SettingsView: View {
+    let screen: SettingsScreen
     let activeProfile: Profile?
     let profiles: [Profile]
     let isVoiceAISearchEnabled: Bool
     let onBack: () -> Void
+    let onOpenScreen: (SettingsScreen) -> Void
     let onSignOut: () -> Void
     let onSelectProfile: (Profile) -> Void
     let onVoiceAISearchChange: (Bool) -> Void
     let onAddProfile: () -> Void
     let onEditProfiles: () -> Void
 
-    @State private var navigationPath: [SettingsScreen] = []
     @State private var showsProfileSwitch = false
     @State private var showDemoAlert = false
     @State private var activeAudioSheet: AudioSelectionSheet?
@@ -26,20 +27,24 @@ struct SettingsView: View {
     @State private var activePhoneNumber = AppEnvironment.Demo.supportPhoneNumber
 
     init(
+        screen: SettingsScreen = .root,
         activeProfile: Profile?,
         profiles: [Profile],
         isVoiceAISearchEnabled: Bool,
         onBack: @escaping () -> Void,
+        onOpenScreen: @escaping (SettingsScreen) -> Void = { _ in },
         onSignOut: @escaping () -> Void,
         onSelectProfile: @escaping (Profile) -> Void,
         onVoiceAISearchChange: @escaping (Bool) -> Void,
         onAddProfile: @escaping () -> Void,
         onEditProfiles: @escaping () -> Void
     ) {
+        self.screen = screen
         self.activeProfile = activeProfile
         self.profiles = profiles
         self.isVoiceAISearchEnabled = isVoiceAISearchEnabled
         self.onBack = onBack
+        self.onOpenScreen = onOpenScreen
         self.onSignOut = onSignOut
         self.onSelectProfile = onSelectProfile
         self.onVoiceAISearchChange = onVoiceAISearchChange
@@ -53,20 +58,13 @@ struct SettingsView: View {
     }
 
     private var currentScreen: SettingsScreen {
-        navigationPath.last ?? .root
+        screen
     }
 
     var body: some View {
         GeometryReader { proxy in
             ZStack {
-                NavigationStack(path: $navigationPath) {
-                    settingsPage(for: .root, topInset: proxy.safeAreaInsets.top)
-                        .navigationDestination(for: SettingsScreen.self) { screen in
-                            settingsPage(for: screen, topInset: proxy.safeAreaInsets.top)
-                                .toolbar(.hidden, for: .navigationBar)
-                        }
-                        .toolbar(.hidden, for: .navigationBar)
-                }
+                settingsPage(for: currentScreen, topInset: proxy.safeAreaInsets.top)
 
                 overlayLayer
             }
@@ -485,7 +483,7 @@ struct SettingsView: View {
     private var subscriptionCard: some View {
         VStack(spacing: 0) {
             Button {
-                navigationPath.append(.manageSubscription)
+                onOpenScreen(.manageSubscription)
             } label: {
                 HStack(spacing: 14) {
                     ZStack {
@@ -599,7 +597,7 @@ struct SettingsView: View {
             ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
                 Button {
                     if let destination = row.destination {
-                        navigationPath.append(destination)
+                        onOpenScreen(destination)
                     } else if row.title == AppStrings.Profile.signOut {
                         onSignOut()
                     } else {
@@ -773,17 +771,23 @@ struct SettingsView: View {
         return items.isEmpty ? "English" : items.joined(separator: ", ")
     }
 
+    private func loadActivePhoneNumber() async {
+        guard let phone = await DemoSessionStore.shared.activePhoneNumber(), !phone.isEmpty else { return }
+        let digits = phone.filter(\.isNumber)
+        if digits.count == 10 {
+            activePhoneNumber = "+91 \(digits)"
+        } else {
+            activePhoneNumber = phone
+        }
+    }
+
     private func handleBack() {
         if activeAudioSheet != nil {
             activeAudioSheet = nil
             return
         }
 
-        if navigationPath.isEmpty {
-            onBack()
-        } else {
-            navigationPath.removeLast()
-        }
+        onBack()
     }
 
     private func applySelection(_ value: String, for sheet: AudioSelectionSheet) {
@@ -810,7 +814,7 @@ struct SettingsView: View {
     }
 }
 
-private enum SettingsScreen: Hashable {
+enum SettingsScreen: Hashable {
     case root
     case account
     case manageSubscription

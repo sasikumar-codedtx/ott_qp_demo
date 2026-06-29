@@ -108,6 +108,9 @@ final class ContentDetailViewModel: ObservableObject {
         guard !itemID.isEmpty else { return }
         let favIDs = await DemoSessionStore.shared.favoriteIDs()
         let like = await DemoSessionStore.shared.likeState(for: itemID)
+        if let watchedItem = await DemoSessionStore.shared.continueWatchingItem(id: itemID) {
+            seed = watchedItem
+        }
         isFavorite = favIDs.contains(itemID)
         likeState = like
     }

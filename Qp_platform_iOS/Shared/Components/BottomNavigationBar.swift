@@ -149,13 +149,13 @@ private struct BottomNavigationSurface: View {
             .fill(.ultraThinMaterial)
             .overlay(
                 Capsule(style: .continuous)
-                    .fill(Color.black.opacity(0.6))
+                    .fill(Color.black.opacity(0.78))
             )
             .overlay(
                 LinearGradient(
                     stops: [
-                        .init(color: Color.white.opacity(0.05), location: 0),
-                        .init(color: Color(hex: "FF8100").opacity(0.05), location: 1)
+                        .init(color: Color.white.opacity(0.035), location: 0),
+                        .init(color: Color(hex: "FF8100").opacity(0.025), location: 1)
                     ],
                     startPoint: .top,
                     endPoint: .bottom

@@ -191,29 +191,50 @@ actor DemoSessionStore {
         let storedItem = item.withProgress(progressValue)
         continueItems.removeAll { $0.id == storedItem.id }
         continueItems.insert(storedItem, at: 0)
+        continueItems = deduplicatedItems(continueItems)
         if continueItems.count > maxHistoryCount {
             continueItems.removeLast(continueItems.count - maxHistoryCount)
         }
         continueWatchingByProfile[key] = continueItems
         persistContinueWatching()
+        notifyContinueWatchingDidChange()
     }
 
     func continueWatchingItems(limit: Int = 20) -> [StorefrontItem] {
-        Array((continueWatchingByProfile[historyKey] ?? []).prefix(limit))
+        let items = deduplicatedItems(continueWatchingByProfile[historyKey] ?? [])
+        continueWatchingByProfile[historyKey] = items
+        persistContinueWatching()
+        return Array(items.prefix(limit))
     }
 
     func continueWatchingItems(for profileID: UUID?, limit: Int = 20) -> [StorefrontItem] {
         let key = profileID?.uuidString ?? "guest"
-        return Array((continueWatchingByProfile[key] ?? []).prefix(limit))
+        let items = deduplicatedItems(continueWatchingByProfile[key] ?? [])
+        continueWatchingByProfile[key] = items
+        persistContinueWatching()
+        return Array(items.prefix(limit))
+    }
+
+    func continueWatchingItem(id: String) -> StorefrontItem? {
+        let items = deduplicatedItems(continueWatchingByProfile[historyKey] ?? [])
+        continueWatchingByProfile[historyKey] = items
+        persistContinueWatching()
+        return items.first(where: { $0.id == id })
     }
 
     func favoriteItems(limit: Int = 20) -> [StorefrontItem] {
-        Array((favoritesByProfile[historyKey] ?? []).prefix(limit))
+        let items = deduplicatedItems(favoritesByProfile[historyKey] ?? [])
+        favoritesByProfile[historyKey] = items
+        persistFavorites()
+        return Array(items.prefix(limit))
     }
 
     func favoriteItems(for profileID: UUID?, limit: Int = 20) -> [StorefrontItem] {
         let key = profileID?.uuidString ?? "guest"
-        return Array((favoritesByProfile[key] ?? []).prefix(limit))
+        let items = deduplicatedItems(favoritesByProfile[key] ?? [])
+        favoritesByProfile[key] = items
+        persistFavorites()
+        return Array(items.prefix(limit))
     }
 
     func favoriteIDs() -> Set<String> {
@@ -222,14 +243,17 @@ actor DemoSessionStore {
 
     func toggleFavorite(_ item: StorefrontItem) -> Bool {
         var items = favoritesByProfile[historyKey] ?? []
-        if let existingIndex = items.firstIndex(where: { $0.id == item.id }) {
-            items.remove(at: existingIndex)
+        if items.contains(where: { $0.id == item.id }) {
+            items.removeAll { $0.id == item.id }
+            items = deduplicatedItems(items)
             favoritesByProfile[historyKey] = items
             persistFavorites()
             return false
         }
 
+        items.removeAll { $0.id == item.id }
         items.insert(item, at: 0)
+        items = deduplicatedItems(items)
         if items.count > maxHistoryCount {
             items.removeLast(items.count - maxHistoryCount)
         }
@@ -239,12 +263,18 @@ actor DemoSessionStore {
     }
 
     func likedItems(limit: Int = 20) -> [StorefrontItem] {
-        Array((likesByProfile[historyKey] ?? []).prefix(limit))
+        let items = deduplicatedItems(likesByProfile[historyKey] ?? [])
+        likesByProfile[historyKey] = items
+        persistLikes()
+        return Array(items.prefix(limit))
     }
 
     func likedItems(for profileID: UUID?, limit: Int = 20) -> [StorefrontItem] {
         let key = profileID?.uuidString ?? "guest"
-        return Array((likesByProfile[key] ?? []).prefix(limit))
+        let items = deduplicatedItems(likesByProfile[key] ?? [])
+        likesByProfile[key] = items
+        persistLikes()
+        return Array(items.prefix(limit))
     }
 
     func likeState(for itemID: String) -> LikeState {
@@ -264,6 +294,7 @@ actor DemoSessionStore {
         case .none:
             likes.removeAll { $0.id == item.id }
             likes.insert(item, at: 0)
+            likes = deduplicatedItems(likes)
             if likes.count > maxHistoryCount {
                 likes.removeLast(likes.count - maxHistoryCount)
             }
@@ -443,4 +474,19 @@ actor DemoSessionStore {
         guard let data = try? JSONEncoder().encode(dislikesByProfile) else { return }
         UserDefaults.standard.set(data, forKey: StorageKey.dislikesByProfile)
     }
+
+    private func deduplicatedItems(_ items: [StorefrontItem]) -> [StorefrontItem] {
+        var seen = Set<String>()
+        return items.filter { seen.insert($0.id).inserted }
+    }
+
+    private func notifyContinueWatchingDidChange() {
+        Task { @MainActor in
+            NotificationCenter.default.post(name: .demoContinueWatchingDidChange, object: nil)
+        }
+    }
+}
+
+extension Notification.Name {
+    static let demoContinueWatchingDidChange = Notification.Name("sony.quickplay.demo.continue-watching-did-change")
 }
