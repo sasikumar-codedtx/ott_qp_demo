@@ -272,55 +272,51 @@ struct ProfileHubView: View {
 
     private var upgradeCard: some View {
         Button(action: { showDemoAlert = true }) {
-            ZStack(alignment: .topLeading) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Upgrade\nyour Plan")
+                    .font(.system(size: 38, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineSpacing(2)
+                    .shadow(color: .black.opacity(0.25), radius: 25, x: 0, y: 4)
+                    .padding(.top, 20)
+                    .padding(.leading, UIConstants.Spacing.xl)
+
+                upgradeFeaturesGrid
+                    .padding(.top, 24)
+                    .padding(.horizontal, UIConstants.Spacing.xl)
+
+                Spacer(minLength: 14)
+
+                upgradeCTAButton
+                    .padding(.horizontal, UIConstants.Spacing.xl)
+
+                Button(action: { showDemoAlert = true }) {
+                    HStack(spacing: 5) {
+                        Text("Subscribe to Basic plan")
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundStyle(.white.opacity(0.2))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.2))
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(LiquidButtonPressStyle())
+                .padding(.top, 10)
+                .padding(.bottom, 20)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(height: 374)
+            .background(
                 Image("upgradebg")
                     .resizable()
                     .scaledToFill()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipped()
                     .allowsHitTesting(false)
-
-//                Color.black.opacity(0.35)
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("Upgrade\nyour Plan")
-                        .font(.system(size: 38, weight: .bold))
-                        .foregroundStyle(.white)
-                        .lineSpacing(2)
-                        .shadow(color: .black.opacity(0.25), radius: 25, x: 0, y: 4)
-                        .padding(.top, 20)
-                        .padding(.leading, UIConstants.Spacing.xl)
-
-                    upgradeFeaturesGrid
-                        .padding(.top, 24)
-                        .padding(.horizontal, UIConstants.Spacing.xl)
-
-                    Spacer(minLength: 14)
-
-                    upgradeCTAButton
-                        .padding(.horizontal, UIConstants.Spacing.xl)
-
-                    Button(action: { showDemoAlert = true }) {
-                        HStack(spacing: 5) {
-                            Text("Subscribe to Basic plan")
-                                .font(.system(size: 12, weight: .regular))
-                                .foregroundStyle(.white.opacity(0.2))
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 9, weight: .semibold))
-                                .foregroundStyle(.white.opacity(0.2))
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(LiquidButtonPressStyle())
-                    .padding(.top, 10)
-                    .padding(.bottom, 20)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 374)
+            )
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(Color(hex: "FFAD09"), lineWidth: 2)
+                    .strokeBorder(Color(hex: "FFAD09"), lineWidth: 2)
             )
         }
         .buttonStyle(LiquidButtonPressStyle())
