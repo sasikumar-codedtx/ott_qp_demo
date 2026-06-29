@@ -335,7 +335,7 @@ actor DemoSessionStore {
     }
 
     func currentStorefrontPolicyAttribute() -> String {
-        currentStorefrontPolicy().chrtValue
+        activeCohort == .kids ? "kids" : currentStorefrontPolicy().chrtValue
     }
 
     func currentDominantPreference() -> ProfilePreference? {
