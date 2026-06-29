@@ -33,13 +33,6 @@ struct SearchView: View {
         "Underrated Sony LIV titles"
     ]
 
-    private let keyboardSearchSuggestions = [
-        "Vaibhav Suriyavanshi Celebration",
-        "Jheta Lal Funny Moments",
-        "Sixes in Sri Lanka vs Afghanistan",
-        "Kids Movies with Fox"
-    ]
-
     private var shouldShowResultFilters: Bool {
         !viewModel.normalizedQuery.isEmpty && viewModel.availableFilters.count > 1
     }
@@ -56,14 +49,6 @@ struct SearchView: View {
         searchDockFilters.count > 1
     }
 
-    private var searchSuggestions: [String] {
-        keyboardSearchSuggestions
-    }
-
-    private var shouldShowKeyboardSuggestions: Bool {
-        isSearchFocused && viewModel.normalizedQuery.isEmpty && !searchSuggestions.isEmpty
-    }
-
     private var inlineVoiceStatusText: String {
         if let inlineVoiceTranslationError { return inlineVoiceTranslationError }
         if isTranslatingInlineVoice { return "Translating Hindi to English..." }
@@ -73,6 +58,11 @@ struct SearchView: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack {
+                // Anchor the ZStack to full screen so it never collapses to zero
+                // when content is empty — prevents the dock jumping to the top.
+                Color.clear
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
                 content
                     .padding(.top, proxy.safeAreaInsets.top + 28)
 
@@ -126,134 +116,91 @@ struct SearchView: View {
     private var content: some View {
         if viewModel.isLoading && viewModel.results.isEmpty && viewModel.momentResults.isEmpty {
             SearchLoadingStateView()
-        } else if viewModel.normalizedQuery.isEmpty && viewModel.results.isEmpty && viewModel.momentResults.isEmpty {
+        } else if !viewModel.displayedResults.isEmpty || !viewModel.momentResults.isEmpty {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    SearchPlaceholderView()
-                        .padding(.horizontal, UIConstants.Spacing.lg)
-                        .padding(.top, 120)
-                }
-                .padding(.top, 8)
-                .padding(.bottom, searchDockReservedHeight)
-                .animation(.easeOut(duration: 0.25), value: searchDockReservedHeight)
-            }
-            .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
-            .scrollDismissesKeyboard(.interactively)
-        } else {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
-                    if let errorMessage = viewModel.errorMessage, viewModel.results.isEmpty {
-                        ErrorView(title: AppStrings.Search.unavailableTitle, message: errorMessage, onRetry: nil)
-                            .padding(.horizontal, UIConstants.Spacing.lg)
-                            .padding(.top, 60)
-                    } else if viewModel.displayedResults.isEmpty && viewModel.momentResults.isEmpty {
-                        EmptyStateView(title: AppStrings.Search.noResults, message: viewModel.normalizedQuery, systemImage: AppIcons.Navigation.search)
-                            .padding(.horizontal, UIConstants.Spacing.lg)
-                            .padding(.top, 60)
-                    } else {
-                        VStack(alignment: .leading, spacing: 28) {
-                            // Rail 1 — content (moment=false): horizontal scroll
-                            if !viewModel.displayedResults.isEmpty {
-                                VStack(alignment: .leading, spacing: 14) {
-                                    searchSectionHeader(title: searchContentsTitle, showsChevron: false)
-                                        .padding(.horizontal, UIConstants.Spacing.lg)
-                                        .padding(.top, 8)
+                VStack(alignment: .leading, spacing: 28) {
+                    // Rail 1 — content (moment=false): horizontal scroll
+                    if !viewModel.displayedResults.isEmpty {
+                        VStack(alignment: .leading, spacing: 10) {
+                            SectionHeaderView(title: "\(viewModel.displaySearchTerm) Contents")
+                                .padding(.horizontal, UIConstants.Spacing.lg)
 
-                                    ScrollView(.horizontal, showsIndicators: false) {
-                                        HStack(spacing: 10) {
-                                            ForEach(viewModel.displayedResults) { item in
-                                                SearchPosterCard(
-                                                    item: item,
-                                                    size: CGSize(width: 124, height: 186),
-                                                    showsPlayIcon: false,
-                                                    onSelect: onSelectItem
-                                                )
-                                            }
-                                        }
-                                        .padding(.horizontal, UIConstants.Spacing.lg)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 10) {
+                                    ForEach(viewModel.displayedResults) { item in
+                                        SearchPosterCard(
+                                            item: item,
+                                            size: CGSize(width: 124, height: 186),
+                                            showsPlayIcon: false,
+                                            onSelect: onSelectItem
+                                        )
                                     }
                                 }
-                            }
-
-                            // Rail 2 — moments (moment=true): vertical grid
-                            if !viewModel.momentResults.isEmpty {
-                                VStack(alignment: .leading, spacing: 14) {
-                                    searchSectionHeader(title: searchMomentsTitle, showsChevron: false)
-                                        .padding(.horizontal, UIConstants.Spacing.lg)
-
-                                    SearchRecommendedClipGrid(
-                                        items: viewModel.momentResults,
-                                        onSelect: onSelectItem
-                                    )
-                                    .padding(.horizontal, UIConstants.Spacing.lg)
-                                }
+                                .padding(.horizontal, UIConstants.Spacing.lg)
                             }
                         }
                     }
+
+                    // Rail 2 — moments (moment=true): vertical grid
+                    if !viewModel.momentResults.isEmpty {
+                        VStack(alignment: .leading, spacing: 10) {
+                            SectionHeaderView(title: "\(viewModel.displaySearchTerm) Moments")
+                                .padding(.horizontal, UIConstants.Spacing.lg)
+
+                            SearchRecommendedClipGrid(
+                                items: viewModel.momentResults,
+                                onSelect: onSelectItem
+                            )
+                            .padding(.horizontal, UIConstants.Spacing.lg)
+                        }
+                    }
                 }
+                .padding(.top, 8)
                 .padding(.bottom, searchDockReservedHeight + 20)
                 .animation(.easeOut(duration: 0.25), value: searchDockReservedHeight)
             }
             .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
             .scrollDismissesKeyboard(.interactively)
         }
-    }
-
-    private var searchContentsTitle: String {
-        let query = viewModel.normalizedQuery
-        return query.isEmpty ? "Popular Searches" : "\(query.capitalized) Contents"
-    }
-
-    private var searchMomentsTitle: String {
-        let query = viewModel.normalizedQuery
-        return query.isEmpty ? AppStrings.Search.moments : "\(query.capitalized) Moments"
-    }
-
-    private var searchContentTitle: String {
-        let query = viewModel.normalizedQuery
-        return query.isEmpty ? "Popular Searches" : query.capitalized
+        // No placeholder, no empty-state — blank when no results yet
     }
 
     private var searchBackground: some View {
         ZStack {
             Color.black
 
-            if !viewModel.normalizedQuery.isEmpty {
-                LinearGradient(
-                    colors: [Color(hex: "FF5E00"), Color(hex: "4418B4")],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .frame(height: 150)
-                .blur(radius: 120)
-                .opacity(0.9)
-                .frame(maxHeight: .infinity, alignment: .top)
-            }
+            LinearGradient(
+                colors: [Color(hex: "FF5E00"), Color(hex: "4418B4")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .frame(height: 150)
+            .blur(radius: 120)
+            .opacity(0.9)
+            .frame(maxHeight: .infinity, alignment: .top)
         }
     }
 
     private func bottomSearchDock(bottomInset: CGFloat) -> some View {
         VStack(spacing: 14) {
-            if shouldShowKeyboardSuggestions {
+            if !viewModel.popularSuggestions.isEmpty && viewModel.normalizedQuery.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Recent Searches")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white)
+                    Text(AppStrings.Search.popular)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.54))
                         .padding(.horizontal, UIConstants.Spacing.lg)
 
-                SuggestionChipFlow(
-                    suggestions: searchSuggestions,
-                    maxRows: 2,
-                        maxItemsPerRow: 2,
-                        horizontalPadding: UIConstants.Spacing.lg,
-                        onSelect: { suggestion in
-                            viewModel.query = suggestion
-                            viewModel.submitSearch()
-                            isSearchFocused = false
-                        }
-                    )
+                    SuggestionChipFlow(
+                        suggestions: viewModel.popularSuggestions,
+                        maxRows: 2,
+                        maxItemsPerRow: 3,
+                        horizontalPadding: UIConstants.Spacing.lg
+                    ) { suggestion in
+                        viewModel.query = suggestion
+                        viewModel.submitSearch()
+                        isSearchFocused = false
+                    }
                 }
-                .transition(.opacity)
             }
 
             if showsSearchDockFilters {
@@ -294,47 +241,27 @@ struct SearchView: View {
         .padding(.top, 8)
         .padding(.bottom, searchDockBottomPadding(bottomInset: bottomInset))
         .background(searchDockBackdrop(height: searchDockBackdropHeight, isKeyboardVisible: isKeyboardVisible))
-        .animation(.spring(response: 0.32, dampingFraction: 0.88), value: shouldShowKeyboardSuggestions)
+    }
+
+    private var showsSuggestions: Bool {
+        !viewModel.popularSuggestions.isEmpty && viewModel.normalizedQuery.isEmpty
     }
 
     private var searchDockReservedHeight: CGFloat {
-        if shouldShowKeyboardSuggestions {
-            return 194
-        }
-
+        if showsSuggestions { return showsSearchDockFilters ? 258 : 208 }
         return showsSearchDockFilters ? 178 : 128
     }
 
     private var searchDockBackdropHeight: CGFloat {
-        if shouldShowKeyboardSuggestions {
-            return isKeyboardVisible ? 260 : 194
-        }
-
+        let suggestionExtra: CGFloat = showsSuggestions ? 80 : 0
         if showsSearchDockFilters {
-            return isKeyboardVisible ? 226 : 178
+            return (isKeyboardVisible ? 226 : 178) + suggestionExtra
         }
-
-        return isKeyboardVisible ? 190 : 130
+        return (isKeyboardVisible ? 190 : 130) + suggestionExtra
     }
 
     private func searchDockBottomPadding(bottomInset: CGFloat) -> CGFloat {
         isKeyboardVisible ? 8 : max(bottomInset, 12) + 12
-    }
-
-    private func searchSectionHeader(title: String, showsChevron: Bool) -> some View {
-        HStack {
-            Text(title)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(.white)
-
-            Spacer()
-
-            if showsChevron {
-                Image(systemName: AppIcons.Navigation.next)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.84))
-            }
-        }
     }
 
     private func openAISearch() {

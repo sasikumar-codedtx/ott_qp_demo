@@ -151,7 +151,7 @@ final class ContentDetailViewModel: ObservableObject {
         let title = detail.title.trimmingCharacters(in: .whitespacesAndNewlines)
         let genres = detail.genres.prefix(2)
         var suggestions = [
-            "\(title) key moments"
+            "\(title) moments"
         ]
         return Array(suggestions.filter { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false }.prefix(5))
     }

@@ -52,7 +52,7 @@ enum AppStrings {
         static let editProfilesCTA = "Edit Profiles"
         static let yourProfiles = "Your Profiles"
         static let continueWatching = "Continue Watching"
-        static let clips = "Clips"
+        static let likes = "Likes"
         static let liked = "Shows & Movies you have liked"
         static let favorites = "Favorites"
         static let downloads = "Downloads"

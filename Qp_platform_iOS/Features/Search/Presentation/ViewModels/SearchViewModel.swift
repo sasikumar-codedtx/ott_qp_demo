@@ -27,24 +27,46 @@ final class SearchViewModel: ObservableObject {
     init(useCase: SearchContentUseCase) {
         self.useCase = useCase
 
-        // Clear results immediately when the field is emptied.
+        // .dropFirst() prevents the initial "" value from firing on app start.
+        // Only fires when the user explicitly clears the field after entering the screen.
         $query
+            .dropFirst()
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .removeDuplicates()
             .filter { $0.isEmpty }
             .sink { [weak self] _ in
-                Task { @MainActor in
-                    await self?.handleQueryChange("")
+                guard let self else { return }
+                self.clearResults()
+                self.isLoading = true
+                Task { @MainActor [weak self] in
+                    await self?.loadInitialContent()
                 }
             }
             .store(in: &cancellables)
-        query = Self.defaultSearchQuery
     }
 
     func submitSearch() {
+        let term = normalizedQuery
+        guard !term.isEmpty else { return }
         Task { @MainActor in
-            await handleQueryChange(normalizedQuery)
+            await handleQueryChange(term)
         }
+    }
+
+    private func clearResults() {
+        results = []
+        momentResults = []
+        facetFilters = []
+        selectedFilterID = Self.allFilter.id
+        errorMessage = nil
+        isLoading = false
+        currentSearchTerm = ""
+    }
+
+    private func loadInitialContent() async {
+        // displayQuery: "" matches normalizedQuery "" so results are applied.
+        // term: "Recent Movies" is what the API receives.
+        await performSearch(term: "Recent Movies", facetTerm: nil, shouldUpdateFilters: false, displayQuery: "")
     }
 
     var normalizedQuery: String {
@@ -59,20 +81,23 @@ final class SearchViewModel: ObservableObject {
         results
     }
 
+    var displaySearchTerm: String {
+        normalizedQuery.isEmpty ? currentSearchTerm : normalizedQuery
+    }
+
+    var popularSuggestions: [String] {
+        guard normalizedQuery.isEmpty else { return [] }
+        let titles = results.prefix(8).map { $0.title }.filter { !$0.isEmpty }
+        return titles.isEmpty ? [] : Array(titles)
+    }
+
     func present() {
-        results = []
-        momentResults = []
-        facetFilters = []
-        selectedFilterID = Self.allFilter.id
-        errorMessage = nil
-        currentSearchTerm = ""
+        clearResults()
+        isLoading = true   // show spinner immediately before the async task starts
         pendingManualDisplayQuery = nil
-        if query == Self.defaultSearchQuery {
-            Task { @MainActor in
-                await handleQueryChange(Self.defaultSearchQuery)
-            }
-        } else {
-            query = Self.defaultSearchQuery
+        query = ""
+        Task { @MainActor in
+            await loadInitialContent()
         }
     }
 

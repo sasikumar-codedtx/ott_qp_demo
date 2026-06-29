@@ -163,11 +163,11 @@ struct ProfileHubView: View {
                         downloadsCard
                             .padding(.horizontal, UIConstants.Spacing.lg)
 
-                        if let clipsSection = viewModel.sections.first(where: { $0.id == "clips" }) {
-                            clipsRailSection(clipsSection)
+                        if let likesSection = viewModel.sections.first(where: { $0.id == "likes" }) {
+                            likesRailSection(likesSection)
                         }
 
-                        ForEach(viewModel.trailingSections.filter { $0.id != "clips" }) { section in
+                        ForEach(viewModel.trailingSections.filter { $0.id != "likes" }) { section in
                             StorefrontSectionView(
                                 section: section,
                                 isHomeTab: false,
@@ -379,7 +379,7 @@ struct ProfileHubView: View {
         }
     }
 
-    private func clipsRailSection(_ section: StorefrontSection) -> some View {
+    private func likesRailSection(_ section: StorefrontSection) -> some View {
         let cardWidth: CGFloat = 275
         let cardHeight: CGFloat = cardWidth * 16 / 9
         let size = CGSize(width: cardWidth, height: cardHeight)

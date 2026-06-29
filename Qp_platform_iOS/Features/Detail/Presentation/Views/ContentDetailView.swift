@@ -304,7 +304,7 @@ struct ContentDetailView: View {
                 // gradientHeight: 40% of image height — solid black at bottom, fading to clear.
                 let imageHeight: CGFloat  = width * 3 / 2
                 let overlapHeight: CGFloat = isVideoReady ? 0 : width * 0.55
-                let gradientHeight: CGFloat = isVideoReady ? 0 : imageHeight * 0.4
+                let gradientHeight: CGFloat = isVideoReady ? 0 : imageHeight * 0.58
 
                 VStack(spacing: 0) {
                     if let playerContent = resolvedPlayerContent {
@@ -322,7 +322,8 @@ struct ContentDetailView: View {
                             LinearGradient(
                                 stops: [
                                     .init(color: .clear, location: 0),
-                                    .init(color: Color.black.opacity(0.6), location: 0.5),
+                                    .init(color: Color.black.opacity(0.5), location: 0.35),
+                                    .init(color: Color.black.opacity(0.85), location: 0.65),
                                     .init(color: Color.black, location: 1)
                                 ],
                                 startPoint: .top,
@@ -340,6 +341,20 @@ struct ContentDetailView: View {
                         cornerRadius: 0
                     )
                     .frame(height: headerHeight)
+                    .overlay(alignment: .bottom) {
+                        LinearGradient(
+                            stops: [
+                                .init(color: .clear, location: 0),
+                                .init(color: Color.black.opacity(0.5), location: 0.35),
+                                .init(color: Color.black.opacity(0.85), location: 0.65),
+                                .init(color: Color.black, location: 1)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: gradientHeight)
+                        .allowsHitTesting(false)
+                    }
                 }
 
                     ScrollView(.vertical, showsIndicators: false) {
@@ -497,6 +512,18 @@ struct ContentDetailView: View {
 
     private func detailContent(_ detail: ContentDetail, kind: DetailPresentationKind, width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 12) {
+            Text(detail.title)
+                .font(.system(size: 28, weight: .bold))
+                .lineLimit(2)
+                .minimumScaleFactor(0.72)
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color(hex: "FFF75A"), Color(hex: "F5A623")],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
             metaLine(detail)
             watchButton(detail, kind: kind)
             descriptionBlock(detail)
@@ -2187,7 +2214,14 @@ struct ContentDetailView: View {
     }
 
     private func momentSearchOverlay(detail: ContentDetail, bottomInset: CGFloat) -> some View {
-        ZStack(alignment: .bottom) {
+        // Use UIScreen height as the stable baseline so the bar sits flush with
+        // the keyboard regardless of whether the portrait poster or 16:9 player
+        // is currently shown — both layouts have different heights, which used to
+        // shift the overlay's bottom anchor.
+        let screenH = UIScreen.main.bounds.height
+        let barBottomPadding: CGFloat = keyboardHeight > 0 ? keyboardHeight : max(bottomInset, 10) + 8
+
+        return ZStack(alignment: .bottom) {
             KeyboardOverlayBackdropView()
                 .ignoresSafeArea()
 
@@ -2259,7 +2293,7 @@ struct ContentDetailView: View {
                 .padding(.horizontal, 16)
             }
             .padding(.top, 14)
-            .padding(.bottom, overlayBottomPadding(bottomInset: bottomInset))
+            .padding(.bottom, barBottomPadding)
             .background(
                 LinearGradient(
                     stops: [
@@ -2275,10 +2309,10 @@ struct ContentDetailView: View {
             )
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }
-    }
-
-    private func overlayBottomPadding(bottomInset: CGFloat) -> CGFloat {
-        keyboardHeight > 0 ? keyboardHeight : max(bottomInset, 10) + 8
+        // Explicitly pin to full screen so the bottom anchor is always at
+        // UIScreen.main.bounds.height, not wherever the current layout leaves it.
+        .frame(width: UIScreen.main.bounds.width, height: screenH)
+        .ignoresSafeArea()
     }
 
     @ViewBuilder

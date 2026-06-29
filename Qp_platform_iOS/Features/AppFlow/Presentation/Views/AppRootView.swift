@@ -377,7 +377,7 @@ struct AppRootView: View {
                         viewModel.play(item: item)
                     },
                     onSelectRecommendation: { item in
-                        viewModel.openContent(item: item)
+                        viewModel.replaceDetail(item: item)
                     }
                 )
             }

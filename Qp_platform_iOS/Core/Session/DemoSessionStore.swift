@@ -30,8 +30,8 @@ actor DemoSessionStore {
     private var prefersVoiceAISearch: Bool
     private var continueWatchingByProfile: [String: [StorefrontItem]]
     private var favoritesByProfile: [String: [StorefrontItem]]
-    private var likesByProfile: [String: [String]]     // profileID → [itemID]
-    private var dislikesByProfile: [String: [String]]  // profileID → [itemID]
+    private var likesByProfile: [String: [StorefrontItem]]  // profileID → liked items
+    private var dislikesByProfile: [String: [String]]       // profileID → [itemID]
 
     init() {
         if
@@ -77,7 +77,7 @@ actor DemoSessionStore {
             favoritesByProfile = [:]
         }
         if let data = UserDefaults.standard.data(forKey: StorageKey.likesByProfile),
-           let stored = try? JSONDecoder().decode([String: [String]].self, from: data) {
+           let stored = try? JSONDecoder().decode([String: [StorefrontItem]].self, from: data) {
             likesByProfile = stored
         } else {
             likesByProfile = [:]
@@ -233,9 +233,13 @@ actor DemoSessionStore {
         return true
     }
 
+    func likedItems(limit: Int = 20) -> [StorefrontItem] {
+        Array((likesByProfile[historyKey] ?? []).prefix(limit))
+    }
+
     func likeState(for itemID: String) -> LikeState {
         let key = historyKey
-        if (likesByProfile[key] ?? []).contains(itemID) { return .liked }
+        if (likesByProfile[key] ?? []).contains(where: { $0.id == itemID }) { return .liked }
         if (dislikesByProfile[key] ?? []).contains(itemID) { return .disliked }
         return .none
     }
@@ -248,13 +252,16 @@ actor DemoSessionStore {
         var dislikes = dislikesByProfile[key] ?? []
         switch current {
         case .none:
-            likes.removeAll { $0 == item.id }
-            likes.insert(item.id, at: 0)
+            likes.removeAll { $0.id == item.id }
+            likes.insert(item, at: 0)
+            if likes.count > maxHistoryCount {
+                likes.removeLast(likes.count - maxHistoryCount)
+            }
             likesByProfile[key] = likes
             persistLikes()
             return .liked
         case .liked:
-            likes.removeAll { $0 == item.id }
+            likes.removeAll { $0.id == item.id }
             dislikes.removeAll { $0 == item.id }
             dislikes.insert(item.id, at: 0)
             likesByProfile[key] = likes

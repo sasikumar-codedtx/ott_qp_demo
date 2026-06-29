@@ -429,6 +429,11 @@ final class AppFlowViewModel: ObservableObject {
         push(.detail(item))
     }
 
+    func replaceDetail(item: StorefrontItem) {
+        detailViewModel.present(item: item)
+        replaceTopRoute(with: .detail(item))
+    }
+
     func play(item: StorefrontItem) {
         activePlaybackContent = item.quickplayPlaybackContent()
     }

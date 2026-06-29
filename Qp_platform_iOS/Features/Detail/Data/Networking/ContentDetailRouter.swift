@@ -113,8 +113,8 @@ enum ContentDetailRouter {
             URLQueryItem(name: "info", value: "detail"),
             URLQueryItem(name: "moment", value: "true"),
             URLQueryItem(name: "pf", value: cohort.profileFlag),
-            URLQueryItem(name: "chrt", value: policyAttribute)
-//            URLQueryItem(name: "id", value: contentID)
+            URLQueryItem(name: "chrt", value: policyAttribute),
+            URLQueryItem(name: "id", value: contentID)
         ]
 
         guard let url = components.url else {

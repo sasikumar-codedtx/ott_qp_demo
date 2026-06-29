@@ -10,7 +10,7 @@ final class ProfileHubViewModel: ObservableObject {
     @Published private(set) var errorMessage: String?
 
     private let useCase: GetProfileHomeUseCase
-    private var clipSeedItems: [StorefrontItem] = []
+    private var seedItems: [StorefrontItem] = []
     private var hasLoaded = false
 
     init(useCase: GetProfileHomeUseCase) {
@@ -35,7 +35,7 @@ final class ProfileHubViewModel: ObservableObject {
 
     func present(profile: Profile?, seedItems: [StorefrontItem]) {
         selectedProfile = profile
-        clipSeedItems = seedItems
+        self.seedItems = seedItems
         heroItem = seedItems.first
         sections = []
         errorMessage = nil
@@ -55,18 +55,17 @@ final class ProfileHubViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let home = try await useCase.execute(profile: selectedProfile, seedItems: clipSeedItems)
-            let clipItems = buildClipItems(from: clipSeedItems, fallbacks: home.recommendations + home.favorites)
+            let home = try await useCase.execute(profile: selectedProfile, seedItems: seedItems)
 
             sections = [
                 makeSection(id: "continue-watching", title: AppStrings.Profile.continueWatching, ratio: "0-2x3", items: home.continueWatching),
-                makeSection(id: "clips", title: AppStrings.Profile.clips, ratio: "0-9x16", items: clipItems),
-                makeSection(id: "liked", title: AppStrings.Profile.liked, ratio: "0-2x3", items: home.recommendations),
-                makeSection(id: "favorites", title: AppStrings.Profile.favorites, ratio: "0-2x3", items: home.favorites)
+                makeSection(id: "likes", title: AppStrings.Profile.likes, ratio: "0-2x3", items: home.likedItems),
+                makeSection(id: "favorites", title: AppStrings.Profile.favorites, ratio: "0-2x3", items: home.favorites),
+                makeSection(id: "recommendations", title: AppStrings.Profile.liked, ratio: "0-2x3", items: home.recommendations)
             ]
             .compactMap { $0 }
 
-            heroItem = home.continueWatching.first ?? clipItems.first ?? home.favorites.first ?? home.recommendations.first
+            heroItem = home.continueWatching.first ?? home.likedItems.first ?? home.favorites.first ?? home.recommendations.first
         } catch {
             errorMessage = error.localizedDescription
             sections = []
@@ -77,12 +76,6 @@ final class ProfileHubViewModel: ObservableObject {
         let deduplicated = deduplicatedItems(items)
         guard !deduplicated.isEmpty else { return nil }
         return StorefrontSection(id: id, title: title, ratio: ratio, items: deduplicated, isHero: false)
-    }
-
-    private func buildClipItems(from seeds: [StorefrontItem], fallbacks: [StorefrontItem]) -> [StorefrontItem] {
-        let candidates = deduplicatedItems(seeds + fallbacks)
-        let portraitFirst = candidates.filter { $0.availableRatios.contains("0-9x16") || $0.availableRatios.contains("0-2x3") }
-        return Array((portraitFirst.isEmpty ? candidates : portraitFirst).prefix(6))
     }
 
     private func deduplicatedItems(_ items: [StorefrontItem]) -> [StorefrontItem] {
