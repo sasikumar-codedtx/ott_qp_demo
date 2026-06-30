@@ -133,7 +133,11 @@ final class AppFlowViewModel: ObservableObject {
             // Ensure profiles for the stored phone number are in memory before loading.
             AppContainer.shared.reloadProfilesForStoredPhone()
             await profileSelectionViewModel.load()
-            rootScreen = .profileSelection
+            if profileSelectionViewModel.profiles.isEmpty {
+                await createDefaultAdminProfile()
+            } else {
+                rootScreen = .profileSelection
+            }
         } else {
             rootScreen = .login
         }
@@ -156,12 +160,30 @@ final class AppFlowViewModel: ObservableObject {
         navigationPath.removeAll()
 
         if profileSelectionViewModel.profiles.isEmpty {
-            await profileEditorViewModel.prepareForCreate()
+            await createDefaultAdminProfile()
+            return
+        }
+
+        rootScreen = .profileSelection
+    }
+
+    private func createDefaultAdminProfile() async {
+        let avatarOptions = (try? await profileRepository.fetchAvatarOptions()) ?? []
+        var draft = ProfileDraft()
+        draft.name = "Admin"
+        draft.gender = .male
+        draft.dateOfBirth = Calendar.current.date(from: DateComponents(year: 1990, month: 6, day: 15)) ?? draft.dateOfBirth
+        draft.cohort = .entertainment
+        draft.preference = .entertainment
+        draft.imageName = avatarOptions.first?.imageName
+
+        guard let saved = try? await profileRepository.saveProfile(draft: draft) else {
             rootScreen = .profileSelection
             navigationPath = [.avatarPicker(.createNew)]
             return
         }
 
+        await profileSelectionViewModel.load()
         rootScreen = .profileSelection
     }
 

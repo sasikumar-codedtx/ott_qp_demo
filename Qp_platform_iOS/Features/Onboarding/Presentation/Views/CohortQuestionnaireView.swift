@@ -86,19 +86,13 @@ struct CohortQuestionnaireView: View {
                         Spacer()
                         Button(action: skipToDefault) {
                             Text("Skip")
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundStyle(.white.opacity(0.72))
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
-                                .background(
-                                    Capsule()
-                                        .fill(Color.white.opacity(0.12))
-                                        .overlay(Capsule().stroke(Color.white.opacity(0.18), lineWidth: 1))
-                                )
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(.white.opacity(0.6))
+                                .underline()
                         }
-                        .buttonStyle(LiquidButtonPressStyle())
-                        .padding(.top, proxy.safeAreaInsets.top + 14)
-                        .padding(.trailing, 22)
+                        .buttonStyle(.plain)
+                        .padding(.top, proxy.safeAreaInsets.top + 18)
+                        .padding(.trailing, 24)
                         .disabled(isFinishing)
                     }
                     Spacer()
