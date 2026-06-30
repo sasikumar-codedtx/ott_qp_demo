@@ -175,6 +175,7 @@ struct ContentDetailView: View {
                 switch playAlong.stage {
                 case .teaser:
                     PlayAlongTeaserButton(onTap: { playAlong.openFromTeaser() })
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                         .padding(.bottom, proxy.safeAreaInsets.bottom + 16)
                         .zIndex(40)
                         .transition(.move(edge: .bottom).combined(with: .opacity))

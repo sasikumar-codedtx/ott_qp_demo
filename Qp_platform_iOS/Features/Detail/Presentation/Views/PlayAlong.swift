@@ -92,7 +92,6 @@ enum PlayAlongCatalog {
     private static let json = #"""
     {
       "questions": [
-    { "start_time": "0:5", "end_time": "21.2", "question": "The term 'getting a shock' is associated with which of these?", "options": { "A": "Paper", "B": "Electricity", "C": "Wood", "D": "Wind" }, "correct_answer": "Electricity", "answer_revealed_time": "3:45" },
         { "start_time": "3:23", "end_time": "3:46", "question": "The term 'getting a shock' is associated with which of these?", "options": { "A": "Paper", "B": "Electricity", "C": "Wood", "D": "Wind" }, "correct_answer": "Electricity", "answer_revealed_time": "3:45" },
         { "start_time": "4:14", "end_time": "4:39", "question": "Which of these food items is usually not prepared by frying?", "options": { "A": "Poori", "B": "Samosa", "C": "Jalebi", "D": "Kheer" }, "correct_answer": "Kheer", "answer_revealed_time": "4:38" },
         { "start_time": "5:43", "end_time": "6:12", "question": "Usually, among these birds, which one has the longest legs?", "options": { "A": "Eagle", "B": "Pigeon", "C": "Crane", "D": "Owl" }, "correct_answer": "Crane", "answer_revealed_time": "6:11" },
@@ -108,7 +107,7 @@ enum PlayAlongCatalog {
         { "start_time": "30:44", "end_time": "31:16", "question": "If you were eating a softie, what would you be eating?", "options": { "A": "Walnut", "B": "Papad", "C": "Laddu", "D": "Ice cream" }, "correct_answer": "Ice cream", "answer_revealed_time": "31:15" },
         { "start_time": "31:22", "end_time": "31:50", "question": "Which of these plants mainly grows in an aquatic environment?", "options": { "A": "Willow", "B": "Cactus", "C": "Seaweed", "D": "Eucalyptus" }, "correct_answer": "Seaweed", "answer_revealed_time": "31:49" },
         { "start_time": "31:57", "end_time": "32:34", "question": "If you take the audience poll lifeline what is the sum total of the percentages the options get?", "options": { "A": "25", "B": "100", "C": "50", "D": "20" }, "correct_answer": "100", "answer_revealed_time": "32:33" },
-        { "start_time": "34:38", "end_time": "35:29", "question": "This is the 2.0 version of which song?", "options": { "A": "Character Sheela", "B": "Dabangg", "C": "Balam Pichkari", "D": "Badtameez Dil" }, "correct_answer": "Character Sheela", "answer_revealed_time": "35:28" },
+        { "start_time": "34:38", "end_time": "35:29", "question": "This is the 2.0 version of which song?", "options": { "A": "Character Dheela", "B": "Dabangg", "C": "Balam Pichkari", "D": "Badtameez Dil" }, "correct_answer": "Character Dheela", "answer_revealed_time": "35:28" },
         { "start_time": "35:39", "end_time": "36:12", "question": "Which of these words denotes both a small village, and a tragedy written by William Shakespeare?", "options": { "A": "Borough", "B": "Metropolis", "C": "Hamlet", "D": "Outpost" }, "correct_answer": "Hamlet", "answer_revealed_time": "36:11" },
         { "start_time": "36:44", "end_time": "37:33", "question": "Which of these animals does not live in Africa?", "options": { "A": "Image Option A", "B": "Image Option B", "C": "Image Option C", "D": "Image Option D" }, "correct_answer": "Image Option B", "answer_revealed_time": "37:32" },
         { "start_time": "37:55", "end_time": "39:55", "question": "The Sheetla Mata mandir in Gurugram is dedicated to a deity believed to be the wife of which figure from the Mahabharata?", "options": { "A": "Ashwatthama", "B": "Abhimanyu", "C": "Ghatotkacha", "D": "Dronacharya" }, "correct_answer": "Dronacharya", "answer_revealed_time": "39:55" },
@@ -223,12 +222,18 @@ final class PlayAlongDirector: ObservableObject {
             next = (opened && selection != nil) ? .revealing(q) : .idle
         }
         if next != stage {
+            // The play-along card just popped up — give a nudge.
+            if case .teaser = next { UIImpactFeedbackGenerator(style: .medium).impactOccurred() }
             stage = next
         }
 
         // Live countdown to lock (only meaningful while an opened question is being answered).
         let r = (opened && t < q.end) ? max(0, Int(ceil(q.end - t))) : 0
         if r != remainingSeconds {
+            // Tick haptic for the final 3 seconds before the answer locks.
+            if opened, (1...3).contains(r) {
+                UIImpactFeedbackGenerator(style: .rigid).impactOccurred(intensity: 0.9)
+            }
             remainingSeconds = r
         }
     }
@@ -275,8 +280,7 @@ struct PlayAlongTeaserButton: View {
             Image("playalone")
                 .resizable()
                 .scaledToFit()
-                .frame(maxWidth: .infinity)
-                .frame(height: 112)
+                .frame(height: 134)
                 .shadow(color: Color.black.opacity(0.45), radius: 16, x: 0, y: 8)
                 .rotationEffect(.degrees(wiggle ? 2.5 : -2.5))
                 .scaleEffect(wiggle ? 1.03 : 0.99)
