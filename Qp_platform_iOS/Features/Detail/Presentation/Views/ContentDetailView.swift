@@ -90,6 +90,7 @@ struct ContentDetailView: View {
     @State private var sportsPollAnswer: String? = nil
     @State private var scorecardTeamTab = ""
     @State private var scorecardData: ScorecardData? = ScorecardData.load(named: "scorecard_engw_indw_t20i1")
+    @State private var videoMarkersData: VideoMarkers? = VideoMarkers.load(named: "video_markers_engw_indw_t20i1")
     @State private var isTimeStampPresented = false
     @FocusState private var isChatInputFocused: Bool
     @State private var liveChatScrollToken = 0
@@ -345,7 +346,9 @@ struct ContentDetailView: View {
                         height: headerHeight,
                         safeAreaTop: safeAreaTop,
                         navBarHeight: navBarHeight,
-                        onFullscreen: { openFullPlayer(detail: detail) }
+                        onFullscreen: { openFullPlayer(detail: detail) },
+                        videoMarkers: detail.id == scorecardContentID ? (videoMarkersData?.markers ?? []) : [],
+                        markersDuration: detail.id == scorecardContentID ? (videoMarkersData?.totalDurationSeconds ?? 0) : 0
                     )
                     .overlay(alignment: .bottom) {
                         if !isVideoReady {

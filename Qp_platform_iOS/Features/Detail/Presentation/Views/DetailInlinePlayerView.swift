@@ -12,6 +12,8 @@ struct DetailInlinePlayerView: View {
     let safeAreaTop: CGFloat
     let navBarHeight: CGFloat
     let onFullscreen: () -> Void
+    var videoMarkers: [VideoMarker] = []
+    var markersDuration: Double = 0
     @State private var isSeeking = false
     @State private var seekPosition: Double = 0
     @State private var showControls = false
@@ -138,9 +140,12 @@ struct DetailInlinePlayerView: View {
                     currentTime: engine.currentTime,
                     duration: engine.duration,
                     isSeeking: $isSeeking,
-                    seekPosition: $seekPosition
+                    seekPosition: $seekPosition,
+                    markers: videoMarkers,
+                    markersDuration: markersDuration,
+                    onSeekTo: { engine.seek(to: $0) }
                 )
-                .frame(height: 14)
+                .frame(height: 20)
             }
             .animation(.easeInOut(duration: 0.2), value: showControls)
         }
@@ -154,6 +159,9 @@ private struct DetailSeekBar: View {
     let duration: Double
     @Binding var isSeeking: Bool
     @Binding var seekPosition: Double
+    var markers: [VideoMarker] = []
+    var markersDuration: Double = 0
+    var onSeekTo: ((Double) -> Void)? = nil
 
     @State private var lockedPosition: Double? = nil
 
@@ -173,17 +181,36 @@ private struct DetailSeekBar: View {
             let barHeight: CGFloat = isSeeking ? 4 : 2.5
             let filled = max(0, CGFloat(progress) * w)
 
+            let mDur = markersDuration > 0 ? markersDuration : duration
+
             ZStack(alignment: .leading) {
+                // Track background
                 Rectangle()
                     .fill(Color.white.opacity(0.3))
                     .frame(height: barHeight)
                     .animation(.easeInOut(duration: 0.18), value: isSeeking)
 
+                // Filled portion
                 Rectangle()
                     .fill(Color.white)
                     .frame(width: filled, height: barHeight)
                     .animation(.easeInOut(duration: 0.18), value: isSeeking)
 
+                // Cuepoint markers
+                if mDur > 0 {
+                    ForEach(markers) { marker in
+                        let x = CGFloat(marker.timestampSeconds / mDur) * w
+                        Image(marker.assetName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 18, height: 18)
+                            .offset(x: x - 9, y: -10)
+                            .contentShape(Rectangle().size(CGSize(width: 28, height: 28)).offset(CGSize(width: x - 14, height: -14)))
+                            .onTapGesture { onSeekTo?(marker.timestampSeconds) }
+                    }
+                }
+
+                // Thumb
                 Circle()
                     .fill(Color.white)
                     .frame(

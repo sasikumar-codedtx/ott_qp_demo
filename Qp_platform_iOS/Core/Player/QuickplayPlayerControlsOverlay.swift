@@ -19,6 +19,8 @@ struct QuickplayPlayerControlsOverlay: View {
     let safeTrailing: CGFloat
     let safeBottom: CGFloat
     let onDismiss: () -> Void
+    var markers: [VideoMarker] = []
+    var markersDuration: Double = 0
 
     @State private var seekThumbnail: UIImage? = nil
 
@@ -228,7 +230,10 @@ struct QuickplayPlayerControlsOverlay: View {
                 isSeeking: $isSeeking,
                 seekPosition: $seekPosition,
                 accentColor: .white,
-                isLive: isLive
+                isLive: isLive,
+                markers: markers,
+                markersDuration: markersDuration,
+                onSeekTo: { engine.seek(to: $0) }
             )
 
             if isLive {
@@ -326,6 +331,9 @@ private struct QuickplaySeekBar: View {
     @Binding var seekPosition: Double
     let accentColor: Color
     var isLive: Bool = false
+    var markers: [VideoMarker] = []
+    var markersDuration: Double = 0
+    var onSeekTo: ((Double) -> Void)? = nil
 
     @State private var lockedPosition: Double? = nil
     @State private var trackWidth: CGFloat = 0
@@ -364,6 +372,22 @@ private struct QuickplaySeekBar: View {
             }
         }
         .frame(height: 28)
+        .overlay(alignment: .leading) {
+            let mDur = markersDuration > 0 ? markersDuration : duration
+            if mDur > 0 && trackWidth > 0 {
+                let thumbR: CGFloat = 10
+                let usableW = trackWidth - 2 * thumbR
+                ForEach(markers) { marker in
+                    let x = thumbR + CGFloat(marker.timestampSeconds / mDur) * usableW
+                    Image(marker.assetName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                        .offset(x: x - 10, y: -12)
+                        .onTapGesture { onSeekTo?(marker.timestampSeconds) }
+                }
+            }
+        }
         .contentShape(Rectangle())
         .background(GeometryReader { proxy in
             Color.clear

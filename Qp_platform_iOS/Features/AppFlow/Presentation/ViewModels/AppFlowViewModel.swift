@@ -51,6 +51,8 @@ final class AppFlowViewModel: ObservableObject {
     @Published var activePlaybackContent: QuickplayPlaybackContent?
     @Published var playerEpisodes: [StorefrontItem] = []
     @Published var playerSeasons: [ContentSeason] = []
+    @Published var activeVideoMarkers: [VideoMarker] = []
+    @Published var activeMarkersDuration: Double = 0
     @Published var cohortOverrideToast: String?
     @Published private(set) var isSubscribed = false
     @Published private(set) var isProcessingSubscription = false
@@ -569,6 +571,16 @@ final class AppFlowViewModel: ObservableObject {
     ) {
         playerEpisodes = episodes
         playerSeasons = seasons
+
+        // Load video cuepoint markers for sports content
+        let sportsContentID = "B4A585B8-5F53-4C42-938D-F67A9C8FE71C"
+        if detail.id == sportsContentID, let vm = VideoMarkers.load(named: "video_markers_engw_indw_t20i1") {
+            activeVideoMarkers = vm.markers
+            activeMarkersDuration = vm.totalDurationSeconds
+        } else {
+            activeVideoMarkers = []
+            activeMarkersDuration = 0
+        }
 
         // Record for continue watching — use the seed item so progress is preserved.
         let seedToRecord = item ?? seed

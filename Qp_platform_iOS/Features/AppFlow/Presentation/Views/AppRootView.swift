@@ -27,6 +27,8 @@ struct AppRootView: View {
                     episodes: viewModel.playerEpisodes,
                     seasons: viewModel.playerSeasons,
                     markers: content.markers,
+                    videoMarkers: viewModel.activeVideoMarkers,
+                    markersDuration: viewModel.activeMarkersDuration,
                     onPlayEpisode: { item in viewModel.play(item: item) },
                     onDismiss: viewModel.closePlayer
                 )

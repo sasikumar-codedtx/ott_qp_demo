@@ -8,16 +8,20 @@ struct QuickplayPlayerScreen: View {
     let episodes: [StorefrontItem]
     let seasons: [ContentSeason]
     let markers: [PlayerMarker]
+    let videoMarkers: [VideoMarker]
+    let markersDuration: Double
     let onPlayEpisode: ((StorefrontItem) -> Void)?
     let onDismiss: () -> Void
     @ObservedObject var engine: QuickplayPlayerEngine
 
-    init(content: QuickplayPlaybackContent, engine: QuickplayPlayerEngine, episodes: [StorefrontItem] = [], seasons: [ContentSeason] = [], markers: [PlayerMarker] = [], onPlayEpisode: ((StorefrontItem) -> Void)? = nil, onDismiss: @escaping () -> Void) {
+    init(content: QuickplayPlaybackContent, engine: QuickplayPlayerEngine, episodes: [StorefrontItem] = [], seasons: [ContentSeason] = [], markers: [PlayerMarker] = [], videoMarkers: [VideoMarker] = [], markersDuration: Double = 0, onPlayEpisode: ((StorefrontItem) -> Void)? = nil, onDismiss: @escaping () -> Void) {
         self.content = content
         self.engine = engine
         self.episodes = episodes
         self.seasons = seasons
         self.markers = markers
+        self.videoMarkers = videoMarkers
+        self.markersDuration = markersDuration
         self.onPlayEpisode = onPlayEpisode
         self.onDismiss = onDismiss
     }
@@ -119,7 +123,9 @@ struct QuickplayPlayerScreen: View {
             safeLeading: insets.left,
             safeTrailing: insets.right,
             safeBottom: insets.bottom,
-            onDismiss: dismissPlayer
+            onDismiss: dismissPlayer,
+            markers: videoMarkers,
+            markersDuration: markersDuration
         )
     }
 

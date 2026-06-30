@@ -1,0 +1,22 @@
+{
+  "contentId": "B4A585B8-5F53-4C42-938D-F67A9C8FE71C",
+  "totalDurationSeconds": 856,
+  "markers": [
+    { "id": "w1",  "timestampSeconds": 4,   "type": "wicket",    "label": "W",   "playerName": "S Mandhana" },
+    { "id": "w2",  "timestampSeconds": 23,  "type": "wicket",    "label": "W",   "playerName": "S Verma" },
+    { "id": "ms1", "timestampSeconds": 126, "type": "milestone", "label": "50",  "playerName": "IND W 50" },
+    { "id": "ms2", "timestampSeconds": 229, "type": "milestone", "label": "100", "playerName": "IND W 100" },
+    { "id": "w3",  "timestampSeconds": 267, "type": "wicket",    "label": "W",   "playerName": "Y Bhatia" },
+    { "id": "w4",  "timestampSeconds": 340, "type": "wicket",    "label": "W",   "playerName": "J Rodrigues" },
+    { "id": "ms3", "timestampSeconds": 334, "type": "milestone", "label": "150", "playerName": "IND W 150" },
+    { "id": "w5",  "timestampSeconds": 374, "type": "wicket",    "label": "W",   "playerName": "R Ghosh" },
+    { "id": "w6",  "timestampSeconds": 412, "type": "wicket",    "label": "W",   "playerName": "B Fulmali" },
+    { "id": "w7",  "timestampSeconds": 454, "type": "wicket",    "label": "W",   "playerName": "D Sharma" },
+    { "id": "ms4", "timestampSeconds": 530, "type": "milestone", "label": "50",  "playerName": "ENG W 50" },
+    { "id": "w8",  "timestampSeconds": 534, "type": "wicket",    "label": "W",   "playerName": "S Dunkley" },
+    { "id": "w9",  "timestampSeconds": 610, "type": "wicket",    "label": "W",   "playerName": "T Beaumont" },
+    { "id": "w10", "timestampSeconds": 706, "type": "wicket",    "label": "W",   "playerName": "H Knight" },
+    { "id": "w11", "timestampSeconds": 759, "type": "wicket",    "label": "W",   "playerName": "A Jones" },
+    { "id": "w12", "timestampSeconds": 817, "type": "wicket",    "label": "W",   "playerName": "A Capsey" }
+  ]
+}
