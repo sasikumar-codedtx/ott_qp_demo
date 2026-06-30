@@ -27,6 +27,9 @@ struct SettingsView: View {
     @State private var streamOverWiFiOnly = false
     @State private var imageCacheStatus = "Poster cache capped at 500 MB"
     @State private var activePhoneNumber = AppEnvironment.Demo.supportPhoneNumber
+    // Live cohort the storefront is actually rendering (after click-based adjustment),
+    // not the profile's stored baseline. Loaded from DemoSessionStore on appear.
+    @State private var effectiveCohortLabel = "Entertainment"
 
     init(
         screen: SettingsScreen = .root,
@@ -84,6 +87,7 @@ struct SettingsView: View {
             .animation(.easeInOut(duration: 0.22), value: activeAudioSheet)
             .task {
                 await loadActivePhoneNumber()
+                await loadEffectiveCohort()
             }
         }
         .demoAlert(isPresented: $showDemoAlert)
@@ -221,7 +225,7 @@ struct SettingsView: View {
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.white)
 
-                accountDetailRow(title: "Preferred Cohort", value: currentProfile?.cohort.title ?? "Entertainment")
+                accountDetailRow(title: "Preferred Cohort", value: effectiveCohortLabel)
                 accountDetailRow(title: "Languages", value: formattedLanguages)
                 accountDetailRow(title: "Mode", value: currentProfile?.isKidsProfile == true ? "Kids Profile" : "Standard")
             }
@@ -810,6 +814,17 @@ struct SettingsView: View {
             activePhoneNumber = "+91 \(digits)"
         } else {
             activePhoneNumber = phone
+        }
+    }
+
+    private func loadEffectiveCohort() async {
+        // Kids cohort is forced and not click-driven; show it directly. Otherwise show
+        // the effective storefront policy, which reflects dynamic click-based switching.
+        let cohort = await DemoSessionStore.shared.currentCohort()
+        if cohort == .kids {
+            effectiveCohortLabel = QuickplayCohort.kids.title
+        } else {
+            effectiveCohortLabel = await DemoSessionStore.shared.currentStorefrontPolicy().displayName
         }
     }
 

@@ -41,8 +41,21 @@ final class ShortsFeedViewModel: ObservableObject {
         bufferManager.preload(urls: startupURLs, mode: .nearby)
     }
 
-    func prefetchForActiveProfile() async {
-        await reload()
+    func prefetchForActiveProfile(force: Bool = false) async {
+        if force {
+            await reload()
+            return
+        }
+
+        guard !hasLoadedInitialBatch else {
+            if visiblePosts.isEmpty, isLoadingInitial || isLoadingBatch {
+                await waitForInFlightLoad()
+            }
+            preloadWindow(around: visiblePosts.firstIndex(where: { $0.id == currentPostID }) ?? 0)
+            return
+        }
+
+        await loadInitialBatchIfNeeded()
     }
 
     func open(startingWith item: StorefrontItem?) async {
@@ -70,8 +83,12 @@ final class ShortsFeedViewModel: ObservableObject {
     /// Seeds the feed from a specific set of items (a rail / collection / view-all),
     /// starting at the tapped one, and loops through them without hitting the global
     /// shorts API. Used by the dedicated shorts player pushed from the storefront.
-    func present(items: [StorefrontItem], startingAt startItem: StorefrontItem) {
-        var posts = items.compactMap(ShortsPost.init(item:))
+    func present(
+        items: [StorefrontItem],
+        startingAt startItem: StorefrontItem,
+        continuationItems: [StorefrontItem] = []
+    ) {
+        var posts = Self.uniqueShortPosts(from: items + continuationItems)
         if posts.isEmpty, let single = ShortsPost(item: startItem) {
             posts = [single]
         }
@@ -95,8 +112,34 @@ final class ShortsFeedViewModel: ObservableObject {
         favoritePostIDs = []
         currentPostID = posts.first?.id
 
-        bufferManager.preload(urls: Array(posts.prefix(3)).map(\.videoURL), mode: .nearby)
+        bufferManager.preload(urls: Array(posts.prefix(5)).map(\.videoURL), mode: .nearby)
         Task { await refreshSessionState() }
+    }
+
+    func appendContinuationItems(_ items: [StorefrontItem]) {
+        let posts = Self.uniqueShortPosts(from: items)
+        guard !posts.isEmpty else { return }
+
+        var existingIDs = Set(catalogPosts.map(\.id))
+        let uniquePosts = posts.filter { existingIDs.insert($0.id).inserted }
+        guard !uniquePosts.isEmpty else { return }
+
+        catalogPosts.append(contentsOf: uniquePosts)
+        visiblePosts.append(contentsOf: uniquePosts)
+        catalogVideoURLs = catalogPosts.map(\.videoURL)
+        totalCount = catalogPosts.count
+
+        preloadWindow(around: visiblePosts.firstIndex(where: { $0.id == currentPostID }) ?? 0)
+    }
+
+    func prefetchedContinuationItems(excluding excludedIDs: Set<String> = []) -> [StorefrontItem] {
+        let posts = catalogPosts.isEmpty ? visiblePosts : catalogPosts
+        var seen = excludedIDs
+        return posts.compactMap { post in
+            guard let item = post.sourceItem else { return nil }
+            guard seen.insert(item.id).inserted else { return nil }
+            return item
+        }
     }
 
     func reload() async {
@@ -228,6 +271,13 @@ final class ShortsFeedViewModel: ObservableObject {
         catalogPosts.append(contentsOf: uniquePosts)
     }
 
+    private static func uniqueShortPosts(from items: [StorefrontItem]) -> [ShortsPost] {
+        var seen = Set<String>()
+        return items
+            .compactMap(ShortsPost.init(item:))
+            .filter { seen.insert($0.id).inserted }
+    }
+
     private func nextCircularPosts(count: Int) -> [ShortsPost] {
         guard !catalogPosts.isEmpty else { return [] }
 
@@ -266,5 +316,12 @@ final class ShortsFeedViewModel: ObservableObject {
             }
         }
         likedPostIDs = likedIDs
+    }
+
+    private func waitForInFlightLoad() async {
+        for _ in 0..<20 {
+            guard isLoadingInitial || isLoadingBatch else { return }
+            try? await Task.sleep(for: .milliseconds(100))
+        }
     }
 }

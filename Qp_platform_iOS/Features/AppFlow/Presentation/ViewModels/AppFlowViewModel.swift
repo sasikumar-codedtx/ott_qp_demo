@@ -211,7 +211,7 @@ final class AppFlowViewModel: ObservableObject {
             mainTab = .storefront
             rootScreen = .main
             await refreshSubscription()
-            Task { await shortsViewModel.prefetchForActiveProfile() }
+            Task { await shortsViewModel.prefetchForActiveProfile(force: true) }
             await storefrontViewModel.reloadInitial(force: true)
         }
     }
@@ -317,9 +317,9 @@ final class AppFlowViewModel: ObservableObject {
 
     func openShorts(startingWith item: StorefrontItem? = nil) {
         navigationPath.removeAll()
-        mainTab = .shorts
         Task {
             await shortsViewModel.open(startingWith: item)
+            mainTab = .shorts
         }
     }
 
@@ -328,8 +328,20 @@ final class AppFlowViewModel: ObservableObject {
     /// switching to the global Shorts tab.
     func openShortsCollection(startingWith item: StorefrontItem) {
         let items = shortsCollectionItems(startingWith: item)
-        shortsCollectionViewModel.present(items: items, startingAt: item)
+        let existingIDs = Set(items.map(\.id))
+        let prefetchedItems = shortsViewModel.prefetchedContinuationItems(excluding: existingIDs)
+        shortsCollectionViewModel.present(
+            items: items,
+            startingAt: item,
+            continuationItems: prefetchedItems
+        )
         push(.shortsCollection)
+
+        Task {
+            await shortsViewModel.prefetchForActiveProfile()
+            let latestPrefetchedItems = shortsViewModel.prefetchedContinuationItems(excluding: existingIDs)
+            shortsCollectionViewModel.appendContinuationItems(latestPrefetchedItems)
+        }
     }
 
     private func shortsCollectionItems(startingWith item: StorefrontItem) -> [StorefrontItem] {
@@ -448,7 +460,7 @@ final class AppFlowViewModel: ObservableObject {
                 isKidsProfile: profile.isKidsProfile
             )
             storefrontViewModel.applyProfile(profile, forceReset: true)
-            Task { await shortsViewModel.prefetchForActiveProfile() }
+            Task { await shortsViewModel.prefetchForActiveProfile(force: true) }
             await storefrontViewModel.reloadInitial(force: true)
             profileHubViewModel.present(profile: profile, seedItems: storefrontViewModel.searchSeedItems)
         }
@@ -472,7 +484,7 @@ final class AppFlowViewModel: ObservableObject {
             mainTab = .storefront
             rootScreen = .main
             await refreshSubscription()
-            Task { await shortsViewModel.prefetchForActiveProfile() }
+            Task { await shortsViewModel.prefetchForActiveProfile(force: true) }
             await storefrontViewModel.reloadInitial(force: true)
             profileHubViewModel.present(profile: profile, seedItems: storefrontViewModel.searchSeedItems)
         }
