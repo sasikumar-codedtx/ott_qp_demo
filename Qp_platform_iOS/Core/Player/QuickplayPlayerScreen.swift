@@ -42,6 +42,10 @@ struct QuickplayPlayerScreen: View {
     @State private var nextEpisodeTask: Task<Void, Never>? = nil
     @State private var activeMarker: PlayerMarker? = nil
     @State private var isScreenLocked = false
+    // Tracks whether the device has been physically landscape since the player opened,
+    // so rotating back to portrait can dismiss — without dismissing a player that was
+    // opened from portrait via the fullscreen button before any real rotation.
+    @State private var hasSeenLandscape = false
     @State private var showLockStatus = false
     @State private var showUnlockConfirm = false
     @State private var lockStatusTask: Task<Void, Never>? = nil
@@ -282,12 +286,17 @@ struct QuickplayPlayerScreen: View {
         .onAppear {
             lockLandscape()
             engine.isFullscreenSurfaceActive = true
+            // Entered via a landscape rotation → already armed to dismiss on portrait.
+            hasSeenLandscape = UIDevice.current.orientation.isLandscape
         }
         .onDisappear {
             lockPortrait()
             engine.isFullscreenSurfaceActive = false
             hideTask?.cancel()
             nextEpisodeTask?.cancel()
+        }
+        .onDeviceOrientationChange { orientation in
+            handlePlayerRotation(orientation)
         }
         .onChange(of: engine.isReady) { _, ready in
             guard ready else { return }
@@ -518,6 +527,17 @@ struct QuickplayPlayerScreen: View {
     }
 
     // MARK: Orientation
+
+    /// Rotating the phone back to portrait exits the full-screen player (mirrors the
+    /// detail page promoting to full screen on landscape). Only fires once the device
+    /// has actually been landscape, so a portrait-opened player isn't dismissed instantly.
+    private func handlePlayerRotation(_ orientation: UIDeviceOrientation) {
+        if orientation.isLandscape {
+            hasSeenLandscape = true
+        } else if orientation.isPortrait, hasSeenLandscape {
+            dismissPlayer()
+        }
+    }
 
     private func lockLandscape() {
         AppDelegate.orientationLock = .landscape

@@ -73,6 +73,8 @@ struct ContentDetailView: View {
     var isFullPlayerActive: Bool = false   // when the full-screen player is up, suspend play-along
     @State private var isDescriptionExpanded = false
     @State private var isVideoReady = false
+    // Latches when a landscape rotation auto-opens the full player; resets on portrait.
+    @State private var didAutoEnterFullscreen = false
     @State private var showDemoAlert = false
     @State private var isMomentSearchOverlayPresented = false
     @State private var isMockInteractionPresented = false
@@ -284,7 +286,26 @@ struct ContentDetailView: View {
         .onChange(of: isFullPlayerActive) { _, active in
             if active { playAlong.suspend() }
         }
+        .onDeviceOrientationChange { orientation in
+            handleDeviceRotation(orientation)
+        }
         .demoAlert(isPresented: $showDemoAlert)
+    }
+
+    /// Rotating the phone to landscape on the detail page opens the full-screen
+    /// player. `didAutoEnterFullscreen` latches until the device returns to portrait
+    /// so a noisy stream of landscape notifications can't re-trigger playback.
+    private func handleDeviceRotation(_ orientation: UIDeviceOrientation) {
+        if orientation.isLandscape {
+            guard !isFullPlayerActive, !didAutoEnterFullscreen else { return }
+            guard let detail = viewModel.detail else { return }
+            // Subscription-gated premium content has no inline player to promote.
+            guard !(detail.isPremium && !isSubscribed) else { return }
+            didAutoEnterFullscreen = true
+            openFullPlayer(detail: detail)
+        } else if orientation.isPortrait {
+            didAutoEnterFullscreen = false
+        }
     }
 
     @ViewBuilder
@@ -534,18 +555,7 @@ struct ContentDetailView: View {
 
     private func detailContent(_ detail: ContentDetail, kind: DetailPresentationKind, width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(detail.title)
-                .font(.system(size: 28, weight: .bold))
-                .lineLimit(2)
-                .minimumScaleFactor(0.72)
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [Color(hex: "FFF75A"), Color(hex: "F5A623")],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .frame(maxWidth: .infinity, alignment: .leading)
+            detailTitle(detail)
             metaLine(detail)
             detailBadgeRow(detail)
             watchButton(detail, kind: kind)
@@ -553,6 +563,21 @@ struct ContentDetailView: View {
             actionButtonRow(detail, kind: kind)
             sponsorRow(detail)
         }
+    }
+
+    private func detailTitle(_ detail: ContentDetail) -> some View {
+        Text(detail.title)
+            .font(.system(size: 28, weight: .bold))
+            .lineLimit(2)
+            .minimumScaleFactor(0.72)
+            .foregroundStyle(
+                LinearGradient(
+                    colors: [Color(hex: "FFF75A"), Color(hex: "F5A623")],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func titleArt(_ detail: ContentDetail) -> some View {
@@ -670,19 +695,14 @@ struct ContentDetailView: View {
 
     // Title + action buttons only — the tab bar is rendered below as normal scroll content.
     private func sportsAboveTabContent(_ detail: ContentDetail, width: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(detail.title)
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(.white)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.8)
+        VStack(alignment: .leading, spacing: 12) {
+            detailTitle(detail)
 
-                Text(detail.description.nilIfEmpty ?? "Live sports action • Real-time updates • Interactive moments")
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(.white.opacity(0.68))
-                    .lineLimit(2)
-            }
+            Text(detail.description.nilIfEmpty ?? "Live sports action • Real-time updates • Interactive moments")
+                .font(.system(size: 13, weight: .regular))
+                .foregroundStyle(.white.opacity(0.68))
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             // action buttons: alert | time stamp | (AI sparkles — Moments search, allow-listed ids only)
             HStack(spacing: 8) {
@@ -2674,39 +2694,43 @@ struct ContentDetailView: View {
     }
 
     private func castSection(_ detail: ContentDetail) -> some View {
-        VStack(alignment: .leading, spacing: UIConstants.Spacing.lg) {
+        VStack(alignment: .leading, spacing: 22) {
             if !detail.directorNames.isEmpty {
-                VStack(alignment: .leading, spacing: UIConstants.Spacing.sm) {
-                    Text("Director")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(Color.white.opacity(0.56))
-
-                    Text(detail.directorNames.joined(separator: ", "))
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(.white)
-                }
+                creditTextRow(title: "Director", names: detail.directorNames)
             }
 
             if detail.cast.isEmpty {
                 EmptyStateView(title: AppStrings.Detail.castAndMore, message: "Cast information will appear here once we connect the full credits flow.", systemImage: "person.2")
             } else {
-                LazyVGrid(columns: recommendationColumns, spacing: UIConstants.Spacing.md) {
-                    ForEach(detail.cast) { person in
-                        VStack(spacing: UIConstants.Spacing.sm) {
-                            CastAvatarTile(person: person, size: UIConstants.Size.posterWidth)
-                            Text(person.name)
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.white)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .frame(width: UIConstants.Size.posterWidth)
-                        }
-                    }
-                }
+                creditTextRow(title: "Cast", names: detail.cast.map(\.name))
             }
         }
         .padding(.top, 8)
+    }
+
+    private func creditTextRow(title: String, names: [String]) -> some View {
+        HStack(alignment: .top, spacing: 18) {
+            Text(title)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(Color.white.opacity(0.56))
+                .textCase(.uppercase)
+                .tracking(0.8)
+                .frame(width: 78, alignment: .leading)
+                .padding(.top, 2)
+
+            VStack(alignment: .leading, spacing: 9) {
+                ForEach(names.filter { !$0.isEmpty }, id: \.self) { name in
+                    Text(name)
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
