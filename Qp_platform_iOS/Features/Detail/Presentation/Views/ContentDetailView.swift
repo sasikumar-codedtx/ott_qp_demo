@@ -82,7 +82,7 @@ struct ContentDetailView: View {
     @State private var keyboardHeight: CGFloat = 0
     @FocusState private var isMomentSearchFocused: Bool
     // Sports interactive
-    @State private var selectedSportsTab = "Live Feed"
+    @State private var selectedSportsTab = "Live Chat"
     @State private var liveChatInput = ""
     @State private var liveChatDemoMessages: [SportsLiveChatMessage] = []
     @State private var sportsPollAnswer: String? = nil
@@ -116,7 +116,7 @@ struct ContentDetailView: View {
     private var isShowingLiveFeedDock: Bool {
         guard let detail = viewModel.detail else { return false }
         let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
-        return kind == .sportsInteractive && selectedSportsTab == "Live Feed"
+        return kind == .sportsInteractive && selectedSportsTab == "Live Chat"
     }
 
     var body: some View {
@@ -130,7 +130,7 @@ struct ContentDetailView: View {
                 }
 
 
-                // Live Feed input dock — floats above keyboard
+                // Live Chat input dock — floats above keyboard
                 if isShowingLiveFeedDock {
                     sportsLiveInputDock
                         // Use the window's (keyboard-stable) bottom inset, not proxy's — the
@@ -370,10 +370,10 @@ struct ContentDetailView: View {
                         ScrollViewReader { liveProxy in
                             ScrollView(.vertical, showsIndicators: false) {
                                 scrollableBody(detail, kind: kind, width: width)
-                                    .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
+                                    .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Chat" ? 110 : 80)
                             }
                             .padding(.top, -overlapHeight)
-                            // After sending a Live Feed comment, scroll it into view.
+                            // After sending a Live Chat comment, scroll it into view.
                             .onChange(of: liveChatScrollToken) { _, _ in
                                 withAnimation(.easeInOut(duration: 0.3)) {
                                     liveProxy.scrollTo(Self.liveChatBottomID, anchor: .bottom)
@@ -547,6 +547,7 @@ struct ContentDetailView: View {
                 )
                 .frame(maxWidth: .infinity, alignment: .leading)
             metaLine(detail)
+            detailBadgeRow(detail)
             watchButton(detail, kind: kind)
             descriptionBlock(detail)
             actionButtonRow(detail, kind: kind)
@@ -591,6 +592,39 @@ struct ContentDetailView: View {
             .lineLimit(1)
             .minimumScaleFactor(0.72)
             .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private func detailBadgeRow(_ detail: ContentDetail) -> some View {
+        let quality  = (detail.quality ?? viewModel.seed?.quality)?.uppercased().nilIfEmpty
+        let rating   = (detail.rating ?? viewModel.seed?.rating)?.uppercased().nilIfEmpty
+        let type     = detail.contentType.lowercased()
+        let episodeLabel: String? = {
+            if ["webepisode", "tvepisode"].contains(type)          { return "EPISODE" }
+            if ["webseries", "tvseries", "series"].contains(type)  { return "SERIES" }
+            if ["tvseason", "webseason", "season"].contains(type)  { return "SEASON" }
+            return nil
+        }()
+        let badges   = [episodeLabel, quality, rating].compactMap { $0 }
+        if !badges.isEmpty {
+            HStack(spacing: 6) {
+                ForEach(badges, id: \.self) { badge in
+                    Text(badge)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.82))
+                        .padding(.horizontal, 8)
+                        .frame(height: 22)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .fill(Color.white.opacity(0.10))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                        .stroke(Color.white.opacity(0.20), lineWidth: 0.5)
+                                )
+                        )
+                }
+            }
+        }
     }
 
     private func openFullPlayer(detail: ContentDetail) {
@@ -650,7 +684,7 @@ struct ContentDetailView: View {
                     .lineLimit(2)
             }
 
-            // action buttons: alert | time stamp | (AI sparkles — Key Moments search, allow-listed ids only)
+            // action buttons: alert | time stamp | (AI sparkles — Moments search, allow-listed ids only)
             HStack(spacing: 8) {
                 DetailActionButton(systemImage: "bell.fill", cornerStyle: .leading, action: { showDemoAlert = true })
                 // When the moment-search button is hidden, this becomes the trailing (rounded) button.
@@ -665,7 +699,7 @@ struct ContentDetailView: View {
         }
     }
 
-    // Key Moments (tab + AI moment search) is enabled only for these specific content ids.
+    // Moments (tab + AI moment search) is enabled only for these specific content ids.
     private static let keyMomentsContentIDs: Set<String> = [
         "093416B9-BA22-44BB-83CA-49202C1957AA",
         "4FAB1007-CB46-474B-8DAD-45A004C50D21",
@@ -680,16 +714,16 @@ struct ContentDetailView: View {
         }
     }
 
-    // Scorecard appears only for this content id; Key Moments only for the allow-listed ids above.
+    // Scorecard appears only for this content id; Moments only for the allow-listed ids above.
     private let scorecardContentID = "B4A585B8-5F53-4C42-938D-F67A9C8FE71C"
 
     private func sportsTabs(for detail: ContentDetail) -> [String] {
-        var tabs = ["Live Feed"]
+        var tabs = ["Live Chat"]
         if detail.id == scorecardContentID {
             tabs.append("Scorecard")
         }
         if isKeyMomentsEnabled {
-            tabs.append("Key Moments")
+            tabs.append(AppStrings.Detail.moments)
         }
         tabs.append("You May also Like")
         return tabs
@@ -729,18 +763,18 @@ struct ContentDetailView: View {
     @ViewBuilder
     private func sportsTabContent(_ detail: ContentDetail, width: CGFloat) -> some View {
         switch selectedSportsTab {
-        case "Live Feed":
+        case "Live Chat":
             sportsLiveFeedTab
         case "Scorecard":
             sportsScorecardTab
-        case "Key Moments":
+        case AppStrings.Detail.moments:
             momentsSection(detail)
         default:
             recommendationSection(width: width)
         }
     }
 
-    // MARK: Live Feed tab
+    // MARK: Live Chat tab
 
     private var sportsLiveFeedTab: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -785,7 +819,7 @@ struct ContentDetailView: View {
         }
     }
 
-    // Live Feed input dock — floats above keyboard in the outer ZStack
+    // Live Chat input dock — floats above keyboard in the outer ZStack
     private var sportsLiveInputDock: some View {
         VStack(spacing: 0) {
             Rectangle()
@@ -959,7 +993,7 @@ struct ContentDetailView: View {
         .buttonStyle(LiquidButtonPressStyle())
     }
 
-    // MARK: Key Moments tab
+    // MARK: Moments tab
 
     private struct KeyMoment: Identifiable {
         let id: String
@@ -1714,13 +1748,13 @@ struct ContentDetailView: View {
     private func actionButtonRow(_ detail: ContentDetail, kind: DetailPresentationKind) -> some View {
         HStack(spacing: 8) {
             DetailActionButton(assetImage: "download", cornerStyle:.leading, action: { showDemoAlert = true })
-            // Favourite toggle — bookmark-plus asset when not saved, SF bookmark.fill when saved
+            // Favourite toggle — plus when not saved, checkmark when saved (matches hero)
             if viewModel.isFavorite {
-                DetailActionButton(systemImage: "bookmark.fill", isHighlighted: true) {
+                DetailActionButton(systemImage: "checkmark", isHighlighted: true) {
                     Task { await viewModel.toggleFavorite() }
                 }
             } else {
-                DetailActionButton(assetImage: "bookmark-plus") {
+                DetailActionButton(systemImage: AppIcons.Action.plus) {
                     Task { await viewModel.toggleFavorite() }
                 }
             }
@@ -1886,8 +1920,6 @@ struct ContentDetailView: View {
     private func recommendationSection(width: CGFloat) -> some View {
         let cardWidth = max(96, (width - 40) / 3)
         let cardHeight = cardWidth * 1.5
-        let visibleItems = Array(viewModel.recommendations.prefix(6))
-        let featuredItem = Array(viewModel.recommendations.dropFirst(6)).first ?? viewModel.recommendations.first
 
         return VStack(spacing: 4) {
             if viewModel.recommendations.isEmpty {
@@ -1895,22 +1927,13 @@ struct ContentDetailView: View {
                     .padding(.top, 18)
             } else {
                 LazyVGrid(columns: recommendationColumns, spacing: 4) {
-                    ForEach(visibleItems) { item in
+                    ForEach(viewModel.recommendations) { item in
                         DetailRecommendationCard(
                             item: item,
                             size: CGSize(width: cardWidth, height: cardHeight),
                             onSelect: onSelectRecommendation
                         )
                     }
-                }
-
-                if let featuredItem {
-                    Button {
-                        onSelectRecommendation(featuredItem)
-                    } label: {
-                        DetailFeaturedRecommendationCard(item: featuredItem, width: width - 32)
-                    }
-                    .buttonStyle(LiquidButtonPressStyle())
                 }
             }
         }
@@ -2317,7 +2340,7 @@ struct ContentDetailView: View {
             let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
             if kind == .sportsInteractive {
                 withAnimation(.easeInOut(duration: 0.2)) {
-                    selectedSportsTab = "Key Moments"
+                    selectedSportsTab = AppStrings.Detail.moments
                 }
             }
         }
@@ -2772,57 +2795,6 @@ private struct DetailRecommendationCard: View {
     }
 }
 
-private struct DetailFeaturedRecommendationCard: View {
-    let item: StorefrontItem
-    let width: CGFloat
-
-    var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            PosterImageView(
-                url: item.imageURL(for: "0-2x3", width: Int(width * 3)),
-                size: CGSize(width: width, height: width * 1.78),
-                cornerRadius: 0
-            )
-
-            LinearGradient(
-                colors: [Color.clear, Color.black.opacity(0.2), Color.black.opacity(0.92)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-
-            VStack(alignment: .leading, spacing: 9) {
-                Text(item.title.uppercased())
-                    .font(.system(size: 28, weight: .black))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-
-                Text(item.description.nilIfEmpty ?? item.primaryMetaText.nilIfEmpty ?? "A gripping story with powerful performances and unexpected twists.")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.82))
-                    .lineLimit(2)
-
-                HStack(spacing: 8) {
-                    Text(item.watchLabel == "Watch Now" ? "Watch Full Movie" : item.watchLabel)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.black)
-                        .padding(.horizontal, 12)
-                        .frame(height: 34)
-                        .background(LiquidGlassBackground(cornerRadius: 999, tone: .light, isHighlighted: true))
-
-                    Image(systemName: "info.circle")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 34, height: 34)
-                        .background(LiquidGlassCircleBackground(tone: .dark))
-                }
-            }
-            .padding(.horizontal, 15)
-            .padding(.bottom, 18)
-        }
-        .frame(width: width, height: width * 1.78)
-        .clipped()
-    }
-}
 
 private struct MomentResultCard: View {
     let item: StorefrontItem

@@ -80,34 +80,23 @@ struct CohortQuestionnaireView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-                // Skip button — top right
-                VStack {
-                    HStack {
-                        Spacer()
-                        Button(action: skipToDefault) {
-                            Text("Skip")
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundStyle(.white.opacity(0.72))
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
-                                .background(
-                                    Capsule()
-                                        .fill(Color.white.opacity(0.12))
-                                        .overlay(Capsule().stroke(Color.white.opacity(0.18), lineWidth: 1))
-                                )
-                        }
-                        .buttonStyle(LiquidButtonPressStyle())
-                        .padding(.top, proxy.safeAreaInsets.top + 14)
-                        .padding(.trailing, 22)
-                        .disabled(isFinishing)
-                    }
-                    Spacer()
-                }
-
                 if isFinishing, let selectedResult {
                     CohortCompletionOverlay(result: selectedResult)
                         .transition(.opacity.combined(with: .scale(scale: 0.98)))
                         .zIndex(30)
+                }
+
+                // Skip button — bottom centre, rendered last so it's always on top
+                if !isFinishing {
+                    Button(action: skipToDefault) {
+                        Text("Skip")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, 50)
+                    .zIndex(40)
                 }
             }
             .frame(width: proxy.size.width, height: proxy.size.height)

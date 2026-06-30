@@ -173,6 +173,9 @@ struct StorefrontView: View {
                     }
                     .padding(.bottom, showsBottomChrome ? (shouldShowStorefrontTabDock ? 188 : 116) : 32)
                 }
+                .mask(alignment: .top) {
+                    storefrontScrollClipMask(topInset: topInset)
+                }
                 .onChange(of: viewModel.scrollToTopToken) { _, _ in
                     scrollToTop(using: scrollProxy)
                 }
@@ -181,6 +184,16 @@ struct StorefrontView: View {
                     scrollToTop(using: scrollProxy)
                 }
             }
+        }
+    }
+
+    private func storefrontScrollClipMask(topInset: CGFloat) -> some View {
+        let topClipHeight = StorefrontHeroMetrics.topChromeHeight(topInset: topInset) + additionalTopChromeHeight
+        return VStack(spacing: 0) {
+            Color.clear
+                .frame(height: max(topClipHeight, 0))
+            Rectangle()
+                .fill(Color.black)
         }
     }
 

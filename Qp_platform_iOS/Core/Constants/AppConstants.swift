@@ -7,7 +7,7 @@ enum AppStrings {
     }
 
     enum Auth {
-        static let signInTitle = "Sign in to watch"
+        static let signInTitle = "Sign up to create an account"
         static let phonePlaceholder = "Enter Mobile Number"
         static let phoneHint = "Enter your 10-digit mobile number"
         static let continueLabel = "Continue"
