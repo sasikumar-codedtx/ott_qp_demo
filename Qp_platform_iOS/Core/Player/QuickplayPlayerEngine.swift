@@ -89,7 +89,9 @@ final class QuickplayPlayerEngine: ObservableObject {
     }
 
     func load(content: QuickplayPlaybackContent) async {
-        loadedContentId = content.contentId
+        loadedContentId = nil
+        error = nil
+        isFinished = false
         do {
             let runtimeConfig = await QuickplayConfigurationStore.shared.current()
             let config = injectedConfig ?? QuickplayPlayerConfig(config: runtimeConfig)
@@ -97,6 +99,7 @@ final class QuickplayPlayerEngine: ObservableObject {
             let asset = try await QuickplayAuthRegistry.shared.authorizeContent(content: content)
 
             await buildPlayer(asset: asset, content: content, config: config)
+            if error == nil { loadedContentId = content.contentId }
         } catch let quickplayError as QuickplayPlayerError {
             error = quickplayError
             isBuffering = false
@@ -269,12 +272,26 @@ final class QuickplayPlayerEngine: ObservableObject {
             streamConcurrencyEndPointUrl: config.streamConcurrencyEndpoint,
             syncInterval: config.heartBeatSyncIntervalMs
         )
+        let heartbeatService = FLHeartbeatFactory.heartbeatService(
+            contentId: content.contentId,
+            deviceId: device.id,
+            endPoint: config.heartbeatEndpoint,
+            authorizer: authorizer
+        )
+        let monitoredHeartbeatService = QuickplayMonitoredHeartbeatService(service: heartbeatService) { [weak self] message in
+            Task { @MainActor [weak self] in
+                self?.isBuffering = false
+                self?.error = .playbackFailed(message)
+            }
+        }
+
         let manager = FLHeartbeatFactory.heartbeatManager(
             configuration: heartbeatConfig,
             deviceId: device.id,
             contentId: content.contentId,
             heartbeatToken: heartbeatToken,
-            authorizer: authorizer
+            authorizer: authorizer,
+            heartbeatService: monitoredHeartbeatService
         )
 
         let wrapper = QuickplayHeartbeatWrapper(manager: manager)
@@ -497,6 +514,7 @@ final class QuickplayPlayerEngine: ObservableObject {
         isFinished = false
         isPlaying = false
         isBuffering = true
+        error = nil
         loadedContentId = nil
         // isFullscreenSurfaceActive is intentionally NOT reset here.
         // QuickplayPlayerScreen.onDisappear is the sole owner of this flag.
@@ -515,6 +533,48 @@ private final class QuickplayHeartbeatWrapper: QuickplayHeartbeatManagerBox {
     let manager: any FLHeartbeat.HeartbeatManager
     init(manager: any FLHeartbeat.HeartbeatManager) {
         self.manager = manager
+    }
+}
+
+private final class QuickplayMonitoredHeartbeatService: FLHeartbeat.HeartbeatService {
+    let contentId: String
+    let deviceId: String
+
+    private let service: any FLHeartbeat.HeartbeatService
+    private let onFailure: (String) -> Void
+
+    init(service: any FLHeartbeat.HeartbeatService, onFailure: @escaping (String) -> Void) {
+        self.service = service
+        self.contentId = service.contentId
+        self.deviceId = service.deviceId
+        self.onFailure = onFailure
+    }
+
+    func heartbeat(
+        token: String,
+        offset: TimeInterval?,
+        primaryId: String?,
+        catalogType: String?,
+        headers: FLFoundation.Headers?,
+        completion: @escaping (Result<(any FLHeartbeat.HeartbeatResponse)?, any Error>) -> Void
+    ) {
+        service.heartbeat(
+            token: token,
+            offset: offset,
+            primaryId: primaryId,
+            catalogType: catalogType,
+            headers: headers
+        ) { [onFailure] result in
+            switch result {
+            case .success(let response):
+                if let action = response?.heartbeatAction, action != .continueHeartbeat {
+                    onFailure("Heartbeat action: \(action.rawValue)")
+                }
+            case .failure(let error):
+                onFailure("Heartbeat failed: \(error.localizedDescription)")
+            }
+            completion(result)
+        }
     }
 }
 
