@@ -1,0 +1,164 @@
+{
+  "matchId": "engw-vs-indw-1st-t20i-2026",
+  "team1": {
+    "code": "IND W",
+    "flag": "🇮🇳",
+    "score": "188-7",
+    "overs": "20.0",
+    "isBatting": false
+  },
+  "team2": {
+    "code": "ENG W",
+    "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+    "score": "130-6",
+    "overs": "17.2",
+    "isBatting": true
+  },
+  "liveOver": 17.2,
+  "currentBowler": {
+    "name": "D Deepti",
+    "figures": "3.2 - 18 - 2",
+    "ballHistory": [
+      { "label": "1", "type": "runs" },
+      { "label": "W", "type": "wicket" },
+      { "label": "0", "type": "dot" },
+      { "label": "4", "type": "boundary" },
+      { "label": "1", "type": "runs" }
+    ]
+  },
+  "atCreaseBatters": [
+    { "name": "N Sciver-Brunt", "runs": 34, "balls": 28 },
+    { "name": "A Davidson-Richards", "runs": 12, "balls": 9 }
+  ],
+  "innings": [
+    {
+      "team": "IND W",
+      "batters": [
+        { "id": "1", "name": "S Mandhana (c)", "dismissal": "c C Dean b L Bell",              "r": 0,  "b": 1,  "fours": 0,  "sixes": 0, "sr": 0.00,   "isAtCrease": false },
+        { "id": "2", "name": "S Verma",        "dismissal": "c A Capsey b L Bell",             "r": 2,  "b": 3,  "fours": 0,  "sixes": 0, "sr": 66.67,  "isAtCrease": false },
+        { "id": "3", "name": "Y Bhatia",       "dismissal": "run out (T Corteen-Coleman/C Dean)","r": 54, "b": 40, "fours": 9,  "sixes": 1, "sr": 135.00, "isAtCrease": false },
+        { "id": "4", "name": "J Rodrigues",    "dismissal": "c and b C Dean",                  "r": 69, "b": 40, "fours": 10, "sixes": 1, "sr": 172.50, "isAtCrease": false },
+        { "id": "5", "name": "R Ghosh (wk)",   "dismissal": "c I Wong b T Corteen-Coleman",    "r": 4,  "b": 6,  "fours": 0,  "sixes": 0, "sr": 66.67,  "isAtCrease": false },
+        { "id": "6", "name": "B Fulmali",      "dismissal": "b I Wong",                        "r": 6,  "b": 8,  "fours": 1,  "sixes": 0, "sr": 75.00,  "isAtCrease": false },
+        { "id": "7", "name": "D Sharma",       "dismissal": "c C Dean b L Bell",               "r": 22, "b": 13, "fours": 4,  "sixes": 0, "sr": 169.23, "isAtCrease": false },
+        { "id": "8", "name": "A Reddy",        "dismissal": "Not Out",                         "r": 9,  "b": 8,  "fours": 0,  "sixes": 0, "sr": 112.50, "isAtCrease": true  },
+        { "id": "9", "name": "K Gaud",         "dismissal": "Not Out",                         "r": 1,  "b": 1,  "fours": 0,  "sixes": 0, "sr": 100.00, "isAtCrease": true  }
+      ],
+      "bowlers": [
+        { "id": "1", "name": "L Bell",            "o": "4.0", "m": 0, "r": 34, "w": 3, "er": 8.50 },
+        { "id": "2", "name": "I Wong",            "o": "4.0", "m": 0, "r": 38, "w": 2, "er": 9.50 },
+        { "id": "3", "name": "C Dean",            "o": "4.0", "m": 0, "r": 32, "w": 1, "er": 8.00 },
+        { "id": "4", "name": "T Corteen-Coleman", "o": "4.0", "m": 0, "r": 40, "w": 1, "er": 10.00},
+        { "id": "5", "name": "S Ecclestone",      "o": "2.0", "m": 0, "r": 22, "w": 0, "er": 11.00},
+        { "id": "6", "name": "N Sciver-Brunt",    "o": "2.0", "m": 0, "r": 22, "w": 0, "er": 11.00}
+      ],
+      "extras": {
+        "total": 21,
+        "chips": ["b 0", "lb 2", "w 19", "nb 0"]
+      },
+      "fallOfWickets": [
+        { "id": "1", "player": "S Mandhana (c)", "score": "0-1",   "over": "0.1"  },
+        { "id": "2", "player": "S Verma",        "score": "3-2",   "over": "0.6"  },
+        { "id": "3", "player": "Y Bhatia",       "score": "115-3", "over": "11.4" },
+        { "id": "4", "player": "J Rodrigues",    "score": "148-4", "over": "14.5" },
+        { "id": "5", "player": "R Ghosh (wk)",   "score": "155-5", "over": "16.2" },
+        { "id": "6", "player": "B Fulmali",      "score": "165-6", "over": "17.6" },
+        { "id": "7", "player": "D Sharma",       "score": "186-7", "over": "19.5" }
+      ],
+      "partnerships": [
+        { "id": "1", "p1Name": "S Mandhana", "p1Runs": 0,  "p1Balls": 1,  "p2Name": "S Verma",    "p2Runs": 2,  "p2Balls": 3  },
+        { "id": "2", "p1Name": "Y Bhatia",   "p1Runs": 54, "p1Balls": 40, "p2Name": "J Rodrigues", "p2Runs": 58, "p2Balls": 37 },
+        { "id": "3", "p1Name": "J Rodrigues","p1Runs": 11, "p1Balls": 3,  "p2Name": "R Ghosh",     "p2Runs": 4,  "p2Balls": 6  },
+        { "id": "4", "p1Name": "B Fulmali",  "p1Runs": 6,  "p1Balls": 8,  "p2Name": "D Sharma",    "p2Runs": 10, "p2Balls": 7  }
+      ],
+      "topPerformances": [
+        { "id": "1", "mainStat": "69",   "subStat": "40",  "playerName": "J Rodrigues", "category": "Batting" },
+        { "id": "2", "mainStat": "54",   "subStat": "40",  "playerName": "Y Bhatia",    "category": "Batting" },
+        { "id": "3", "mainStat": "3-34", "subStat": "4.0", "playerName": "L Bell",      "category": "Bowling" },
+        { "id": "4", "mainStat": "2-38", "subStat": "4.0", "playerName": "I Wong",      "category": "Bowling" }
+      ]
+    },
+    {
+      "team": "ENG W",
+      "batters": [
+        { "id": "1", "name": "T Beaumont",           "dismissal": "b D Sharma",               "r": 21, "b": 19, "fours": 3, "sixes": 0, "sr": 110.53, "isAtCrease": false },
+        { "id": "2", "name": "S Dunkley",            "dismissal": "c R Ghosh b A Reddy",      "r": 5,  "b": 8,  "fours": 0, "sixes": 0, "sr": 62.50,  "isAtCrease": false },
+        { "id": "3", "name": "H Knight (c)",         "dismissal": "c Y Bhatia b D Deepti",    "r": 26, "b": 24, "fours": 3, "sixes": 0, "sr": 108.33, "isAtCrease": false },
+        { "id": "4", "name": "N Sciver-Brunt",       "dismissal": "Not Out",                  "r": 34, "b": 28, "fours": 4, "sixes": 0, "sr": 121.43, "isAtCrease": true  },
+        { "id": "5", "name": "A Jones (wk)",         "dismissal": "c S Verma b D Deepti",     "r": 14, "b": 12, "fours": 1, "sixes": 0, "sr": 116.67, "isAtCrease": false },
+        { "id": "6", "name": "A Davidson-Richards",  "dismissal": "Not Out",                  "r": 12, "b": 9,  "fours": 1, "sixes": 1, "sr": 133.33, "isAtCrease": true  },
+        { "id": "7", "name": "A Capsey",             "dismissal": "run out (D Sharma)",       "r": 9,  "b": 8,  "fours": 1, "sixes": 0, "sr": 112.50, "isAtCrease": false }
+      ],
+      "bowlers": [
+        { "id": "1", "name": "D Deepti",   "o": "3.2",  "m": 0, "r": 18, "w": 2, "er": 5.45  },
+        { "id": "2", "name": "A Reddy",    "o": "3.0",  "m": 0, "r": 22, "w": 1, "er": 7.33  },
+        { "id": "3", "name": "D Sharma",   "o": "4.0",  "m": 0, "r": 28, "w": 1, "er": 7.00  },
+        { "id": "4", "name": "K Gaud",     "o": "2.0",  "m": 0, "r": 20, "w": 0, "er": 10.00 },
+        { "id": "5", "name": "R Ghosh",    "o": "2.0",  "m": 0, "r": 18, "w": 0, "er": 9.00  },
+        { "id": "6", "name": "Y Bhatia",   "o": "2.0",  "m": 0, "r": 16, "w": 0, "er": 8.00  },
+        { "id": "7", "name": "J Rodrigues","o": "1.0",  "m": 0, "r": 8,  "w": 0, "er": 8.00  }
+      ],
+      "extras": {
+        "total": 5,
+        "chips": ["w 4", "nb 1"]
+      },
+      "fallOfWickets": [
+        { "id": "1", "player": "S Dunkley",   "score": "20-1",  "over": "3.2"  },
+        { "id": "2", "player": "T Beaumont",  "score": "48-2",  "over": "6.4"  },
+        { "id": "3", "player": "H Knight (c)","score": "82-3",  "over": "10.5" },
+        { "id": "4", "player": "A Jones (wk)","score": "99-4",  "over": "13.1" },
+        { "id": "5", "player": "A Capsey",    "score": "117-5", "over": "15.4" }
+      ],
+      "partnerships": [
+        { "id": "1", "p1Name": "T Beaumont",    "p1Runs": 13, "p1Balls": 11, "p2Name": "S Dunkley",          "p2Runs": 5,  "p2Balls": 8  },
+        { "id": "2", "p1Name": "T Beaumont",    "p1Runs": 8,  "p1Balls": 8,  "p2Name": "H Knight",           "p2Runs": 20, "p2Balls": 18 },
+        { "id": "3", "p1Name": "H Knight",      "p1Runs": 6,  "p1Balls": 6,  "p2Name": "N Sciver-Brunt",     "p2Runs": 28, "p2Balls": 22 },
+        { "id": "4", "p1Name": "N Sciver-Brunt","p1Runs": 6,  "p1Balls": 6,  "p2Name": "A Davidson-Richards", "p2Runs": 12, "p2Balls": 9  }
+      ],
+      "topPerformances": [
+        { "id": "1", "mainStat": "34",   "subStat": "28",  "playerName": "N Sciver-Brunt",      "category": "Batting" },
+        { "id": "2", "mainStat": "26",   "subStat": "24",  "playerName": "H Knight",            "category": "Batting" },
+        { "id": "3", "mainStat": "2-18", "subStat": "3.2", "playerName": "D Deepti",            "category": "Bowling" },
+        { "id": "4", "mainStat": "1-22", "subStat": "3.0", "playerName": "A Reddy",             "category": "Bowling" }
+      ]
+    }
+  ],
+  "overSnapshots": [
+    { "over": 1.0,  "team1Score": "3-2",   "team2Score": "yet to bat" },
+    { "over": 2.0,  "team1Score": "12-2",  "team2Score": "yet to bat" },
+    { "over": 3.0,  "team1Score": "22-2",  "team2Score": "yet to bat" },
+    { "over": 4.0,  "team1Score": "34-2",  "team2Score": "yet to bat" },
+    { "over": 5.0,  "team1Score": "44-2",  "team2Score": "yet to bat" },
+    { "over": 6.0,  "team1Score": "56-2",  "team2Score": "yet to bat" },
+    { "over": 7.0,  "team1Score": "66-2",  "team2Score": "yet to bat" },
+    { "over": 8.0,  "team1Score": "76-2",  "team2Score": "yet to bat" },
+    { "over": 9.0,  "team1Score": "88-2",  "team2Score": "yet to bat" },
+    { "over": 10.0, "team1Score": "100-2", "team2Score": "yet to bat" },
+    { "over": 11.0, "team1Score": "112-2", "team2Score": "yet to bat" },
+    { "over": 12.0, "team1Score": "124-3", "team2Score": "yet to bat" },
+    { "over": 13.0, "team1Score": "136-3", "team2Score": "yet to bat" },
+    { "over": 14.0, "team1Score": "146-3", "team2Score": "yet to bat" },
+    { "over": 15.0, "team1Score": "152-4", "team2Score": "yet to bat" },
+    { "over": 16.0, "team1Score": "160-5", "team2Score": "yet to bat" },
+    { "over": 17.0, "team1Score": "170-6", "team2Score": "yet to bat" },
+    { "over": 18.0, "team1Score": "176-6", "team2Score": "yet to bat" },
+    { "over": 19.0, "team1Score": "184-7", "team2Score": "yet to bat" },
+    { "over": 20.0, "team1Score": "188-7", "team2Score": "yet to bat" },
+    { "over": 21.0, "team1Score": "188-7", "team2Score": "20-1"  },
+    { "over": 22.0, "team1Score": "188-7", "team2Score": "35-1"  },
+    { "over": 23.0, "team1Score": "188-7", "team2Score": "48-2"  },
+    { "over": 24.0, "team1Score": "188-7", "team2Score": "60-2"  },
+    { "over": 25.0, "team1Score": "188-7", "team2Score": "72-2"  },
+    { "over": 26.0, "team1Score": "188-7", "team2Score": "82-2"  },
+    { "over": 27.0, "team1Score": "188-7", "team2Score": "82-3"  },
+    { "over": 28.0, "team1Score": "188-7", "team2Score": "94-3"  },
+    { "over": 29.0, "team1Score": "188-7", "team2Score": "99-4"  },
+    { "over": 30.0, "team1Score": "188-7", "team2Score": "108-4" },
+    { "over": 31.0, "team1Score": "188-7", "team2Score": "117-5" },
+    { "over": 32.0, "team1Score": "188-7", "team2Score": "120-5" },
+    { "over": 33.0, "team1Score": "188-7", "team2Score": "126-5" },
+    { "over": 34.0, "team1Score": "188-7", "team2Score": "128-6" },
+    { "over": 35.0, "team1Score": "188-7", "team2Score": "130-6" },
+    { "over": 37.2, "team1Score": "188-7", "team2Score": "130-6" }
+  ]
+}

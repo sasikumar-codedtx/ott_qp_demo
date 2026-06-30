@@ -494,6 +494,7 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func openDetail(item: StorefrontItem) {
+        print("ccccontent id=\(item.id) customID=\(item.customID ?? "nil") title=\(item.title)")
         push(.detail(item))
     }
 
