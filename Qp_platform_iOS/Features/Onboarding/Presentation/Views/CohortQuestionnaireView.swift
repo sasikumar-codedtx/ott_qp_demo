@@ -80,28 +80,23 @@ struct CohortQuestionnaireView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-                // Skip button — top right
-                VStack {
-                    HStack {
-                        Spacer()
-                        Button(action: skipToDefault) {
-                            Text("Skip")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundStyle(.white.opacity(0.6))
-                                .underline()
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.top, proxy.safeAreaInsets.top + 18)
-                        .padding(.trailing, 24)
-                        .disabled(isFinishing)
-                    }
-                    Spacer()
-                }
-
                 if isFinishing, let selectedResult {
                     CohortCompletionOverlay(result: selectedResult)
                         .transition(.opacity.combined(with: .scale(scale: 0.98)))
                         .zIndex(30)
+                }
+
+                // Skip button — bottom centre, rendered last so it's always on top
+                if !isFinishing {
+                    Button(action: skipToDefault) {
+                        Text("Skip")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, 50)
+                    .zIndex(40)
                 }
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
