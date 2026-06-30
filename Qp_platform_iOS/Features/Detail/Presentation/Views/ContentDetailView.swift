@@ -1534,7 +1534,9 @@ struct ContentDetailView: View {
                 HStack(spacing: 10) {
                     ForEach(innings.topPerformances) { perf in
                         scorecardPerfCard(mainStat: perf.mainStat, subStat: perf.subStat,
-                                          label: perf.playerName, sub: perf.category)
+                                          label: perf.playerName, sub: perf.category,
+                                          localImage: perf.localImage,
+                                          imageUrl: perf.imageUrl)
                     }
                 }
                 .padding(.horizontal, 2)
@@ -1542,7 +1544,7 @@ struct ContentDetailView: View {
         }
     }
 
-    private func scorecardPerfCard(mainStat: String, subStat: String, label: String, sub: String) -> some View {
+    private func scorecardPerfCard(mainStat: String, subStat: String, label: String, sub: String, localImage: String? = nil, imageUrl: String? = nil) -> some View {
         VStack(spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 3) {
                 Text(mainStat)
@@ -1552,18 +1554,33 @@ struct ContentDetailView: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.5))
             }
-            Circle()
-                .fill(Color.white.opacity(0.1))
-                .frame(width: 54, height: 54)
-                .overlay(
+            Group {
+                if let name = localImage, UIImage(named: name) != nil {
+                    Image(name)
+                        .resizable()
+                        .scaledToFill()
+                } else if let urlStr = imageUrl, let url = URL(string: urlStr) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let img):
+                            img.resizable().scaledToFill()
+                        default:
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 24))
+                                .foregroundStyle(.white.opacity(0.55))
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        }
+                    }
+                } else {
                     Image(systemName: "person.fill")
                         .font(.system(size: 24))
                         .foregroundStyle(.white.opacity(0.55))
-                )
-                .overlay(
-                    Circle()
-                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                )
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
+            .frame(width: 64, height: 64)
+            .background(Circle().fill(Color.white.opacity(0.1)))
+            .clipShape(Circle())
             Text(label)
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(.white)
@@ -1572,7 +1589,7 @@ struct ContentDetailView: View {
                 .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(.white.opacity(0.44))
         }
-        .frame(width: 92)
+        .frame(width: 100)
         .padding(.vertical, 14)
         .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(0.05)))
     }

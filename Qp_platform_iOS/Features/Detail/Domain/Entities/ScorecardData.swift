@@ -97,6 +97,8 @@ struct ScorecardTopPerf: Codable, Identifiable {
     let subStat: String
     let playerName: String
     let category: String  // "Batting" | "Bowling"
+    let imageUrl: String?       // remote URL (http...)
+    let localImage: String?     // asset catalog name
 }
 
 struct ScorecardOverSnapshot: Codable {

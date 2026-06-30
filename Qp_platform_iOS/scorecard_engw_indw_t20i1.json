@@ -72,10 +72,10 @@
         { "id": "4", "p1Name": "B Fulmali",  "p1Runs": 6,  "p1Balls": 8,  "p2Name": "D Sharma",    "p2Runs": 10, "p2Balls": 7  }
       ],
       "topPerformances": [
-        { "id": "1", "mainStat": "69",   "subStat": "40",  "playerName": "J Rodrigues", "category": "Batting" },
-        { "id": "2", "mainStat": "54",   "subStat": "40",  "playerName": "Y Bhatia",    "category": "Batting" },
-        { "id": "3", "mainStat": "3-34", "subStat": "4.0", "playerName": "L Bell",      "category": "Bowling" },
-        { "id": "4", "mainStat": "2-38", "subStat": "4.0", "playerName": "I Wong",      "category": "Bowling" }
+        { "id": "1", "mainStat": "69",   "subStat": "40",  "playerName": "J Rodrigues", "category": "Batting", "localImage": "jr" },
+        { "id": "2", "mainStat": "54",   "subStat": "40",  "playerName": "Y Bhatia",    "category": "Batting", "localImage": "yb" },
+        { "id": "3", "mainStat": "3-34", "subStat": "4.0", "playerName": "L Bell",      "category": "Bowling", "localImage": "lb" },
+        { "id": "4", "mainStat": "2-38", "subStat": "4.0", "playerName": "I Wong",      "category": "Bowling", "localImage": "iw" }
       ]
     },
     {
@@ -116,10 +116,10 @@
         { "id": "4", "p1Name": "N Sciver-Brunt","p1Runs": 6,  "p1Balls": 6,  "p2Name": "A Davidson-Richards", "p2Runs": 12, "p2Balls": 9  }
       ],
       "topPerformances": [
-        { "id": "1", "mainStat": "34",   "subStat": "28",  "playerName": "N Sciver-Brunt",      "category": "Batting" },
-        { "id": "2", "mainStat": "26",   "subStat": "24",  "playerName": "H Knight",            "category": "Batting" },
-        { "id": "3", "mainStat": "2-18", "subStat": "3.2", "playerName": "D Deepti",            "category": "Bowling" },
-        { "id": "4", "mainStat": "1-22", "subStat": "3.0", "playerName": "A Reddy",             "category": "Bowling" }
+        { "id": "1", "mainStat": "34",   "subStat": "28",  "playerName": "N Sciver-Brunt", "category": "Batting" },
+        { "id": "2", "mainStat": "26",   "subStat": "24",  "playerName": "H Knight",       "category": "Batting" },
+        { "id": "3", "mainStat": "2-18", "subStat": "3.2", "playerName": "D Deepti",       "category": "Bowling" },
+        { "id": "4", "mainStat": "1-22", "subStat": "3.0", "playerName": "A Reddy",        "category": "Bowling" }
       ]
     }
   ],
