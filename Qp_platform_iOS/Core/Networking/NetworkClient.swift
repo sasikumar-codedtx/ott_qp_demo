@@ -4,7 +4,7 @@ struct NetworkClient: Sendable {
     nonisolated init() {}
 
     nonisolated func data(for request: URLRequest) async throws -> Data {
-//        NetworkLogger.logRequest(request)
+        NetworkLogger.logRequest(request)
         let data: Data
         let response: URLResponse
         do {

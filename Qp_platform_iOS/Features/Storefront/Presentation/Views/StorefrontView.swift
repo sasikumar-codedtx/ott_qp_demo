@@ -22,8 +22,9 @@ struct StorefrontView: View {
     var onSubscribe: () -> Void = {}
     var isSubscribed: Bool = false
     @State private var isTabMenuPresented = false
+    @State private var showsTabDock = false
     private var isHotPresentation: Bool { bottomSelection == .hot }
-    private var shouldShowStorefrontTabDock: Bool { !isHotPresentation && !dockTabs.isEmpty }
+    private var shouldShowStorefrontTabDock: Bool { !isHotPresentation && !dockTabs.isEmpty && showsTabDock }
     private static let scrollTopID = "storefront-scroll-top"
 
     private var dockTabs: [StorefrontTab] {
@@ -44,13 +45,15 @@ struct StorefrontView: View {
                     StorefrontHeaderView(topInset: proxy.safeAreaInsets.top, mode: .standard, isSubscribed: isSubscribed, onSubscribe: onSubscribe)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                         .allowsHitTesting(true)
+                        .zIndex(1)
                 }
 
                 if showsBottomChrome {
                     bottomChrome
                         .padding(.bottom, max(proxy.safeAreaInsets.bottom - 12, 0))
                         .ignoresSafeArea(.container, edges: .bottom)
-                        .animation(.spring(response: 0.42, dampingFraction: 0.78), value: shouldShowStorefrontTabDock)
+                        // Sits above the header + content so the dock is never occluded.
+                        .zIndex(2)
                 }
             }
             .ignoresSafeArea(edges: [.top, .bottom])
@@ -173,6 +176,17 @@ struct StorefrontView: View {
                     }
                     .padding(.bottom, showsBottomChrome ? (shouldShowStorefrontTabDock ? 188 : 116) : 32)
                 }
+                // Reads the live content offset directly from the scroll view — robust
+                // against LazyVStack unloading the top sentinel (which would otherwise
+                // revert a preference-based offset to 0 and hide the dock mid-scroll).
+                .onScrollGeometryChange(for: StorefrontScrollSnapshot.self) { geometry in
+                    StorefrontScrollSnapshot(
+                        offsetY: geometry.contentOffset.y,
+                        viewportHeight: geometry.containerSize.height
+                    )
+                } action: { _, snapshot in
+                    updateTabDockVisibility(for: snapshot)
+                }
                 .mask(alignment: .top) {
                     storefrontScrollClipMask(topInset: topInset)
                 }
@@ -194,6 +208,23 @@ struct StorefrontView: View {
                 .frame(height: max(topClipHeight, 0))
             Rectangle()
                 .fill(Color.black)
+        }
+    }
+
+    private func updateTabDockVisibility(for snapshot: StorefrontScrollSnapshot) {
+        // Reveal once ~10% of the viewport has been scrolled; hide again only after
+        // returning near the top. The gap (hysteresis) prevents flicker at the boundary.
+        let revealThreshold = max(snapshot.viewportHeight * 0.10, 48)
+        let hideThreshold = max(snapshot.viewportHeight * 0.03, 16)
+
+        if !showsTabDock, snapshot.offsetY > revealThreshold {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) {
+                showsTabDock = true
+            }
+        } else if showsTabDock, snapshot.offsetY < hideThreshold {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) {
+                showsTabDock = false
+            }
         }
     }
 
@@ -264,4 +295,9 @@ private struct StorefrontLoadingSkeletonView: View {
             .padding(.bottom, 24)
         }
     }
+}
+
+private struct StorefrontScrollSnapshot: Equatable {
+    let offsetY: CGFloat
+    let viewportHeight: CGFloat
 }
