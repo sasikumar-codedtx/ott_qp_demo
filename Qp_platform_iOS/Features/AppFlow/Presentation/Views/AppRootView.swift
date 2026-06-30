@@ -319,6 +319,9 @@ struct AppRootView: View {
                     onSelectProfile: { profile in
                         viewModel.switchActiveProfileAndOpenStorefront(profile)
                     },
+                    onSelectCohort: { cohort in
+                        viewModel.changeActiveProfileCohort(cohort)
+                    },
                     onSelectItem: { item in
                         viewModel.openContent(item: item)
                     },
@@ -374,7 +377,11 @@ struct AppRootView: View {
             }
             .routeNavigationChrome(showsNavigationBar: false)
             .routeNavigationOverlay(title: tab.title, onBack: viewModel.popRoute)
-        case .detail(let item):
+        case .detail(let item), .detailMoments(let item):
+            let opensMoments: Bool = {
+                if case .detailMoments = route { return true }
+                return false
+            }()
             surface(style: .storefront) {
                 ContentDetailRouteView(
                     item: item,
@@ -396,7 +403,11 @@ struct AppRootView: View {
                     onSubscribe: {
                         viewModel.openSettingsScreen(.manageSubscription)
                     },
-                    isFullPlayerActive: viewModel.activePlaybackContent != nil
+                    isFullPlayerActive: viewModel.activePlaybackContent != nil,
+                    initialSelectedTab: opensMoments ? AppStrings.Detail.moments : nil,
+                    onOpenMoments: opensMoments ? nil : { item in
+                        viewModel.openDetailMoments(item: item)
+                    }
                 )
             }
             .routeNavigationChrome(showsNavigationBar: false)
@@ -438,6 +449,8 @@ private struct ContentDetailRouteView: View {
     let isSubscribed: Bool
     let onSubscribe: () -> Void
     let isFullPlayerActive: Bool
+    let initialSelectedTab: String?
+    let onOpenMoments: ((StorefrontItem) -> Void)?
     @StateObject private var detailViewModel: ContentDetailViewModel
 
     init(
@@ -448,7 +461,9 @@ private struct ContentDetailRouteView: View {
         onPlayEpisode: @escaping (StorefrontItem) -> Void,
         isSubscribed: Bool,
         onSubscribe: @escaping () -> Void,
-        isFullPlayerActive: Bool
+        isFullPlayerActive: Bool,
+        initialSelectedTab: String? = nil,
+        onOpenMoments: ((StorefrontItem) -> Void)? = nil
     ) {
         self.item = item
         self.engine = engine
@@ -458,6 +473,8 @@ private struct ContentDetailRouteView: View {
         self.isSubscribed = isSubscribed
         self.onSubscribe = onSubscribe
         self.isFullPlayerActive = isFullPlayerActive
+        self.initialSelectedTab = initialSelectedTab
+        self.onOpenMoments = onOpenMoments
 
         let container = AppContainer.shared
         _detailViewModel = StateObject(
@@ -466,7 +483,8 @@ private struct ContentDetailRouteView: View {
                 recommendationsUseCase: GetRecommendationsUseCase(repository: container.contentDetailRepository),
                 momentsUseCase: GetContentMomentsUseCase(repository: container.contentDetailRepository),
                 episodesUseCase: GetContentEpisodesUseCase(repository: container.contentDetailRepository),
-                initialItem: item
+                initialItem: item,
+                initialSelectedTab: initialSelectedTab
             )
         )
     }
@@ -491,7 +509,8 @@ private struct ContentDetailRouteView: View {
             },
             isSubscribed: isSubscribed,
             onSubscribe: onSubscribe,
-            isFullPlayerActive: isFullPlayerActive
+            isFullPlayerActive: isFullPlayerActive,
+            onOpenMoments: onOpenMoments
         )
     }
 }

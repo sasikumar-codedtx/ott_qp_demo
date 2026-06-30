@@ -25,6 +25,10 @@ final class ProfileHubViewModel: ObservableObject {
         selectedProfile?.imageName ?? ProfileArtworkResolver.randomizedImageName(forName: displayedProfileName)
     }
 
+    var currentCohort: QuickplayCohort {
+        selectedProfile?.cohort ?? .entertainment
+    }
+
     var leadingSection: StorefrontSection? {
         sections.first { $0.id == "continue-watching" }
     }
@@ -40,6 +44,10 @@ final class ProfileHubViewModel: ObservableObject {
         sections = []
         errorMessage = nil
         hasLoaded = false
+    }
+
+    func updateSelectedProfile(_ profile: Profile) {
+        selectedProfile = profile
     }
 
     func loadIfNeeded() async {

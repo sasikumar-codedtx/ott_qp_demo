@@ -28,18 +28,21 @@ final class ContentDetailViewModel: ObservableObject {
     private var loadedPath: String?
     private var lastMomentSearchTerm: String?
     private var loadedEpisodesSeriesID: String?
+    private let initialSelectedTab: String?
 
     init(
         detailUseCase: GetContentDetailUseCase,
         recommendationsUseCase: GetRecommendationsUseCase,
         momentsUseCase: GetContentMomentsUseCase,
         episodesUseCase: GetContentEpisodesUseCase,
-        initialItem: StorefrontItem? = nil
+        initialItem: StorefrontItem? = nil,
+        initialSelectedTab: String? = nil
     ) {
         self.detailUseCase = detailUseCase
         self.recommendationsUseCase = recommendationsUseCase
         self.momentsUseCase = momentsUseCase
         self.episodesUseCase = episodesUseCase
+        self.initialSelectedTab = initialSelectedTab
         if let initialItem {
             present(item: initialItem)
         }
@@ -54,7 +57,7 @@ final class ContentDetailViewModel: ObservableObject {
         let currentPath = seed?.detailID ?? seed?.id
 
         seed = item
-        selectedTab = AppStrings.Detail.moreLikeThis
+        selectedTab = initialSelectedTab ?? AppStrings.Detail.moreLikeThis
         isFavorite = false
         likeState = .none
         Task { await loadInteractionState() }
@@ -94,12 +97,16 @@ final class ContentDetailViewModel: ObservableObject {
             let (detail, recommendations) = try await (detailResponse, recommendationResponse)
             self.detail = detail
             self.recommendations = recommendations
-            selectedTab = defaultTab(for: detail)
+            selectedTab = initialSelectedTab ?? defaultTab(for: detail)
             self.loadedPath = requestKey
             isLoading = false
 
             if detail.supportsEpisodes {
                 await loadEpisodes(for: detail, seedSeriesID: seed.seriesId)
+            }
+
+            if selectedTab == AppStrings.Detail.moments, detail.momentSearchEnabled {
+                await searchMoments(term: detail.title, allowDefault: false)
             }
         } catch {
             errorMessage = error.localizedDescription

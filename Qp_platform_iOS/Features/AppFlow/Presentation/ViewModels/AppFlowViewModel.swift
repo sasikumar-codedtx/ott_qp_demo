@@ -38,6 +38,7 @@ final class AppFlowViewModel: ObservableObject {
         case settingsScreen(SettingsScreen)
         case storefrontTab(StorefrontTab)
         case detail(StorefrontItem)
+        case detailMoments(StorefrontItem)
         case sectionBrowse(StorefrontSection, QuickplayCohort)
         case collectionBrowse(StorefrontItem, QuickplayCohort)
         case shortsCollection
@@ -318,10 +319,10 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func openShorts(startingWith item: StorefrontItem? = nil) {
-        navigationPath.removeAll()
         Task {
-            await shortsViewModel.open(startingWith: item)
-            mainTab = .shorts
+            await shortsCollectionViewModel.open(startingWith: item)
+            push(.shortsCollection)
+            await shortsViewModel.prefetchForActiveProfile()
         }
     }
 
@@ -529,9 +530,26 @@ final class AppFlowViewModel: ObservableObject {
         return updatedProfile
     }
 
+    func changeActiveProfileCohort(_ cohort: QuickplayCohort) {
+        guard activeProfile?.cohort != cohort else { return }
+
+        Task {
+            guard let updatedProfile = try? await persistCohortOverride(cohort) else { return }
+            await DemoSessionStore.shared.resetPreferenceHistory(for: updatedProfile.id)
+            await profileSelectionViewModel.load()
+
+            activeProfile = updatedProfile
+            profileHubViewModel.updateSelectedProfile(updatedProfile)
+        }
+    }
+
     func openDetail(item: StorefrontItem) {
         print("ccccontent id=\(item.id) customID=\(item.customID ?? "nil") title=\(item.title)")
         push(.detail(item))
+    }
+
+    func openDetailMoments(item: StorefrontItem) {
+        push(.detailMoments(item))
     }
 
     func replaceDetail(item: StorefrontItem) {

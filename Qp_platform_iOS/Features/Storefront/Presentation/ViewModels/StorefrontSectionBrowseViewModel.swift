@@ -14,7 +14,6 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
 
     private let useCase: GetStorefrontSectionPageUseCase
     private let pageSize = Int(AppEnvironment.Quickplay.storefrontPageSize) ?? 20
-    private let prefetchDistance = 10
     private var currentIDs: [String] = []
     private var source: BrowseSource?
     private var currentCacheKey: String?
@@ -130,9 +129,11 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
         await loadIfNeeded()
     }
 
-    func loadMoreIfNeeded(currentItem item: StorefrontItem) async {
-        guard let currentIndex = items.firstIndex(where: { $0.id == item.id }) else { return }
-        guard items.distance(from: currentIndex, to: items.endIndex) <= prefetchDistance else { return }
+    var hasMoreItems: Bool {
+        currentCache?.hasMore ?? false
+    }
+
+    func loadMoreIfNeeded() async {
         guard let cache = currentCache, cache.hasMore else { return }
         guard !isLoadingMore else { return }
 

@@ -9,6 +9,7 @@ struct ProfileHubView: View {
     let onAddProfile: () -> Void
     let onEditProfiles: () -> Void
     let onSelectProfile: (Profile) -> Void
+    let onSelectCohort: (QuickplayCohort) -> Void
     let onSelectItem: (StorefrontItem) -> Void
     var isSubscribed: Bool = false
     @State private var showsProfileSwitch = false
@@ -157,6 +158,9 @@ struct ProfileHubView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 40)
                     } else {
+                        currentCohortSelector
+                            .padding(.horizontal, UIConstants.Spacing.lg)
+
                         if let leadingSection = viewModel.leadingSection {
                             profileRailSection(leadingSection, style: .landscape, width: 275)
                         }
@@ -191,6 +195,55 @@ struct ProfileHubView: View {
             .coordinateSpace(name: "profileHubScroll")
             .background(Color.black.ignoresSafeArea())
         }
+    }
+
+    private var currentCohortSelector: some View {
+        Menu {
+            ForEach(profileCohortOptions, id: \.self) { cohort in
+                Button {
+                    onSelectCohort(cohort)
+                } label: {
+                    if cohort == viewModel.currentCohort {
+                        Label(cohort.title, systemImage: "checkmark")
+                    } else {
+                        Text(cohort.title)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Current cohort")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.45))
+
+                    Text(viewModel.currentCohort.title)
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(Color.white.opacity(0.76))
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 64)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color.white.opacity(0.07))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(LiquidButtonPressStyle())
+    }
+
+    private var profileCohortOptions: [QuickplayCohort] {
+        [.entertainment, .sports, .realityShows, .kids]
     }
 
     private var profileEmptyState: some View {

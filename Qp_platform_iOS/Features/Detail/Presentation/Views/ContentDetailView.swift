@@ -71,6 +71,7 @@ struct ContentDetailView: View {
     var isSubscribed: Bool = false
     var onSubscribe: () -> Void = {}
     var isFullPlayerActive: Bool = false   // when the full-screen player is up, suspend play-along
+    var onOpenMoments: ((StorefrontItem) -> Void)? = nil
     @State private var isDescriptionExpanded = false
     @State private var isVideoReady = false
     // Latches when a landscape rotation auto-opens the full player; resets on portrait.
@@ -2001,6 +2002,13 @@ struct ContentDetailView: View {
     }
 
     private func selectTab(_ tab: String, detail: ContentDetail) {
+        if tab == AppStrings.Detail.moments,
+           let onOpenMoments,
+           let seed = viewModel.seed {
+            onOpenMoments(seed)
+            return
+        }
+
         viewModel.selectTab(tab)
         guard tab == AppStrings.Detail.moments,
               detail.momentSearchEnabled,
@@ -2874,11 +2882,6 @@ private struct MomentResultCard: View {
                 Text(item.title)
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(.white)
-                    .lineLimit(1)
-
-                Text(item.description.nilIfEmpty ?? item.primaryMetaText.nilIfEmpty ?? item.contentType)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.76))
                     .lineLimit(1)
             }
             .padding(.horizontal, 12)

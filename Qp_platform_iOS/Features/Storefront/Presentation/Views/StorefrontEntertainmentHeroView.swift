@@ -66,7 +66,7 @@ struct StorefrontEntertainmentHeroView: View {
             heroMedia(
                 item: item,
                 size: size,
-                ratio: density == .expanded ? "0-16x9" : "0-2x3",
+                ratio: "0-2x3",
                 cornerRadius: 16
             )
             .overlay(
@@ -161,7 +161,7 @@ struct StorefrontEntertainmentHeroView: View {
                 url: titleImageURL,
                 size: CGSize(width: 252, height: 86),
                 cornerRadius: 0,
-//                contentMode: .fit
+                contentMode: .fit
             )
             .frame(width: 252, height: 86)
             .padding(.horizontal, 18)
