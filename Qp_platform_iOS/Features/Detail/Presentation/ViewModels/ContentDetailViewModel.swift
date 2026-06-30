@@ -104,6 +104,10 @@ final class ContentDetailViewModel: ObservableObject {
             if detail.supportsEpisodes {
                 await loadEpisodes(for: detail, seedSeriesID: seed.seriesId)
             }
+
+            if selectedTab == AppStrings.Detail.moments, detail.momentSearchEnabled {
+                await searchMoments(term: detail.title, allowDefault: false)
+            }
         } catch {
             errorMessage = error.localizedDescription
             isLoading = false

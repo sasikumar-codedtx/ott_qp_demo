@@ -449,6 +449,8 @@ private struct ContentDetailRouteView: View {
     let isSubscribed: Bool
     let onSubscribe: () -> Void
     let isFullPlayerActive: Bool
+    let initialSelectedTab: String?
+    let onOpenMoments: ((StorefrontItem) -> Void)?
     @StateObject private var detailViewModel: ContentDetailViewModel
 
     init(
@@ -459,7 +461,9 @@ private struct ContentDetailRouteView: View {
         onPlayEpisode: @escaping (StorefrontItem) -> Void,
         isSubscribed: Bool,
         onSubscribe: @escaping () -> Void,
-        isFullPlayerActive: Bool
+        isFullPlayerActive: Bool,
+        initialSelectedTab: String? = nil,
+        onOpenMoments: ((StorefrontItem) -> Void)? = nil
     ) {
         self.item = item
         self.engine = engine
@@ -469,6 +473,8 @@ private struct ContentDetailRouteView: View {
         self.isSubscribed = isSubscribed
         self.onSubscribe = onSubscribe
         self.isFullPlayerActive = isFullPlayerActive
+        self.initialSelectedTab = initialSelectedTab
+        self.onOpenMoments = onOpenMoments
 
         let container = AppContainer.shared
         _detailViewModel = StateObject(
@@ -477,7 +483,8 @@ private struct ContentDetailRouteView: View {
                 recommendationsUseCase: GetRecommendationsUseCase(repository: container.contentDetailRepository),
                 momentsUseCase: GetContentMomentsUseCase(repository: container.contentDetailRepository),
                 episodesUseCase: GetContentEpisodesUseCase(repository: container.contentDetailRepository),
-                initialItem: item
+                initialItem: item,
+                initialSelectedTab: initialSelectedTab
             )
         )
     }
@@ -502,7 +509,8 @@ private struct ContentDetailRouteView: View {
             },
             isSubscribed: isSubscribed,
             onSubscribe: onSubscribe,
-            isFullPlayerActive: isFullPlayerActive
+            isFullPlayerActive: isFullPlayerActive,
+            onOpenMoments: onOpenMoments
         )
     }
 }
