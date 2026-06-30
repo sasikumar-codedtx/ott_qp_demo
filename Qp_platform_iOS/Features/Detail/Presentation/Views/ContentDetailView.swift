@@ -19,46 +19,6 @@ private let sportsLiveChatMessages: [SportsLiveChatMessage] = [
     .init(id: "5", username: "James",   text: "The crowd can feel this turning.", avatarLetter: "J", colorHex: "8E24AA"),
 ]
 
-private struct ScorecardBatter: Identifiable {
-    let id: String
-    let name: String
-    let dismissal: String
-    let r: String
-    let b: String
-    let fours: String
-    let sixes: String
-    let sr: String
-    let isAtCrease: Bool
-}
-
-private let scorecardInnningsData: [ScorecardBatter] = [
-    .init(id: "1",  name: "R Sharma (c)",  dismissal: "b Wellalage",            r: "53", b: "48", fours: "7", sixes: "2", sr: "110.42", isAtCrease: false),
-    .init(id: "2",  name: "S Gill",        dismissal: "b Wellalage",            r: "19", b: "25", fours: "2", sixes: "0", sr: "76.00",  isAtCrease: false),
-    .init(id: "3",  name: "V Kohli",       dismissal: "c Shanaka b Wellalage",  r: "3",  b: "12", fours: "0", sixes: "0", sr: "25.00",  isAtCrease: false),
-    .init(id: "4",  name: "I Kishan",      dismissal: "c Wellalage b Asalanka", r: "33", b: "61", fours: "1", sixes: "1", sr: "54.10",  isAtCrease: false),
-    .init(id: "5",  name: "KL Rahul (wk)", dismissal: "lbw Wellalage",          r: "33", b: "61", fours: "1", sixes: "1", sr: "88.64",  isAtCrease: false),
-    .init(id: "6",  name: "H Pandya",      dismissal: "c Markdu b Asalanka",    r: "5",  b: "18", fours: "0", sixes: "0", sr: "27.18",  isAtCrease: false),
-    .init(id: "7",  name: "R Jadeja",      dismissal: "c Markdu b Asalanka",    r: "4",  b: "19", fours: "0", sixes: "0", sr: "21.05",  isAtCrease: false),
-    .init(id: "8",  name: "A Patel",       dismissal: "c Markdu b Asalanka",    r: "26", b: "36", fours: "0", sixes: "1", sr: "72.22",  isAtCrease: false),
-    .init(id: "9",  name: "J Bumrah",      dismissal: "c Dhanaka",              r: "5",  b: "12", fours: "0", sixes: "0", sr: "41.67",  isAtCrease: false),
-    .init(id: "10", name: "K Yadav",       dismissal: "b Asalanka",             r: "0",  b: "1",  fours: "0", sixes: "0", sr: "0.00",   isAtCrease: false),
-    .init(id: "11", name: "M Siraj",       dismissal: "Not Out",                r: "5",  b: "19", fours: "0", sixes: "0", sr: "26.32",  isAtCrease: true),
-]
-
-private struct ScorecardBowler: Identifiable {
-    let id: String; let name: String; let o: String; let m: String
-    let r: String; let w: String; let er: String
-}
-
-private let scorecardBowlingData: [ScorecardBowler] = [
-    .init(id: "1", name: "K Rajitha",    o: "4.0",  m: "0", r: "30", w: "0", er: "7.50"),
-    .init(id: "2", name: "M Theekshana", o: "9.1",  m: "0", r: "41", w: "1", er: "4.47"),
-    .init(id: "3", name: "D Shanaka",    o: "3.0",  m: "0", r: "24", w: "0", er: "8.00"),
-    .init(id: "4", name: "M Pathirana",  o: "4.0",  m: "0", r: "31", w: "0", er: "7.75"),
-    .init(id: "5", name: "D Wellalage",  o: "10.0", m: "1", r: "40", w: "5", er: "4.00"),
-    .init(id: "6", name: "D Silva",      o: "10.0", m: "0", r: "28", w: "0", er: "2.80"),
-    .init(id: "7", name: "C Asalanka",   o: "9.0",  m: "1", r: "18", w: "4", er: "2.00"),
-]
 
 private enum DetailPresentationKind: Equatable {
     case regular
@@ -126,7 +86,8 @@ struct ContentDetailView: View {
     @State private var liveChatInput = ""
     @State private var liveChatDemoMessages: [SportsLiveChatMessage] = []
     @State private var sportsPollAnswer: String? = nil
-    @State private var scorecardTeamTab = "India"
+    @State private var scorecardTeamTab = ""
+    @State private var scorecardData: ScorecardData? = ScorecardData.load(named: "scorecard_engw_indw_t20i1")
     @State private var isTimeStampPresented = false
     @FocusState private var isChatInputFocused: Bool
     @State private var quizCountdown = 20
@@ -524,7 +485,7 @@ struct ContentDetailView: View {
                     .padding(.top, 12)
                     .padding(.bottom, 4)
                 VStack(spacing: 0) {
-                    sportsTabRow
+                    sportsTabRow(for: detail)
                         .padding(.horizontal, 16)
                     Rectangle()
                         .fill(Color.white.opacity(0.12))
@@ -696,13 +657,21 @@ struct ContentDetailView: View {
         }
     }
 
-    // "Scorecard" (view score) is hidden for now — re-add it to this list to bring it back.
-    private let sportsTabs = ["Live Feed", "Key Moments", "You May also Like"]
+    private let scorecardContentID = "B4A585B8-5F53-4C42-938D-F67A9C8FE71C"
 
-    private var sportsTabRow: some View {
+    private func sportsTabs(for detail: ContentDetail) -> [String] {
+        var tabs = ["Live Feed"]
+        if detail.id == scorecardContentID {
+            tabs.append("Scorecard")
+        }
+        tabs += ["Key Moments", "You May also Like"]
+        return tabs
+    }
+
+    private func sportsTabRow(for detail: ContentDetail) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 0) {
-                ForEach(sportsTabs, id: \.self) { tab in
+                ForEach(sportsTabs(for: detail), id: \.self) { tab in
                     Button {
                         withAnimation(.easeInOut(duration: 0.18)) {
                             selectedSportsTab = tab
@@ -1193,42 +1162,55 @@ struct ContentDetailView: View {
     // MARK: Scorecard tab
 
     private var sportsScorecardTab: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            scorecardScoreBlock.padding(.top, 14)
-            scorecardLiveMatchRow.padding(.top, 12)
-            scorecardInningsTabRow.padding(.top, 16)
-            sportsBattingTable.padding(.top, 12)
-            sportsBowlingTable.padding(.top, 16)
-            scorecardTopPerformance.padding(.top, 16)
-            scorecardFallOfWickets.padding(.top, 16)
-            scorecardPartnership.padding(.top, 16).padding(.bottom, 20)
+        Group {
+            if let sc = scorecardData {
+                let activeInnings = sc.innings.first(where: { $0.team == scorecardTeamTab }) ?? sc.innings[0]
+                VStack(alignment: .leading, spacing: 0) {
+                    scorecardScoreBlock(sc).padding(.top, 14)
+                    scorecardLiveMatchRow(sc).padding(.top, 12)
+                    scorecardInningsTabRow(sc).padding(.top, 16)
+                    sportsBattingTable(activeInnings).padding(.top, 12)
+                    sportsBowlingTable(activeInnings).padding(.top, 16)
+                    scorecardTopPerformance(activeInnings).padding(.top, 16)
+                    scorecardFallOfWickets(activeInnings).padding(.top, 16)
+                    scorecardPartnership(activeInnings).padding(.top, 16).padding(.bottom, 20)
+                }
+                .onAppear {
+                    if scorecardTeamTab.isEmpty { scorecardTeamTab = sc.innings[0].team }
+                }
+            } else {
+                Text("Scorecard unavailable")
+                    .foregroundStyle(.white.opacity(0.44))
+                    .padding(.top, 40)
+                    .frame(maxWidth: .infinity)
+            }
         }
     }
 
-    private var scorecardScoreBlock: some View {
+    private func scorecardScoreBlock(_ sc: ScorecardData) -> some View {
         ZStack(alignment: .topTrailing) {
             HStack(alignment: .center, spacing: 0) {
-                // Left team — IND
+                // Left team
                 HStack(alignment: .center, spacing: 10) {
-                    // India team badge
                     ZStack {
                         Circle()
                             .fill(LinearGradient(colors: [Color(hex: "1A3A6B"), Color(hex: "0D2040")], startPoint: .topLeading, endPoint: .bottomTrailing))
                             .frame(width: 44, height: 44)
                             .overlay(Circle().stroke(Color(hex: "6B8FC9").opacity(0.5), lineWidth: 1))
-                        Text("🇮🇳")
-                            .font(.system(size: 22))
+                        Text(sc.team1.flag).font(.system(size: 22))
                     }
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("IND")
+                        Text(sc.team1.code)
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(.white.opacity(0.55))
-                        Text("210-5")
+                        Text(sc.team1.score)
                             .font(.system(size: 32, weight: .black, design: .rounded))
                             .foregroundStyle(.white)
                         HStack(spacing: 4) {
-                            Circle().fill(Color(hex: "22C55E")).frame(width: 6, height: 6)
-                            Text("Over 20")
+                            if sc.team1.isBatting {
+                                Circle().fill(Color(hex: "22C55E")).frame(width: 6, height: 6)
+                            }
+                            Text("Over \(sc.team1.overs)")
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundStyle(.white.opacity(0.52))
                         }
@@ -1236,20 +1218,22 @@ struct ContentDetailView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                // Right team — SL
+                // Right team
                 HStack(alignment: .center, spacing: 10) {
                     VStack(alignment: .trailing, spacing: 1) {
-                        Text("SL")
+                        Text(sc.team2.code)
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(.white.opacity(0.55))
-                        Text("48-2")
+                        Text(sc.team2.score)
                             .font(.system(size: 32, weight: .black, design: .rounded))
                             .foregroundStyle(.white)
                         HStack(spacing: 4) {
-                            Image(systemName: "cricket.ball.fill")
-                                .font(.system(size: 9))
-                                .foregroundStyle(Color(hex: "D4A017"))
-                            Text("Over 5.4")
+                            if sc.team2.isBatting {
+                                Image(systemName: "cricket.ball.fill")
+                                    .font(.system(size: 9))
+                                    .foregroundStyle(Color(hex: "D4A017"))
+                            }
+                            Text("Over \(sc.team2.overs)")
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundStyle(.white.opacity(0.52))
                         }
@@ -1259,8 +1243,7 @@ struct ContentDetailView: View {
                             .fill(LinearGradient(colors: [Color(hex: "1A4A2E"), Color(hex: "0D2518")], startPoint: .topLeading, endPoint: .bottomTrailing))
                             .frame(width: 44, height: 44)
                             .overlay(Circle().stroke(Color(hex: "5DAD6B").opacity(0.5), lineWidth: 1))
-                        Text("🇱🇰")
-                            .font(.system(size: 22))
+                        Text(sc.team2.flag).font(.system(size: 22))
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .trailing)
@@ -1268,7 +1251,6 @@ struct ContentDetailView: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 14)
 
-            // LIVE badge — top right
             HStack(spacing: 4) {
                 Circle().fill(Color(hex: "E50914")).frame(width: 6, height: 6)
                 Text("Live")
@@ -1292,29 +1274,31 @@ struct ContentDetailView: View {
         )
     }
 
-    private var scorecardLiveMatchRow: some View {
+    private func scorecardLiveMatchRow(_ sc: ScorecardData) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Bowler info
             HStack(spacing: 12) {
                 Image(systemName: "cricket.ball.circle.fill")
                     .font(.system(size: 20))
                     .foregroundStyle(Color(hex: "72F6A2"))
 
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("J Bumrah")
+                    Text(sc.currentBowler.name)
                         .font(.system(size: 13, weight: .bold))
                         .foregroundStyle(.white)
-                    Text("3.5 - 8 - 1")
+                    Text(sc.currentBowler.figures)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(.white.opacity(0.52))
                 }
 
                 Spacer()
 
-                // Ball history
                 HStack(spacing: 4) {
-                    ForEach([("W", "E50914", false), ("0", "", true), ("4", "22C55E", false), ("1LB", "", true)], id: \.0) { ball, colorHex, isLight in
-                        Text(ball)
+                    ForEach(Array(sc.currentBowler.ballHistory.enumerated()), id: \.offset) { _, ball in
+                        let isWicket = ball.type == "wicket"
+                        let isBoundary = ball.type == "boundary"
+                        let colorHex = isWicket ? "E50914" : (isBoundary ? "22C55E" : "")
+                        let isLight = !isWicket && !isBoundary
+                        Text(ball.label)
                             .font(.system(size: 10, weight: .black))
                             .foregroundStyle(isLight ? Color.white.opacity(0.82) : Color.white)
                             .frame(width: 28, height: 28)
@@ -1327,10 +1311,10 @@ struct ContentDetailView: View {
                 }
             }
 
-            // At-crease batters
             HStack(spacing: 16) {
-                batsmanChip(name: "D Warner", scoreStr: "0  1")
-                batsmanChip(name: "G Maxwell", scoreStr: "52  38")
+                ForEach(sc.atCreaseBatters) { batter in
+                    batsmanChip(name: batter.name, scoreStr: "\(batter.runs)  \(batter.balls)")
+                }
             }
         }
         .padding(14)
@@ -1359,22 +1343,22 @@ struct ContentDetailView: View {
         }
     }
 
-    private var scorecardInningsTabRow: some View {
+    private func scorecardInningsTabRow(_ sc: ScorecardData) -> some View {
         HStack(spacing: 8) {
-            ForEach(["India", "Sri Lanka"], id: \.self) { team in
+            ForEach(sc.innings, id: \.team) { innings in
                 Button {
                     withAnimation(.easeInOut(duration: 0.18)) {
-                        scorecardTeamTab = team
+                        scorecardTeamTab = innings.team
                     }
                 } label: {
-                    Text(team)
+                    Text(innings.team)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(scorecardTeamTab == team ? Color(hex: "0A0A0A") : .white.opacity(0.62))
+                        .foregroundStyle(scorecardTeamTab == innings.team ? Color(hex: "0A0A0A") : .white.opacity(0.62))
                         .frame(maxWidth: .infinity)
                         .frame(height: 36)
                         .background(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(scorecardTeamTab == team ? Color.white : Color.white.opacity(0.08))
+                                .fill(scorecardTeamTab == innings.team ? Color.white : Color.white.opacity(0.08))
                         )
                 }
                 .buttonStyle(LiquidButtonPressStyle())
@@ -1382,12 +1366,10 @@ struct ContentDetailView: View {
         }
     }
 
-    private var sportsBattingTable: some View {
+    private func sportsBattingTable(_ innings: ScorecardInnings) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header
             HStack(spacing: 0) {
-                Text("Batter")
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("Batter").frame(maxWidth: .infinity, alignment: .leading)
                 Text("R").frame(width: 34, alignment: .trailing)
                 Text("B").frame(width: 30, alignment: .trailing)
                 Text("4s").frame(width: 28, alignment: .trailing)
@@ -1401,19 +1383,18 @@ struct ContentDetailView: View {
 
             Rectangle().fill(Color.white.opacity(0.1)).frame(height: 1)
 
-            ForEach(scorecardInnningsData) { batter in
+            ForEach(innings.batters) { batter in
                 sportsBatterRow(batter)
                 Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1)
             }
 
-            // Extras row
             HStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("Extras")
                         .font(.system(size: 13, weight: .regular))
                         .foregroundStyle(.white.opacity(0.82))
                     HStack(spacing: 5) {
-                        ForEach(["LB 1", "W 21"], id: \.self) { chip in
+                        ForEach(innings.extras.chips, id: \.self) { chip in
                             Text(chip)
                                 .font(.system(size: 9, weight: .bold))
                                 .foregroundStyle(.white.opacity(0.72))
@@ -1424,7 +1405,7 @@ struct ContentDetailView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                Text("21").frame(width: 34, alignment: .trailing)
+                Text("\(innings.extras.total)").frame(width: 34, alignment: .trailing)
                     .font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
                 Spacer().frame(width: 30 + 28 + 28 + 48)
             }
@@ -1434,7 +1415,7 @@ struct ContentDetailView: View {
         .background(LiquidGlassBackground(cornerRadius: 14, tone: .dark))
     }
 
-    private var sportsBowlingTable: some View {
+    private func sportsBowlingTable(_ innings: ScorecardInnings) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
                 Text("Bowler").frame(maxWidth: .infinity, alignment: .leading)
@@ -1451,7 +1432,7 @@ struct ContentDetailView: View {
 
             Rectangle().fill(Color.white.opacity(0.1)).frame(height: 1)
 
-            ForEach(scorecardBowlingData) { bowler in
+            ForEach(innings.bowlers) { bowler in
                 HStack(spacing: 0) {
                     Text(bowler.name)
                         .font(.system(size: 13, weight: .regular))
@@ -1460,19 +1441,19 @@ struct ContentDetailView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text(bowler.o).frame(width: 34, alignment: .trailing)
                         .font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
-                    Text(bowler.m).frame(width: 26, alignment: .trailing)
+                    Text("\(bowler.m)").frame(width: 26, alignment: .trailing)
                         .font(.system(size: 12)).foregroundStyle(.white.opacity(0.52))
-                    Text(bowler.r).frame(width: 30, alignment: .trailing)
+                    Text("\(bowler.r)").frame(width: 30, alignment: .trailing)
                         .font(.system(size: 12)).foregroundStyle(.white.opacity(0.52))
-                    Text(bowler.w).frame(width: 28, alignment: .trailing)
-                        .font(.system(size: 12, weight: bowler.w != "0" ? .bold : .regular))
-                        .foregroundStyle(bowler.w != "0" ? Color(hex: "22C55E") : .white.opacity(0.52))
-                    Text(bowler.er).frame(width: 44, alignment: .trailing)
+                    Text("\(bowler.w)").frame(width: 28, alignment: .trailing)
+                        .font(.system(size: 12, weight: bowler.w > 0 ? .bold : .regular))
+                        .foregroundStyle(bowler.w > 0 ? Color(hex: "22C55E") : .white.opacity(0.52))
+                    Text(String(format: "%.2f", bowler.er)).frame(width: 44, alignment: .trailing)
                         .font(.system(size: 11)).foregroundStyle(.white.opacity(0.4))
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 11)
-                if bowler.id != scorecardBowlingData.last?.id {
+                if bowler.id != innings.bowlers.last?.id {
                     Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1)
                 }
             }
@@ -1480,7 +1461,7 @@ struct ContentDetailView: View {
         .background(LiquidGlassBackground(cornerRadius: 14, tone: .dark))
     }
 
-    private var scorecardTopPerformance: some View {
+    private func scorecardTopPerformance(_ innings: ScorecardInnings) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Top Performance")
                 .font(.system(size: 13, weight: .bold))
@@ -1488,10 +1469,10 @@ struct ContentDetailView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
-                    scorecardPerfCard(mainStat: "80", subStat: "40", label: "S Gill",       sub: "Runs")
-                    scorecardPerfCard(mainStat: "90", subStat: "48", label: "V Kohli",      sub: "Runs")
-                    scorecardPerfCard(mainStat: "5-40", subStat: "3.4", label: "V Kohli",   sub: "Bowling")
-                    scorecardPerfCard(mainStat: "4-18", subStat: "4.0", label: "C Asalanka",sub: "Bowling")
+                    ForEach(innings.topPerformances) { perf in
+                        scorecardPerfCard(mainStat: perf.mainStat, subStat: perf.subStat,
+                                          label: perf.playerName, sub: perf.category)
+                    }
                 }
                 .padding(.horizontal, 2)
             }
@@ -1533,7 +1514,7 @@ struct ContentDetailView: View {
         .background(LiquidGlassBackground(cornerRadius: 12, tone: .dark))
     }
 
-    private var scorecardFallOfWickets: some View {
+    private func scorecardFallOfWickets(_ innings: ScorecardInnings) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
                 Text("Fall of Wickets").frame(maxWidth: .infinity, alignment: .leading)
@@ -1547,17 +1528,13 @@ struct ContentDetailView: View {
 
             Rectangle().fill(Color.white.opacity(0.1)).frame(height: 1)
 
-            ForEach([
-                ("R Sharma (c)", "39-1",  "4.1"),
-                ("S Gill",       "88-2",  "7.6"),
-                ("V Kohli",      "119-3", "10.2"),
-            ], id: \.0) { name, score, over in
+            ForEach(innings.fallOfWickets) { fow in
                 HStack(spacing: 0) {
-                    Text(name).font(.system(size: 13)).foregroundStyle(.white.opacity(0.82))
+                    Text(fow.player).font(.system(size: 13)).foregroundStyle(.white.opacity(0.82))
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(score).frame(width: 60, alignment: .trailing)
+                    Text(fow.score).frame(width: 60, alignment: .trailing)
                         .font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
-                    Text(over).frame(width: 48, alignment: .trailing)
+                    Text(fow.over).frame(width: 48, alignment: .trailing)
                         .font(.system(size: 12)).foregroundStyle(.white.opacity(0.52))
                 }
                 .padding(.horizontal, 14).padding(.vertical, 10)
@@ -1567,17 +1544,17 @@ struct ContentDetailView: View {
         .background(LiquidGlassBackground(cornerRadius: 14, tone: .dark))
     }
 
-    private var scorecardPartnership: some View {
+    private func scorecardPartnership(_ innings: ScorecardInnings) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Partnership")
                 .font(.system(size: 13, weight: .bold))
                 .foregroundStyle(.white.opacity(0.72))
 
             VStack(spacing: 10) {
-                partnershipRow(p1Name: "R Sharma", p1Runs: 47, p1Balls: 42, p2Name: "S Gill",    p2Runs: 19, p2Balls: 25)
-                partnershipRow(p1Name: "R Sharma", p1Runs: 5,  p1Balls: 4,  p2Name: "V Kohli",   p2Runs: 3,  p2Balls: 12)
-                partnershipRow(p1Name: "R Sharma", p1Runs: 1,  p1Balls: 2,  p2Name: "I Kishan",  p2Runs: 0,  p2Balls: 6)
-                partnershipRow(p1Name: "I Kishan", p1Runs: 23, p1Balls: 45, p2Name: "KL Rahul",  p2Runs: 39, p2Balls: 44)
+                ForEach(innings.partnerships) { p in
+                    partnershipRow(p1Name: p.p1Name, p1Runs: p.p1Runs, p1Balls: p.p1Balls,
+                                   p2Name: p.p2Name, p2Runs: p.p2Runs, p2Balls: p.p2Balls)
+                }
             }
         }
         .padding(14)
@@ -1628,7 +1605,7 @@ struct ContentDetailView: View {
         }
     }
 
-    private func sportsBatterRow(_ batter: ScorecardBatter) -> some View {
+    private func sportsBatterRow(_ batter: ScorecardBatterEntry) -> some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 5) {
@@ -1652,15 +1629,15 @@ struct ContentDetailView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text(batter.r).frame(width: 34, alignment: .trailing)
+            Text("\(batter.r)").frame(width: 34, alignment: .trailing)
                 .font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
-            Text(batter.b).frame(width: 30, alignment: .trailing)
+            Text("\(batter.b)").frame(width: 30, alignment: .trailing)
                 .font(.system(size: 12)).foregroundStyle(.white.opacity(0.52))
-            Text(batter.fours).frame(width: 28, alignment: .trailing)
+            Text("\(batter.fours)").frame(width: 28, alignment: .trailing)
                 .font(.system(size: 12)).foregroundStyle(.white.opacity(0.52))
-            Text(batter.sixes).frame(width: 28, alignment: .trailing)
+            Text("\(batter.sixes)").frame(width: 28, alignment: .trailing)
                 .font(.system(size: 12)).foregroundStyle(.white.opacity(0.52))
-            Text(batter.sr).frame(width: 48, alignment: .trailing)
+            Text(String(format: "%.2f", batter.sr)).frame(width: 48, alignment: .trailing)
                 .font(.system(size: 11)).foregroundStyle(.white.opacity(0.4))
         }
         .padding(.horizontal, 14)
