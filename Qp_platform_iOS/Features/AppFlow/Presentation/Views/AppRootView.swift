@@ -319,6 +319,9 @@ struct AppRootView: View {
                     onSelectProfile: { profile in
                         viewModel.switchActiveProfileAndOpenStorefront(profile)
                     },
+                    onSelectCohort: { cohort in
+                        viewModel.changeActiveProfileCohort(cohort)
+                    },
                     onSelectItem: { item in
                         viewModel.openContent(item: item)
                     },
@@ -374,7 +377,11 @@ struct AppRootView: View {
             }
             .routeNavigationChrome(showsNavigationBar: false)
             .routeNavigationOverlay(title: tab.title, onBack: viewModel.popRoute)
-        case .detail(let item):
+        case .detail(let item), .detailMoments(let item):
+            let opensMoments: Bool = {
+                if case .detailMoments = route { return true }
+                return false
+            }()
             surface(style: .storefront) {
                 ContentDetailRouteView(
                     item: item,
@@ -396,7 +403,11 @@ struct AppRootView: View {
                     onSubscribe: {
                         viewModel.openSettingsScreen(.manageSubscription)
                     },
-                    isFullPlayerActive: viewModel.activePlaybackContent != nil
+                    isFullPlayerActive: viewModel.activePlaybackContent != nil,
+                    initialSelectedTab: opensMoments ? AppStrings.Detail.moments : nil,
+                    onOpenMoments: opensMoments ? nil : { item in
+                        viewModel.openDetailMoments(item: item)
+                    }
                 )
             }
             .routeNavigationChrome(showsNavigationBar: false)

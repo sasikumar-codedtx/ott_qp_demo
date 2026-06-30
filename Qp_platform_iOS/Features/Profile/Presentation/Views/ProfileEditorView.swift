@@ -173,18 +173,18 @@ struct ProfileEditorView: View {
                 }
             }
         }
-        .frame(height: 130)
+        .frame(height: 150)
         .padding(.horizontal, -UIConstants.Spacing.lg)
         .overlay(alignment: .leading) {
             LinearGradient(colors: [Color.black.opacity(0.75), Color.clear], startPoint: .leading, endPoint: .trailing)
                 .frame(width: 40)
-                .frame(height: 124.328)
+                .frame(height: 144.328)
                 .allowsHitTesting(false)
         }
         .overlay(alignment: .trailing) {
             LinearGradient(colors: [Color.clear, Color.black.opacity(0.75)], startPoint: .leading, endPoint: .trailing)
                 .frame(width: 40)
-                .frame(height: 124.328)
+                .frame(height: 144.328)
                 .allowsHitTesting(false)
         }
     }
@@ -209,6 +209,9 @@ struct ProfileEditorView: View {
                 guard profile.id == viewModel.draft.sourceID else { return profile }
                 var updated = profile
                 updated.imageName = viewModel.draft.imageName
+                updated.storefrontPolicy = viewModel.draft.storefrontPolicy
+                updated.preference = viewModel.draft.preference
+                updated.isKidsProfile = viewModel.draft.isKidsProfile
                 return updated
             }
         }
@@ -274,6 +277,14 @@ struct ProfileEditorView: View {
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .frame(width: 104)
+
+                if isSelected {
+                    Text(profile.cohort.title)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.56))
+                        .lineLimit(1)
+                        .frame(width: 104)
+                }
             }
             .frame(width: 104)
         }
@@ -418,6 +429,38 @@ struct ProfileEditorView: View {
                     .foregroundStyle(Color.white.opacity(0.5))
             }
             .padding(.horizontal, 4)
+
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Current cohort")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.48))
+
+                    Text(viewModel.draft.cohort.title)
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+
+                Spacer(minLength: 12)
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(viewModel.selectedStorefrontPolicy.displayName)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.72))
+                        .lineLimit(1)
+
+                    Text("chrt=\(viewModel.selectedStorefrontPolicy.chrtValue)")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.white.opacity(0.46))
+                        .lineLimit(1)
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.white.opacity(0.07))
+            )
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                 ForEach(StorefrontPolicy.allCases) { policy in

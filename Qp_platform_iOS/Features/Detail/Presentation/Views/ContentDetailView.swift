@@ -2875,11 +2875,6 @@ private struct MomentResultCard: View {
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
-
-                Text(item.description.nilIfEmpty ?? item.primaryMetaText.nilIfEmpty ?? item.contentType)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.76))
-                    .lineLimit(1)
             }
             .padding(.horizontal, 12)
             .padding(.bottom, 12)
