@@ -26,6 +26,7 @@ struct AppRootView: View {
                     engine: viewModel.playerEngine,
                     episodes: viewModel.playerEpisodes,
                     seasons: viewModel.playerSeasons,
+                    markers: content.markers,
                     onPlayEpisode: { item in viewModel.play(item: item) },
                     onDismiss: viewModel.closePlayer
                 )
@@ -388,7 +389,6 @@ struct AppRootView: View {
                         )
                     },
                     onPlayEpisode: viewModel.play(item:),
-                    onSelectRecommendation: viewModel.openDetail(item:),
                     isSubscribed: viewModel.isSubscribed,
                     onSubscribe: {
                         viewModel.openSettingsScreen(.manageSubscription)
@@ -432,7 +432,6 @@ private struct ContentDetailRouteView: View {
     let onBack: () -> Void
     let onPlayWithContext: (ContentDetail, StorefrontItem?, StorefrontItem?, [StorefrontItem], [ContentSeason]) -> Void
     let onPlayEpisode: (StorefrontItem) -> Void
-    let onSelectRecommendation: (StorefrontItem) -> Void
     let isSubscribed: Bool
     let onSubscribe: () -> Void
     let isFullPlayerActive: Bool
@@ -444,7 +443,6 @@ private struct ContentDetailRouteView: View {
         onBack: @escaping () -> Void,
         onPlayWithContext: @escaping (ContentDetail, StorefrontItem?, StorefrontItem?, [StorefrontItem], [ContentSeason]) -> Void,
         onPlayEpisode: @escaping (StorefrontItem) -> Void,
-        onSelectRecommendation: @escaping (StorefrontItem) -> Void,
         isSubscribed: Bool,
         onSubscribe: @escaping () -> Void,
         isFullPlayerActive: Bool
@@ -454,7 +452,6 @@ private struct ContentDetailRouteView: View {
         self.onBack = onBack
         self.onPlayWithContext = onPlayWithContext
         self.onPlayEpisode = onPlayEpisode
-        self.onSelectRecommendation = onSelectRecommendation
         self.isSubscribed = isSubscribed
         self.onSubscribe = onSubscribe
         self.isFullPlayerActive = isFullPlayerActive
@@ -486,7 +483,9 @@ private struct ContentDetailRouteView: View {
                 )
             },
             onPlayEpisode: onPlayEpisode,
-            onSelectRecommendation: onSelectRecommendation,
+            onSelectRecommendation: { nextItem in
+                detailViewModel.present(item: nextItem)
+            },
             isSubscribed: isSubscribed,
             onSubscribe: onSubscribe,
             isFullPlayerActive: isFullPlayerActive

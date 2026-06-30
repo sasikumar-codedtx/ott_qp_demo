@@ -27,8 +27,8 @@ struct StorefrontItem: Identifiable, Equatable, Hashable, Codable {
     let shortVideoURL: URL?
     let imageBaseURL: String
     let customTag:String
-    // Sponsor name from cust_spr_tg[0].lon (nil when there is no sponsor).
     let sponsorName: String?
+    var markers: [PlayerMarker]?
 
     func imageURL(for ratio: String, width: Int) -> URL? {
         ImageURLBuilder(baseURL: imageBaseURL).imageURL(

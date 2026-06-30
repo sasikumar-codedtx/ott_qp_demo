@@ -15,6 +15,7 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
     let releaseDate: String?
     let contentLanguage: String?
     let playbackMode: PlaybackMode
+    let markers: [PlayerMarker]
 
     enum PlaybackMode: Hashable {
         case inline
@@ -50,7 +51,8 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
         genre: String? = nil,
         releaseDate: String? = nil,
         contentLanguage: String? = nil,
-        playbackMode: PlaybackMode = .inline
+        playbackMode: PlaybackMode = .inline,
+        markers: [PlayerMarker] = []
     ) {
         self.id = contentId
         self.contentId = contentId
@@ -66,6 +68,7 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
         self.releaseDate = releaseDate
         self.contentLanguage = contentLanguage
         self.playbackMode = playbackMode
+        self.markers = markers
     }
 
     func asFullscreen() -> QuickplayPlaybackContent {
@@ -82,7 +85,8 @@ struct QuickplayPlaybackContent: Identifiable, Hashable {
             genre: genre,
             releaseDate: releaseDate,
             contentLanguage: contentLanguage,
-            playbackMode: .fullscreen
+            playbackMode: .fullscreen,
+            markers: markers
         )
     }
 }
@@ -125,7 +129,8 @@ extension StorefrontItem {
             title: title,
             resumePosition: (progress ?? 0) * Double(runtimeSeconds ?? 0),
             seriesId: seriesId,
-            releaseDate: releaseDate
+            releaseDate: releaseDate,
+            markers: markers ?? []
         )
     }
 }
@@ -145,7 +150,8 @@ extension ContentDetail {
             rawContentType: contentType,
             title: title,
             resumePosition: resumeSeconds,
-            seriesId: seriesId?.nilIfEmpty ?? id
+            seriesId: seriesId?.nilIfEmpty ?? id,
+            markers: markers
         )
     }
 }

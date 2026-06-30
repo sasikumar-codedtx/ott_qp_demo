@@ -7,15 +7,17 @@ struct QuickplayPlayerScreen: View {
     let content: QuickplayPlaybackContent
     let episodes: [StorefrontItem]
     let seasons: [ContentSeason]
+    let markers: [PlayerMarker]
     let onPlayEpisode: ((StorefrontItem) -> Void)?
     let onDismiss: () -> Void
     @ObservedObject var engine: QuickplayPlayerEngine
 
-    init(content: QuickplayPlaybackContent, engine: QuickplayPlayerEngine, episodes: [StorefrontItem] = [], seasons: [ContentSeason] = [], onPlayEpisode: ((StorefrontItem) -> Void)? = nil, onDismiss: @escaping () -> Void) {
+    init(content: QuickplayPlaybackContent, engine: QuickplayPlayerEngine, episodes: [StorefrontItem] = [], seasons: [ContentSeason] = [], markers: [PlayerMarker] = [], onPlayEpisode: ((StorefrontItem) -> Void)? = nil, onDismiss: @escaping () -> Void) {
         self.content = content
         self.engine = engine
         self.episodes = episodes
         self.seasons = seasons
+        self.markers = markers
         self.onPlayEpisode = onPlayEpisode
         self.onDismiss = onDismiss
     }
@@ -38,6 +40,11 @@ struct QuickplayPlayerScreen: View {
     @State private var seekDismissTask: Task<Void, Never>? = nil
     @State private var showNextEpisodeCard = false
     @State private var nextEpisodeTask: Task<Void, Never>? = nil
+    @State private var activeMarker: PlayerMarker? = nil
+    @State private var isScreenLocked = false
+    @State private var showLockStatus = false
+    @State private var showUnlockConfirm = false
+    @State private var lockStatusTask: Task<Void, Never>? = nil
 
     private var effectiveEpisodes: [StorefrontItem] { episodes.isEmpty ? loadedEpisodes : episodes }
     private var effectiveSeasons: [ContentSeason] { seasons.isEmpty ? loadedSeasons : seasons }
@@ -141,8 +148,20 @@ struct QuickplayPlayerScreen: View {
                 .zIndex(60)
             }
 
-            if (controlsVisible || isSeeking) && !showEpisodesPanel {
+            if (controlsVisible || isSeeking) && !showEpisodesPanel && !isScreenLocked {
                 controlsOverlay.transition(.opacity)
+            }
+
+            if (controlsVisible || isSeeking) && !isScreenLocked {
+                lockButtonView
+                    .transition(.opacity)
+                    .zIndex(45)
+            }
+
+            if isScreenLocked {
+                lockedOverlayView
+                    .transition(.opacity)
+                    .zIndex(95)
             }
 
 
@@ -185,18 +204,30 @@ struct QuickplayPlayerScreen: View {
                     .zIndex(25)
                 }
 
-                if showNextEpisodeCard, let next = nextEpisode {
+                if let marker = activeMarker, !engine.isFinished {
+                    markerButtonView(for: marker)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .zIndex(38)
+                }
+
+                if showNextEpisodeCard {
                     let insets = windowSafeArea
+                    let isMovieType = content.contentType == .movie || content.contentType == .channel
                     VStack {
                         Spacer()
                         HStack {
                             Spacer()
                             NextEpisodeCard(
-                                next: next,
+                                label: isMovieType ? "Skip Credits" : "Next Episode",
+                                showFill: !isMovieType,
                                 onTap: {
                                     nextEpisodeTask?.cancel()
                                     showNextEpisodeCard = false
-                                    onPlayEpisode?(next)
+                                    if let next = nextEpisode {
+                                        onPlayEpisode?(next)
+                                    } else {
+                                        engine.seek(to: engine.duration)
+                                    }
                                 },
                                 onDismiss: {
                                     nextEpisodeTask?.cancel()
@@ -222,7 +253,26 @@ struct QuickplayPlayerScreen: View {
         .animation(.easeInOut(duration: 0.22), value: showSpeedSheet)
         .animation(.easeInOut(duration: 0.18), value: seekFeedback)
         .animation(.spring(response: 0.4, dampingFraction: 0.88), value: showNextEpisodeCard)
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: activeMarker)
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: isScreenLocked)
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showLockStatus)
+        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: showUnlockConfirm)
+        .onChange(of: engine.currentTime) { _, time in
+            guard !markers.isEmpty, engine.duration > 0 else { return }
+            // Ignore markers whose startTime exceeds the actual video duration (bad API data)
+            let validMarkers = markers.filter { $0.startTime < engine.duration }
+            // skipIntro takes priority over postplay
+            let candidate = validMarkers.first(where: { $0.type == .skipIntro && time >= $0.startTime && time < $0.endTime })
+                ?? validMarkers.first(where: { $0.type == .postplay && time >= $0.startTime && time < $0.endTime })
+            if candidate != activeMarker {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    activeMarker = candidate
+                }
+            }
+        }
         .task {
+            let markerLog = markers.isEmpty ? "  (none)" : markers.map { "  { type: \($0.type), st: \($0.startTime), ed: \($0.endTime) }" }.joined(separator: "\n")
+            print("[Player] content=\(content.contentId) (\(content.contentType)) markers:\n\(markerLog)")
             if engine.loadedContentId != content.contentId {
                 await engine.load(content: content)
             }
@@ -300,17 +350,19 @@ struct QuickplayPlayerScreen: View {
             }
         }
         .onChange(of: engine.currentTime) { _, t in
+            let isEpisodeType = content.contentType == .episode || content.contentType == .series || content.contentType == .show
             guard !showNextEpisodeCard,
                   engine.duration > 0,
-                  nextEpisode != nil,
-                  engine.duration - t <= 15 else { return }
+                  engine.duration - t <= 15,
+                  !markers.contains(where: { $0.type == .postplay && $0.startTime < engine.duration }),
+                  !isEpisodeType || nextEpisode != nil else { return }
             withAnimation(.spring(response: 0.4, dampingFraction: 0.88)) { showNextEpisodeCard = true }
             nextEpisodeTask?.cancel()
+            guard let next = nextEpisode else { return }
             nextEpisodeTask = Task {
                 try? await Task.sleep(for: .seconds(5))
                 guard !Task.isCancelled else { return }
                 await MainActor.run {
-                    guard let next = nextEpisode else { return }
                     showNextEpisodeCard = false
                     onPlayEpisode?(next)
                 }
@@ -335,6 +387,55 @@ struct QuickplayPlayerScreen: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
             Self.logger.warning("⚠️ Memory warning — screen level | isReady=\(engine.isReady) isBuffering=\(engine.isBuffering) currentTime=\(String(format: "%.1f", engine.currentTime))s")
+        }
+    }
+
+    // MARK: Marker buttons (Skip Intro / Up Next / Skip Credits)
+
+    private func markerButtonView(for marker: PlayerMarker) -> some View {
+        let insets = windowSafeArea
+        // Float above seekbar when controls are visible, drop to bottom edge when hidden
+        let bottomPad: CGFloat = (controlsVisible || isSeeking)
+            ? insets.bottom + 100
+            : insets.bottom + 24
+        return VStack {
+            Spacer()
+            HStack {
+                Spacer()
+                Button {
+                    engine.seek(to: marker.endTime)
+                } label: {
+                    HStack(spacing: 8) {
+                        Text(markerLabel(for: marker))
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.white)
+                        Image(systemName: "forward.end.fill")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 10)
+                    .background(Capsule().fill(Color.black.opacity(0.52)))
+                    .overlay(Capsule().stroke(Color.white.opacity(0.75), lineWidth: 1.2))
+                }
+                .buttonStyle(LiquidButtonPressStyle())
+                .padding(.trailing, insets.right + 20)
+            }
+            .padding(.bottom, bottomPad)
+        }
+        .animation(.easeInOut(duration: 0.25), value: controlsVisible)
+        .animation(.easeInOut(duration: 0.25), value: isSeeking)
+    }
+
+    private func markerLabel(for marker: PlayerMarker) -> String {
+        switch marker.type {
+        case .skipIntro:
+            return "Skip Intro"
+        case .postplay:
+            switch content.contentType {
+            case .episode, .series, .show: return "Next Episode"
+            case .movie, .channel: return "Skip Credits"
+            }
         }
     }
 
@@ -689,6 +790,26 @@ struct SeekFeedback: Equatable {
     let amount: Int
 }
 
+// MARK: - Player Marker
+
+struct PlayerMarker: Equatable, Hashable, Codable {
+    enum MarkerType: String, Codable, Hashable {
+        case skipIntro
+        case postplay
+    }
+    let startTime: Double  // seconds
+    let endTime: Double    // seconds
+    let type: MarkerType
+
+    static func from(_ dtos: [RawMarkerDTO]?) -> [PlayerMarker] {
+        (dtos ?? []).compactMap { dto in
+            guard let mSt = dto.m_st, let mEd = dto.m_ed,
+                  let t = dto.t, let type = MarkerType(rawValue: t) else { return nil }
+            return PlayerMarker(startTime: mSt, endTime: mEd, type: type)
+        }
+    }
+}
+
 
 // MARK: - Loading view
 
@@ -1019,10 +1140,122 @@ private struct PlayerEpisodesPanel: View {
     }
 }
 
+// MARK: - Screen Lock
+
+extension QuickplayPlayerScreen {
+    private var lockButtonView: some View {
+        let insets = windowSafeArea
+        return VStack {
+            HStack {
+                Spacer()
+                Button { engageLock() } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "lock.open.fill")
+                            .font(.system(size: 13, weight: .medium))
+//                        Text("Lock")
+//                            .font(.system(size: 13, weight: .medium))
+                    }
+                    .foregroundStyle(.white.opacity(0.9))
+                    .padding(.horizontal, 12)
+                    .frame(height: 34)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.15)))
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.35), lineWidth: 1))
+                }
+                .buttonStyle(LiquidButtonPressStyle())
+                .padding(.trailing, insets.right + 20)
+            }
+            Spacer()
+        }
+        .padding(.top, insets.top + 20)
+    }
+
+    private var lockedOverlayView: some View {
+        let insets = windowSafeArea
+        return ZStack {
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture { showLockStatusBriefly() }
+
+            if showLockStatus {
+                VStack(spacing: 6) {
+                    if showUnlockConfirm {
+                        Button { disengage() } label: {
+                            HStack(spacing: 7) {
+                                Image(systemName: "lock.open.fill")
+                                    .font(.system(size: 13, weight: .semibold))
+                                Text("Unlock Screen?")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .foregroundStyle(.black)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(Capsule().fill(Color.white))
+                        }
+                        .buttonStyle(.plain)
+                        .transition(.scale(scale: 0.85).combined(with: .opacity))
+                    } else {
+                        Button { withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { showUnlockConfirm = true } } label: {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundStyle(.black)
+                                .frame(width: 44, height: 44)
+                                .background(Circle().fill(Color.white))
+                        }
+                        .buttonStyle(.plain)
+                        .transition(.scale(scale: 0.85).combined(with: .opacity))
+                    }
+                    Text("Screen Locked")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.white)
+                    Text("Tap to Unlock")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.6))
+                }
+                .padding(.bottom, insets.bottom)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .bottom)))
+            }
+        }
+        .ignoresSafeArea()
+    }
+
+    private func engageLock() {
+        isScreenLocked = true
+        showUnlockConfirm = false
+        showLockStatusBriefly()
+    }
+
+    private func disengage() {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+            isScreenLocked = false
+            showLockStatus = false
+            showUnlockConfirm = false
+        }
+        lockStatusTask?.cancel()
+    }
+
+    private func showLockStatusBriefly() {
+        showUnlockConfirm = false
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { showLockStatus = true }
+        lockStatusTask?.cancel()
+        lockStatusTask = Task {
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    showLockStatus = false
+                    showUnlockConfirm = false
+                }
+            }
+        }
+    }
+}
+
 // MARK: - Next Episode Card
 
 private struct NextEpisodeCard: View {
-    let next: StorefrontItem
+    let label: String
+    let showFill: Bool
     let onTap: () -> Void
     let onDismiss: () -> Void
 
@@ -1030,58 +1263,34 @@ private struct NextEpisodeCard: View {
 
     var body: some View {
         Button(action: onTap) {
-            ZStack(alignment: .leading) {
-                // Background fill progress
-                GeometryReader { proxy in
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color.white.opacity(0.12))
-                        .frame(width: proxy.size.width * fillProgress)
-                }
-
-                HStack(spacing: 10) {
-                    // Thumbnail
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(Color.white.opacity(0.1))
-                        if let url = next.imageURL(for: "0-16x9", width: 160) {
-                            AsyncImage(url: url) { phase in
-                                if let img = phase.image {
-                                    img.resizable().scaledToFill()
-                                }
-                            }
-                            .clipped()
-                        }
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.85))
-                    }
-                    .frame(width: 68, height: 38)
-                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Up Next")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.55))
-                        Text(next.title)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
-                    }
-
-                    Spacer(minLength: 8)
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 10)
+            HStack(spacing: 8) {
+                Text(label)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                Image(systemName: "forward.end.fill")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.8))
             }
-            .frame(width: 260, height: 58)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(Color.white.opacity(0.18), lineWidth: 1)
-            )
+            .padding(.horizontal, 8)
+            .frame(height: 40)
         }
         .buttonStyle(.plain)
+        .background(
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.black.opacity(0.52))
+                if showFill {
+                    GeometryReader { proxy in
+                        Capsule()
+                            .fill(Color.white.opacity(0.18))
+                            .frame(width: proxy.size.width * fillProgress)
+                            .clipped()
+                    }
+                }
+            }
+        )
+        .overlay(Capsule().stroke(Color.white.opacity(0.75), lineWidth: 1.2))
         .onAppear {
+            guard showFill else { return }
             withAnimation(.linear(duration: 5)) { fillProgress = 1.0 }
         }
     }

@@ -42,3 +42,9 @@ struct ContentPersonDTO: Decodable {
 struct ContentMomentsDTO: Decodable {
     let ff: FlexibleBoolDTO?
 }
+
+struct RawMarkerDTO: Decodable {
+    let m_st: Double?
+    let m_ed: Double?
+    let t: String?
+}
