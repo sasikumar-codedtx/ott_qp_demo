@@ -22,7 +22,10 @@ struct QuickplayPlayerControlsOverlay: View {
 
     @State private var seekThumbnail: UIImage? = nil
 
-    private var seekBucket: Int { Int(seekPosition / 10) }
+    private var seekBucket: Int {
+        guard seekPosition.isFinite, seekPosition >= 0 else { return 0 }
+        return Int(seekPosition / 10)
+    }
 
     var body: some View {
         ZStack {
@@ -115,10 +118,7 @@ struct QuickplayPlayerControlsOverlay: View {
 
     private var isLive: Bool { contentType == .channel }
 
-    private var isAtLive: Bool {
-        guard engine.duration > 0 else { return true }
-        return engine.duration - engine.currentTime < 10
-    }
+    private var isAtLive: Bool { true }
 
     // MARK: Center — skip ±15s + play/pause
 
@@ -137,6 +137,9 @@ struct QuickplayPlayerControlsOverlay: View {
             }
 
             PlayPauseMorphButton(isPlaying: engine.isPlaying, size: 72) {
+                if isLive && !engine.isPlaying {
+                    engine.seek(to: engine.duration)
+                }
                 engine.togglePlayPause()
             }
 
@@ -328,7 +331,8 @@ private struct QuickplaySeekBar: View {
     @State private var trackWidth: CGFloat = 0
 
     private var displayFraction: CGFloat {
-        guard duration > 0 else { return isLive ? 1.0 : 0 }
+        if isLive { return 1.0 }
+        guard duration > 0 else { return 0 }
         let base: Double
         if isSeeking { base = seekPosition }
         else if let locked = lockedPosition { base = locked }
@@ -354,8 +358,10 @@ private struct QuickplaySeekBar: View {
                 ctx.fill(prog, with: .color(accentColor))
             }
 
-            ctx.fill(Path(ellipseIn: CGRect(x: progressX - thumbR, y: cy - thumbR, width: thumbR*2, height: thumbR*2)),
-                     with: .color(accentColor))
+            if !isLive {
+                ctx.fill(Path(ellipseIn: CGRect(x: progressX - thumbR, y: cy - thumbR, width: thumbR*2, height: thumbR*2)),
+                         with: .color(accentColor))
+            }
         }
         .frame(height: 28)
         .contentShape(Rectangle())
@@ -367,7 +373,7 @@ private struct QuickplaySeekBar: View {
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { value in
-                    guard duration > 0, trackWidth > 0 else { return }
+                    guard duration > 0, trackWidth > 0, !isLive else { return }
 
                     if !isSeeking {
                         let thumbR: CGFloat = 10

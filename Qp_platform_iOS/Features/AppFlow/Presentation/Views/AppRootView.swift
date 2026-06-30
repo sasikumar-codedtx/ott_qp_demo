@@ -26,6 +26,7 @@ struct AppRootView: View {
                     engine: viewModel.playerEngine,
                     episodes: viewModel.playerEpisodes,
                     seasons: viewModel.playerSeasons,
+                    markers: content.markers,
                     onPlayEpisode: { item in viewModel.play(item: item) },
                     onDismiss: viewModel.closePlayer
                 )

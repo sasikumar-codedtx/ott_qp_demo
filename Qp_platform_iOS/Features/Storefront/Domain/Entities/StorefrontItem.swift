@@ -25,6 +25,7 @@ struct StorefrontItem: Identifiable, Equatable, Hashable, Codable {
     let canOpenDetail: Bool
     let previewURL: URL?
     let imageBaseURL: String
+    var markers: [PlayerMarker]?
 
     func imageURL(for ratio: String, width: Int) -> URL? {
         ImageURLBuilder(baseURL: imageBaseURL).imageURL(

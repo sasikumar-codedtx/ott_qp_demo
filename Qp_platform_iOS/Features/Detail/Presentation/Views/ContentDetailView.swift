@@ -188,7 +188,7 @@ struct ContentDetailView: View {
 
                 // Time Stamp panel
                 if isTimeStampPresented {
-                    timeStampOverlay
+                    timeStampOverlay(topOffset: proxy.safeAreaInsets.top + proxy.size.width * 9 / 16)
                         .ignoresSafeArea(edges: .bottom)
                         .zIndex(25)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -1047,107 +1047,121 @@ struct ContentDetailView: View {
         .init(id: "5", title: "Virat took 2 runs",               time: "7:15"),
     ]
 
-    private var timeStampOverlay: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
+    private func timeStampOverlay(topOffset: CGFloat) -> some View {
+        ZStack(alignment: .bottom) {
+            // Backdrop — only below the player
             VStack(spacing: 0) {
-                // Handle
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .fill(Color.white.opacity(0.3))
-                    .frame(width: 36, height: 4)
-                    .padding(.top, 12)
-                    .padding(.bottom, 8)
-
-                // Header
-                HStack {
-                    Text("Time Stamp")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(.white)
-                    Spacer()
-                    Button {
+                Color.clear.frame(height: topOffset)
+                Color.black.opacity(0.5)
+                    .ignoresSafeArea(edges: .bottom)
+                    .onTapGesture {
                         withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
                             isTimeStampPresented = false
                         }
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white.opacity(0.12))
-                                .frame(width: 32, height: 32)
-                            Image(systemName: "xmark")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(.white.opacity(0.72))
+                    }
+            }
+
+            // Panel — slides up from bottom, capped to the space below the player
+            VStack(spacing: 0) {
+                // Handle
+                Capsule()
+                    .fill(Color.white.opacity(0.28))
+                    .frame(width: 36, height: 4)
+                    .padding(.top, 12)
+                    .padding(.bottom, 10)
+
+                // Header — centered title, small close button overlaid
+                ZStack {
+                    Text("Time Stamp")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, alignment: .center)
+
+                    HStack {
+                        Spacer()
+                        Button {
+                            withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
+                                isTimeStampPresented = false
+                            }
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white.opacity(0.12))
+                                    .frame(width: 26, height: 26)
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(.white.opacity(0.72))
+                            }
+                        }
+                        .buttonStyle(LiquidButtonPressStyle())
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 14)
+
+                // Card list
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 10) {
+                        ForEach(timeStampItems) { item in
+                            timeStampRow(item)
                         }
                     }
-                    .buttonStyle(LiquidButtonPressStyle())
-                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 16)
-
-                // Moment list
-                ForEach(timeStampItems) { item in
-                    timeStampRow(item)
-                    if item.id != timeStampItems.last?.id {
-                        Rectangle()
-                            .fill(Color.white.opacity(0.06))
-                            .frame(height: 1)
-                            .padding(.horizontal, 20)
-                    }
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 24)
                 }
             }
+            .frame(maxHeight: UIScreen.main.bounds.height - topOffset)
             .background(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .fill(Color(hex: "111111"))
                     .ignoresSafeArea(edges: .bottom)
             )
-            .onTapGesture { } // block tap-through
+            .onTapGesture { }
         }
-        .background(
-            Color.black.opacity(0.5)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
-                        isTimeStampPresented = false
-                    }
-                }
-        )
     }
 
     private func timeStampRow(_ item: TimeStampItem) -> some View {
-        HStack(spacing: 14) {
-            // Thumbnail placeholder
+        HStack(spacing: 12) {
+            // 16:9 thumbnail
             ZStack {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(Color(hex: "1A2A3A"))
-                Image(systemName: "play.fill")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.6))
+                // Play icon — small circle with teal fill
+                ZStack {
+                    Circle()
+                        .fill(Color(hex: "0EA5E9"))
+                        .frame(width: 30, height: 30)
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                        .offset(x: 1)
+                }
             }
-            .frame(width: 100, height: 70)
+            .frame(width: 118, height: 66) // 16:9
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(item.title)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
 
                 // Time badge
                 Text(item.time)
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(
-                        Capsule()
-                            .fill(Color(hex: "0EA5E9"))
-                    )
+                    .background(Capsule().fill(Color(hex: "0EA5E9")))
             }
 
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(hex: "1C1C1E"))
+        )
         .contentShape(Rectangle())
         .onTapGesture { showDemoAlert = true }
     }

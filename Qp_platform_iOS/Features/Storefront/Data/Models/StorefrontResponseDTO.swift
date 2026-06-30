@@ -355,6 +355,7 @@ struct QuickplayContentItemDTO: Decodable {
     let yearDate: String?
     let stlId: String?
     let setlId: String?
+    let mar: [RawMarkerDTO]?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -384,6 +385,7 @@ struct QuickplayContentItemDTO: Decodable {
         case yearDate = "rdt"
         case stlId = "stl_id"
         case setlId = "setl_id"
+        case mar
     }
 
     func toDomain(config: QuickplayRuntimeConfig, progress: Double? = nil) -> StorefrontItem {
@@ -411,7 +413,8 @@ struct QuickplayContentItemDTO: Decodable {
             progress: progress,
             canOpenDetail: true,
             previewURL: apURL.flatMap(URL.init(string:)),
-            imageBaseURL: config.imageResizeURL
+            imageBaseURL: config.imageResizeURL,
+            markers: PlayerMarker.from(mar)
         )
     }
 
@@ -435,7 +438,8 @@ struct QuickplayContentItemDTO: Decodable {
             momentSearchEnabled: (vsm ?? []).contains(where: { $0.ff?.value == true }),
             seriesId: seriesID,
             previewURL: apURL.flatMap(URL.init(string:)),
-            imageBaseURL: config.imageResizeURL
+            imageBaseURL: config.imageResizeURL,
+            markers: PlayerMarker.from(mar)
         )
     }
 

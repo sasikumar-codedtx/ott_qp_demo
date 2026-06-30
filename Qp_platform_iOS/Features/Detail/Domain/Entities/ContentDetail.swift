@@ -54,6 +54,7 @@ struct ContentDetail: Equatable {
     let seriesId: String?
     let previewURL: URL?
     let imageBaseURL: String
+    var markers: [PlayerMarker]
 
     func imageURL(for ratio: String, width: Int) -> URL? {
         ImageURLBuilder(baseURL: imageBaseURL).imageURL(
