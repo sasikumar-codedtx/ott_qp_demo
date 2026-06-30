@@ -1287,7 +1287,7 @@ struct ContentDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.black)
+                .fill(Color(hex: "#151515"))
         )
     }
 
@@ -1379,18 +1379,20 @@ struct ContentDetailView: View {
                         scorecardTeamTab = innings.team
                     }
                 } label: {
-                    Text(innings.team)
-                        .font(.system(size: 14, weight: isSelected ? .bold : .regular))
-                        .foregroundStyle(isSelected ? Color.black : Color.white.opacity(0.55))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                        .background(isSelected ? Color.white : Color.clear)
+                    VStack(spacing: 0) {
+                        Text(innings.team)
+                            .font(.system(size: 15, weight: isSelected ? .bold : .regular))
+                            .foregroundStyle(isSelected ? Color.white : Color.white.opacity(0.4))
+                            .frame(maxWidth: .infinity)
+                            .padding(.bottom, 10)
+                        Rectangle()
+                            .fill(isSelected ? Color.white : Color.clear)
+                            .frame(height: 2)
+                    }
                 }
                 .buttonStyle(.plain)
             }
         }
-        .background(Color.white.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     private func sportsBattingTable(_ innings: ScorecardInnings) -> some View {
@@ -1572,15 +1574,18 @@ struct ContentDetailView: View {
     }
 
     private func scorecardPartnership(_ innings: ScorecardInnings) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Partnership")
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(.white.opacity(0.72))
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(Color(hex: "EFEFEF"))
 
-            VStack(spacing: 10) {
+            VStack(spacing: 0) {
                 ForEach(innings.partnerships) { p in
                     partnershipRow(p1Name: p.p1Name, p1Runs: p.p1Runs, p1Balls: p.p1Balls,
                                    p2Name: p.p2Name, p2Runs: p.p2Runs, p2Balls: p.p2Balls)
+                    if p.id != innings.partnerships.last?.id {
+                        Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1)
+                    }
                 }
             }
         }
@@ -1591,45 +1596,46 @@ struct ContentDetailView: View {
     private func partnershipRow(p1Name: String, p1Runs: Int, p1Balls: Int, p2Name: String, p2Runs: Int, p2Balls: Int) -> some View {
         let total = p1Runs + p2Runs
         let p1Frac = total > 0 ? CGFloat(p1Runs) / CGFloat(total) : 0.5
-        let p2Frac = total > 0 ? CGFloat(p2Runs) / CGFloat(total) : 0.5
 
-        return VStack(spacing: 4) {
-            HStack(spacing: 6) {
-                VStack(alignment: .trailing, spacing: 1) {
-                    Text(p1Name)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.82))
-                    Text("\(p1Runs) \(p1Balls)")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.44))
-                }
-                .frame(width: 76, alignment: .trailing)
-                .lineLimit(1).minimumScaleFactor(0.8)
-
-                GeometryReader { geo in
-                    HStack(spacing: 2) {
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(Color(hex: "6366F1"))
-                            .frame(width: max(4, geo.size.width * p1Frac))
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(Color(hex: "F59E0B"))
-                            .frame(width: max(4, geo.size.width * p2Frac))
-                    }
-                }
-                .frame(height: 8)
-
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(p2Name)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.82))
-                    Text("\(p2Runs) \(p2Balls)")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.44))
-                }
-                .frame(width: 76, alignment: .leading)
-                .lineLimit(1).minimumScaleFactor(0.8)
+        return HStack(alignment: .center, spacing: 10) {
+            // Left player
+            VStack(alignment: .leading, spacing: 2) {
+                Text(p1Name)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color(hex: "CECECE"))
+                    .lineLimit(1)
+                Text("\(p1Runs) \(p1Balls)")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color(hex: "CECECE").opacity(0.5))
             }
+            .frame(width: 90, alignment: .leading)
+
+            // Two-tone bar
+            GeometryReader { geo in
+                HStack(spacing: 0) {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color(hex: "5EA3F3"))
+                        .frame(width: max(6, geo.size.width * p1Frac))
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color(hex: "FA861B"))
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .frame(height: 7)
+
+            // Right player
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(p2Name)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color(hex: "CECECE"))
+                    .lineLimit(1)
+                Text("\(p2Runs) \(p2Balls)")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color(hex: "CECECE").opacity(0.5))
+            }
+            .frame(width: 90, alignment: .trailing)
         }
+        .padding(.vertical, 12)
     }
 
     private func sportsBatterRow(_ batter: ScorecardBatterEntry) -> some View {
