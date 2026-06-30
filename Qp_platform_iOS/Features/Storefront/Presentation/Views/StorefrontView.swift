@@ -20,6 +20,7 @@ struct StorefrontView: View {
     var additionalTopChromeHeight: CGFloat = 0
     var onOpenStorefrontTab: ((StorefrontTab) -> Void)?
     var onSubscribe: () -> Void = {}
+    var isSubscribed: Bool = false
     @State private var isTabMenuPresented = false
     private var isHotPresentation: Bool { bottomSelection == .hot }
     private static let scrollTopID = "storefront-scroll-top"
@@ -37,7 +38,7 @@ struct StorefrontView: View {
                 content(topInset: proxy.safeAreaInsets.top)
 
                 if !isHotPresentation, showsStorefrontHeader {
-                    StorefrontHeaderView(topInset: proxy.safeAreaInsets.top, mode: .standard, onSubscribe: onSubscribe)
+                    StorefrontHeaderView(topInset: proxy.safeAreaInsets.top, mode: .standard, isSubscribed: isSubscribed, onSubscribe: onSubscribe)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                         .allowsHitTesting(true)
                 }

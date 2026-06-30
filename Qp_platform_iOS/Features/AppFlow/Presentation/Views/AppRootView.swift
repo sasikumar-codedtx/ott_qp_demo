@@ -157,7 +157,8 @@ struct AppRootView: View {
                     },
                     onSubscribe: {
                         viewModel.openSettingsScreen(.manageSubscription)
-                    }
+                    },
+                    isSubscribed: viewModel.isSubscribed
                 )
             }
         case .search:

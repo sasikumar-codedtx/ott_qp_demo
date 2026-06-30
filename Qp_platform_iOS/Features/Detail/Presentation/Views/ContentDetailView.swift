@@ -137,6 +137,19 @@ struct ContentDetailView: View {
     @StateObject private var playAlong = PlayAlongDirector()
     private let recommendationColumns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
     private let momentColumns = [GridItem(.flexible(), spacing: 10)]
+    private var keyWindow: UIWindow? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }
+    }
+
+    // Home-indicator inset from the active window — unlike a GeometryReader's bottom inset,
+    // UIKit window safe-area insets do NOT inflate when the keyboard appears.
+    private var stableBottomInset: CGFloat {
+        keyWindow?.safeAreaInsets.bottom ?? 0
+    }
+
     private var isShowingLiveFeedDock: Bool {
         guard let detail = viewModel.detail else { return false }
         let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
@@ -157,7 +170,10 @@ struct ContentDetailView: View {
                 // Live Feed input dock — floats above keyboard
                 if isShowingLiveFeedDock {
                     sportsLiveInputDock
-                        .padding(.bottom, max(keyboardHeight - proxy.safeAreaInsets.bottom, 0))
+                        // Use the window's (keyboard-stable) bottom inset, not proxy's — the
+                        // GeometryReader's bottom inset inflates to ~the keyboard height when the
+                        // keyboard shows, which would collapse this padding and hide the field.
+                        .padding(.bottom, max(keyboardHeight - stableBottomInset, 0))
                         .zIndex(10)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
@@ -666,11 +682,12 @@ struct ContentDetailView: View {
             // 3 action buttons: alert | time stamp | AI sparkles
             HStack(spacing: 8) {
                 DetailActionButton(systemImage: "bell.fill", cornerStyle: .leading, action: { showDemoAlert = true })
-                DetailActionButton(systemImage: "list.bullet.rectangle") {
-                    withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
-                        isTimeStampPresented = true
-                    }
-                }
+                DetailActionButton(systemImage: "list.bullet.rectangle") { showDemoAlert = true }
+//                DetailActionButton(systemImage: "list.bullet.rectangle") {
+//                    withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
+//                        isTimeStampPresented = true
+//                    }
+//                }
                 DetailActionButton(systemImage: AppIcons.Action.sparkles, cornerStyle: .trailing, isHighlighted: true) {
                     presentMomentSearchOverlay(for: detail)
                 }
@@ -1839,7 +1856,12 @@ struct ContentDetailView: View {
 
     @ViewBuilder
     private func tabContent(_ detail: ContentDetail, width: CGFloat) -> some View {
-        switch viewModel.selectedTab {
+        let tabs = detailTabs(for: detail)
+        let activeTab = tabs.contains(viewModel.selectedTab)
+            ? viewModel.selectedTab
+            : (tabs.first ?? AppStrings.Detail.moreLikeThis)
+
+        switch activeTab {
         case AppStrings.Detail.moreLikeThis:
             recommendationSection(width: width)
         case AppStrings.Detail.moments:
@@ -2294,14 +2316,14 @@ struct ContentDetailView: View {
     }
 
     private func updateKeyboardHeight(from notification: Notification) {
-        guard
-            let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
-            let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
-        else { return }
+        guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+        let duration = (notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double) ?? 0.25
 
-        // Use screen height (absolute coordinates) so the calculation is not
-        // affected by proxy.size.height shrinking due to keyboard insets.
-        let height = max(0, UIScreen.main.bounds.height - frame.minY)
+        // Overlap of the keyboard from the bottom of the active window. Use the window's
+        // bounds (not the deprecated UIScreen.main, which can report wrong values under
+        // scene-based lifecycles) so the lift amount is correct.
+        let screenH = keyWindow?.bounds.height ?? UIScreen.main.bounds.height
+        let height = max(0, screenH - frame.minY)
 
         withAnimation(.easeInOut(duration: duration)) {
             keyboardHeight = height

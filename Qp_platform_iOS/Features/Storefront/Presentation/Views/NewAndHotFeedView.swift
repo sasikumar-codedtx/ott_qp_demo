@@ -20,8 +20,10 @@ struct NewAndHotRouteView: View {
                 onPlay: onPlay,
                 onToggleFavorite: onToggleFavorite
             )
-            .ignoresSafeArea(edges: [.top, .bottom])
         }
+        // ignoresSafeArea must sit on the GeometryReader so proxy.safeAreaInsets reports the
+        // real top/bottom insets (otherwise they read 0 and content tucks under the nav title).
+        .ignoresSafeArea(edges: [.top, .bottom])
         .task {
             await viewModel.loadInitialIfNeeded()
         }
@@ -42,7 +44,7 @@ struct NewAndHotFeedView: View {
     @State private var selectedSectionID: String?
     private static let scrollTopID = "new-and-hot-scroll-top"
     private static let routeNavigationHeight: CGFloat = 58
-    private static let contentTopGap: CGFloat = 16
+    private static let contentTopGap: CGFloat = 56   // 16 base + 40 extra clearance below the nav title
 
     // New & Hot mirrors the current storefront's first tab. Keep only playable/detail cards here;
     // collection and shorts are handled by their own flows.
@@ -116,7 +118,11 @@ struct NewAndHotFeedView: View {
             ZStack(alignment: .bottom) {
                 ScrollView(.vertical, showsIndicators: false) {
                     LazyVStack(spacing: 16) {
-                        Color.clear.frame(height: 0).id(Self.scrollTopID)
+                        // Top inset lives in this spacer (not .padding(.top)) so scrollTo(.top)
+                        // pins the spacer — keeping content below the nav title after a tab switch.
+                        Color.clear
+                            .frame(height: topInset + Self.routeNavigationHeight + Self.contentTopGap)
+                            .id(Self.scrollTopID)
 
                         if isRefreshing {
                             StorefrontRefreshIndicator()
@@ -140,7 +146,6 @@ struct NewAndHotFeedView: View {
                         }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, topInset + Self.routeNavigationHeight + Self.contentTopGap)
                     .padding(.bottom, bottomInset + 116)
                 }
                 .onChange(of: scrollToTopToken) { _, _ in scrollToTop(using: scrollProxy) }
@@ -164,10 +169,15 @@ struct NewAndHotFeedView: View {
                         sections: displaySections,
                         selectedID: activeSection?.id,
                         onSelect: { id in
-                            withAnimation(.easeInOut(duration: 0.2)) { selectedSectionID = id }
+                            // Instant switch — no animation (it slid content up from the bottom
+                            // and briefly tucked it under the nav while the scroll reset).
+                            guard id != selectedSectionID else { return }
+                            var tx = Transaction()
+                            tx.disablesAnimations = true
+                            withTransaction(tx) { selectedSectionID = id }
                         }
                     )
-                    .padding(.bottom, bottomInset + 16)
+                    .padding(.bottom, bottomInset + 32)
                     .frame(maxWidth: .infinity)
                     .background(
                         LinearGradient(
@@ -229,7 +239,7 @@ private struct NewHotFilterBar: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 32)
         }
         .shadow(color: Color.black.opacity(0.4), radius: 12, x: 0, y: 6)
     }

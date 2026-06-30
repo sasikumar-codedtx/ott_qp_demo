@@ -199,13 +199,6 @@ actor DemoSessionStore {
 
     func recordContentSelection(_ item: StorefrontItem) {
         let key = historyKey
-        if let signal = storefrontPolicySignal(from: item) {
-            var counts = storefrontPolicyClicksByProfile[key] ?? [:]
-            counts[signal.rawValue, default: 0] += 1
-            storefrontPolicyClicksByProfile[key] = counts
-            UserDefaults.standard.set(storefrontPolicyClicksByProfile, forKey: StorageKey.storefrontPolicyClicksByProfile)
-        }
-
         var continueItems = continueWatchingByProfile[key] ?? []
         let progressValue = item.progress ?? 0.32
         let storedItem = item.withProgress(progressValue)
@@ -217,6 +210,10 @@ actor DemoSessionStore {
         }
         continueWatchingByProfile[key] = continueItems
         persistContinueWatching()
+    }
+
+    func recordStorefrontCardTap(_ item: StorefrontItem) {
+        recordStorefrontPolicySignal(for: item)
     }
 
     func continueWatchingItems(limit: Int = 20) -> [StorefrontItem] {
@@ -404,6 +401,15 @@ actor DemoSessionStore {
         }
 
         return .entertainment
+    }
+
+    private func recordStorefrontPolicySignal(for item: StorefrontItem) {
+        guard let signal = storefrontPolicySignal(from: item) else { return }
+        let key = historyKey
+        var counts = storefrontPolicyClicksByProfile[key] ?? [:]
+        counts[signal.rawValue, default: 0] += 1
+        storefrontPolicyClicksByProfile[key] = counts
+        UserDefaults.standard.set(storefrontPolicyClicksByProfile, forKey: StorageKey.storefrontPolicyClicksByProfile)
     }
 
     private func resolvedStorefrontPolicy(for profileKey: String, baselinePolicy: StorefrontPolicy) -> StorefrontPolicy {

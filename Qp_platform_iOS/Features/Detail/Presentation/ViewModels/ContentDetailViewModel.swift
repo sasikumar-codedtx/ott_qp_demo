@@ -54,7 +54,7 @@ final class ContentDetailViewModel: ObservableObject {
         let currentPath = seed?.detailID ?? seed?.id
 
         seed = item
-        selectedTab = item.seriesId?.nilIfEmpty == nil ? AppStrings.Detail.moreLikeThis : AppStrings.Detail.episodes
+        selectedTab = AppStrings.Detail.moreLikeThis
         isFavorite = false
         likeState = .none
         Task { await loadInteractionState() }
@@ -94,7 +94,7 @@ final class ContentDetailViewModel: ObservableObject {
             let (detail, recommendations) = try await (detailResponse, recommendationResponse)
             self.detail = detail
             self.recommendations = recommendations
-            selectedTab = detail.supportsEpisodes ? AppStrings.Detail.episodes : AppStrings.Detail.moreLikeThis
+            selectedTab = defaultTab(for: detail)
             self.loadedPath = requestKey
             isLoading = false
 
@@ -177,6 +177,10 @@ final class ContentDetailViewModel: ObservableObject {
         isLoadingEpisodes = false
         episodesErrorMessage = nil
         loadedEpisodesSeriesID = nil
+    }
+
+    private func defaultTab(for detail: ContentDetail) -> String {
+        detail.supportsEpisodes ? AppStrings.Detail.episodes : AppStrings.Detail.moreLikeThis
     }
 
     private func loadEpisodes(for detail: ContentDetail, seedSeriesID: String? = nil, force: Bool = false) async {

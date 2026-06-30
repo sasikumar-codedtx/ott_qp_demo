@@ -4,7 +4,7 @@ struct NetworkClient: Sendable {
     nonisolated init() {}
 
     nonisolated func data(for request: URLRequest) async throws -> Data {
-        NetworkLogger.logRequest(request)
+//        NetworkLogger.logRequest(request)
 
         let data: Data
         let response: URLResponse
@@ -14,7 +14,7 @@ struct NetworkClient: Sendable {
             NetworkLogger.logFailure(request: request, error: error)
             throw error
         }
-        NetworkLogger.logResponse(request: request, data: data, response: response)
+//        NetworkLogger.logResponse(request: request, data: data, response: response)
 
         guard let httpResponse = response as? HTTPURLResponse, (200..<300).contains(httpResponse.statusCode) else {
             throw AppError.invalidResponse

@@ -8,6 +8,9 @@ struct StorefrontSportsHeroView: View {
     @State private var position: CGFloat = 0
     @State private var dragStartPosition: CGFloat? = nil
     @State private var isDragging = false
+    // Per-drag axis lock: nil = undecided, true = horizontal (we own it),
+    // false = vertical (ignore so the page can scroll).
+    @State private var dragIsHorizontal: Bool? = nil
 
     private let cardWidthRatio: CGFloat = 0.80
     private let frontLeading:   CGFloat = 0.05   // front card leading edge (ratio of width)
@@ -66,7 +69,9 @@ struct StorefrontSportsHeroView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-                .gesture(swipeGesture(step: step))
+                // Simultaneous + axis-locked: horizontal drags page the hero, vertical
+                // drags fall through to the enclosing ScrollView so the page scrolls.
+                .simultaneousGesture(swipeGesture(step: step))
             }
             .frame(height: StorefrontHeroMetrics.mediaHeight)
 
@@ -83,9 +88,17 @@ struct StorefrontSportsHeroView: View {
     // MARK: - Gesture
 
     private func swipeGesture(step: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 8)
+        // Larger threshold than the ScrollView's pan (~10pt) so a vertical flick lets the
+        // ScrollView win the initial race; a horizontal drag still passes the threshold and pages.
+        DragGesture(minimumDistance: 18)
             .onChanged { value in
                 guard count > 1 else { return }
+                // Decide the axis once per drag. If the first meaningful movement is
+                // vertical, ignore this drag entirely so the ScrollView handles it.
+                if dragIsHorizontal == nil {
+                    dragIsHorizontal = abs(value.translation.width) > abs(value.translation.height)
+                }
+                guard dragIsHorizontal == true else { return }
                 if dragStartPosition == nil {
                     // Capture the position at touch-down. If a settle spring is still
                     // running this is its in-flight target, so a new drag simply takes
@@ -99,7 +112,9 @@ struct StorefrontSportsHeroView: View {
                 position = start - value.translation.width / step
             }
             .onEnded { value in
-                guard count > 1 else { return }
+                let wasHorizontal = dragIsHorizontal == true
+                dragIsHorizontal = nil
+                guard count > 1, wasHorizontal else { return }
                 let start = dragStartPosition ?? position
                 dragStartPosition = nil
                 isDragging = false

@@ -65,19 +65,7 @@ struct StorefrontItem: Identifiable, Equatable, Hashable, Codable {
         if let progress, progress > 0.01 {
             return "Resume"
         }
-
-        switch contentType.lowercased() {
-        case "movie":
-            return "Watch Movie"
-        case "tvseries", "webseries", "webepisode":
-            return "Watch Show"
-        case "trailer":
-            return "Watch Trailer"
-        case let type where type.contains("sport"):
-            return "Watch Live"
-        default:
-            return "Watch Now"
-        }
+        return "Watch Now"
     }
 
     var detailID: String? {

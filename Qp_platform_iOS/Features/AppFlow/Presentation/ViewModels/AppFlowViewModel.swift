@@ -466,6 +466,7 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func openContent(item: StorefrontItem) {
+        Task { await DemoSessionStore.shared.recordStorefrontCardTap(item) }
         switch ContentNavigationPolicy.destination(for: item) {
         case .detail:
             openDetail(item: item)

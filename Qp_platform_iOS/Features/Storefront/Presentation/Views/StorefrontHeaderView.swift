@@ -8,6 +8,7 @@ struct StorefrontHeaderView: View {
 
     let topInset: CGFloat
     var mode: Mode = .standard
+    var isSubscribed: Bool = false
     var onSubscribe: () -> Void = {}
     @State private var showDemoAlert = false
 
@@ -27,7 +28,7 @@ struct StorefrontHeaderView: View {
                             .frame(width: 48, height: 30)
                     }
 
-                    if mode == .standard {
+                    if mode == .standard, !isSubscribed {
                         Button(action: onSubscribe) {
                             HStack(spacing: 8) {
                                 Image(systemName: AppIcons.Action.crown)
