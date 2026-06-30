@@ -66,21 +66,24 @@ struct StorefrontSectionBrowseView: View {
                                         layout: layout,
                                         showsTitle: showsCardTitles
                                     )
-                                    .onAppear {
-                                        Task {
-                                            await viewModel.loadMoreIfNeeded(currentItem: item)
-                                        }
-                                    }
                                 }
                             }
                             .padding(.horizontal, 16)
                             .padding(.top, 6)
-                            .padding(.bottom, 32)
+                            .padding(.bottom, 8)
 
                             if viewModel.isLoadingMore {
                                 ProgressView()
                                     .tint(.white)
-                                    .padding(.bottom, 24)
+                                    .padding(.vertical, 24)
+                            } else if viewModel.hasMoreItems {
+                                Color.clear
+                                    .frame(height: 1)
+                                    .onAppear {
+                                        Task { await viewModel.loadMoreIfNeeded() }
+                                    }
+                            } else {
+                                Color.clear.frame(height: 32)
                             }
                         }
                     }
@@ -175,11 +178,6 @@ struct StorefrontSectionBrowseView: View {
                                 rank: nil,
                                 onSelect: onSelectItem
                             )
-                            .onAppear {
-                                Task {
-                                    await viewModel.loadMoreIfNeeded(currentItem: item)
-                                }
-                            }
                         }
                     }
                     .padding(.horizontal, horizontalPadding)
@@ -189,6 +187,12 @@ struct StorefrontSectionBrowseView: View {
                             .tint(.white)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 18)
+                    } else if viewModel.hasMoreItems {
+                        Color.clear
+                            .frame(height: 1)
+                            .onAppear {
+                                Task { await viewModel.loadMoreIfNeeded() }
+                            }
                     }
                 }
                 .padding(.top, 8)
