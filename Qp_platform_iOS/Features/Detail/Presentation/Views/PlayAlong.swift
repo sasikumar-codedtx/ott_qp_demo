@@ -22,12 +22,12 @@ struct PlayAlongQuestion: Identifiable, Equatable {
     /// Length of the answering window — drives the countdown (e.g. 36s).
     var answerDuration: Double { max(0, end - start) }
 
-    /// When the overlay finally dismisses. The data sometimes places the reveal time
-    /// at — or just before — end_time, so guarantee a short hold after the lock so the
-    /// revealed answer is always visible before the panel closes.
-    var dismissTime: Double { max(revealAt, end + revealHold) }
+    /// When the overlay dismisses: a fixed short hold after the lock so the revealed
+    /// answer + animation are clearly visible, then it closes. (The data's
+    /// answer_revealed_time is unreliable — often at/before end_time — so it's not used.)
+    var dismissTime: Double { end + revealHold }
 
-    private var revealHold: Double { 4 }
+    private var revealHold: Double { 5 }
 }
 
 // MARK: - Catalog (gated to the KBC / play-along content)

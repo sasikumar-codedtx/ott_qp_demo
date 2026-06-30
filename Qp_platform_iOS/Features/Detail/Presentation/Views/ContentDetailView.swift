@@ -183,13 +183,19 @@ struct ContentDetailView: View {
                     // directly below the player (video keeps playing above it).
                     if let q = playAlong.activeQuestion {
                         let mediaH = proxy.size.width * 9 / 16
+                        // Video draws from the physical top; its bottom sits at
+                        // safeAreaTop + navBar(58) + videoHeight. Pin the panel's top exactly
+                        // there with a spacer in a full-screen stack that ignores all safe areas,
+                        // so it's always flush with the video — no bottom-alignment/inset guesswork.
                         let playerBottom = proxy.safeAreaInsets.top + 58 + mediaH
-                        let panelH = proxy.size.height - playerBottom
-                        quizOverlay(question: q, width: proxy.size.width)
-                            .frame(width: proxy.size.width, height: max(260, panelH))
-                            .ignoresSafeArea(edges: .bottom)
-                            .zIndex(41)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                        VStack(spacing: 0) {
+                            Color.clear.frame(height: playerBottom)
+                            quizOverlay(question: q, width: proxy.size.width)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                        .ignoresSafeArea()
+                        .zIndex(41)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 case .idle:
                     EmptyView()
@@ -316,28 +322,25 @@ struct ContentDetailView: View {
                     ? viewModel.episodes.first?.quickplayPlaybackContent()
                     : detail.quickplayPlaybackContent(fallback: viewModel.seed))
             let navBarHeight: CGFloat = 58
-            let headerHeight: CGFloat = isVideoReady
-                ? safeAreaTop + navBarHeight + width * 9 / 16
-                : UIScreen.main.bounds.width * 3 / 2
+            let headerHeight: CGFloat = safeAreaTop + navBarHeight + width * 9 / 16
 
             ZStack(alignment: .top) {
                 Color(hex: "0A0A0A").ignoresSafeArea()
 
                 // Player sits OUTSIDE the ScrollView — it is truly fixed and never moves.
                 // VStack with ignoresSafeArea(edges:.top) makes it start at absolute y=0.
-                // When showing the poster (not video), content overlaps the image from the bottom.
-                // overlapHeight: how far the scroll view is pulled up into the image.
-                // gradientHeight: 40% of image height — solid black at bottom, fading to clear.
-                let imageHeight: CGFloat  = width * 3 / 2
-                let overlapHeight: CGFloat = isVideoReady ? 0 : width * 0.55
-                let gradientHeight: CGFloat = isVideoReady ? 0 : imageHeight * 0.58
+                // Poster and player share the same 16:9 media frame so the image-to-video
+                // transition keeps identical top and bottom edges.
+                let mediaHeight: CGFloat = width * 9 / 16
+                let overlapHeight: CGFloat = 0
+                let gradientHeight: CGFloat = isVideoReady ? 0 : mediaHeight * 0.72
 
                 VStack(spacing: 0) {
                     if let playerContent = resolvedPlayerContent {
                     DetailInlinePlayerView(
                         engine: engine,
                         content: playerContent,
-                        posterURL: detail.imageURL(for: "0-2x3", width: Int(width * 3)),
+                        posterURL: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
                         height: headerHeight,
                         safeAreaTop: safeAreaTop,
                         navBarHeight: navBarHeight,
@@ -362,7 +365,7 @@ struct ContentDetailView: View {
                 } else {
                     // Episodes not yet loaded — show static poster until first episode is ready
                     PosterImageView(
-                        url: detail.imageURL(for: "0-2x3", width: Int(width * 3)),
+                        url: detail.imageURL(for: "0-16x9", width: Int(width * 3)),
                         size: CGSize(width: width, height: headerHeight),
                         cornerRadius: 0
                     )
@@ -2049,10 +2052,6 @@ struct ContentDetailView: View {
                             .foregroundStyle(Color(hex: "22C55E"))
                             .padding(.top, 16)
                     }
-
-                    kbcLifelineRow
-                        .padding(.top, 20)
-                        .padding(.bottom, 40)
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -2251,15 +2250,6 @@ struct ContentDetailView: View {
         .animation(.easeInOut(duration: 0.2), value: playAlongIsRevealing)
     }
 
-    // ── Lifelines row ─────────────────────────────────────────────────────
-    private var kbcLifelineRow: some View {
-        HStack(spacing: 8) {
-            kbcLifelineBtn(label: "50:50",  icon: nil)
-            kbcLifelineBtn(label: nil,      icon: "arrow.clockwise")
-            kbcLifelineBtn(label: nil,      icon: "person.fill")
-            kbcLifelineBtn(label: nil,      icon: "chart.bar.fill")
-        }
-    }
 
     private func kbcLifelineBtn(label: String?, icon: String?) -> some View {
         Button {} label: {
