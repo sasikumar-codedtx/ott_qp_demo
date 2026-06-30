@@ -3,11 +3,11 @@
   "totalDurationSeconds": 856,
   "markers": [
     { "id": "w2",  "timestampSeconds": 23,  "type": "wicket",    "label": "W",   "playerName": "S Verma" },
-    { "id": "ms1", "timestampSeconds": 126, "type": "milestone", "label": "50",  "playerName": "IND W 50" },
-    { "id": "ms2", "timestampSeconds": 229, "type": "milestone", "label": "100", "playerName": "IND W 100" },
+    { "id": "ms1", "timestampSeconds": 148, "type": "milestone", "label": "50",  "playerName": "IND W 50" },
     { "id": "w4",  "timestampSeconds": 340, "type": "wicket",    "label": "W",   "playerName": "J Rodrigues" },
-    { "id": "w8",  "timestampSeconds": 534, "type": "four",    "label": "4",   "playerName": "S Dunkley" },
+    { "id": "w8",  "timestampSeconds": 557, "type": "six",    "label": "6",   "playerName": "S Dunkley" },
     { "id": "w9",  "timestampSeconds": 610, "type": "wicket",    "label": "W",   "playerName": "T Beaumont" },
-    { "id": "w10", "timestampSeconds": 712, "type": "four",      "label": "4",   "playerName": "H Knight" }
+    { "id": "w10", "timestampSeconds": 712, "type": "four",      "label": "4",   "playerName": "H Knight" },
+    { "id": "w12", "timestampSeconds": 817, "type": "wicket",    "label": "W",   "playerName": "A Capsey" }
   ]
 }
