@@ -91,11 +91,11 @@ final class SearchViewModel: ObservableObject {
         isLoading = false
         currentSearchTerm = ""
     }
-
+    
     private func loadInitialContent() async {
         // displayQuery: "" matches normalizedQuery "" so results are applied.
         // term: "Recent" is what the API receives.
-        await performSearch(term: "Recent", facetTerm: nil, shouldUpdateFilters: false, displayQuery: "")
+        await performSearch(term: "Trending shows", facetTerm: nil, shouldUpdateFilters: false, displayQuery: "")
     }
 
     var normalizedQuery: String {

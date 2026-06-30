@@ -120,12 +120,6 @@ struct StorefrontSectionView: View {
                 StorefrontSportsHeroView(items: section.items, onSelectItem: onSelectItem)
                     .frame(height: StorefrontHeroMetrics.slotHeight)
             }
-        case .immersive:
-            StorefrontImmersiveHeroView(
-                items: section.items,
-                topChromeHeight: topChromeHeight,
-                onSelectItem: onSelectItem
-            )
         }
     }
 }
@@ -302,7 +296,6 @@ private struct StorefrontBackgroundSectionCard: View {
 enum StorefrontHeroVariant {
     case carousel
     case stackedSports
-    case immersive
 }
 
 enum StorefrontHeroMetrics {

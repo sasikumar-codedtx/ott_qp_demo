@@ -42,9 +42,9 @@ struct DetailInlinePlayerView: View {
                         .animation(.easeInOut(duration: 0.35), value: engine.isFinished)
                         .allowsHitTesting(false)
 
-                    if engine.isReady && showControls && !engine.isFinished {
+                    if engine.isReady && !engine.isFinished {
                         LinearGradient(
-                            colors: [.black.opacity(0.3), .clear, .black.opacity(0.55)],
+                            colors: [.black.opacity(0.2), .clear, .black.opacity(0.66)],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -103,30 +103,36 @@ struct DetailInlinePlayerView: View {
     private var controls: some View {
         ZStack {
             // Play/pause — centered
-            Button(action: engine.togglePlayPause) {
-                Image(systemName: engine.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 30, weight: .medium))
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.5), radius: 6, x: 0, y: 2)
-                    .frame(width: 52, height: 52)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .animation(.easeInOut(duration: 0.15), value: engine.isPlaying)
-
-            // Bottom: mute | fullscreen + seekbar
-            VStack(spacing: 0) {
-                Spacer()
-                HStack {
-                    PlayerChromeIconButton(
-                        assetImage: engine.isMuted ? "volume-off" : "volume-high",
-                        action: engine.toggleMute
-                    )
-                    Spacer()
-                    PlayerChromeIconButton(systemImage: "arrow.up.left.and.arrow.down.right", action: onFullscreen)
+            if showControls {
+                Button(action: engine.togglePlayPause) {
+                    Image(systemName: engine.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: 30, weight: .medium))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.5), radius: 6, x: 0, y: 2)
+                        .frame(width: 52, height: 52)
+                        .contentShape(Rectangle())
                 }
-                .padding(.horizontal, 12)
-                .padding(.bottom, 6)
+                .buttonStyle(.plain)
+                .animation(.easeInOut(duration: 0.15), value: engine.isPlaying)
+                .transition(.opacity)
+            }
+
+            // The timeline stays pinned to the video bottom; controls fade like play/pause.
+            VStack(spacing: showControls ? 7 : 0) {
+                Spacer()
+
+                if showControls {
+                    HStack {
+                        PlayerChromeIconButton(
+                            assetImage: engine.isMuted ? "volume-off" : "volume-high",
+                            action: engine.toggleMute
+                        )
+                        Spacer()
+                        PlayerChromeIconButton(systemImage: "arrow.up.left.and.arrow.down.right", action: onFullscreen)
+                    }
+                    .padding(.horizontal, 12)
+                    .transition(.opacity)
+                }
 
                 DetailSeekBar(
                     currentTime: engine.currentTime,
@@ -134,7 +140,9 @@ struct DetailInlinePlayerView: View {
                     isSeeking: $isSeeking,
                     seekPosition: $seekPosition
                 )
+                .frame(height: 14)
             }
+            .animation(.easeInOut(duration: 0.2), value: showControls)
         }
     }
 }
@@ -162,17 +170,18 @@ private struct DetailSeekBar: View {
         GeometryReader { proxy in
             let w = proxy.size.width
             let thumbR: CGFloat = 6
+            let barHeight: CGFloat = isSeeking ? 4 : 2.5
             let filled = max(0, CGFloat(progress) * w)
 
             ZStack(alignment: .leading) {
                 Rectangle()
                     .fill(Color.white.opacity(0.3))
-                    .frame(height: isSeeking ? 4 : 2)
+                    .frame(height: barHeight)
                     .animation(.easeInOut(duration: 0.18), value: isSeeking)
 
                 Rectangle()
                     .fill(Color.white)
-                    .frame(width: filled, height: isSeeking ? 4 : 2)
+                    .frame(width: filled, height: barHeight)
                     .animation(.easeInOut(duration: 0.18), value: isSeeking)
 
                 Circle()
@@ -208,7 +217,7 @@ private struct DetailSeekBar: View {
                 lockedPosition = nil
             }
         }
-        .frame(height: 44)
+        .frame(height: 14)
     }
 }
 

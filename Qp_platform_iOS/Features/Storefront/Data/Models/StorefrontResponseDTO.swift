@@ -337,6 +337,8 @@ struct QuickplayContentItemDTO: Decodable {
     let q: String?
     let lon: [LocalizedTextDTO]?
     let lod: [LocalizedTextDTO]?
+    let lodtg: [LocalizedTextDTO]?
+    let custSprTg: [SponsorTagDTO]?
     let log: [LocalizedTextListDTO]?
     let ph: [LocalizedTextListDTO]?
     let rat: [StorefrontRatingDTO]?
@@ -347,6 +349,7 @@ struct QuickplayContentItemDTO: Decodable {
     let vq: String?
     let rt: Int?
     let apURL: String?
+    let hu: String?
     let nu: String?
     let urn: String?
     let locs: [ContentPersonDTO]?
@@ -366,6 +369,8 @@ struct QuickplayContentItemDTO: Decodable {
         case q
         case lon
         case lod
+        case lodtg
+        case custSprTg = "cust_spr_tg"
         case log
         case ph
         case rat
@@ -376,6 +381,7 @@ struct QuickplayContentItemDTO: Decodable {
         case vq
         case rt
         case apURL = "ap_url"
+        case hu
         case nu
         case urn
         case locs
@@ -389,9 +395,9 @@ struct QuickplayContentItemDTO: Decodable {
     func toDomain(config: QuickplayRuntimeConfig, progress: Double? = nil) -> StorefrontItem {
         StorefrontItem(
             id: id,
-            title: lon?.preferredText ?? "Untitled",
+            title: lon?.preferredText ?? "",
             description: lod?.preferredText ?? "",
-            contentType: cty ?? "content",
+            contentType: cty ?? "",
             cardType: ty,
             customSearchCategory: custSc,
             customID: custId,
@@ -404,35 +410,38 @@ struct QuickplayContentItemDTO: Decodable {
             releaseDate: yearDate,
             genres: log?.preferredList ?? [],
             rating: rat?.first?.v,
-            isPremium: pt == "SVOD",
+            isPremium: urn?.lowercased().contains("premium") ?? false,
             quality: vq,
             availableRatios: ia ?? [],
             runtimeSeconds: rt,
             progress: progress,
             canOpenDetail: true,
             previewURL: apURL.flatMap(URL.init(string:)),
-            imageBaseURL: config.imageResizeURL
+            shortVideoURL: (hu ?? "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_1MB.mp4").flatMap(URL.init(string:)),
+            imageBaseURL: config.imageResizeURL,
+            customTag: lodtg?.preferredText ?? "",
+            sponsorName: custSprTg?.first?.lon?.preferredText.nilIfEmpty
         )
     }
 
     func toDetailDomain(config: QuickplayRuntimeConfig) -> ContentDetail {
         ContentDetail(
             id: id,
-            title: lon?.preferredText ?? "Untitled",
+            title: lon?.preferredText ?? "",
             description: lod?.preferredText ?? "",
-            contentType: cty ?? "content",
+            contentType: cty ?? "",
             year: yearDate.flatMap { String($0.prefix(4)) },
             genres: log?.preferredList ?? [],
             rating: rat?.first?.v,
             runtimeSeconds: rt,
             quality: vq,
-            isPremium: pt == "SVOD",
-            hasFreePreview: ad?.value == true || ae?.value == true,
+            isPremium: urn?.lowercased().contains("premium") ?? false ,
+            hasFreePreview: false,
             sponsorNames: ph?.preferredList ?? [],
             availableRatios: ia ?? [],
             cast: (locs ?? []).map { $0.toDomain(config: config) },
             directorNames: (lodr ?? []).map(\.localizedName),
-            momentSearchEnabled: (vsm ?? []).contains(where: { $0.ff?.value == true }),
+            momentSearchEnabled: true,
             seriesId: seriesID,
             previewURL: apURL.flatMap(URL.init(string:)),
             imageBaseURL: config.imageResizeURL
@@ -455,6 +464,7 @@ struct QuickplayCollectionItemDTO: Decodable {
     let q: String?
     let ia: [String]?
     let lon: [LocalizedTextDTO]?
+    let lodtg: [LocalizedTextDTO]?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -465,6 +475,7 @@ struct QuickplayCollectionItemDTO: Decodable {
         case q
         case ia
         case lon
+        case lodtg
     }
 
     func toDomain(config: QuickplayRuntimeConfig) -> StorefrontItem {
@@ -492,7 +503,10 @@ struct QuickplayCollectionItemDTO: Decodable {
             progress: nil,
             canOpenDetail: true,
             previewURL: nil,
-            imageBaseURL: config.imageResizeURL
+            shortVideoURL: nil,
+            imageBaseURL: config.imageResizeURL,
+            customTag: lodtg?.preferredText ?? "",
+            sponsorName: nil
         )
     }
 }
@@ -500,6 +514,11 @@ struct QuickplayCollectionItemDTO: Decodable {
 struct LocalizedTextDTO: Decodable {
     let lang: String?
     let n: String
+}
+
+// Sponsor tag (cust_spr_tg). The sponsor name is the first entry's `lon` text.
+struct SponsorTagDTO: Decodable {
+    let lon: [LocalizedTextDTO]?
 }
 
 struct QuickplayContainersResponseDTO: Decodable {

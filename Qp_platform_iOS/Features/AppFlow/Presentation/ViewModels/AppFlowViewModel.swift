@@ -14,7 +14,6 @@ final class AppFlowViewModel: ObservableObject {
         case storefront
         case search
         case shorts
-        case hot
     }
 
     enum ProfileEditorRoute: Hashable {
@@ -31,6 +30,7 @@ final class AppFlowViewModel: ObservableObject {
         case otp
         case search
         case aiSearch
+        case hot
         case profileEditor(ProfileEditorRoute)
         case avatarPicker(AvatarPickerRoute)
         case profileHome
@@ -40,6 +40,7 @@ final class AppFlowViewModel: ObservableObject {
         case detail(StorefrontItem)
         case sectionBrowse(StorefrontSection, QuickplayCohort)
         case collectionBrowse(StorefrontItem, QuickplayCohort)
+        case shortsCollection
     }
 
     @Published var rootScreen: RootScreen = .splash
@@ -51,6 +52,8 @@ final class AppFlowViewModel: ObservableObject {
     @Published var playerEpisodes: [StorefrontItem] = []
     @Published var playerSeasons: [ContentSeason] = []
     @Published var cohortOverrideToast: String?
+    @Published private(set) var isSubscribed = false
+    @Published private(set) var isProcessingSubscription = false
     let playerEngine = QuickplayPlayerEngine()
 
     let authViewModel: AuthViewModel
@@ -58,10 +61,10 @@ final class AppFlowViewModel: ObservableObject {
     let profileEditorViewModel: ProfileEditorViewModel
     let profileHubViewModel: ProfileHubViewModel
     let storefrontViewModel: StorefrontViewModel
-    let hotStorefrontViewModel: StorefrontViewModel
     let storefrontSectionBrowseViewModel: StorefrontSectionBrowseViewModel
     let searchViewModel: SearchViewModel
     let shortsViewModel: ShortsFeedViewModel
+    let shortsCollectionViewModel: ShortsFeedViewModel
     let detailViewModel: ContentDetailViewModel
 
     private let profileRepository: ProfileRepository
@@ -97,11 +100,6 @@ final class AppFlowViewModel: ObservableObject {
             pageUseCase: GetStorefrontPageUseCase(repository: container.storefrontRepository)
         )
 
-        hotStorefrontViewModel = StorefrontViewModel(
-            initialUseCase: GetInitialStorefrontUseCase(repository: container.storefrontRepository),
-            pageUseCase: GetStorefrontPageUseCase(repository: container.storefrontRepository)
-        )
-
         storefrontSectionBrowseViewModel = StorefrontSectionBrowseViewModel(
             useCase: GetStorefrontSectionPageUseCase(repository: container.storefrontRepository)
         )
@@ -111,6 +109,10 @@ final class AppFlowViewModel: ObservableObject {
         )
 
         shortsViewModel = ShortsFeedViewModel(
+            useCase: GetShortsBatchUseCase(repository: container.shortsRepository)
+        )
+
+        shortsCollectionViewModel = ShortsFeedViewModel(
             useCase: GetShortsBatchUseCase(repository: container.shortsRepository)
         )
 
@@ -152,6 +154,14 @@ final class AppFlowViewModel: ObservableObject {
         await DemoSessionStore.shared.setHasCompletedLogin(true)
         await profileSelectionViewModel.load()
         navigationPath.removeAll()
+
+        if profileSelectionViewModel.profiles.isEmpty {
+            await profileEditorViewModel.prepareForCreate()
+            rootScreen = .profileSelection
+            navigationPath = [.avatarPicker(.createNew)]
+            return
+        }
+
         rootScreen = .profileSelection
     }
 
@@ -164,7 +174,6 @@ final class AppFlowViewModel: ObservableObject {
     func selectProfile(_ profile: Profile) {
         activeProfile = profile
         storefrontViewModel.applyProfile(profile, forceReset: true)
-        hotStorefrontViewModel.applyProfile(profile, forceReset: true)
 
         Task {
             let selectedCohort = profile.cohort
@@ -179,6 +188,8 @@ final class AppFlowViewModel: ObservableObject {
             navigationPath.removeAll()
             mainTab = .storefront
             rootScreen = .main
+            await refreshSubscription()
+            Task { await shortsViewModel.prefetchForActiveProfile() }
             await storefrontViewModel.reloadInitial(force: true)
         }
     }
@@ -282,14 +293,51 @@ final class AppFlowViewModel: ObservableObject {
         popRoute()
     }
 
-    func openShorts() {
+    func openShorts(startingWith item: StorefrontItem? = nil) {
         navigationPath.removeAll()
         mainTab = .shorts
+        Task {
+            await shortsViewModel.open(startingWith: item)
+        }
+    }
+
+    /// Tapping a short opens a dedicated, pushed vertical player seeded with the rail /
+    /// collection / view-all it came from (starting on the tapped short) — instead of
+    /// switching to the global Shorts tab.
+    func openShortsCollection(startingWith item: StorefrontItem) {
+        let items = shortsCollectionItems(startingWith: item)
+        shortsCollectionViewModel.present(items: items, startingAt: item)
+        push(.shortsCollection)
+    }
+
+    private func shortsCollectionItems(startingWith item: StorefrontItem) -> [StorefrontItem] {
+        // Prefer the section the short belongs to (its rail / collection / view-all);
+        // fall back to every short in the current storefront, then to the item alone.
+        var sourceLists: [[StorefrontItem]] = []
+        if !storefrontSectionBrowseViewModel.items.isEmpty {
+            sourceLists.append(storefrontSectionBrowseViewModel.items)
+        }
+        sourceLists.append(contentsOf: storefrontViewModel.firstTabSections.map(\.items))
+        sourceLists.append(contentsOf: storefrontViewModel.sections.map(\.items))
+
+        let containingList = sourceLists.first { $0.contains(where: { $0.id == item.id }) }
+        let pool = containingList ?? sourceLists.flatMap { $0 }
+
+        var seen = Set<String>()
+        var shorts = pool
+            .filter { $0.isShortFormContent || $0.id == item.id }
+            .filter { seen.insert($0.id).inserted }
+
+        if !shorts.contains(where: { $0.id == item.id }) {
+            shorts.insert(item, at: 0)
+        }
+        return shorts
     }
 
     func openProfileHome() {
         let profile = activeProfile ?? profileSelectionViewModel.defaultEditableProfile
         profileHubViewModel.present(profile: profile, seedItems: storefrontViewModel.searchSeedItems)
+        Task { await refreshSubscription() }
         push(.profileHome)
     }
 
@@ -298,7 +346,26 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func openSettings() {
+        Task { await refreshSubscription() }
         push(.settings)
+    }
+
+    // MARK: - Subscription
+
+    func refreshSubscription() async {
+        isSubscribed = await DemoSessionStore.shared.isSubscribed(for: activeProfile?.id)
+    }
+
+    func setSubscription(_ active: Bool) {
+        guard !isProcessingSubscription else { return }
+        isProcessingSubscription = true
+        Task {
+            // Simulate the subscription API call — used for both activate and cancel.
+            try? await Task.sleep(for: .seconds(1.4))
+            await DemoSessionStore.shared.setSubscribed(active, for: activeProfile?.id)
+            isSubscribed = active
+            isProcessingSubscription = false
+        }
     }
 
     func openSettingsScreen(_ screen: SettingsScreen) {
@@ -323,7 +390,6 @@ final class AppFlowViewModel: ObservableObject {
         authViewModel.resetOTPState()
         activeProfile = nil
         storefrontViewModel.applyProfile(nil)
-        hotStorefrontViewModel.applyProfile(nil)
         Task {
             await DemoSessionStore.shared.clearActiveProfileContext()
         }
@@ -360,7 +426,7 @@ final class AppFlowViewModel: ObservableObject {
                 isKidsProfile: profile.isKidsProfile
             )
             storefrontViewModel.applyProfile(profile, forceReset: true)
-            hotStorefrontViewModel.applyProfile(profile, forceReset: true)
+            Task { await shortsViewModel.prefetchForActiveProfile() }
             await storefrontViewModel.reloadInitial(force: true)
             profileHubViewModel.present(profile: profile, seedItems: storefrontViewModel.searchSeedItems)
         }
@@ -369,7 +435,6 @@ final class AppFlowViewModel: ObservableObject {
     func switchActiveProfileAndOpenStorefront(_ profile: Profile) {
         activeProfile = profile
         storefrontViewModel.applyProfile(profile, forceReset: true)
-        hotStorefrontViewModel.applyProfile(profile, forceReset: true)
 
         Task {
             let selectedCohort = profile.cohort
@@ -384,14 +449,15 @@ final class AppFlowViewModel: ObservableObject {
             navigationPath.removeAll()
             mainTab = .storefront
             rootScreen = .main
+            await refreshSubscription()
+            Task { await shortsViewModel.prefetchForActiveProfile() }
             await storefrontViewModel.reloadInitial(force: true)
             profileHubViewModel.present(profile: profile, seedItems: storefrontViewModel.searchSeedItems)
         }
     }
 
     func openHotTab() {
-        navigationPath.removeAll()
-        mainTab = .hot
+        push(.hot)
     }
 
     func openStorefrontTab(_ tab: StorefrontTab) {
@@ -404,7 +470,11 @@ final class AppFlowViewModel: ObservableObject {
         case .detail:
             openDetail(item: item)
         case .player:
-            openPlayerBackedContent(item)
+            if item.isShortFormContent {
+                openShortsCollection(startingWith: item)
+            } else {
+                openPlayerBackedContent(item)
+            }
         case .collection:
             openCollectionBrowse(item: item, cohort: storefrontViewModel.activeCohort)
         case .unsupported:
@@ -423,16 +493,18 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func openDetail(item: StorefrontItem) {
-        detailViewModel.present(item: item)
         push(.detail(item))
     }
 
     func replaceDetail(item: StorefrontItem) {
-        detailViewModel.present(item: item)
-        replaceTopRoute(with: .detail(item))
+        openDetail(item: item)
     }
 
     func play(item: StorefrontItem) {
+        if item.isShortFormContent {
+            openShortsCollection(startingWith: item)
+            return
+        }
         Task { await DemoSessionStore.shared.recordContentSelection(item) }
         activePlaybackContent = item.quickplayPlaybackContent()
     }
@@ -443,11 +515,27 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     func play(detail: ContentDetail, fallback item: StorefrontItem?) {
-        playerEpisodes = detailViewModel.episodes
-        playerSeasons = detailViewModel.seasons
+        play(
+            detail: detail,
+            fallback: item,
+            seed: viewModel(for: detail),
+            episodes: detailViewModel.episodes,
+            seasons: detailViewModel.seasons
+        )
+    }
+
+    func play(
+        detail: ContentDetail,
+        fallback item: StorefrontItem?,
+        seed: StorefrontItem?,
+        episodes: [StorefrontItem],
+        seasons: [ContentSeason]
+    ) {
+        playerEpisodes = episodes
+        playerSeasons = seasons
 
         // Record for continue watching — use the seed item so progress is preserved.
-        let seedToRecord = item ?? viewModel(for: detail)
+        let seedToRecord = item ?? seed
         if let seedToRecord { Task { await DemoSessionStore.shared.recordContentSelection(seedToRecord) } }
 
         // If the engine is already playing a different episode (e.g. user switched
@@ -497,6 +585,10 @@ final class AppFlowViewModel: ObservableObject {
     }
 
     private func openPlayerBackedContent(_ item: StorefrontItem) {
+        if item.isShortFormContent {
+            openShortsCollection(startingWith: item)
+            return
+        }
         activePlaybackContent = item.quickplayPlaybackContent()
     }
 
@@ -511,8 +603,10 @@ final class AppFlowViewModel: ObservableObject {
             authViewModel.resetOTPState()
         }
 
-        if let lastRoute = newPath.last, case let .detail(item) = lastRoute {
-            detailViewModel.present(item: item)
+        if oldPath.contains(where: { $0.isDetailRoute }),
+           !newPath.contains(where: { $0.isDetailRoute }),
+           activePlaybackContent == nil {
+            playerEngine.release()
         }
     }
 
@@ -534,4 +628,11 @@ final class AppFlowViewModel: ObservableObject {
         navigationPath[navigationPath.count - 1] = route
     }
 
+}
+
+private extension AppFlowViewModel.Route {
+    var isDetailRoute: Bool {
+        if case .detail = self { return true }
+        return false
+    }
 }

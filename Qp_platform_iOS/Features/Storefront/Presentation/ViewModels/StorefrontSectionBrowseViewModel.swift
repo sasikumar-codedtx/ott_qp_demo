@@ -36,6 +36,10 @@ final class StorefrontSectionBrowseViewModel: ObservableObject {
         items.isEmpty && (isInitialLoading || isAwaitingInitialLoad)
     }
 
+    var shouldShowCardTitles: Bool {
+        section?.backgroundImageURL != nil
+    }
+
     var isRecommendedSection: Bool {
         guard let section else { return false }
         let source = "\(section.id) \(section.title)".lowercased()

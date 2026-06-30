@@ -33,12 +33,16 @@ final class ContentDetailViewModel: ObservableObject {
         detailUseCase: GetContentDetailUseCase,
         recommendationsUseCase: GetRecommendationsUseCase,
         momentsUseCase: GetContentMomentsUseCase,
-        episodesUseCase: GetContentEpisodesUseCase
+        episodesUseCase: GetContentEpisodesUseCase,
+        initialItem: StorefrontItem? = nil
     ) {
         self.detailUseCase = detailUseCase
         self.recommendationsUseCase = recommendationsUseCase
         self.momentsUseCase = momentsUseCase
         self.episodesUseCase = episodesUseCase
+        if let initialItem {
+            present(item: initialItem)
+        }
     }
 
     var requestKey: String {

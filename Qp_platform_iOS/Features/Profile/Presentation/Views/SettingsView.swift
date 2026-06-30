@@ -12,11 +12,13 @@ struct SettingsView: View {
     let onVoiceAISearchChange: (Bool) -> Void
     let onAddProfile: () -> Void
     let onEditProfiles: () -> Void
+    let isSubscribed: Bool
+    let isProcessingSubscription: Bool
+    let onSetSubscription: (Bool) -> Void
 
     @State private var showsProfileSwitch = false
     @State private var showDemoAlert = false
     @State private var activeAudioSheet: AudioSelectionSheet?
-    @State private var hasActiveSubscription: Bool
     @State private var selectedAudioQuality = "Dolby 5.1 ( Default )"
     @State private var selectedSubtitleLanguage = "English ( Default )"
     @State private var selectedAudioTrack = "Hindi ( Default )"
@@ -37,7 +39,10 @@ struct SettingsView: View {
         onSelectProfile: @escaping (Profile) -> Void,
         onVoiceAISearchChange: @escaping (Bool) -> Void,
         onAddProfile: @escaping () -> Void,
-        onEditProfiles: @escaping () -> Void
+        onEditProfiles: @escaping () -> Void,
+        isSubscribed: Bool,
+        isProcessingSubscription: Bool,
+        onSetSubscription: @escaping (Bool) -> Void
     ) {
         self.screen = screen
         self.activeProfile = activeProfile
@@ -50,12 +55,17 @@ struct SettingsView: View {
         self.onVoiceAISearchChange = onVoiceAISearchChange
         self.onAddProfile = onAddProfile
         self.onEditProfiles = onEditProfiles
-        _hasActiveSubscription = State(initialValue: AppEnvironment.Demo.hasActiveSubscription)
+        self.isSubscribed = isSubscribed
+        self.isProcessingSubscription = isProcessingSubscription
+        self.onSetSubscription = onSetSubscription
     }
 
     private var currentProfile: Profile? {
         activeProfile ?? profiles.first
     }
+
+    // Driven by the account's persisted subscription state (see AppFlowViewModel).
+    private var hasActiveSubscription: Bool { isSubscribed }
 
     private var currentScreen: SettingsScreen {
         screen
@@ -68,11 +78,7 @@ struct SettingsView: View {
 
                 overlayLayer
             }
-            .routeNavigationOverlay(title: currentScreen.title, onBack: handleBack) {
-                if currentScreen == .root {
-                    RouteNavigationIconButton(icon: AppIcons.Action.headphones, action: { showDemoAlert = true })
-                }
-            }
+            .routeNavigationOverlay(title: currentScreen.title, onBack: handleBack)
             .animation(.easeInOut(duration: 0.22), value: currentScreen)
             .animation(.easeInOut(duration: 0.22), value: showsProfileSwitch)
             .animation(.easeInOut(duration: 0.22), value: activeAudioSheet)
@@ -118,18 +124,22 @@ struct SettingsView: View {
             documentPage(
                 title: "Terms and Conditions",
                 sections: [
-                    SettingsDocumentSection(title: "Membership", body: "This build uses mocked profile creation and mocked subscription control. The visual flow matches Sony LIV, while actions are local to the demo."),
-                    SettingsDocumentSection(title: "Usage", body: "Use the app for design validation, API integration planning, and interaction walkthroughs. Streaming, billing, and purchase flows are not live in this prototype."),
-                    SettingsDocumentSection(title: "Profiles", body: "Profile creation, cohort choice, and parental toggles are stored locally in demo state so the experience feels functional during review.")
+                    SettingsDocumentSection(title: "Acceptance of Terms", body: "By creating an account and using this app, you agree to these Terms and Conditions and to our Privacy Policy. If you do not agree, please discontinue use of the service."),
+                    SettingsDocumentSection(title: "Membership & Billing", body: "Paid plans renew automatically at the end of each billing cycle unless cancelled beforehand. Prices include applicable taxes and may change with prior notice. You can review, change, or cancel your membership anytime from Subscription settings."),
+                    SettingsDocumentSection(title: "Acceptable Use", body: "Content is licensed for personal, non-commercial viewing only. You may not copy, redistribute, publicly perform, or attempt to bypass any content protection. Access may be limited outside your registered household or region."),
+                    SettingsDocumentSection(title: "Profiles & Content", body: "Profiles, parental controls, and title availability vary by region and entitlement. We may add, remove, or update titles and features at any time without prior notice."),
+                    SettingsDocumentSection(title: "Limitation of Liability", body: "The service is provided on an \"as available\" basis. To the extent permitted by law, we are not liable for service interruptions, content changes, or losses arising from use of the app.")
                 ]
             )
         case .privacy:
             documentPage(
-                title: "Privacy Polices",
+                title: "Privacy Policy",
                 sections: [
-                    SettingsDocumentSection(title: "Data in this POC", body: "This build stores mocked profile data, avatar choice, and settings selections locally on the device for demonstration."),
-                    SettingsDocumentSection(title: "Favorites", body: "Favorites remain mocked in this build and are not synced to a server yet. The same applies to some account and subscription actions."),
-                    SettingsDocumentSection(title: "Next Step", body: "Once APIs are connected, this structure is ready to swap local state for live endpoints without changing the page hierarchy.")
+                    SettingsDocumentSection(title: "Information We Collect", body: "We collect account details such as your phone number, the profiles you create, and your viewing and preference activity, so we can personalise recommendations and keep your account secure."),
+                    SettingsDocumentSection(title: "How We Use Your Data", body: "Your data helps us deliver and improve the service — including continue-watching, personalised rows, playback quality, and relevant offers. We do not sell your personal information."),
+                    SettingsDocumentSection(title: "Your Choices", body: "You can edit or delete profiles, manage parental controls, clear locally cached data, and adjust playback and notification preferences at any time from Settings."),
+                    SettingsDocumentSection(title: "Data Security & Retention", body: "We use industry-standard safeguards to protect your information and retain it only for as long as your account is active or as required by law."),
+                    SettingsDocumentSection(title: "Contact Us", body: "For privacy questions or data requests, reach our support team from Help & FAQs. We respond in line with applicable data-protection regulations.")
                 ]
             )
         }
@@ -181,10 +191,6 @@ struct SettingsView: View {
                     Text(activePhoneNumber)
                         .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(Color.white.opacity(0.56))
-
-                    Text("Profile creation is mocked in this POC.")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color(hex: "F5B919"))
                 }
 
                 Spacer()
@@ -197,9 +203,8 @@ struct SettingsView: View {
 
             settingsGroup([
                 SettingsRow(icon: "arrow.trianglehead.2.clockwise", title: "Switch Profile", subtitle: "Open profile chooser from settings", destination: nil),
-                SettingsRow(icon: "pencil.line", title: "Edit Profiles", subtitle: "Open the mocked create and edit flow", destination: nil),
-                SettingsRow(icon: "heart", title: "Favorites", subtitle: "Favorites are mocked in this build", destination: nil),
-                SettingsRow(icon: "lock", title: "Parental Controls", subtitle: "PIN protection is mocked for now", destination: nil)
+                SettingsRow(icon: "pencil.line", title: "Edit Profiles", subtitle: "Tap here to update your profile info", destination: nil),
+                SettingsRow(icon: "lock", title: "Parental Controls", subtitle: "PIN protection is will be avaibale in a future update", destination: nil)
             ], customAction: { title in
                 switch title {
                 case "Switch Profile":
@@ -278,20 +283,33 @@ struct SettingsView: View {
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.white)
 
-                documentBlock(text: hasActiveSubscription ? "Premium activated on this device for demo review.\nPayment method: Mock UPI\nRenewal: 01 Jan 2027" : "No purchases yet in this mocked build.\nTap the button below to preview the active subscription variant.")
+                documentBlock(text: hasActiveSubscription ? "LIV Premium is active on this account.\nPayment method: UPI\nRenews on: 01 Jan 2027" : "You don't have an active subscription yet.\nChoose a plan above to start streaming in 4K, ad-free.")
             }
 
             Button(action: {
-                hasActiveSubscription.toggle()
+                onSetSubscription(!isSubscribed)
             }) {
-                Text(hasActiveSubscription ? "Disable Mock Subscription" : "Activate Mock Premium")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(Color(hex: "151424"))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(LiquidGlassBackground(cornerRadius: 12, tone: .light, isHighlighted: true))
+                Group {
+                    if isProcessingSubscription {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .controlSize(.small)
+                                .tint(Color(hex: "151424"))
+                            Text(hasActiveSubscription ? "Cancelling…" : "Activating…")
+                        }
+                    } else {
+                        Text(hasActiveSubscription ? "Cancel Subscription" : "Upgrade to Premium")
+                    }
+                }
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(Color(hex: "151424"))
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .background(LiquidGlassBackground(cornerRadius: 12, tone: .light, isHighlighted: true))
+                .opacity(isProcessingSubscription ? 0.85 : 1)
             }
             .buttonStyle(LiquidButtonPressStyle())
+            .disabled(isProcessingSubscription)
         }
     }
 
@@ -299,14 +317,14 @@ struct SettingsView: View {
         VStack(spacing: 18) {
             documentBlock(
                 title: "Offers & Redeem Codes",
-                text: "Use this mocked screen to preview Sony LIV promotional offers, voucher redemption, and partner-code activation. The live redemption flow is not connected yet, but the structure is ready for integration."
+                text: "Apply promotional offers, redeem subscription vouchers, and activate partner codes here. Enter a valid code to unlock the associated plan or benefit."
             )
 
             planCard(title: "Promo Code", subtitle: "Apply a subscription voucher or campaign code", price: "Redeem", featured: true)
             planCard(title: "Partner Offer", subtitle: "Preview bundled or campaign-based subscription benefits", price: "Coming Soon", featured: false)
 
             Button(action: { showDemoAlert = true }) {
-                Text("Apply Mock Offer")
+                Text("Apply Offer")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(Color(hex: "151424"))
                     .frame(maxWidth: .infinity)
@@ -346,7 +364,7 @@ struct SettingsView: View {
 
             documentBlock(
                 title: "How it works",
-                text: "1. Launch Sony LIV on TV\n2. Tap Activate TV\n3. Enter the device code shown above\n4. The TV will pair with this mocked profile"
+                text: "1. Launch Sony LIV on your TV\n2. Tap Activate TV\n3. Enter the device code shown above\n4. Your TV will pair with your profile"
             )
         }
     }
@@ -381,7 +399,7 @@ struct SettingsView: View {
 
             documentBlock(
                 title: "Playback",
-                text: "This page is mocked and keeps local state only. Once the video settings API is wired, the toggles can map directly onto persisted user preferences."
+                text: "Playback preferences apply to this device. Streaming quality and autoplay adapt to your network, and Wi-Fi-only streaming helps you save mobile data."
             )
         }
     }
@@ -409,9 +427,11 @@ struct SettingsView: View {
 
     private var faqsPage: some View {
         VStack(spacing: 16) {
-            faqCard(question: "Is this a live settings flow?", answer: "This screen stack is hardcoded for the POC, but it is structured so each page can be hooked to real APIs later.")
-            faqCard(question: "Are profile creation and favorites connected?", answer: "Not yet. Both profile creation and favorites are mocked right now, as requested.")
-            faqCard(question: "Will audio and subtitle choices persist?", answer: "In this build they persist only while the screen is alive. We can wire them to stored settings or backend preferences next.")
+            faqCard(question: "How do I manage my subscription?", answer: "Open Settings → Subscription to view your plan, switch tiers, or cancel. Premium unlocks 4K UHD, Dolby Atmos, and ad-free streaming.")
+            faqCard(question: "Why do some titles ask me to upgrade?", answer: "A few titles are available only on Premium plans. Upgrade from the Subscription screen to unlock the full catalogue in the highest quality.")
+            faqCard(question: "How do profiles and parental controls work?", answer: "Each account can have multiple profiles, each with its own recommendations. Kids profiles are limited to age-appropriate titles and can be secured with parental controls.")
+            faqCard(question: "Can I watch on my television?", answer: "Yes. Open Settings → Activate TV to get a device code, then enter it in the Sony LIV app on your TV to pair it with your account.")
+            faqCard(question: "How do I free up storage?", answer: "Go to Settings → Video Settings → Clear Image Cache to remove cached posters and artwork. This won't affect your account or downloads.")
         }
     }
 
@@ -486,39 +506,45 @@ struct SettingsView: View {
                 onOpenScreen(.manageSubscription)
             } label: {
                 HStack(spacing: 14) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(hasActiveSubscription ? Color(hex: "FF985F") : Color(hex: "F5B919"))
-                        Image(systemName: hasActiveSubscription ? AppIcons.Action.crown : "exclamationmark")
-                            .font(.system(size: hasActiveSubscription ? 20 : 22, weight: .bold))
-                            .foregroundStyle(.white)
-                    }
-                    .frame(width: 48, height: 48)
+                    Image(systemName: AppIcons.Action.crown)
+                        .font(.system(size: 30, weight: .bold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color(hex: "FFD879"), Color(hex: "F5A623")],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .shadow(color: Color.black.opacity(0.25), radius: 3, x: 0, y: 2)
+                        .frame(width: 44, height: 48)
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(hasActiveSubscription ? "Premium Subscription" : "No Active Subscription")
-                            .font(.system(size: 19, weight: .bold))
+                            .font(.system(size: 18, weight: .bold))
                             .foregroundStyle(.white)
 
-                        Text(hasActiveSubscription ? "\(activePhoneNumber) | Valid upto: 01 Jan 2027" : activePhoneNumber)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(Color.white.opacity(0.68))
+                        Text(hasActiveSubscription ? "\(activePhoneNumber)  |  Valid upto: 01 Jan 2027" : "\(activePhoneNumber)  |  Tap to subscribe")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color.white.opacity(0.82))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
 
-                    Spacer()
+                    Spacer(minLength: 8)
 
                     Image(systemName: AppIcons.Navigation.next)
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 15, weight: .bold))
                         .foregroundStyle(.white)
                 }
-                .padding(.horizontal, 18)
-                .frame(height: 74)
+                .padding(.horizontal, 16)
+                .frame(height: 72)
                 .background(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(
                             LinearGradient(
+                                // Design runs deep maroon/purple on the left into warm orange on the right.
                                 colors: hasActiveSubscription
-                                    ? [Color(hex: "FF995E"), Color(hex: "B58BEA"), Color(hex: "5E1633")]
+                                    ? [Color(hex: "5E1633"), Color(hex: "7A3A86"), Color(hex: "F2A24A")]
                                     : [Color(hex: "1A1345"), Color(hex: "4B1A0E")],
                                 startPoint: .leading,
                                 endPoint: .trailing
@@ -526,21 +552,27 @@ struct SettingsView: View {
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                .stroke(hasActiveSubscription ? Color(hex: "C28CFF") : Color(hex: "F5B919"), lineWidth: 2)
+                                .stroke(Color.white.opacity(0.18), lineWidth: 1)
                         )
                 )
             }
             .buttonStyle(LiquidButtonPressStyle())
 
-            Text("Upgrade to 4k UHD • Dolby Atoms • Ads Free")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(.black)
+            Text("Upgrade to 4K UHD • Dolby Atmos • Ads Free")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(Color(hex: "3A1500"))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 9)
-                .background(Color(hex: "F8B326"))
+                .background(
+                    LinearGradient(
+                        colors: [Color(hex: "F8B326"), Color(hex: "F59A56")],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .offset(y: -6)
-                .padding(.horizontal, 4)
+                .padding(.horizontal, 10)
                 .padding(.bottom, -6)
         }
     }

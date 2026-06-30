@@ -79,6 +79,11 @@ struct AppRootView: View {
             },
             onEditProfiles: {
                 viewModel.openProfileEditor(viewModel.profileSelectionViewModel.defaultEditableProfile)
+            },
+            isSubscribed: viewModel.isSubscribed,
+            isProcessingSubscription: viewModel.isProcessingSubscription,
+            onSetSubscription: { active in
+                viewModel.setSubscription(active)
             }
         )
     }
@@ -148,36 +153,9 @@ struct AppRootView: View {
                     hidesFirstStorefrontTabInDock: true,
                     onOpenStorefrontTab: { tab in
                         viewModel.openStorefrontTab(tab)
-                    }
-                )
-            }
-        case .hot:
-            surface(style: .storefront) {
-                StorefrontView(
-                    viewModel: viewModel.hotStorefrontViewModel,
-                    bottomSelection: .hot,
-                    profileName: viewModel.activeProfile?.name ?? "Default",
-                    profileImageName: ProfileArtworkResolver.imageName(for: viewModel.activeProfile),
-                    onSelectItem: { item in
-                        viewModel.openContent(item: item)
                     },
-                    onOpenHome: {
-                        viewModel.openStorefront()
-                    },
-                    onOpenSearch: {
-                        viewModel.openSearch()
-                    },
-                    onOpenShorts: {
-                        viewModel.openShorts()
-                    },
-                    onOpenHot: {
-                        viewModel.openHotTab()
-                    },
-                    onProfileTap: {
-                        viewModel.openProfileHome()
-                    },
-                    onViewAllSection: { section in
-                        viewModel.openSectionBrowse(section: section, cohort: viewModel.hotStorefrontViewModel.activeCohort)
+                    onSubscribe: {
+                        viewModel.openSettingsScreen(.manageSubscription)
                     }
                 )
             }
@@ -252,6 +230,23 @@ struct AppRootView: View {
             }
             .routeNavigationChrome(showsNavigationBar: false)
             .routeNavigationOverlay(title: AppStrings.Search.placeholder, onBack: viewModel.popRoute)
+        case .hot:
+            surface(style: .storefront) {
+                NewAndHotRouteView(
+                    viewModel: viewModel.storefrontViewModel,
+                    onShowDetails: { item in
+                        viewModel.openDetail(item: item)
+                    },
+                    onPlay: { item in
+                        viewModel.play(item: item)
+                    },
+                    onToggleFavorite: { item in
+                        Task { await viewModel.storefrontViewModel.toggleFavorite(item) }
+                    }
+                )
+            }
+            .routeNavigationChrome(showsNavigationBar: false)
+            .routeNavigationOverlay(title: "New & Hot", onBack: viewModel.popRoute)
         case .aiSearch:
             surface(style: .search) {
                 AISearchVoiceRouteView(
@@ -322,13 +317,13 @@ struct AppRootView: View {
                     },
                     onSelectItem: { item in
                         viewModel.openContent(item: item)
-                    }
+                    },
+                    isSubscribed: viewModel.isSubscribed
                 )
             }
             .routeNavigationChrome(showsNavigationBar: false)
             .routeNavigationOverlay(title: viewModel.activeProfile?.name ?? "Profile", onBack: viewModel.backFromProfileHome) {
                 HStack(spacing: 4) {
-                    RouteNavigationIconButton(icon: AppIcons.Action.download, action: {})
                     RouteNavigationIconButton(icon: AppIcons.Action.gear, action: viewModel.openSettings)
                 }
             }
@@ -375,23 +370,30 @@ struct AppRootView: View {
             }
             .routeNavigationChrome(showsNavigationBar: false)
             .routeNavigationOverlay(title: tab.title, onBack: viewModel.popRoute)
-        case .detail:
+        case .detail(let item):
             surface(style: .storefront) {
-                ContentDetailView(
-                    viewModel: viewModel.detailViewModel,
+                ContentDetailRouteView(
+                    item: item,
                     engine: viewModel.playerEngine,
                     onBack: {
                         viewModel.backFromDetail()
                     },
-                    onPlay: { detail, item in
-                        viewModel.play(detail: detail, fallback: item)
+                    onPlayWithContext: { detail, fallback, seed, episodes, seasons in
+                        viewModel.play(
+                            detail: detail,
+                            fallback: fallback,
+                            seed: seed,
+                            episodes: episodes,
+                            seasons: seasons
+                        )
                     },
-                    onPlayEpisode: { item in
-                        viewModel.play(item: item)
+                    onPlayEpisode: viewModel.play(item:),
+                    onSelectRecommendation: viewModel.openDetail(item:),
+                    isSubscribed: viewModel.isSubscribed,
+                    onSubscribe: {
+                        viewModel.openSettingsScreen(.manageSubscription)
                     },
-                    onSelectRecommendation: { item in
-                        viewModel.replaceDetail(item: item)
-                    }
+                    isFullPlayerActive: viewModel.activePlaybackContent != nil
                 )
             }
             .routeNavigationChrome(showsNavigationBar: false)
@@ -409,6 +411,10 @@ struct AppRootView: View {
                 )
             }
             .routeNavigationChrome(showsNavigationBar: false)
+        case .shortsCollection:
+            ShortsCollectionRouteView(viewModel: viewModel.shortsCollectionViewModel)
+                .routeNavigationChrome(showsNavigationBar: false)
+                .routeNavigationOverlay(onBack: viewModel.popRoute)
         }
     }
 
@@ -417,6 +423,74 @@ struct AppRootView: View {
             AppBackgroundView(style: style)
             content()
         }
+    }
+}
+
+private struct ContentDetailRouteView: View {
+    let item: StorefrontItem
+    let engine: QuickplayPlayerEngine
+    let onBack: () -> Void
+    let onPlayWithContext: (ContentDetail, StorefrontItem?, StorefrontItem?, [StorefrontItem], [ContentSeason]) -> Void
+    let onPlayEpisode: (StorefrontItem) -> Void
+    let onSelectRecommendation: (StorefrontItem) -> Void
+    let isSubscribed: Bool
+    let onSubscribe: () -> Void
+    let isFullPlayerActive: Bool
+    @StateObject private var detailViewModel: ContentDetailViewModel
+
+    init(
+        item: StorefrontItem,
+        engine: QuickplayPlayerEngine,
+        onBack: @escaping () -> Void,
+        onPlayWithContext: @escaping (ContentDetail, StorefrontItem?, StorefrontItem?, [StorefrontItem], [ContentSeason]) -> Void,
+        onPlayEpisode: @escaping (StorefrontItem) -> Void,
+        onSelectRecommendation: @escaping (StorefrontItem) -> Void,
+        isSubscribed: Bool,
+        onSubscribe: @escaping () -> Void,
+        isFullPlayerActive: Bool
+    ) {
+        self.item = item
+        self.engine = engine
+        self.onBack = onBack
+        self.onPlayWithContext = onPlayWithContext
+        self.onPlayEpisode = onPlayEpisode
+        self.onSelectRecommendation = onSelectRecommendation
+        self.isSubscribed = isSubscribed
+        self.onSubscribe = onSubscribe
+        self.isFullPlayerActive = isFullPlayerActive
+
+        let container = AppContainer.shared
+        _detailViewModel = StateObject(
+            wrappedValue: ContentDetailViewModel(
+                detailUseCase: GetContentDetailUseCase(repository: container.contentDetailRepository),
+                recommendationsUseCase: GetRecommendationsUseCase(repository: container.contentDetailRepository),
+                momentsUseCase: GetContentMomentsUseCase(repository: container.contentDetailRepository),
+                episodesUseCase: GetContentEpisodesUseCase(repository: container.contentDetailRepository),
+                initialItem: item
+            )
+        )
+    }
+
+    var body: some View {
+        ContentDetailView(
+            viewModel: detailViewModel,
+            engine: engine,
+            onBack: onBack,
+            onPlay: { detail, fallback in
+                onPlayWithContext(
+                    detail,
+                    fallback,
+                    detailViewModel.seed,
+                    detailViewModel.episodes,
+                    detailViewModel.seasons
+                )
+            },
+            onPlayEpisode: onPlayEpisode,
+            onSelectRecommendation: onSelectRecommendation,
+            isSubscribed: isSubscribed,
+            onSubscribe: onSubscribe,
+            isFullPlayerActive: isFullPlayerActive
+        )
     }
 }
 

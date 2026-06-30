@@ -15,14 +15,5 @@ nonisolated enum AppEnvironment {
     
     enum Demo {
         static let supportPhoneNumber = "+91 6398926078"
-        static let hasActiveSubscription = false
-        static let mockShortsVideoURLStrings = [
-            "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-            "https://www.w3schools.com/html/mov_bbb.mp4",
-            "https://www.w3schools.com/html/movie.mp4",
-            "https://media.w3.org/2010/05/sintel/trailer.mp4",
-            "https://media.w3.org/2010/05/bunny/trailer.mp4",
-            "https://media.w3.org/2010/05/video/movie_300.mp4"
-        ]
     }
 }

@@ -45,6 +45,22 @@ struct ShortsTabView: View {
     }
 }
 
+// Dedicated, pushed shorts player — reuses the vertical ShortsFeedView, seeded with the
+// rail / collection / view-all the short was tapped from. No bottom tab bar.
+struct ShortsCollectionRouteView: View {
+    @ObservedObject var viewModel: ShortsFeedViewModel
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack {
+                Color.black.ignoresSafeArea()
+                ShortsFeedView(viewModel: viewModel, bottomBarClearance: max(proxy.safeAreaInsets.bottom, 16))
+            }
+            .ignoresSafeArea(edges: [.top, .bottom])
+        }
+    }
+}
+
 private struct ShortsFeedView: View {
     @ObservedObject var viewModel: ShortsFeedViewModel
     let bottomBarClearance: CGFloat
@@ -63,11 +79,15 @@ private struct ShortsFeedView: View {
                             isActive: viewModel.currentPostID == post.id,
                             isMuted: viewModel.isMuted,
                             isLiked: viewModel.likedPostIDs.contains(post.id),
+                            isFavorite: viewModel.favoritePostIDs.contains(post.id),
                             safeAreaInsets: safeAreaInsets,
                             bottomBarClearance: bottomBarClearance,
                             onToggleMute: viewModel.toggleMute,
                             onLike: {
                                 viewModel.like(postID: post.id)
+                            },
+                            onFavorite: {
+                                viewModel.toggleFavorite(postID: post.id)
                             }
                         )
                         .frame(width: pageWidth, height: pageHeight)
@@ -100,15 +120,21 @@ private struct ShortsVideoCardView: View {
     let isActive: Bool
     let isMuted: Bool
     let isLiked: Bool
+    let isFavorite: Bool
     let safeAreaInsets: EdgeInsets
     let bottomBarClearance: CGFloat
     let onToggleMute: () -> Void
     let onLike: () -> Void
+    let onFavorite: () -> Void
 
     @StateObject private var playback = ShortsPlaybackController()
     @State private var showHeartBurst = false
     @State private var showMuteIndicator = false
     @State private var shareItem: ShortsSharePayload?
+
+    private var tagNumber: Int {
+        100 + abs(post.id.hashValue % 900)
+    }
 
     var body: some View {
         ZStack {
@@ -194,31 +220,36 @@ private struct ShortsVideoCardView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         ShortsBrandView(lines: post.brandLines)
 
-                        Text(post.creator)
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.94))
+                        HStack(spacing: 8) {
+                            Text(post.creator)
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.94))
+
+                            ShortsTagPill(text: "#\(tagNumber)")
+                        }
 
                         Text(post.caption)
                             .font(.system(size: 14, weight: .regular))
                             .foregroundStyle(.white.opacity(0.82))
                             .lineSpacing(4)
                             .lineLimit(3)
-
-                        HStack(spacing: 8) {
-                            ShortsPrimaryButton(title: "Watch Now", action: {
-                                ShortsHaptic.primaryAction()
-                            })
-
-                            ShortsInfoButton(action: {
-                                ShortsHaptic.secondaryAction()
-                            })
-                        }
                     }
                     .frame(maxWidth: 260, alignment: .leading)
 
                     Spacer(minLength: 0)
 
                     VStack(spacing: 22) {
+                        ShortsRailActionButton(
+                            symbol: isMuted ? "speaker.slash" : "speaker.wave.2",
+                            tint: .white,
+                            value: nil,
+                            action: {
+                                onToggleMute()
+                                ShortsHaptic.muteToggle()
+                                animateMuteIndicator()
+                            }
+                        )
+
                         ShortsRailActionButton(
                             symbol: isLiked ? "heart.fill" : "heart",
                             tint: isLiked ? Color(hex: "FF5B75") : .white,
@@ -227,6 +258,16 @@ private struct ShortsVideoCardView: View {
                                 onLike()
                                 ShortsHaptic.like()
                                 animateHeartBurst()
+                            }
+                        )
+
+                        ShortsRailActionButton(
+                            symbol: isFavorite ? "bookmark.fill" : "bookmark",
+                            tint: isFavorite ? Color(hex: "F6C84B") : .white,
+                            value: nil,
+                            action: {
+                                onFavorite()
+                                ShortsHaptic.secondaryAction()
                             }
                         )
 
@@ -243,19 +284,7 @@ private struct ShortsVideoCardView: View {
                                 )
                             }
                         )
-
-                        ShortsRailActionButton(
-                            symbol: isMuted ? "speaker.slash" : "speaker.wave.2",
-                            tint: .white,
-                            value: nil,
-                            action: {
-                                onToggleMute()
-                                ShortsHaptic.muteToggle()
-                                animateMuteIndicator()
-                            }
-                        )
                     }
-                    .padding(.bottom, bottomBarClearance + 8)
                 }
             }
             .padding(.leading, safeAreaInsets.leading + 16)
@@ -351,6 +380,38 @@ private struct ShortsBrandView: View {
             }
         }
         .shadow(color: .black.opacity(0.26), radius: 8, y: 3)
+    }
+}
+
+private struct ShortsTagPill: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 11, weight: .bold))
+            .monospacedDigit()
+            .foregroundStyle(.white.opacity(0.92))
+            .padding(.horizontal, 8)
+            .frame(height: 23)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(Color.black.opacity(0.34))
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.28),
+                                        Color(hex: "FF7A1A").opacity(0.30)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 0.8
+                            )
+                    )
+            )
+            .shadow(color: .black.opacity(0.24), radius: 5, y: 3)
     }
 }
 

@@ -23,7 +23,6 @@ final class StorefrontViewModel: ObservableObject {
     private var storefrontID: String?
     private var tabCache: [String: StorefrontPage] = [:]
     private var activeProfileID: UUID?
-    private var cancellables: Set<AnyCancellable> = []
 
     init(
         initialUseCase: GetInitialStorefrontUseCase,
@@ -35,16 +34,18 @@ final class StorefrontViewModel: ObservableObject {
         self.pageUseCase = pageUseCase
         self.preferredInitialTabTitle = preferredInitialTabTitle
         self.fixedCohort = fixedCohort
-        NotificationCenter.default.publisher(for: .demoContinueWatchingDidChange)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                Task { await self?.refreshContinueWatchingSections() }
-            }
-            .store(in: &cancellables)
     }
 
     var selectedTabTitle: String {
         tabs.first(where: { $0.id == selectedTabID })?.title ?? AppStrings.Common.home
+    }
+
+    /// Sections of the storefront's first tab, regardless of which tab is currently
+    /// selected. Used by New & Hot, which always mirrors the first (home) tab's data.
+    var firstTabSections: [StorefrontSection] {
+        guard let firstID = tabs.first?.id else { return sections }
+        if selectedTabID == firstID { return sections }
+        return tabCache[firstID]?.sections ?? sections
     }
 
     var demoHeroVariant: StorefrontHeroVariant {
@@ -52,10 +53,6 @@ final class StorefrontViewModel: ObservableObject {
 
         if normalizedTitle.contains("sport") {
             return .stackedSports
-        }
-
-        if normalizedTitle.contains("easdaDasdnter") {
-            return .immersive
         }
 
         return .carousel
@@ -126,67 +123,6 @@ final class StorefrontViewModel: ObservableObject {
             favoriteIDs.remove(item.id)
         }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
-    }
-
-    func refreshContinueWatchingSections() async {
-        let continueItems = await DemoSessionStore.shared.continueWatchingItems(limit: 10)
-        let resolvedItems = DemoRailComposer.continueWatching(from: continueItems)
-        let hasVisibleContinueSection = sections.contains(where: isContinueWatchingSection)
-
-        if !hasVisibleContinueSection {
-            guard !resolvedItems.isEmpty else { return }
-            await load(
-                storefrontID: storefrontID,
-                tabID: selectedTabID,
-                pageNumber: 1,
-                append: false,
-                preserveVisibleContent: true
-            )
-            return
-        }
-
-        sections = sections.compactMap { section in
-            guard isContinueWatchingSection(section) else { return section }
-            guard !resolvedItems.isEmpty else { return nil }
-            return StorefrontSection(
-                id: section.id,
-                title: section.title,
-                ratio: section.ratio,
-                items: resolvedItems,
-                isHero: section.isHero,
-                backgroundImageURL: section.backgroundImageURL,
-                backgroundColorHex: section.backgroundColorHex,
-                viewAllContentIDs: section.viewAllContentIDs
-            )
-        }
-
-        if let selectedTabID, var cached = tabCache[selectedTabID] {
-            let refreshedSections = cached.sections.compactMap { section in
-                guard isContinueWatchingSection(section) else { return section }
-                guard !resolvedItems.isEmpty else { return nil }
-                return StorefrontSection(
-                    id: section.id,
-                    title: section.title,
-                    ratio: section.ratio,
-                    items: resolvedItems,
-                    isHero: section.isHero,
-                    backgroundImageURL: section.backgroundImageURL,
-                    backgroundColorHex: section.backgroundColorHex,
-                    viewAllContentIDs: section.viewAllContentIDs
-                )
-            }
-            cached = StorefrontPage(
-                storefrontID: cached.storefrontID,
-                tabs: cached.tabs,
-                selectedTabID: cached.selectedTabID,
-                sections: refreshedSections,
-                nextPage: cached.nextPage,
-                loadedCount: cached.loadedCount,
-                totalCount: cached.totalCount,
-                hasMore: cached.hasMore
-            )
-            tabCache[selectedTabID] = cached
-        }
     }
 
     func selectTab(_ tab: StorefrontTab) async {
@@ -334,10 +270,5 @@ final class StorefrontViewModel: ObservableObject {
     private func deduplicatedSections(_ input: [StorefrontSection]) -> [StorefrontSection] {
         var seen = Set<String>()
         return input.filter { seen.insert($0.id).inserted }
-    }
-
-    private func isContinueWatchingSection(_ section: StorefrontSection) -> Bool {
-        let key = "\(section.id) \(section.title)".lowercased().replacingOccurrences(of: " ", with: "_")
-        return key.contains("continue_watching") || key.contains("continuewatching")
     }
 }

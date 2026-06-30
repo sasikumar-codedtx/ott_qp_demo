@@ -122,8 +122,8 @@ private struct StorefrontTrendingRankedCard: View {
                 cornerRadius: 8
             )
 
-            if let tagText {
-                Text(tagText)
+            if !item.customTag.isEmpty {
+                Text(item.customTag)
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
@@ -171,33 +171,6 @@ private struct StorefrontTrendingRankedCard: View {
                 .shadow(color: Color.black.opacity(0.35), radius: 5, x: 5, y: 0)
                 .lineLimit(1)
         }
-    }
-
-    private var tagText: String? {
-        let type = item.contentType.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !type.isEmpty else { return nil }
-
-        let normalized = type
-            .replacingOccurrences(of: "tvseries", with: "show", options: .caseInsensitive)
-            .replacingOccurrences(of: "webseries", with: "show", options: .caseInsensitive)
-            .replacingOccurrences(of: "webepisode", with: "show", options: .caseInsensitive)
-            .replacingOccurrences(of: "_", with: " ")
-            .replacingOccurrences(of: "-", with: " ")
-            .uppercased()
-
-        if normalized.contains("MOVIE") {
-            return "NEW MOVIE"
-        }
-        if normalized.contains("SHOW") || normalized.contains("SERIES") {
-            return "NEW SHOW"
-        }
-        if normalized.contains("SPORT") || normalized.contains("LIVE") {
-            return "LIVE SPORTS"
-        }
-        if normalized.contains("SHORT") || normalized.contains("CLIP") {
-            return "NEW CLIP"
-        }
-        return nil
     }
 
     private func handleTap() {

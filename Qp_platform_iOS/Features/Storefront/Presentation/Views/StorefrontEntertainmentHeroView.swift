@@ -85,25 +85,12 @@ struct StorefrontEntertainmentHeroView: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color(hex: "361828"), lineWidth: 1)
+                    .stroke(heroCardBorder, lineWidth: 1)
             )
 
             VStack(spacing: 12) {
-                if let badgeTitle {
-                    Text(badgeTitle)
-                        .font(.system(size: 12, weight: .black))
-                        .tracking(0.8)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(
-                            LinearGradient(
-                                colors: [Color(hex: "EC2027"), Color(hex: "5612CA")],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            ),
-                            in: RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        )
+                if let tagText = item.customTag.nilIfEmpty {
+                    heroTag(tagText)
                 }
                 heroTitle(for: item)
                 metadataRow(for: item)
@@ -114,6 +101,33 @@ struct StorefrontEntertainmentHeroView: View {
             .frame(maxWidth: .infinity)
         }
         .frame(width: size.width, height: size.height)
+    }
+
+    private func heroTag(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 14, weight: .bold))
+            .tracking(0.6)
+            .textCase(.uppercase)
+            .foregroundStyle(.white)
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+            .padding(.horizontal, 14)
+            .frame(height: 32)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "FF5E00"), Color(hex: "7818B4")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .stroke(Color.white.opacity(0.18), lineWidth: 0.5)
+                    )
+            )
+            .shadow(color: Color(hex: "FF5E00").opacity(0.45), radius: 10, x: 0, y: 4)
     }
 
     private func heroCardSize(availableWidth: CGFloat) -> CGSize {
@@ -127,6 +141,17 @@ struct StorefrontEntertainmentHeroView: View {
         case .phone:
             return CGSize(width: 358, height: 537)
         }
+    }
+
+    private var heroCardBorder: LinearGradient {
+        LinearGradient(
+            stops: [
+                .init(color: Color(hex: "361828"), location: 0.0),
+                .init(color: Color.white.opacity(0.30), location: 1.0)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 
     @ViewBuilder
@@ -197,7 +222,7 @@ struct StorefrontEntertainmentHeroView: View {
                         .font(.system(size: 15, weight: .bold))
                         .frame(width: 24, height: 24)
 
-                    Text(cohort == .entertainment ? item.watchLabel : "More Info")
+                    Text(cohort == .entertainment ? item.watchLabel : "Watch Now")
                         .font(.system(size: 16, weight: .semibold))
                         .lineLimit(1)
                 }
@@ -205,7 +230,7 @@ struct StorefrontEntertainmentHeroView: View {
                 .frame(minWidth: 129)
                 .padding(.horizontal, 12)
                 .frame(height: 48)
-                .background(heroControlBackground)
+                .background(heroLiquidCapsule)
                 .clipShape(Capsule(style: .continuous))
             }
             .buttonStyle(LiquidButtonPressStyle())
@@ -218,22 +243,68 @@ struct StorefrontEntertainmentHeroView: View {
                     .foregroundStyle(.white)
                     .frame(width: 24, height: 24)
                     .padding(10)
-                    .background(heroControlBackground)
+                    .background(heroLiquidCircle)
                     .clipShape(Circle())
-                    .shadow(color: Color(hex: "CACACA").opacity(0.13), radius: 3, x: -1, y: 1)
             }
             .buttonStyle(LiquidButtonPressStyle())
         }
     }
 
-    private var heroControlBackground: some View {
+    private var heroLiquidCapsule: some View {
+        Capsule(style: .continuous)
+            .fill(heroLiquidFill)
+            .background(.ultraThinMaterial, in: Capsule(style: .continuous))
+            .overlay(
+                Capsule(style: .continuous)
+                    .stroke(heroLiquidBorder, lineWidth: 1.15)
+            )
+            .overlay(
+                Capsule(style: .continuous)
+                    .stroke(Color.white.opacity(0.14), lineWidth: 0.5)
+                    .padding(1)
+            )
+            .shadow(color: Color.black.opacity(0.35), radius: 12, x: 0, y: 8)
+            .shadow(color: Color.white.opacity(0.11), radius: 2, x: -1, y: -1)
+    }
+
+    private var heroLiquidCircle: some View {
+        Circle()
+            .fill(heroLiquidFill)
+            .background(.ultraThinMaterial, in: Circle())
+            .overlay(
+                Circle()
+                    .stroke(heroLiquidBorder, lineWidth: 1.15)
+            )
+            .overlay(
+                Circle()
+                    .stroke(Color.white.opacity(0.14), lineWidth: 0.5)
+                    .padding(1)
+            )
+            .shadow(color: Color.black.opacity(0.35), radius: 12, x: 0, y: 8)
+            .shadow(color: Color.white.opacity(0.11), radius: 2, x: -1, y: -1)
+    }
+
+    private var heroLiquidFill: LinearGradient {
         LinearGradient(
             colors: [
-                Color.white.opacity(0.2),
-                Color(hex: "CECECE").opacity(0.2)
+                Color.white.opacity(0.28),
+                Color(hex: "8F8F8F").opacity(0.19),
+                Color.black.opacity(0.38)
             ],
-            startPoint: .top,
-            endPoint: .bottom
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private var heroLiquidBorder: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color.white.opacity(0.86),
+                Color(hex: "CFCFCF").opacity(0.48),
+                Color.white.opacity(0.18)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
         )
     }
 
@@ -245,32 +316,6 @@ struct StorefrontEntertainmentHeroView: View {
                     .frame(width: index == currentIndex ? 24 : 6, height: 6)
             }
         }
-    }
-
-    private var badgeTitle: String? {
-        switch cohort {
-        case .entertainment:
-            return "NEW MOVIE"
-        case .realityShows:
-            return "TRENDING NOW"
-        case .kids:
-            return "KIDS PICK"
-        case .sports:
-            return nil
-        }
-    }
-
-    private func secondaryHeroLine(for item: StorefrontItem) -> String {
-        if item.isPremium {
-            return "Included with Premium"
-        }
-
-        if let runtimeSeconds = item.runtimeSeconds, runtimeSeconds > 0 {
-            let minutes = max(runtimeSeconds / 60, 1)
-            return "\(minutes) mins"
-        }
-
-        return "Watch on Sony LIV"
     }
 
     private func heroMetaText(_ text: String) -> some View {

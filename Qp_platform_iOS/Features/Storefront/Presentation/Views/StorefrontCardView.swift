@@ -6,6 +6,7 @@ struct StorefrontCardView: View {
     let style: StorefrontCardStyle
     let layout: StorefrontCardLayout
     let rank: Int?
+    var showsCustomTag = true
     let onSelect: (StorefrontItem) -> Void
     @Environment(\.displayScale) private var displayScale
 
@@ -61,16 +62,14 @@ struct StorefrontCardView: View {
                 )
 
             VStack(alignment: .leading, spacing: UIConstants.Spacing.md) {
-                if item.isPremium {
-                    Text(AppStrings.Storefront.premium)
+                if let tagText = item.customTag.nilIfEmpty {
+                    Text(tagText)
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, UIConstants.Spacing.md - 2)
                         .frame(height: 20)
-                        .background(
-                            Capsule(style: .continuous)
-                                .fill(Color(hex: "151515").opacity(0.72))
-                        )
+                        .background(customTagGradient)
+                        .clipShape(Capsule(style: .continuous))
                 }
 
                 Text(item.title)
@@ -202,9 +201,83 @@ struct StorefrontCardView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 }
+
+                if showsCustomTag, let tagText = item.customTag.nilIfEmpty {
+                    if usesPortraitTagPlacement {
+                        customTagBottomStrip(tagText, height: min(22, max(20, size.height * 0.12)))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    } else {
+                        customTagCornerPill(tagText)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    }
+                }
             }
         }
         .frame(width: size.width, height: size.height)
+        .clipShape(RoundedRectangle(cornerRadius: StorefrontRailMetrics.cardCornerRadius, style: .continuous))
+    }
+
+    private var usesPortraitTagPlacement: Bool {
+        style == .poster || style == .short
+    }
+
+    private var customTagGradient: LinearGradient {
+        LinearGradient(
+            colors: [Color(hex: "EC2027"), Color(hex: "5612CA")],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private func customTagBottomStrip(_ text: String, height: CGFloat) -> some View {
+        Text(text)
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(.white)
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+            .frame(maxWidth: .infinity)
+            .frame(height: height)
+            .background(customTagGradient)
+            .clipShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 0,
+                    bottomLeadingRadius: StorefrontRailMetrics.cardCornerRadius,
+                    bottomTrailingRadius: StorefrontRailMetrics.cardCornerRadius,
+                    topTrailingRadius: 0,
+                    style: .continuous
+                )
+            )
+    }
+
+    private func customTagCornerPill(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(.white)
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+            .padding(.horizontal, 9)
+            .frame(height: 22)
+            .background(customTagGradient)
+            .clipShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 0,
+                    bottomLeadingRadius: 8,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: StorefrontRailMetrics.cardCornerRadius,
+                    style: .continuous
+                )
+            )
+            .overlay(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 0,
+                    bottomLeadingRadius: 8,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: StorefrontRailMetrics.cardCornerRadius,
+                    style: .continuous
+                )
+                    .stroke(Color.white.opacity(0.18), lineWidth: 0.7)
+            )
+            .shadow(color: Color.black.opacity(0.34), radius: 6, x: 0, y: 3)
     }
 
     private func requestedImageWidth(for size: CGSize, minimum: Int) -> Int {

@@ -17,6 +17,7 @@ actor DemoSessionStore {
         static let likesByProfile = "sony.quickplay.demo.likes-by-profile"
         static let dislikesByProfile = "sony.quickplay.demo.dislikes-by-profile"
         static let hasCompletedLogin = "sony.quickplay.demo.has-completed-login"
+        static let subscribedProfiles = "sony.quickplay.demo.subscribed-profiles"
     }
 
     private let maxHistoryCount = 24
@@ -32,6 +33,7 @@ actor DemoSessionStore {
     private var favoritesByProfile: [String: [StorefrontItem]]
     private var likesByProfile: [String: [StorefrontItem]]  // profileID → liked items
     private var dislikesByProfile: [String: [String]]       // profileID → [itemID]
+    private var subscribedProfileIDs: Set<String>           // profiles with an active subscription
 
     init() {
         if
@@ -94,6 +96,24 @@ actor DemoSessionStore {
         } else {
             prefersVoiceAISearch = true
         }
+
+        subscribedProfileIDs = Set((UserDefaults.standard.array(forKey: StorageKey.subscribedProfiles) as? [String]) ?? [])
+    }
+
+    // MARK: - Subscription (per profile; defaults to not subscribed)
+
+    func isSubscribed(for profileID: UUID? = nil) -> Bool {
+        subscribedProfileIDs.contains(profileID?.uuidString ?? historyKey)
+    }
+
+    func setSubscribed(_ value: Bool, for profileID: UUID? = nil) {
+        let key = profileID?.uuidString ?? historyKey
+        if value {
+            subscribedProfileIDs.insert(key)
+        } else {
+            subscribedProfileIDs.remove(key)
+        }
+        UserDefaults.standard.set(Array(subscribedProfileIDs), forKey: StorageKey.subscribedProfiles)
     }
 
     func setActiveProfileContext(
@@ -197,7 +217,6 @@ actor DemoSessionStore {
         }
         continueWatchingByProfile[key] = continueItems
         persistContinueWatching()
-        notifyContinueWatchingDidChange()
     }
 
     func continueWatchingItems(limit: Int = 20) -> [StorefrontItem] {
@@ -480,13 +499,4 @@ actor DemoSessionStore {
         return items.filter { seen.insert($0.id).inserted }
     }
 
-    private func notifyContinueWatchingDidChange() {
-        Task { @MainActor in
-            NotificationCenter.default.post(name: .demoContinueWatchingDidChange, object: nil)
-        }
-    }
-}
-
-extension Notification.Name {
-    static let demoContinueWatchingDidChange = Notification.Name("sony.quickplay.demo.continue-watching-did-change")
 }

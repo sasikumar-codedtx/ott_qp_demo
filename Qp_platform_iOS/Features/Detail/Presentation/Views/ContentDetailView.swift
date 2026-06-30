@@ -12,11 +12,11 @@ private struct SportsLiveChatMessage: Identifiable {
 }
 
 private let sportsLiveChatMessages: [SportsLiveChatMessage] = [
-    .init(id: "1", username: "Wisley",  text: "\"What a stunning six!\"", avatarLetter: "W", colorHex: "E53935"),
-    .init(id: "2", username: "Abhi",    text: "Fans are buzzing with excitement as India takes on Sri Lanka! \"What a match!\"", avatarLetter: "A", colorHex: "1E88E5"),
-    .init(id: "3", username: "Samson",  text: "Sri Lanka is putting up a good fight!", avatarLetter: "S", colorHex: "43A047"),
-    .init(id: "4", username: "Rohit",   text: "\"That was a brilliant boundary!\" one fan noted, while another added, \"I love the way our bowlers are performing today!\"", avatarLetter: "R", colorHex: "FB8C00"),
-    .init(id: "5", username: "James",   text: "\"What a stunning six!\"", avatarLetter: "J", colorHex: "8E24AA"),
+    .init(id: "1", username: "Wisley",  text: "That momentum swing was huge.", avatarLetter: "W", colorHex: "E53935"),
+    .init(id: "2", username: "Abhi",    text: "The pressure is building now. Every decision matters.", avatarLetter: "A", colorHex: "1E88E5"),
+    .init(id: "3", username: "Samson",  text: "Smart defensive shape under pressure.", avatarLetter: "S", colorHex: "43A047"),
+    .init(id: "4", username: "Dev",     text: "No panic there, just control and patience at the right moment.", avatarLetter: "D", colorHex: "FB8C00"),
+    .init(id: "5", username: "James",   text: "The crowd can feel this turning.", avatarLetter: "J", colorHex: "8E24AA"),
 ]
 
 private struct ScorecardBatter: Identifiable {
@@ -59,13 +59,6 @@ private let scorecardBowlingData: [ScorecardBowler] = [
     .init(id: "6", name: "D Silva",      o: "10.0", m: "0", r: "28", w: "0", er: "2.80"),
     .init(id: "7", name: "C Asalanka",   o: "9.0",  m: "1", r: "18", w: "4", er: "2.00"),
 ]
-
-private struct DetailTabRowOffsetKey: PreferenceKey {
-    static var defaultValue: CGFloat = .greatestFiniteMagnitude
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = min(value, nextValue())
-    }
-}
 
 private enum DetailPresentationKind: Equatable {
     case regular
@@ -115,6 +108,9 @@ struct ContentDetailView: View {
     let onPlay: (ContentDetail, StorefrontItem?) -> Void
     var onPlayEpisode: ((StorefrontItem) -> Void)? = nil
     let onSelectRecommendation: (StorefrontItem) -> Void
+    var isSubscribed: Bool = false
+    var onSubscribe: () -> Void = {}
+    var isFullPlayerActive: Bool = false   // when the full-screen player is up, suspend play-along
     @State private var isDescriptionExpanded = false
     @State private var isVideoReady = false
     @State private var showDemoAlert = false
@@ -138,8 +134,7 @@ struct ContentDetailView: View {
     @State private var timerShakeOffset: CGFloat = 0
     @State private var showQuizConfetti = false
     @State private var isSeasonSheetPresented = false
-    @State private var tabRowGlobalY: CGFloat = .greatestFiniteMagnitude
-
+    @StateObject private var playAlong = PlayAlongDirector()
     private let recommendationColumns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
     private let momentColumns = [GridItem(.flexible(), spacing: 10)]
     private var isShowingLiveFeedDock: Bool {
@@ -158,25 +153,6 @@ struct ContentDetailView: View {
                         .zIndex(20)
                 }
 
-                if let detail = viewModel.detail, isMockInteractionPresented {
-                    let mediaH = proxy.size.width * 9 / 16
-                    let quizH  = proxy.size.height - 58 - mediaH
-                    quizOverlay(detail: detail, width: proxy.size.width)
-                        .frame(width: proxy.size.width, height: max(200, quizH))
-                        .ignoresSafeArea(edges: .bottom)
-                        .zIndex(30)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .bottom).combined(with: .opacity),
-                            removal: .move(edge: .bottom).combined(with: .opacity)
-                        ))
-
-                    // Quiz nav bar — overlaid over the player area (Figma: back | crown+score | game-controller)
-                    quizNavBarOverlay(safeAreaTop: proxy.safeAreaInsets.top)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                        .ignoresSafeArea(edges: .top)
-                        .zIndex(31)
-                        .transition(.opacity)
-                }
 
                 // Live Feed input dock — floats above keyboard
                 if isShowingLiveFeedDock {
@@ -193,12 +169,38 @@ struct ContentDetailView: View {
                         .zIndex(25)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
+
+                // Play-along (KBC): a shaking teaser button 3s before the question, then
+                // the question panel below the player, driven by the player's seek position.
+                switch playAlong.stage {
+                case .teaser:
+                    PlayAlongTeaserButton(onTap: { playAlong.openFromTeaser() })
+                        .padding(.bottom, proxy.safeAreaInsets.bottom + 16)
+                        .zIndex(40)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                case .asking, .revealing:
+                    // Reuse the original KBC quiz overlay, now data-driven, as a panel
+                    // directly below the player (video keeps playing above it).
+                    if let q = playAlong.activeQuestion {
+                        let mediaH = proxy.size.width * 9 / 16
+                        let playerBottom = proxy.safeAreaInsets.top + 58 + mediaH
+                        let panelH = proxy.size.height - playerBottom
+                        quizOverlay(question: q, width: proxy.size.width)
+                            .frame(width: proxy.size.width, height: max(260, panelH))
+                            .ignoresSafeArea(edges: .bottom)
+                            .zIndex(41)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                case .idle:
+                    EmptyView()
+                }
             }
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .animation(.easeInOut(duration: 0.22), value: isMomentSearchOverlayPresented)
             .animation(.spring(response: 0.38, dampingFraction: 0.88), value: isMockInteractionPresented)
             .animation(.spring(response: 0.38, dampingFraction: 0.88), value: isTimeStampPresented)
             .animation(.easeInOut(duration: 0.18), value: isShowingLiveFeedDock)
+            .animation(.spring(response: 0.4, dampingFraction: 0.86), value: playAlong.stage)
             // 3-phase quiz timer:
             //   Phase 1 — Answer (20 s): quizCountdown 20→0, user may tap.
             //   Phase 2 — Hold   (5 s):  quizIsLocked=true, quizCountdown 5→0, no input.
@@ -269,9 +271,7 @@ struct ContentDetailView: View {
                 dismissMomentSearchOverlay()
                 dismissMockInteraction()
                 await viewModel.loadIfNeeded()
-            }
-            .onDisappear {
-                engine.release()
+                playAlong.configure(questions: PlayAlongCatalog.questions(forContentID: viewModel.seed?.id ?? viewModel.detail?.id))
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { notification in
                 updateKeyboardHeight(from: notification)
@@ -285,6 +285,19 @@ struct ContentDetailView: View {
         .onReceive(engine.$isReady) { ready in
             withAnimation(.easeInOut(duration: 0.3)) { isVideoReady = ready }
         }
+        .onReceive(engine.$currentTime) { time in
+            // The full-screen player owns playback; don't run play-along behind it.
+            guard !isFullPlayerActive else { return }
+            playAlong.update(time: time)
+        }
+        .onReceive(engine.$seekGeneration) { _ in
+            // A real user seek (scrub / skip) — let the director ignore the jumped-into question.
+            guard !isFullPlayerActive else { return }
+            playAlong.markSeek()
+        }
+        .onChange(of: isFullPlayerActive) { _, active in
+            if active { playAlong.suspend() }
+        }
         .demoAlert(isPresented: $showDemoAlert)
     }
 
@@ -292,11 +305,16 @@ struct ContentDetailView: View {
     private func content(width: CGFloat, height: CGFloat, safeAreaTop: CGFloat) -> some View {
         if let detail = viewModel.detail {
             let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
+            let requiresSubscription = detail.isPremium && !isSubscribed
             // For series/season types the series ID is not a valid playable content ID —
             // wait until the first episode is available and use its ID instead.
-            let resolvedPlayerContent: QuickplayPlaybackContent? = detail.supportsEpisodes
-                ? viewModel.episodes.first?.quickplayPlaybackContent()
-                : detail.quickplayPlaybackContent(fallback: viewModel.seed)
+            // Only premium content is subscription-gated. Free content can preview/play
+            // even when the current profile does not have an active subscription.
+            let resolvedPlayerContent: QuickplayPlaybackContent? = requiresSubscription
+                ? nil
+                : (detail.supportsEpisodes
+                    ? viewModel.episodes.first?.quickplayPlaybackContent()
+                    : detail.quickplayPlaybackContent(fallback: viewModel.seed))
             let navBarHeight: CGFloat = 58
             let headerHeight: CGFloat = isVideoReady
                 ? safeAreaTop + navBarHeight + width * 9 / 16
@@ -365,36 +383,16 @@ struct ContentDetailView: View {
                     }
                 }
 
-                    ScrollView(.vertical, showsIndicators: false) {
-                        scrollableBody(detail, kind: kind, width: width)
-                            .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
+                    ZStack(alignment: .top) {
+                        ScrollView(.vertical, showsIndicators: false) {
+                            scrollableBody(detail, kind: kind, width: width)
+                                .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
+                        }
+                        .padding(.top, -overlapHeight)
                     }
-                    .padding(.top, -overlapHeight)
                 }
                 .ignoresSafeArea(edges: .top)
                 .zIndex(2)
-
-                // Sticky tab row — pins below the card once the original scrolls past the card bottom
-                let showStickyTabs = kind != .sportsInteractive && tabRowGlobalY < headerHeight
-                if showStickyTabs {
-                    VStack(spacing: 0) {
-                        tabRow(detail)
-                            .padding(.horizontal, 16)
-                        Rectangle()
-                            .fill(Color.white.opacity(0.12))
-                            .frame(height: 1)
-                    }
-                    .background(Color(hex: "0A0A0A"))
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, headerHeight)
-                    .zIndex(5)
-                    .transition(.opacity)
-                    .animation(.easeInOut(duration: 0.15), value: showStickyTabs)
-                }
-
-            }
-            .onPreferenceChange(DetailTabRowOffsetKey.self) { y in
-                tabRowGlobalY = y
             }
         } else if viewModel.isLoading {
             detailLoadingShimmer(width: width)
@@ -512,6 +510,8 @@ struct ContentDetailView: View {
                         .fill(Color.white.opacity(0.12))
                         .frame(height: 1)
                 }
+                .frame(maxWidth: .infinity)
+                .background(Color(hex: "0A0A0A"))
                 sportsTabContent(detail, width: width)
                     .padding(.horizontal, 16)
                     .padding(.top, 4)
@@ -532,14 +532,8 @@ struct ContentDetailView: View {
                         .fill(Color.white.opacity(0.12))
                         .frame(height: 1)
                 }
-                .background(
-                    GeometryReader { geo in
-                        Color.clear.preference(
-                            key: DetailTabRowOffsetKey.self,
-                            value: geo.frame(in: .global).minY
-                        )
-                    }
-                )
+                .frame(maxWidth: .infinity)
+                .background(Color(hex: "0A0A0A"))
                 tabContent(detail, width: width)
                     .padding(.horizontal, 16)
                     .padding(.top, 12)
@@ -613,10 +607,16 @@ struct ContentDetailView: View {
     }
 
     private func watchButton(_ detail: ContentDetail, kind: DetailPresentationKind) -> some View {
-        Button {
-            openFullPlayer(detail: detail)
+        let requiresSubscription = detail.isPremium && !isSubscribed
+
+        return Button {
+            if requiresSubscription {
+                onSubscribe()
+            } else {
+                openFullPlayer(detail: detail)
+            }
         } label: {
-            Text(watchTitle(for: detail, kind: kind))
+            Text(requiresSubscription ? "Subscribe to Watch" : watchTitle(for: detail, kind: kind))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(Color(hex: "1E1E1E"))
                 .frame(maxWidth: .infinity)
@@ -643,7 +643,7 @@ struct ContentDetailView: View {
 
     // MARK: - Sports Detail
 
-    // Title + action buttons only — the tab bar is a separate pinned Section header
+    // Title + action buttons only — the tab bar is rendered below as normal scroll content.
     private func sportsAboveTabContent(_ detail: ContentDetail, width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 6) {
@@ -653,7 +653,7 @@ struct ContentDetailView: View {
                     .lineLimit(2)
                     .minimumScaleFactor(0.8)
 
-                Text(detail.description.nilIfEmpty ?? "India vs Sri Lanka • ICC T20 World Cup • Live")
+                Text(detail.description.nilIfEmpty ?? "Live sports action • Real-time updates • Interactive moments")
                     .font(.system(size: 13, weight: .regular))
                     .foregroundStyle(.white.opacity(0.68))
                     .lineLimit(2)
@@ -675,10 +675,13 @@ struct ContentDetailView: View {
         }
     }
 
+    // "Scorecard" (view score) is hidden for now — re-add it to this list to bring it back.
+    private let sportsTabs = ["Live Feed", "Key Moments", "You May also Like"]
+
     private var sportsTabRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 0) {
-                ForEach(["Live Feed", "Scorecard", "Key Moments", "You May also Like"], id: \.self) { tab in
+                ForEach(sportsTabs, id: \.self) { tab in
                     Button {
                         withAnimation(.easeInOut(duration: 0.18)) {
                             selectedSportsTab = tab
@@ -866,7 +869,7 @@ struct ContentDetailView: View {
                     .foregroundStyle(Color(hex: "FFD166"))
             }
 
-            Text("Will S Gill hit a six in next over?")
+            Text("Will the leading side hold momentum for the next few minutes?")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.white)
 
@@ -937,10 +940,10 @@ struct ContentDetailView: View {
     }
 
     private let sportsKeyMoments: [KeyMoment] = [
-        .init(id: "1", title: "Six Of The Day",          caption: "S Gill hits a massive six"),
-        .init(id: "2", title: "75 Meter Six",             caption: "Jaw-dropping hit by S Gill"),
-        .init(id: "3", title: "Bumrah's Wicket",          caption: "D Wellalage caught behind"),
-        .init(id: "4", title: "Rohit Fifty",              caption: "Captain's knock in 42 balls"),
+        .init(id: "1", title: "Momentum Shift",          caption: "A key passage changes the energy"),
+        .init(id: "2", title: "Pressure Play",           caption: "Composure under a tense moment"),
+        .init(id: "3", title: "Defensive Stand",         caption: "Strong response when it mattered"),
+        .init(id: "4", title: "Clutch Finish",           caption: "Late execution keeps the contest alive"),
     ]
 
     private func sportsKeyMomentsTab(width: CGFloat) -> some View {
@@ -952,7 +955,7 @@ struct ContentDetailView: View {
                 }
             } label: {
                 HStack(spacing: 10) {
-                    Text("S Gill six")
+                    Text("Game-changing moment")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
                     Spacer(minLength: 0)
@@ -1040,11 +1043,11 @@ struct ContentDetailView: View {
     }
 
     private let timeStampItems: [TimeStampItem] = [
-        .init(id: "1", title: "Virat Hits 4",                    time: "2:30"),
-        .init(id: "2", title: "Vaiabhav suriyavanshi hits 6",    time: "4:50"),
-        .init(id: "3", title: "Rohit Sharma scores a boundary",  time: "5:30"),
-        .init(id: "4", title: "Kohli takes a six",               time: "6:00"),
-        .init(id: "5", title: "Virat took 2 runs",               time: "7:15"),
+        .init(id: "1", title: "Fast start from the attack",      time: "2:30"),
+        .init(id: "2", title: "Momentum changes hands",          time: "4:50"),
+        .init(id: "3", title: "Strong defensive response",       time: "5:30"),
+        .init(id: "4", title: "Pressure moment handled well",    time: "6:00"),
+        .init(id: "5", title: "Late chance creates drama",       time: "7:15"),
     ]
 
     private var timeStampOverlay: some View {
@@ -1665,8 +1668,7 @@ struct ContentDetailView: View {
 
     private func actionButtonRow(_ detail: ContentDetail, kind: DetailPresentationKind) -> some View {
         HStack(spacing: 8) {
-            DetailActionButton(assetImage: "clapperboard", cornerStyle: .leading, action: { showDemoAlert = true })
-            DetailActionButton(assetImage: "download", action: { showDemoAlert = true })
+            DetailActionButton(assetImage: "download", cornerStyle:.leading, action: { showDemoAlert = true })
             // Favourite toggle — bookmark-plus asset when not saved, SF bookmark.fill when saved
             if viewModel.isFavorite {
                 DetailActionButton(systemImage: "bookmark.fill", isHighlighted: true) {
@@ -1697,43 +1699,78 @@ struct ContentDetailView: View {
                 presentMomentSearchOverlay(for: detail)
             }
         }
-        .overlay(alignment: .bottomTrailing) {
-            if viewModel.detail?.momentSearchEnabled == true {
-                searchMomentsPill
-                    .offset(x: 34, y: 36)
-            }
-        }
+//        .overlay(alignment: .bottomTrailing) {
+//            if viewModel.detail?.momentSearchEnabled == true {
+//                searchMomentsPill
+//                    .offset(x: 10, y: 34)
+//            }
+//        }
     }
 
     private var searchMomentsPill: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 5) {
             Image(systemName: AppIcons.Action.sparkles)
-                .font(.system(size: 13, weight: .bold))
+                .font(.system(size: 11, weight: .bold))
             Text("Search Moments")
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 11, weight: .semibold))
         }
-        .foregroundStyle(Color(hex: "202020"))
-        .padding(.horizontal, 8)
-        .frame(height: 28)
+        .foregroundStyle(.white.opacity(0.94))
+        .padding(.horizontal, 10)
+        .frame(height: 27)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.5), radius: 4, x: 0, y: 4)
+                .fill(.ultraThinMaterial.opacity(0.86))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.16),
+                                    Color(hex: "FF7A1A").opacity(0.08),
+                                    Color(hex: "9C4DFF").opacity(0.12)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.20), lineWidth: 0.7)
+                )
+                .shadow(color: Color.black.opacity(0.38), radius: 10, x: 0, y: 6)
         )
+        .overlay(alignment: .topTrailing) {
+            RoundedRectangle(cornerRadius: 1.8, style: .continuous)
+                .fill(.ultraThinMaterial.opacity(0.86))
+                .frame(width: 8, height: 8)
+                .rotationEffect(.degrees(45))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 1.8, style: .continuous)
+                        .stroke(Color.white.opacity(0.14), lineWidth: 0.5)
+                        .rotationEffect(.degrees(45))
+                )
+                .offset(x: -22, y: -3.5)
+        }
         .allowsHitTesting(false)
     }
 
+    // Sponsor comes from cust_spr_tg (via the seed item); falls back to the detail's
+    // own sponsor list. Hidden entirely when there is no sponsor.
+    @ViewBuilder
     private func sponsorRow(_ detail: ContentDetail) -> some View {
-        HStack(spacing: 5) {
-            Text("SPONSORED BY")
-                .font(.system(size: 7, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.78))
-            Text(detail.sponsorNames.first ?? "KFC")
-                .font(.system(size: 15, weight: .black))
-                .italic()
-                .foregroundStyle(.white)
+        if let sponsor = viewModel.seed?.sponsorName?.nilIfEmpty {
+            HStack(spacing: 5) {
+                Text("SPONSORED BY")
+                    .font(.system(size: 7, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.78))
+                Text(sponsor)
+                    .font(.system(size: 15, weight: .black))
+                    .italic()
+                    .foregroundStyle(.white)
+            }
+            .frame(height: 30)
         }
-        .frame(height: 30)
     }
 
     private func detailTabs(for detail: ContentDetail) -> [String] {
@@ -1920,14 +1957,18 @@ struct ContentDetailView: View {
     // MARK: - KBC Quiz panel (inline, replaces detailContent)
 
     private static let kbcQuizOptions: [(letter: String, text: String, isCorrect: Bool)] = [
-        ("A", "18", true),
-        ("B", "10", false),
-        ("C", "12", false),
-        ("D", "4",  false)
+        ("A", "Stay organized", true),
+        ("B", "Force every play", false),
+        ("C", "Ignore the clock", false),
+        ("D", "Stop communicating",  false)
     ]
 
-    private func quizOverlay(detail: ContentDetail, width: CGFloat) -> some View {
+    // Data-driven KBC quiz overlay: renders the play-along question currently active in
+    // the director (question text, options, countdown and reveal all come from the data).
+    private func quizOverlay(question q: PlayAlongQuestion, width: CGFloat) -> some View {
         let hexW: CGFloat = width * 0.693
+        let total = max(1, Int((q.end - q.start).rounded()))
+        let revealedCorrect = playAlongRevealingCorrect(q)
 
         return ZStack {
             ZStack {
@@ -1942,7 +1983,7 @@ struct ContentDetailView: View {
             }
             .ignoresSafeArea(edges: .bottom)
 
-            if showQuizConfetti {
+            if revealedCorrect {
                 KBCConfettiView()
                     .ignoresSafeArea()
                     .allowsHitTesting(false)
@@ -1952,12 +1993,12 @@ struct ContentDetailView: View {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 0) {
                     // Countdown circle — standalone, centered (Figma: sits just below the video)
-                    kbcCountdownCircle
+                    kbcCountdownCircle(total: total)
                         .frame(maxWidth: .infinity)
                         .padding(.top, 14)
                         .padding(.bottom, 10)
 
-                    Text("How many holes are contained in a typical golf course")
+                    Text(q.question)
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
@@ -1980,12 +2021,20 @@ struct ContentDetailView: View {
                         )
 
                     VStack(spacing: 15) {
-                        ForEach(Self.kbcQuizOptions, id: \.letter) { opt in
-                            kbcOptionRow(opt.letter, text: opt.text, isCorrect: opt.isCorrect,
-                                         screenWidth: width, hexW: hexW)
+                        ForEach(q.options) { option in
+                            kbcOptionRow(question: q, option: option, screenWidth: width, hexW: hexW)
                         }
                     }
                     .padding(.top, 22)
+
+                    // For "arrange"-type questions there's no single correct option — show the
+                    // answer order once it's revealed.
+                    if playAlongIsRevealing, q.correctLetter == nil, !q.answerText.isEmpty {
+                        Text("Answer: \(q.answerText)")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(Color(hex: "22C55E"))
+                            .padding(.top, 16)
+                    }
 
                     kbcLifelineRow
                         .padding(.top, 20)
@@ -1995,6 +2044,15 @@ struct ContentDetailView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var playAlongIsRevealing: Bool {
+        if case .revealing = playAlong.stage { return true }
+        return false
+    }
+
+    private func playAlongRevealingCorrect(_ q: PlayAlongQuestion) -> Bool {
+        playAlongIsRevealing && playAlong.selection != nil && playAlong.selection == q.correctLetter
     }
 
     // ── Quiz nav bar overlay (Figma 18-56986): back | crown+score | game-controller ──
@@ -2055,8 +2113,11 @@ struct ContentDetailView: View {
     // Phase 1 (answer, !quizIsLocked): arc 20→0, orange→red number.
     // Phase 2 (hold,   quizIsLocked && !showsResult): lock icon, white arc draining 5→0.
     // Phase 3 (reveal, showsResult): hidden — results speak for themselves.
-    private var kbcCountdownCircle: some View {
-        ZStack {
+    private func kbcCountdownCircle(total: Int) -> some View {
+        let remaining = playAlong.remainingSeconds
+        let fraction = total > 0 ? CGFloat(remaining) / CGFloat(total) : 0
+
+        return ZStack {
             Circle()
                 .fill(Color(hex: "260299").opacity(0.55))
                 .frame(width: 52, height: 52)
@@ -2067,57 +2128,49 @@ struct ContentDetailView: View {
                 .frame(width: 52, height: 52)
                 .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 2))
 
-            if mockInteractionShowsResult {
-                // Reveal phase — blank circle, no arc
-                EmptyView()
-            } else if quizIsLocked {
-                // Hold phase — white draining arc + lock icon
-                Circle()
-                    .trim(from: 0, to: CGFloat(quizCountdown) / 5.0)
-                    .stroke(Color.white.opacity(0.7), style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                    .frame(width: 46, height: 46)
-                    .rotationEffect(.degrees(-90))
-                    .animation(.linear(duration: 1), value: quizCountdown)
-
+            if playAlongIsRevealing {
+                // Reveal phase — answer is locked.
                 Image(systemName: "lock.fill")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundStyle(.white.opacity(0.8))
             } else {
-                // Answer phase — orange/red arc + countdown number
+                // Answer phase — orange/red arc draining to the lock time + countdown number
                 Circle()
-                    .trim(from: 0, to: CGFloat(quizCountdown) / 20.0)
+                    .trim(from: 0, to: fraction)
                     .stroke(
-                        quizCountdown > 5 ? Color(hex: "FFAC33") : Color(hex: "FF3B30"),
+                        remaining > 5 ? Color(hex: "FFAC33") : Color(hex: "FF3B30"),
                         style: StrokeStyle(lineWidth: 3, lineCap: .round)
                     )
                     .frame(width: 46, height: 46)
                     .rotationEffect(.degrees(-90))
-                    .animation(.linear(duration: 1), value: quizCountdown)
+                    .animation(.linear(duration: 1), value: remaining)
 
                 // New identity each second → transition fires a pop-scale animation
-                Text("\(quizCountdown)")
+                Text("\(remaining)")
                     .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundStyle(quizCountdown > 5 ? .white : Color(hex: "FF3B30"))
-                    .id(quizCountdown)
-                    .offset(y: timerShakeOffset)
+                    .foregroundStyle(remaining > 5 ? .white : Color(hex: "FF3B30"))
+                    .id(remaining)
                     .transition(
                         .asymmetric(
                             insertion: .scale(scale: 1.5).combined(with: .opacity),
                             removal: .scale(scale: 0.6).combined(with: .opacity)
                         )
                     )
-                    .animation(.spring(response: 0.28, dampingFraction: 0.62), value: quizCountdown)
+                    .animation(.spring(response: 0.28, dampingFraction: 0.62), value: remaining)
             }
         }
         .frame(width: 52, height: 52)
     }
 
     // ── Single option row ─────────────────────────────────────────────────
-    private func kbcOptionRow(_ letter: String, text: String, isCorrect: Bool,
+    private func kbcOptionRow(question q: PlayAlongQuestion, option: PlayAlongQuestion.Option,
                                screenWidth: CGFloat, hexW: CGFloat) -> some View {
-        let isSelected = mockInteractionSelection == letter
-        let isLocked   = quizIsLocked   // true when timer expires OR user taps
-        let showResult = mockInteractionShowsResult
+        let letter = option.letter
+        let text = option.text
+        let isCorrect = q.correctLetter == letter
+        let isSelected = playAlong.selection == letter
+        let showResult = playAlongIsRevealing   // answer revealed at end_time
+        let isLocked   = showResult              // locked once revealed
 
         let hexFill: Color = {
             if showResult {
@@ -2146,7 +2199,7 @@ struct ContentDetailView: View {
 
         let textAlpha: Double = isLocked && !isSelected && !(showResult && isCorrect) ? 0.35 : 1.0
 
-        return Button { answerMockInteraction(letter) } label: {
+        return Button { playAlong.select(letter) } label: {
             ZStack {
                 // Full-width horizontal line (Figma imgLine1 effect)
                 Rectangle()
@@ -2180,8 +2233,8 @@ struct ContentDetailView: View {
         }
         .disabled(isLocked || showResult)
         .buttonStyle(LiquidButtonPressStyle())
-        .animation(.easeInOut(duration: 0.2), value: mockInteractionSelection)
-        .animation(.easeInOut(duration: 0.2), value: mockInteractionShowsResult)
+        .animation(.easeInOut(duration: 0.2), value: playAlong.selection)
+        .animation(.easeInOut(duration: 0.2), value: playAlongIsRevealing)
     }
 
     // ── Lifelines row ─────────────────────────────────────────────────────
@@ -2680,23 +2733,6 @@ private struct DetailRecommendationCard: View {
                     size: size,
                     cornerRadius: 0
                 )
-
-                if item.isPremium || item.contentType.lowercased().contains("episode") {
-                    Text(item.contentType.lowercased().contains("episode") ? "New Episode" : "New Movie")
-                        .font(.system(size: 8, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 8)
-                        .frame(height: 18)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(Color(hex: "4732FF").opacity(0.9))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                        .stroke(Color(hex: "CFCFCF"), lineWidth: 1)
-                                )
-                        )
-                        .padding(.bottom, 8)
-                }
             }
             .frame(width: size.width, height: size.height)
             .clipped()

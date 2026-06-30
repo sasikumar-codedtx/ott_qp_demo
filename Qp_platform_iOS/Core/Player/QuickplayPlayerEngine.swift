@@ -34,6 +34,7 @@ final class QuickplayPlayerEngine: ObservableObject {
     @Published private(set) var loadedContentId: String?
     @Published var isFullscreenSurfaceActive: Bool = false
     @Published var preferredVideoMaxHeight: Int = 0
+    @Published private(set) var seekGeneration: Int = 0   // bumps on every user-initiated seek
 
     private var flPlayer: (any FLPlayerInterface.Player)?
     private var heartbeatManager: (any QuickplayHeartbeatManagerBox)?
@@ -356,6 +357,7 @@ final class QuickplayPlayerEngine: ObservableObject {
 
     func seek(to seconds: Double) {
         flPlayer?.seek(to: seconds)
+        seekGeneration &+= 1
     }
 
     func setPreferredBitrate(_ bitrate: Double) {
@@ -543,13 +545,14 @@ final class QuickplayPlayerEngine: ObservableObject {
     }
 
     @Published var preferredVideoMaxHeight: Int = 0
+    @Published private(set) var seekGeneration: Int = 0
     var loadedContentId: String? { nil }
     var isFullscreenSurfaceActive: Bool = false
 
     func togglePlayPause() {}
     func play() {}
     func pause() {}
-    func seek(to seconds: Double) {}
+    func seek(to seconds: Double) { seekGeneration &+= 1 }
     func setPreferredBitrate(_ bitrate: Double) {}
     func setPlaybackRate(_ rate: Float) {}
     func toggleMute() { isMuted.toggle() }

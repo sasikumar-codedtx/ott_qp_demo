@@ -24,7 +24,11 @@ struct StorefrontItem: Identifiable, Equatable, Hashable, Codable {
     let progress: Double?
     let canOpenDetail: Bool
     let previewURL: URL?
+    let shortVideoURL: URL?
     let imageBaseURL: String
+    let customTag:String
+    // Sponsor name from cust_spr_tg[0].lon (nil when there is no sponsor).
+    let sponsorName: String?
 
     func imageURL(for ratio: String, width: Int) -> URL? {
         ImageURLBuilder(baseURL: imageBaseURL).imageURL(
@@ -83,7 +87,7 @@ struct StorefrontItem: Identifiable, Equatable, Hashable, Codable {
     var showsInlinePlayCTA: Bool {
         let type = contentType.lowercased()
 
-        if type.contains("short") || type.contains("clip") || type.contains("highlight") {
+        if isShortFormContent || type.contains("clip") || type.contains("highlight") {
             return true
         }
 
@@ -96,6 +100,25 @@ struct StorefrontItem: Identifiable, Equatable, Hashable, Codable {
         }
 
         return false
+    }
+
+    var isShortFormContent: Bool {
+        let values = [
+            contentType,
+            cardType ?? "",
+            customSearchCategory ?? "",
+            customID ?? ""
+        ]
+            .map {
+                $0
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .lowercased()
+                    .replacingOccurrences(of: "-", with: "")
+                    .replacingOccurrences(of: "_", with: "")
+                    .replacingOccurrences(of: " ", with: "")
+            }
+
+        return values.contains(where: { $0.contains("short") })
     }
 
     nonisolated func withProgress(_ value: Double?) -> StorefrontItem {
@@ -123,7 +146,10 @@ struct StorefrontItem: Identifiable, Equatable, Hashable, Codable {
             progress: value,
             canOpenDetail: canOpenDetail,
             previewURL: previewURL,
-            imageBaseURL: imageBaseURL
+            shortVideoURL: shortVideoURL,
+            imageBaseURL: imageBaseURL,
+            customTag: customTag,
+            sponsorName: sponsorName
         )
     }
 }

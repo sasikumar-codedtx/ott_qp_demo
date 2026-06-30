@@ -10,6 +10,7 @@ struct ProfileHubView: View {
     let onEditProfiles: () -> Void
     let onSelectProfile: (Profile) -> Void
     let onSelectItem: (StorefrontItem) -> Void
+    var isSubscribed: Bool = false
     @State private var showsProfileSwitch = false
     @State private var showDemoAlert = false
 
@@ -177,7 +178,7 @@ struct ProfileHubView: View {
                             }
                         }
 
-                        if !AppEnvironment.Demo.hasActiveSubscription {
+                        if !isSubscribed {
                             upgradeCard
                                 .padding(.horizontal, UIConstants.Spacing.lg)
                         }
@@ -401,7 +402,7 @@ struct ProfileHubView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 8) {
                     ForEach(section.items) { item in
-                        StorefrontCardView(item: item, style: style, layout: layout, rank: nil, onSelect: onSelectItem)
+                        StorefrontCardView(item: item, style: style, layout: layout, rank: nil, showsCustomTag: false, onSelect: onSelectItem)
                     }
                 }
                 .padding(.horizontal, UIConstants.Spacing.lg)
@@ -413,7 +414,8 @@ struct ProfileHubView: View {
         let screenWidth = UIScreen.main.bounds.width
         let horizontalPadding = UIConstants.Spacing.lg * 2
         let spacing: CGFloat = 8
-        let cardWidth = max((screenWidth - horizontalPadding - (spacing * 1.5)) / 2.5, 118)
+        let visibleCardCount: CGFloat = (section.id == "likes" || section.id == "favorites") ? 3.2 : 2.5
+        let cardWidth = max((screenWidth - horizontalPadding - (spacing * (visibleCardCount - 1))) / visibleCardCount, 88)
         let cardHeight: CGFloat = cardWidth * 3 / 2
         let size = CGSize(width: cardWidth, height: cardHeight)
         let layout = StorefrontCardLayout(size: size, overlayHeight: 52, visibleCount: 2)
@@ -426,7 +428,7 @@ struct ProfileHubView: View {
                 HStack(alignment: .top, spacing: spacing) {
                     ForEach(section.items) { item in
                         ZStack {
-                            StorefrontCardView(item: item, style: .poster, layout: layout, rank: nil, onSelect: onSelectItem)
+                            StorefrontCardView(item: item, style: .poster, layout: layout, rank: nil, showsCustomTag: false, onSelect: onSelectItem)
 
                             if showsPlayOverlay {
                                 RoundedRectangle(cornerRadius: StorefrontRailMetrics.cardCornerRadius, style: .continuous)

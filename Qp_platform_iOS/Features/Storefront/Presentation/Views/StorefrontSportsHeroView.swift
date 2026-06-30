@@ -5,28 +5,20 @@ struct StorefrontSportsHeroView: View {
     let items: [StorefrontItem]
     let onSelectItem: (StorefrontItem) -> Void
 
-    @State private var currentIndex: Int = 0
-    @State private var dragX: CGFloat = 0
-    @State private var frontOpacity: CGFloat = 1.0
-    @State private var isAnimating: Bool = false
-
-    // Leading-edge ratios — step 5% apart so all three cards are visible:
-    //   card1: 10%→85%,  card2: 15%→90%,  card3: 20%→95%
-    @State private var card2LeadingRatio: CGFloat = 0.10
-    @State private var card3LeadingRatio: CGFloat = 0.15
-
-    @State private var card2Brightness: CGFloat = -0.12
-    @State private var card3Brightness: CGFloat = -0.22
+    @State private var position: CGFloat = 0
+    @State private var dragStartPosition: CGFloat? = nil
+    @State private var isDragging = false
 
     private let cardWidthRatio: CGFloat = 0.80
-    private let frontLeading:   CGFloat = 0.05
-    private let restLeading2:   CGFloat = 0.10
-    private let restLeading3:   CGFloat = 0.15
-    private let restBright2:    CGFloat = -0.12
-    private let restBright3:    CGFloat = -0.22
+    private let frontLeading:   CGFloat = 0.05   // front card leading edge (ratio of width)
+    private let peekStepRatio:  CGFloat = 0.05   // each card behind peeks this much further right
+
     private var featuredItems: [StorefrontItem] { Array(items.prefix(8)) }
     private var count: Int { max(1, featuredItems.count) }
     private func wrap(_ i: Int) -> Int { ((i % count) + count) % count }
+
+    private var baseIndex: Int { Int(position.rounded()) }
+    private var displayIndex: Int { wrap(baseIndex) }
 
     var body: some View {
         VStack(spacing: 15) {
@@ -35,150 +27,137 @@ struct StorefrontSportsHeroView: View {
                 let H         = geo.size.height
                 let cardWidth = W * cardWidthRatio
                 let midY      = H / 2
+                // Finger travel that advances exactly one card. Sized so the front
+                // card — which tracks the finger 1:1 — fully clears the screen by the
+                // time a whole step completes. A real swipe commits well before that
+                // via the velocity/threshold logic in onEnded, then springs the rest.
+                let step      = W * 0.92
 
                 // .position() is a real layout placement (not just visual like .offset),
-                // so card2 and card3 peeking areas are never clipped by the ZStack.
+                // so the peeking areas of the cards behind are never clipped by the ZStack.
                 ZStack {
-                    // Card 3 — furthest back
-                    sportsCard(item: featuredItems[wrap(currentIndex + 2)], width: cardWidth)
-                        .brightness(card3Brightness)
-                        .position(x: W * card3LeadingRatio + cardWidth / 2, y: midY)
-                        .zIndex(8)
-
-                    // Card 2 — middle
-                    sportsCard(item: featuredItems[wrap(currentIndex + 1)], width: cardWidth)
-                        .brightness(card2Brightness)
-                        .position(x: W * card2LeadingRatio + cardWidth / 2, y: midY)
-                        .zIndex(9)
-
-                    // Card 1 — front, follows drag
-                    sportsCard(item: featuredItems[currentIndex], width: cardWidth)
-                        .opacity(frontOpacity)
-                        .position(x: W * frontLeading + cardWidth / 2 + dragX, y: midY)
-                        .zIndex(10)
-                        .onTapGesture {
-                            guard !isAnimating, abs(dragX) < 5,
-                                  featuredItems[currentIndex].canOpenDetail else { return }
-                            onSelectItem(featuredItems[currentIndex])
+                    if count <= 1 {
+                        sportsCard(item: featuredItems[0], width: cardWidth)
+                            .position(x: slotCenterX(0, width: W, cardWidth: cardWidth, step: step), y: midY)
+                            .onTapGesture {
+                                guard featuredItems[0].canOpenDetail else { return }
+                                onSelectItem(featuredItems[0])
+                            }
+                    } else {
+                        // Identity is the LOGICAL index (the item), not the slot, so the
+                        // persistent cards keep their views (and Kingfisher images) across
+                        // an index rebase — only the entering/leaving card is rebuilt.
+                        ForEach(Array((baseIndex - 1)...(baseIndex + 3)), id: \.self) { logical in
+                            let s = CGFloat(logical) - position   // continuous slot: 0 == front
+                            sportsCard(item: featuredItems[wrap(logical)], width: cardWidth)
+                                .brightness(slotBrightness(s))
+                                .opacity(slotOpacity(s))
+                                .position(x: slotCenterX(s, width: W, cardWidth: cardWidth, step: step), y: midY)
+                                .zIndex(Double(-s))
+                                .allowsHitTesting(abs(s) < 0.5)
+                                .onTapGesture {
+                                    guard !isDragging,
+                                          abs(position - position.rounded()) < 0.05,
+                                          featuredItems[wrap(logical)].canOpenDetail else { return }
+                                    onSelectItem(featuredItems[wrap(logical)])
+                                }
                         }
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-                .gesture(swipeGesture(screenWidth: W))
+                .gesture(swipeGesture(step: step))
             }
             .frame(height: StorefrontHeroMetrics.mediaHeight)
 
             pageIndicator
         }
-        .task(id: currentIndex) {
+        .task(id: displayIndex) {
             let urls: [URL] = (1..<6).compactMap { offset in
-                featuredItems[wrap(currentIndex + offset)].imageURL(for: "0-2x3", width: 980)
+                featuredItems[wrap(displayIndex + offset)].imageURL(for: "0-2x3", width: 980)
             }
             ImagePrefetcher(urls: urls).start()
         }
     }
 
-    // MARK: - Gestures
+    // MARK: - Gesture
 
-    private func swipeGesture(screenWidth: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 12)
+    private func swipeGesture(step: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 8)
             .onChanged { value in
-                guard !isAnimating else { return }
-                dragX = value.translation.width
-                let p = max(0.0, min(1.0, -dragX / 180.0))
-                card2LeadingRatio = restLeading2 - (restLeading2 - frontLeading) * p
-                card3LeadingRatio = restLeading3 - (restLeading3 - restLeading2) * p
-                frontOpacity      = 1.0 - p * 0.4
-                card2Brightness   = restBright2 * (1.0 - p)
-                card3Brightness   = restBright3 + (restBright2 - restBright3) * p
+                guard count > 1 else { return }
+                if dragStartPosition == nil {
+                    // Capture the position at touch-down. If a settle spring is still
+                    // running this is its in-flight target, so a new drag simply takes
+                    // over from here — no lockout, fully interruptible and reversible.
+                    dragStartPosition = position
+                    isDragging = true
+                }
+                let start = dragStartPosition ?? position
+                // Drag left (negative width) advances; drag right goes back. Symmetric:
+                // whichever card is arriving at the front from the left tracks the finger 1:1.
+                position = start - value.translation.width / step
             }
             .onEnded { value in
-                guard !isAnimating else { return }
-                let velocity = value.predictedEndTranslation.width
-                if dragX < -10 || velocity < -80 {
-                    // Any leftward drag commits — card exits in the direction it was moved
-                    throwCardLeft(screenWidth: screenWidth)
-                } else if dragX > 60 || velocity > 200 {
-                    pullCardBack(screenWidth: screenWidth)
+                guard count > 1 else { return }
+                let start = dragStartPosition ?? position
+                dragStartPosition = nil
+                isDragging = false
+
+                let current   = start - value.translation.width / step
+                let predicted = start - value.predictedEndTranslation.width / step
+                let velocity  = predicted - current      // signed projected continuation
+
+                // Land on an adjacent integer: a flick decides the direction, otherwise
+                // settle to the nearest. Always within one step of `current`, so a card
+                // is never skipped and the gesture stays fully reversible.
+                let target: CGFloat
+                if velocity > 0.2 {
+                    target = current.rounded(.down) + 1
+                } else if velocity < -0.2 {
+                    target = current.rounded(.up) - 1
                 } else {
-                    snapBack()
+                    target = current.rounded()
+                }
+
+                withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.82, blendDuration: 0.2)) {
+                    position = target
                 }
             }
     }
 
-    /// Card 1 exits fully off-screen first; then cards 2 and 3 cascade left into position.
-    private func throwCardLeft(screenWidth: CGFloat) {
-        isAnimating = true
+    // MARK: - Continuous slot appearance (pure functions of slot `s`; 0 == front)
 
-        // Step 1 — card exits fully off-screen (easeIn = accelerates like a throw, no deceleration)
-        withAnimation(.easeIn(duration: 0.18)) {
-            dragX        = -(screenWidth + screenWidth * cardWidthRatio)
-            frontOpacity = 0.0
-        }
-
-        // Step 2 — once card is gone, cascade remaining cards into their new positions
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            withAnimation(.easeOut(duration: 0.22)) {
-                card2LeadingRatio = frontLeading
-                card3LeadingRatio = restLeading2
-                card2Brightness   = 0.0
-                card3Brightness   = restBright2
-            }
-        }
-
-        // Step 3 — swap content + reset positions (card 1 is fully invisible/off-screen)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.40) {
-            var t = Transaction()
-            t.disablesAnimations = true
-            withTransaction(t) {
-                currentIndex      = wrap(currentIndex + 1)
-                dragX             = 0
-                frontOpacity      = 1.0
-                card2LeadingRatio = restLeading2
-                card3LeadingRatio = restLeading3
-                card2Brightness   = restBright2
-                card3Brightness   = restBright3
-            }
-            isAnimating = false
+    /// Horizontal centre for a card at continuous slot `s`.
+    /// `s <= 0`  → front card / exiting-left / entering-from-left: moves with the
+    ///             finger 1:1 (slope == step) so it is "held" while dragged.
+    /// `s > 0`   → cards stacked behind, peeking subtly to the right.
+    private func slotCenterX(_ s: CGFloat, width W: CGFloat, cardWidth: CGFloat, step: CGFloat) -> CGFloat {
+        let frontCenter = W * frontLeading + cardWidth / 2
+        if s <= 0 {
+            return frontCenter + s * step
+        } else {
+            return frontCenter + s * (W * peekStepRatio)
         }
     }
 
-    /// Previous card slides in from the left.
-    private func pullCardBack(screenWidth: CGFloat) {
-        guard count > 1 else { snapBack(); return }
-        isAnimating = true
-
-        var t = Transaction()
-        t.disablesAnimations = true
-        withTransaction(t) {
-            currentIndex      = wrap(currentIndex - 1)
-            dragX             = -(screenWidth + 180)
-            frontOpacity      = 1.0
-            card2LeadingRatio = restLeading2
-            card3LeadingRatio = restLeading3
-            card2Brightness   = restBright2
-            card3Brightness   = restBright3
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-            withAnimation(.easeOut(duration: 0.28)) {
-                dragX = 0
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
-                isAnimating = false
-            }
-        }
+    private func slotBrightness(_ s: CGFloat) -> CGFloat {
+        if s <= 0 { return 0 }
+        if s <= 1 { return -0.12 * s }
+        if s <= 2 { return -0.12 - 0.10 * (s - 1) }
+        return -0.22
     }
 
-    private func snapBack() {
-        withAnimation(.easeOut(duration: 0.22)) {
-            dragX             = 0
-            frontOpacity      = 1.0
-            card2LeadingRatio = restLeading2
-            card3LeadingRatio = restLeading3
-            card2Brightness   = restBright2
-            card3Brightness   = restBright3
-        }
+    private func slotOpacity(_ s: CGFloat) -> CGFloat {
+        // Stay fully opaque (image + bottom gradient together) the whole time the
+        // card is on screen; only fade the final sliver as it clears the left edge.
+        // This keeps the bottom gradient at full strength throughout a swipe-back
+        // slide instead of only once the card has fully arrived.
+        if s <= -1    { return 0 }              // fully off the left edge
+        if s < -0.75  { return (s + 1) / 0.25 } // brief fade across [-1, -0.75]
+        if s <= 2     { return 1 }
+        if s < 3      { return 3 - s }          // fade in/out at the back of the stack
+        return 0
     }
 
     // MARK: - Card UI
@@ -298,9 +277,9 @@ struct StorefrontSportsHeroView: View {
         HStack(spacing: 4) {
             ForEach(featuredItems.indices, id: \.self) { i in
                 Capsule(style: .continuous)
-                    .fill(i == currentIndex % count ? Color.white : Color.white.opacity(0.22))
-                    .frame(width: i == currentIndex % count ? 24 : 6, height: 6)
-                    .animation(.spring(response: 0.28, dampingFraction: 0.72), value: currentIndex)
+                    .fill(i == displayIndex ? Color.white : Color.white.opacity(0.22))
+                    .frame(width: i == displayIndex ? 24 : 6, height: 6)
+                    .animation(.spring(response: 0.28, dampingFraction: 0.72), value: displayIndex)
             }
         }
     }

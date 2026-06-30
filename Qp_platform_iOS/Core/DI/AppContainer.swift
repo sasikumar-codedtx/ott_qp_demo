@@ -35,7 +35,7 @@ final class AppContainer {
         )
         searchRepository = SearchRepositoryImpl(dataSource: searchRemoteDataSource)
 
-        shortsRepository = MockShortsRepository()
+        shortsRepository = RemoteShortsRepository(networkClient: networkClient)
 
         let detailRemoteDataSource = ContentDetailRemoteDataSource(
             apiClient: ContentDetailAPIClient(networkClient: networkClient)

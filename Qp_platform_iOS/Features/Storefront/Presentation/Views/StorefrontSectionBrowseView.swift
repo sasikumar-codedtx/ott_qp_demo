@@ -18,6 +18,7 @@ struct StorefrontSectionBrowseView: View {
                 visibleCount: density.portraitVisibleCount
             )
             let style = viewModel.section?.browseGridStyle() ?? .poster
+            let showsCardTitles = viewModel.shouldShowCardTitles
             let columns = Array(
                 repeating: GridItem(.fixed(layout.size.width), spacing: 4, alignment: .top),
                 count: layout.visibleCount
@@ -59,12 +60,11 @@ struct StorefrontSectionBrowseView: View {
                                 }
 
                                 ForEach(viewModel.items) { item in
-                                    StorefrontCardView(
+                                    browseGridCard(
                                         item: item,
                                         style: style,
                                         layout: layout,
-                                        rank: nil,
-                                        onSelect: onSelectItem
+                                        showsTitle: showsCardTitles
                                     )
                                     .onAppear {
                                         Task {
@@ -93,6 +93,33 @@ struct StorefrontSectionBrowseView: View {
         }
         .navigationBarBackButtonHidden(true)
         .routeNavigationOverlay(title: viewModel.title, onBack: onBack)
+    }
+
+    private func browseGridCard(
+        item: StorefrontItem,
+        style: StorefrontCardStyle,
+        layout: StorefrontCardLayout,
+        showsTitle: Bool
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            StorefrontCardView(
+                item: item,
+                style: style,
+                layout: layout,
+                rank: nil,
+                onSelect: onSelectItem
+            )
+
+            if showsTitle {
+                Text(item.title)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.92))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .frame(width: layout.size.width, alignment: .leading)
+            }
+        }
+        .frame(width: layout.size.width, alignment: .topLeading)
     }
 
     private func cardDensity(for size: CGSize) -> StorefrontCardDensity {
