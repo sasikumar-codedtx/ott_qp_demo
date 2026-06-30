@@ -129,6 +129,8 @@ struct ContentDetailView: View {
     @State private var scorecardTeamTab = "India"
     @State private var isTimeStampPresented = false
     @FocusState private var isChatInputFocused: Bool
+    @State private var liveChatScrollToken = 0
+    private static let liveChatBottomID = "live-chat-bottom"
     @State private var quizCountdown = 20
     @State private var quizIsLocked = false   // true when timer expires (NOT on tap)
     @State private var timerShakeOffset: CGFloat = 0
@@ -404,11 +406,19 @@ struct ContentDetailView: View {
                 }
 
                     ZStack(alignment: .top) {
-                        ScrollView(.vertical, showsIndicators: false) {
-                            scrollableBody(detail, kind: kind, width: width)
-                                .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
+                        ScrollViewReader { liveProxy in
+                            ScrollView(.vertical, showsIndicators: false) {
+                                scrollableBody(detail, kind: kind, width: width)
+                                    .padding(.bottom, kind == .sportsInteractive && selectedSportsTab == "Live Feed" ? 110 : 80)
+                            }
+                            .padding(.top, -overlapHeight)
+                            // After sending a Live Feed comment, scroll it into view.
+                            .onChange(of: liveChatScrollToken) { _, _ in
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    liveProxy.scrollTo(Self.liveChatBottomID, anchor: .bottom)
+                                }
+                            }
                         }
-                        .padding(.top, -overlapHeight)
                     }
                 }
                 .ignoresSafeArea(edges: .top)
@@ -679,25 +689,43 @@ struct ContentDetailView: View {
                     .lineLimit(2)
             }
 
-            // 3 action buttons: alert | time stamp | AI sparkles
+            // action buttons: alert | time stamp | (AI sparkles — Key Moments search, allow-listed ids only)
             HStack(spacing: 8) {
                 DetailActionButton(systemImage: "bell.fill", cornerStyle: .leading, action: { showDemoAlert = true })
-                DetailActionButton(systemImage: "list.bullet.rectangle") { showDemoAlert = true }
-//                DetailActionButton(systemImage: "list.bullet.rectangle") {
-//                    withAnimation(.spring(response: 0.38, dampingFraction: 0.88)) {
-//                        isTimeStampPresented = true
-//                    }
-//                }
-                DetailActionButton(systemImage: AppIcons.Action.sparkles, cornerStyle: .trailing, isHighlighted: true) {
-                    presentMomentSearchOverlay(for: detail)
+                // When the moment-search button is hidden, this becomes the trailing (rounded) button.
+                DetailActionButton(systemImage: "list.bullet.rectangle", cornerStyle: isKeyMomentsEnabled ? .middle : .trailing) { showDemoAlert = true }
+                if isKeyMomentsEnabled {
+                    DetailActionButton(systemImage: AppIcons.Action.sparkles, cornerStyle: .trailing, isHighlighted: true) {
+                        presentMomentSearchOverlay(for: detail)
+                    }
                 }
             }
             .padding(.top, 14)
         }
     }
 
+    // Key Moments (tab + AI moment search) is enabled only for these specific content ids.
+    private static let keyMomentsContentIDs: Set<String> = [
+        "093416B9-BA22-44BB-83CA-49202C1957AA",
+        "4FAB1007-CB46-474B-8DAD-45A004C50D21",
+        "AE759462-81A8-43F6-8998-AF58C735FC71",
+        "A2C0B23E-9A11-4794-AC97-941C0D4F4AE7"
+    ]
+
+    private var isKeyMomentsEnabled: Bool {
+        let ids = [viewModel.detail?.id, viewModel.seed?.id].compactMap { $0 }
+        return ids.contains { id in
+            Self.keyMomentsContentIDs.contains { $0.caseInsensitiveCompare(id) == .orderedSame }
+        }
+    }
+
     // "Scorecard" (view score) is hidden for now — re-add it to this list to bring it back.
-    private let sportsTabs = ["Live Feed", "Key Moments", "You May also Like"]
+    // "Key Moments" only appears for the allow-listed content ids above.
+    private var sportsTabs: [String] {
+        isKeyMomentsEnabled
+            ? ["Live Feed", "Key Moments", "You May also Like"]
+            : ["Live Feed", "You May also Like"]
+    }
 
     private var sportsTabRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -758,6 +786,11 @@ struct ContentDetailView: View {
             ForEach(liveChatDemoMessages) { msg in
                 liveChatRow(msg)
             }
+
+            // Anchor we scroll to after sending a comment.
+            Color.clear
+                .frame(height: 1)
+                .id(Self.liveChatBottomID)
         }
         .padding(.top, 10)
     }
@@ -772,9 +805,15 @@ struct ContentDetailView: View {
             avatarLetter: "Y",
             colorHex: "6366F1"
         )
+        // Dismiss the keyboard first, then animate the new comment into view.
+        isChatInputFocused = false
         withAnimation(.easeInOut(duration: 0.18)) {
             liveChatDemoMessages.append(newMsg)
             liveChatInput = ""
+        }
+        // Let the keyboard dismissal settle (~0.25s) so the scroll lands on the new row.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            liveChatScrollToken += 1
         }
     }
 
@@ -1729,9 +1768,12 @@ struct ContentDetailView: View {
                     Task { await viewModel.cycleLike() }
                 }
             }
-            DetailActionButton(assetImage: "share", iconSize: 22, action: { showDemoAlert = true })
-            DetailActionButton(systemImage: AppIcons.Action.sparkles, cornerStyle: .trailing, isHighlighted: true) {
-                presentMomentSearchOverlay(for: detail)
+            // Share becomes the trailing (rounded) button when the moment-search button is hidden.
+            DetailActionButton(assetImage: "share", iconSize: 22, cornerStyle: isKeyMomentsEnabled ? .middle : .trailing, action: { showDemoAlert = true })
+            if isKeyMomentsEnabled {
+                DetailActionButton(systemImage: AppIcons.Action.sparkles, cornerStyle: .trailing, isHighlighted: true) {
+                    presentMomentSearchOverlay(for: detail)
+                }
             }
         }
 //        .overlay(alignment: .bottomTrailing) {
@@ -1809,20 +1851,17 @@ struct ContentDetailView: View {
     }
 
     private func detailTabs(for detail: ContentDetail) -> [String] {
+        // "Moments" appears only for the allow-listed content ids.
+        let moments = isKeyMomentsEnabled ? [AppStrings.Detail.moments] : []
         if detail.supportsEpisodes {
-            return [
-                AppStrings.Detail.episodes,
-                AppStrings.Detail.moreLikeThis,
-                AppStrings.Detail.moments,
-                AppStrings.Detail.castAndMore
-            ]
+            return [AppStrings.Detail.episodes, AppStrings.Detail.moreLikeThis]
+                + moments
+                + [AppStrings.Detail.castAndMore]
         }
 
-        return [
-            AppStrings.Detail.moreLikeThis,
-            AppStrings.Detail.moments,
-            AppStrings.Detail.castAndMore
-        ]
+        return [AppStrings.Detail.moreLikeThis]
+            + moments
+            + [AppStrings.Detail.castAndMore]
     }
 
     private func tabRow(_ detail: ContentDetail) -> some View {
@@ -2303,8 +2342,6 @@ struct ContentDetailView: View {
 
         dismissMomentSearchOverlay()
         viewModel.submitMomentSearch(query)
-
-        // For sports page: auto-switch to Key Moments tab so scroll lands visibly
         if let detail = viewModel.detail {
             let kind = DetailPresentationKind.resolve(seed: viewModel.seed, detail: detail)
             if kind == .sportsInteractive {
@@ -2318,10 +2355,6 @@ struct ContentDetailView: View {
     private func updateKeyboardHeight(from notification: Notification) {
         guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
         let duration = (notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double) ?? 0.25
-
-        // Overlap of the keyboard from the bottom of the active window. Use the window's
-        // bounds (not the deprecated UIScreen.main, which can report wrong values under
-        // scene-based lifecycles) so the lift amount is correct.
         let screenH = keyWindow?.bounds.height ?? UIScreen.main.bounds.height
         let height = max(0, screenH - frame.minY)
 

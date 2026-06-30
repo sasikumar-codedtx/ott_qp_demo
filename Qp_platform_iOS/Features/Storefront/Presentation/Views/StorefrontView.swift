@@ -23,10 +23,13 @@ struct StorefrontView: View {
     var isSubscribed: Bool = false
     @State private var isTabMenuPresented = false
     private var isHotPresentation: Bool { bottomSelection == .hot }
+    private var shouldShowStorefrontTabDock: Bool { !isHotPresentation && !dockTabs.isEmpty }
     private static let scrollTopID = "storefront-scroll-top"
 
     private var dockTabs: [StorefrontTab] {
-        hidesFirstStorefrontTabInDock ? Array(viewModel.tabs.dropFirst()) : viewModel.tabs
+        guard hidesFirstStorefrontTabInDock else { return viewModel.tabs }
+        let secondaryTabs = Array(viewModel.tabs.dropFirst())
+        return secondaryTabs.isEmpty ? viewModel.tabs : secondaryTabs
     }
 
     var body: some View {
@@ -47,6 +50,7 @@ struct StorefrontView: View {
                     bottomChrome
                         .padding(.bottom, max(proxy.safeAreaInsets.bottom - 12, 0))
                         .ignoresSafeArea(.container, edges: .bottom)
+                        .animation(.spring(response: 0.42, dampingFraction: 0.78), value: shouldShowStorefrontTabDock)
                 }
             }
             .ignoresSafeArea(edges: [.top, .bottom])
@@ -73,7 +77,7 @@ struct StorefrontView: View {
 
     private var bottomChrome: some View {
         VStack(alignment: .center, spacing: 8) {
-            if !isHotPresentation {
+            if shouldShowStorefrontTabDock {
                 StorefrontTabDockView(
                     tabs: dockTabs,
                     selectedTabID: viewModel.selectedTabID,
@@ -84,6 +88,14 @@ struct StorefrontView: View {
                         isTabMenuPresented = true
                     }
                 )
+                // Beautiful entrance: slides up from behind the nav bar, fading and scaling
+                // in from the bottom; exits straight back down.
+                .transition(.asymmetric(
+                    insertion: .move(edge: .bottom)
+                        .combined(with: .opacity)
+                        .combined(with: .scale(scale: 0.9, anchor: .bottom)),
+                    removal: .move(edge: .bottom).combined(with: .opacity)
+                ))
             }
 
             BottomNavigationBar(
@@ -122,7 +134,7 @@ struct StorefrontView: View {
                 ScrollView(.vertical, showsIndicators: false) {
                     LazyVStack(spacing: 18) {
                         Color.clear
-                            .frame(height: 0)
+                            .frame(height: 1)
                             .id(Self.scrollTopID)
 
                         if viewModel.isRefreshing {
@@ -159,7 +171,7 @@ struct StorefrontView: View {
                                 .padding(.vertical, UIConstants.Spacing.md)
                         }
                     }
-                    .padding(.bottom, showsBottomChrome ? 188 : 32)
+                    .padding(.bottom, showsBottomChrome ? (shouldShowStorefrontTabDock ? 188 : 116) : 32)
                 }
                 .onChange(of: viewModel.scrollToTopToken) { _, _ in
                     scrollToTop(using: scrollProxy)

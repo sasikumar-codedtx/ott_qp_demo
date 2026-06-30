@@ -50,7 +50,9 @@ struct AvatarPickerView: View {
             .padding(.horizontal, UIConstants.Spacing.lg)
             .padding(.top, 12)
             .padding(.bottom, 14)
-            .background(Color.black.opacity(0.96))
+            // Extend the opaque backdrop under the home indicator (background only — the
+            // Save button doesn't move). Mirrors ProfileEditorView.
+            .background(Color.black.opacity(0.96).ignoresSafeArea())
         }
     }
 

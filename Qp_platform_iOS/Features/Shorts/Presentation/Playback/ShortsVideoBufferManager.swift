@@ -11,7 +11,15 @@ final class ShortsVideoBufferManager {
     private let fileManager = FileManager.default
     private let state = BufferState()
 
+    // HLS (.m3u8) is a manifest of segments — it can't be file-cached like a progressive
+    // mp4 (downloading the manifest alone yields unresolvable relative segment URLs).
+    // Stream it directly; only progressive files go through the local cache.
+    private func isStreamingManifest(_ url: URL) -> Bool {
+        url.pathExtension.lowercased() == "m3u8"
+    }
+
     func playbackURL(for remoteURL: URL) -> URL {
+        guard !isStreamingManifest(remoteURL) else { return remoteURL }
         let localURL = cacheFileURL(for: remoteURL)
         return fileManager.fileExists(atPath: localURL.path) ? localURL : remoteURL
     }
@@ -24,7 +32,7 @@ final class ShortsVideoBufferManager {
                 await state.markFullFeedBufferStarted()
             }
 
-            for remoteURL in urls {
+            for remoteURL in urls where !isStreamingManifest(remoteURL) {
                 await enqueueDownloadIfNeeded(for: remoteURL)
             }
         }

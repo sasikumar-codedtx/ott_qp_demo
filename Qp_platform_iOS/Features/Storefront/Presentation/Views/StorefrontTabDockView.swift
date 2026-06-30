@@ -18,13 +18,13 @@ struct StorefrontTabDockView: View {
 
     @ViewBuilder
     private func chipRow(maxVisible: Int) -> some View {
-        let count   = min(maxVisible, tabs.count)
+        let count = min(maxVisible, tabs.count)
         let hasMore = tabs.count > count
 
         HStack(spacing: -1) {
             ForEach(Array(tabs.prefix(count).enumerated()), id: \.element.id) { index, tab in
                 let isFirst = index == 0
-                let isLast  = !hasMore && index == count - 1
+                let isLast = !hasMore && index == count - 1
 
                 Button { onSelectTab(tab) } label: {
                     Text(tab.title)

@@ -348,8 +348,34 @@ struct QuickplayContentItemDTO: Decodable {
     let ae: FlexibleBoolDTO?
     let vq: String?
     let rt: Int?
-    let apURL: String?
+    let apURL: ApURLDTO?
     let hu: String?
+
+    // ap_url can be a plain string or an object { dash, hls }. Decode either.
+    struct ApURLDTO: Decodable {
+        let dash: String?
+        let hls: String?
+        let raw: String?
+
+        init(from decoder: Decoder) throws {
+            if let single = try? decoder.singleValueContainer().decode(String.self) {
+                raw = single
+                dash = nil
+                hls = nil
+            } else {
+                let c = try decoder.container(keyedBy: CodingKeys.self)
+                dash = try c.decodeIfPresent(String.self, forKey: .dash)
+                hls = try c.decodeIfPresent(String.self, forKey: .hls)
+                raw = nil
+            }
+        }
+
+        enum CodingKeys: String, CodingKey { case dash, hls }
+
+        /// Preferred playable URL — HLS first, then DASH, then a plain-string value.
+        var playable: String? { hls ?? dash ?? raw }
+    }
+
     let nu: String?
     let urn: String?
     let locs: [ContentPersonDTO]?
@@ -418,8 +444,8 @@ struct QuickplayContentItemDTO: Decodable {
             runtimeSeconds: rt,
             progress: progress,
             canOpenDetail: true,
-            previewURL: apURL.flatMap(URL.init(string:)),
-            shortVideoURL: (hu ?? "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_1MB.mp4").flatMap(URL.init(string:)),
+            previewURL: apURL?.playable.flatMap(URL.init(string:)),
+            shortVideoURL: (apURL?.playable).flatMap(URL.init(string:)),
             imageBaseURL: config.imageResizeURL,
             customTag: lodtg?.preferredText ?? "",
             sponsorName: custSprTg?.first?.lon?.preferredText.nilIfEmpty,
@@ -446,7 +472,7 @@ struct QuickplayContentItemDTO: Decodable {
             directorNames: (lodr ?? []).map(\.localizedName),
             momentSearchEnabled: true,
             seriesId: seriesID,
-            previewURL: apURL.flatMap(URL.init(string:)),
+            previewURL: apURL?.playable.flatMap(URL.init(string:)),
             imageBaseURL: config.imageResizeURL,
             markers: PlayerMarker.from(mar)
         )

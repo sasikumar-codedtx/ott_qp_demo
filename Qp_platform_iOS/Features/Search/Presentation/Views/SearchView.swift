@@ -125,25 +125,18 @@ struct SearchView: View {
         } else if !viewModel.displayedResults.isEmpty || !viewModel.momentResults.isEmpty {
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
-                    // Rail 1 — content (moment=false): horizontal scroll
+                    // Rail 1 — content (moment=false): vertical grid (moments rail is disabled).
                     if !viewModel.displayedResults.isEmpty {
                         VStack(alignment: .leading, spacing: 10) {
                             SectionHeaderView(title: "\(viewModel.displaySearchTerm) Contents")
                                 .padding(.horizontal, UIConstants.Spacing.lg)
 
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 10) {
-                                    ForEach(viewModel.displayedResults) { item in
-                                        SearchPosterCard(
-                                            item: item,
-                                            size: CGSize(width: 124, height: 186),
-                                            showsPlayIcon: false,
-                                            onSelect: onSelectItem
-                                        )
-                                    }
-                                }
-                                .padding(.horizontal, UIConstants.Spacing.lg)
-                            }
+                            SearchRecommendedClipGrid(
+                                items: viewModel.displayedResults,
+                                showsPlayIcon: false,
+                                onSelect: onSelectItem
+                            )
+                            .padding(.horizontal, UIConstants.Spacing.lg)
                         }
                     }
 
@@ -162,7 +155,8 @@ struct SearchView: View {
                     }
                 }
                 .padding(.top, 8)
-                .padding(.bottom, searchDockReservedHeight + 20)
+                // Extra clearance so the last grid row sits fully above the opaque search dock.
+                .padding(.bottom, searchDockReservedHeight + 64)
                 .animation(.easeOut(duration: 0.25), value: searchDockReservedHeight)
             }
             .simultaneousGesture(TapGesture().onEnded { isSearchFocused = false })
@@ -287,7 +281,12 @@ struct SearchView: View {
         }
         .padding(.top, 8)
         .padding(.bottom, searchDockBottomPadding(bottomInset: bottomInset))
-        .background(searchDockBackdrop(height: searchDockBackdropHeight, isKeyboardVisible: isKeyboardVisible))
+        // Let the opaque backdrop bleed into the home-indicator strip so no content shows
+        // under the dock. Scoped to the background only — the dock content does not move.
+        .background(
+            searchDockBackdrop(height: searchDockBackdropHeight, isKeyboardVisible: isKeyboardVisible)
+                .ignoresSafeArea()
+        )
     }
 
     private var showsSuggestions: Bool {
@@ -858,6 +857,7 @@ private struct PendingVoiceTranslation: Equatable {
 
 private struct SearchRecommendedClipGrid: View {
     let items: [StorefrontItem]
+    var showsPlayIcon = true
     let onSelect: (StorefrontItem) -> Void
 
     private let columns = [
@@ -873,7 +873,7 @@ private struct SearchRecommendedClipGrid: View {
                     SearchPosterCard(
                         item: item,
                         size: CGSize(width: proxy.size.width, height: proxy.size.width * 1.5),
-                        showsPlayIcon: true,
+                        showsPlayIcon: showsPlayIcon,
                         onSelect: onSelect
                     )
                 }
@@ -1271,7 +1271,10 @@ private struct VoiceSearchResultsView: View {
                     .padding(.horizontal, UIConstants.Spacing.lg)
             }
             .padding(.bottom, 14)
-            .background(searchDockBackdrop(height: viewModel.availableFilters.count > 1 ? 166 : 112))
+            .background(
+                searchDockBackdrop(height: viewModel.availableFilters.count > 1 ? 166 : 112)
+                    .ignoresSafeArea()
+            )
         }
     }
 
@@ -1565,7 +1568,10 @@ private struct AISearchTextResultsView: View {
                     .padding(.horizontal, UIConstants.Spacing.lg)
             }
             .padding(.bottom, 14)
-            .background(searchDockBackdrop(height: viewModel.availableFilters.count > 1 ? 166 : 112))
+            .background(
+                searchDockBackdrop(height: viewModel.availableFilters.count > 1 ? 166 : 112)
+                    .ignoresSafeArea()
+            )
         }
     }
 
@@ -1750,5 +1756,7 @@ private func searchDockBackdrop(height: CGFloat, isKeyboardVisible: Bool = false
         )
         .frame(height: height)
     }
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
     .allowsHitTesting(false)
+    .ignoresSafeArea()
 }

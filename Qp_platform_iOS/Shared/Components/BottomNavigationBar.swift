@@ -11,8 +11,8 @@ struct BottomNavigationBar: View {
     private enum Metrics {
         static let idealWidth: CGFloat = 380
         static let horizontalInset: CGFloat = 16
-        static let height: CGFloat = 61
-        static let rowHeight: CGFloat = 42
+        static let height: CGFloat = 69
+        static let rowHeight: CGFloat = 46
         static let itemWidth: CGFloat = 48
         static let iconSize: CGFloat = 24
         static let selectedGlowWidth: CGFloat = 33
@@ -47,8 +47,8 @@ struct BottomNavigationBar: View {
         }
         .frame(height: Metrics.rowHeight)
         .padding(.horizontal, Metrics.horizontalInset)
-        .padding(.top, 10)
-        .padding(.bottom, 9)
+        .padding(.top, 12)
+        .padding(.bottom, 11)
         .frame(maxWidth: Metrics.idealWidth)
         .background(barBackground)
         .frame(maxWidth: .infinity)
@@ -71,7 +71,7 @@ struct BottomNavigationBar: View {
         let effectiveAsset = isSelected ? (selectedAssetName ?? assetName) : assetName
         return ZStack(alignment: .top) {
             selectedIndicator(isSelected: isSelected)
-                .offset(y: 36)
+                .offset(y: 40)
 
             VStack(spacing: 6) {
                 Image(effectiveAsset)

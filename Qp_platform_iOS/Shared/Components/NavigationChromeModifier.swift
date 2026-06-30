@@ -164,6 +164,9 @@ private final class InteractivePopGestureDelegate: NSObject, UIGestureRecognizer
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        true
+        // Recognize simultaneously with scrolling/panning so the back-swipe still works inside
+        // scroll views — but NOT with taps/long-press, otherwise a button under the finger
+        // (e.g. Play/Watch) fires mid-swipe-back.
+        otherGestureRecognizer is UIPanGestureRecognizer
     }
 }

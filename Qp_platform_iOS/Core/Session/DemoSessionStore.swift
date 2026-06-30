@@ -419,9 +419,9 @@ actor DemoSessionStore {
         let sportsClicks = counts[StorefrontPolicySignal.sports.rawValue] ?? 0
         let totalClicks = entertainmentClicks + realityClicks + sportsClicks
 
-        // Dynamic cohort selection requires more than 15 card clicks to be meaningful.
+        // Dynamic cohort selection requires more than 5 card clicks to be meaningful.
         // Below that threshold, honour the profile's stored storefront policy directly.
-        guard totalClicks > 15 else {
+        guard totalClicks > 5 else {
             return baselinePolicy
         }
 
@@ -472,7 +472,7 @@ actor DemoSessionStore {
         profileID: \(activeProfileID ?? "guest")
         baselinePolicy: \(activeStorefrontPolicy.rawValue) chrt=\(activeStorefrontPolicy.chrtValue)
         effectivePolicy: \(effectivePolicy.rawValue) chrt=\(effectivePolicy.chrtValue)
-        dynamicEnabled: \(totalClicks > 15)
+        dynamicEnabled: \(totalClicks > 5)
         entertainment: \(entertainmentClicks)
         reality: \(realityClicks)
         sports: \(sportsClicks)

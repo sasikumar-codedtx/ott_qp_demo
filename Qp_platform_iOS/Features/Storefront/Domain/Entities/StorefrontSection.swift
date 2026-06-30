@@ -32,25 +32,19 @@ struct StorefrontSection: Identifiable, Equatable, Hashable {
     }
 
     var allowsViewAll: Bool {
-        !isGenreCollection
+        !isCollectionSection
     }
 
-    private var isGenreCollection: Bool {
+    // Collection-type sections (e.g. genre cards) don't get a "View All" — each card already
+    // opens its own collection.
+    private var isCollectionSection: Bool {
         guard !items.isEmpty else { return false }
 
-        let hasOnlyCollectionCards = items.allSatisfy { item in
+        return items.allSatisfy { item in
             let type = item.contentType.lowercased()
             let cardType = item.cardType?.lowercased() ?? ""
             return type == "collection" || cardType == "collection"
         }
-
-        guard hasOnlyCollectionCards else { return false }
-
-        let searchText = ([title] + items.map(\.title) + items.compactMap(\.customSearchCategory))
-            .joined(separator: " ")
-            .lowercased()
-
-        return searchText.contains("genre")
     }
 
     func cardStyle(isHomeTab: Bool, cohort: QuickplayCohort) -> StorefrontCardStyle {

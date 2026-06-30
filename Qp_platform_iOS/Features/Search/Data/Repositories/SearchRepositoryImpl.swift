@@ -10,8 +10,9 @@ final class SearchRepositoryImpl: SearchRepository {
     }
 
     func search(term: String, facetTerm: String?) async throws -> SearchResultPage {
+        // Moments search (moment=true) is intentionally disabled for now — we don't call that
+        // API and return no moment items, so the Moments rail stays hidden in the search view.
         async let contentResponse = dataSource.search(term: term, facetTerm: facetTerm, moment: false)
-        async let momentResponse = dataSource.search(term: term, facetTerm: facetTerm, moment: true)
         let config = await configStore.current()
 
         let content = try await contentResponse
@@ -22,14 +23,7 @@ final class SearchRepositoryImpl: SearchRepository {
             return SearchFilter(id: term, title: term.searchFacetDisplayTitle)
         } ?? []
 
-        let momentItems: [StorefrontItem]
-        if let moments = try? await momentResponse {
-            momentItems = moments.data.map { $0.toDomain(config: config) }
-        } else {
-            momentItems = []
-        }
-
-        return SearchResultPage(items: items, momentItems: momentItems, filters: filters)
+        return SearchResultPage(items: items, momentItems: [], filters: filters)
     }
 
 }
